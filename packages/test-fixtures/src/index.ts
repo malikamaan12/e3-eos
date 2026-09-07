@@ -61,3 +61,8 @@ export const SYNTHETIC_PROJECTS = {
     clientOrganisationId: SYNTHETIC_ORGANISATIONS.clientCorp.id,
   },
 };
+
+export type SyntheticOrganisation = typeof SYNTHETIC_ORGANISATIONS[keyof typeof SYNTHETIC_ORGANISATIONS];
+export type SyntheticUser = typeof SYNTHETIC_USERS[keyof typeof SYNTHETIC_USERS];
+export type SyntheticProject = typeof SYNTHETIC_PROJECTS[keyof typeof SYNTHETIC_PROJECTS];
+

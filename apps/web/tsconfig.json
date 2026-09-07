@@ -2,6 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "paths": {
       "@e3-eos/domain": ["../../packages/domain/src/index.ts"],
       "@e3-eos/policy": ["../../packages/policy/src/index.ts"],

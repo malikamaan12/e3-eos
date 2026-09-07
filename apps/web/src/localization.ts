@@ -156,3 +156,19 @@ export class LocalizationService {
     });
   }
 }
+
+const defaultLocalizationService = new LocalizationService('en');
+
+export function formatCurrencyInLocale(currency: string, amount: number | string, locale: SupportedLocale = 'en'): string {
+  return defaultLocalizationService.formatCurrency(amount, currency, locale);
+}
+
+export function translateInLocale(key: string, locale: SupportedLocale = 'en'): string {
+  return defaultLocalizationService.translate(key, locale);
+}
+
+export function getStageTitleInLocale(stageNumber: number, locale: SupportedLocale = 'en'): string {
+  const stageKey = `stages.s${String(stageNumber).padStart(2, '0')}`;
+  return translateInLocale(stageKey, locale);
+}
+
