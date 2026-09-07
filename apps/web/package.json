@@ -1,0 +1,17 @@
+{
+  "name": "@e3-eos/web",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@e3-eos/contracts": "workspace:*",
+    "@e3-eos/domain": "workspace:*",
+    "@e3-eos/test-fixtures": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

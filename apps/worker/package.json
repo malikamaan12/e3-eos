@@ -1,0 +1,18 @@
+{
+  "name": "@e3-eos/worker",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@e3-eos/db": "workspace:*",
+    "@e3-eos/domain": "workspace:*",
+    "@e3-eos/policy": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

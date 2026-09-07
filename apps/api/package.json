@@ -1,0 +1,31 @@
+{
+  "name": "@e3-eos/api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/main.js",
+    "dev": "tsx watch src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@e3-eos/contracts": "workspace:*",
+    "@e3-eos/db": "workspace:*",
+    "@e3-eos/domain": "workspace:*",
+    "@e3-eos/policy": "workspace:*",
+    "@e3-eos/test-fixtures": "workspace:*",
+    "@nestjs/common": "^11.0.10",
+    "@nestjs/core": "^11.0.10",
+    "@nestjs/platform-express": "^11.0.10",
+    "better-auth": "^1.1.21",
+    "express": "^4.21.2",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "typescript": "^5.7.3"
+  }
+}

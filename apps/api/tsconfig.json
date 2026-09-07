@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@e3-eos/domain": ["../../packages/domain/src/index.ts"],
+      "@e3-eos/policy": ["../../packages/policy/src/index.ts"],
+      "@e3-eos/contracts": ["../../packages/contracts/src/index.ts"],
+      "@e3-eos/db": ["../../packages/db/src/index.ts"],
+      "@e3-eos/test-fixtures": ["../../packages/test-fixtures/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"]
+}
