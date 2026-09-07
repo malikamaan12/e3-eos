@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: e3-eos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: e3_eos_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: devpassword123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d e3_eos_dev']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: e3-eos-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass redisdevpassword123
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', 'redisdevpassword123', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  storage:
+    image: minio/minio:RELEASE.2024-01-18T22-51-28Z
+    container_name: e3-eos-storage-emulator
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: e3-eos-mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP server
+      - '8025:8025' # Web UI
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O - http://localhost:8025/api/v2/messages || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

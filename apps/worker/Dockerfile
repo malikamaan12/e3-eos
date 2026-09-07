@@ -1,0 +1,45 @@
+# --- Stage 1: Build & Prune ---
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Enable corepack and prepare pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy workspace package manifests
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
+COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/domain/package.json ./packages/domain/
+COPY packages/policy/package.json ./packages/policy/
+COPY packages/db/package.json ./packages/db/
+COPY packages/test-fixtures/package.json ./packages/test-fixtures/
+COPY apps/api/package.json ./apps/api/
+COPY apps/worker/package.json ./apps/worker/
+COPY apps/web/package.json ./apps/web/
+
+# Install all dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source trees
+COPY packages/ ./packages/
+COPY apps/worker/ ./apps/worker/
+
+# Build shared packages and apps/worker
+RUN pnpm -r run build
+
+# --- Stage 2: Production Runner ---
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Create non-root user
+USER node
+
+COPY --chown=node:node --from=builder /app/package.json /app/pnpm-workspace.yaml ./
+COPY --chown=node:node --from=builder /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/packages ./packages
+COPY --chown=node:node --from=builder /app/apps/worker ./apps/worker
+
+CMD ["node", "apps/worker/dist/index.js"]
