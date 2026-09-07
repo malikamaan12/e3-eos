@@ -11,12 +11,21 @@ import {
   UseFilters,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { ProjectCreateSchema, ProjectCreateDto, CommandResult } from '@e3-eos/contracts';
+import {
+  ProjectCreateSchema,
+  ProjectCreateDto,
+  ProjectCloneSchema,
+  ProjectCloneDto,
+  CloseDimensionSchema,
+  CloseDimensionDto,
+  CommandResult,
+} from '@e3-eos/contracts';
+import { ProjectCloningEngine } from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard, AllowedAudiences } from '../common/tenant.guard.js';
 
-interface StoredProject {
+export interface StoredProject {
   id: string;
   organisationId: string;
   projectCode: string;
@@ -27,6 +36,12 @@ interface StoredProject {
   maturity: string;
   outcome: string;
   rowVersion: number;
+  clientOrganisationId?: string;
+  classification?: any;
+  financialAssumptions?: any;
+  dateRegister?: any;
+  venueContext?: any;
+  closedDimensions?: Record<string, { closedAt: string; manifestId: string }>;
   costingData?: {
     contractorBuyRateHourly: string;
     internalMarginTarget: string;
@@ -50,8 +65,8 @@ export class ProjectsController {
         {
           code: 'INVALID_ARGUMENT',
           title: 'Project validation failed',
-          detail: parseResult.error.errors.map((e: { path: (string | number)[]; message: string }) => `${e.path.join('.')}: ${e.message}`).join(', '),
-          invalidParams: parseResult.error.errors.map((e: { path: (string | number)[]; message: string }) => ({
+          detail: parseResult.error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+          invalidParams: parseResult.error.errors.map((e: any) => ({
             name: e.path.join('.'),
             reason: e.message,
           })),
@@ -66,6 +81,8 @@ export class ProjectsController {
     const projectId = `prj-${Date.now()}`;
     const projectCode = data.projectCode || `PRJ-${Date.now().toString().slice(-4)}`;
 
+    // Progressive completeness (AT-014):
+    // Preserves undefined/unknown client, financial assumptions, dates without synthetic defaults
     const newProject: StoredProject = {
       id: projectId,
       organisationId: orgId,
@@ -74,6 +91,10 @@ export class ProjectsController {
       description: data.description,
       originCode: data.originCode,
       ownerId: data.ownerId,
+      clientOrganisationId: data.clientOrganisationId,
+      classification: data.classification,
+      financialAssumptions: data.financialAssumptions,
+      dateRegister: data.dateRegister,
       maturity: 'idea',
       outcome: 'undetermined',
       rowVersion: 1,
@@ -97,6 +118,8 @@ export class ProjectsController {
           title: data.title,
           maturity: 'idea',
           outcome: 'undetermined',
+          financialAssumptions: data.financialAssumptions || null,
+          clientOrganisationId: data.clientOrganisationId || null,
         },
       },
       meta: {
@@ -132,15 +155,137 @@ export class ProjectsController {
         description: project.description,
         maturity: project.maturity,
         outcome: project.outcome,
+        clientOrganisationId: project.clientOrganisationId,
+        financialAssumptions: project.financialAssumptions,
+        dateRegister: project.dateRegister,
+        closedDimensions: project.closedDimensions || {},
         rowVersion: project.rowVersion,
       },
     };
   }
 
   /**
-   * Internal-only costing endpoint (AT-002).
-   * Client accounts calling this must receive 403 Forbidden with zero data leaked.
+   * Clones a project while strictly resetting consequential data (AT-030).
    */
+  @Post(':id/clone')
+  @UseGuards(IdempotencyGuard)
+  cloneProject(
+    @Param('id') id: string,
+    @Body() body: unknown
+  ): CommandResult {
+    const parseRes = ProjectCloneSchema.safeParse(body);
+    if (!parseRes.success) {
+      throw new HttpException({ code: 'INVALID_ARGUMENT', title: 'Invalid clone payload' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const data: ProjectCloneDto = parseRes.data;
+    const sourceProject = projectRepository.get(id);
+    if (!sourceProject) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Source project not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const clonedOutput = ProjectCloningEngine.cloneProject(
+      {
+        id: sourceProject.id,
+        projectCode: sourceProject.projectCode,
+        title: sourceProject.title,
+        description: sourceProject.description,
+        stages: [],
+        workPackages: [],
+        requirements: [],
+        historicalApprovals: [{ id: 'old-approval-1' }],
+        signatures: [{ signed: true }],
+        actualCosts: [{ cost: 1000 }],
+        resourceReservations: [{ res: 'camera-1' }],
+      },
+      data.newProjectCode,
+      data.newTitle
+    );
+
+    const newProject: StoredProject = {
+      id: clonedOutput.id,
+      organisationId: sourceProject.organisationId,
+      projectCode: clonedOutput.projectCode,
+      title: clonedOutput.title,
+      description: clonedOutput.description,
+      originCode: 'CLONED',
+      ownerId: sourceProject.ownerId,
+      maturity: 'idea',
+      outcome: 'undetermined',
+      rowVersion: 1,
+    };
+
+    projectRepository.set(newProject.id, newProject);
+
+    return {
+      data: {
+        id: newProject.id,
+        status: 'cloned',
+        recordVersion: 1,
+        payload: {
+          newProjectCode: newProject.projectCode,
+          title: newProject.title,
+          maturity: 'idea',
+          outcome: 'undetermined',
+          historicalApprovalsReset: true,
+          signaturesReset: true,
+          costsReset: true,
+        },
+      },
+      meta: { requestId: `req-${Date.now()}` },
+    };
+  }
+
+  /**
+   * Closes a specific dimension of a project (e.g. operational, client_acceptance).
+   * Separate from settlement or financial closure.
+   */
+  @Post(':id/close')
+  @UseGuards(IdempotencyGuard)
+  closeDimension(
+    @Param('id') id: string,
+    @Body() body: unknown
+  ): CommandResult {
+    const parseRes = CloseDimensionSchema.safeParse(body);
+    if (!parseRes.success) {
+      throw new HttpException({ code: 'INVALID_ARGUMENT', title: 'Invalid close dimension payload' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const data: CloseDimensionDto = parseRes.data;
+    const project = projectRepository.get(id);
+    if (!project) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Project not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    if (!project.closedDimensions) {
+      project.closedDimensions = {};
+    }
+
+    project.closedDimensions[data.dimension] = {
+      closedAt: new Date().toISOString(),
+      manifestId: data.evidenceManifestId,
+    };
+
+    if (data.dimension === 'operational') {
+      project.maturity = 'closing';
+    }
+
+    projectRepository.set(id, project);
+
+    return {
+      data: {
+        id,
+        status: `dimension_${data.dimension}_closed`,
+        recordVersion: project.rowVersion,
+        payload: {
+          dimension: data.dimension,
+          closedDimensions: project.closedDimensions,
+        },
+      },
+      meta: { requestId: `req-${Date.now()}` },
+    };
+  }
+
   @Get(':id/costing')
   @AllowedAudiences('internal')
   getProjectCosting(@Param('id') id: string, @Req() req: Request) {
