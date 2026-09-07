@@ -1,0 +1,72 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.5.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:7e21a0f9-8db2-4e89-914e-f24b89dc642c",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-07T04:40:00Z",
+    "component": {
+      "name": "@e3-eos/platform",
+      "version": "1.0.0",
+      "type": "application",
+      "description": "E3 Enterprise Event Operating System Monorepo"
+    }
+  },
+  "components": [
+    {
+      "name": "@nestjs/core",
+      "version": "^10.4.15",
+      "purl": "pkg:npm/%40nestjs/core@10.4.15",
+      "license": "MIT"
+    },
+    {
+      "name": "@nestjs/common",
+      "version": "^10.4.15",
+      "purl": "pkg:npm/%40nestjs/common@10.4.15",
+      "license": "MIT"
+    },
+    {
+      "name": "@nestjs/platform-express",
+      "version": "^10.4.15",
+      "purl": "pkg:npm/%40nestjs/platform-express@10.4.15",
+      "license": "MIT"
+    },
+    {
+      "name": "decimal.js",
+      "version": "^10.4.3",
+      "purl": "pkg:npm/decimal.js@10.4.3",
+      "license": "MIT"
+    },
+    {
+      "name": "drizzle-orm",
+      "version": "^0.38.3",
+      "purl": "pkg:npm/drizzle-orm@0.38.3",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "pg",
+      "version": "^8.13.1",
+      "purl": "pkg:npm/pg@8.13.1",
+      "license": "MIT"
+    },
+    {
+      "name": "zod",
+      "version": "^3.24.1",
+      "purl": "pkg:npm/zod@3.24.1",
+      "license": "MIT"
+    },
+    {
+      "name": "typescript",
+      "version": "^5.7.3",
+      "purl": "pkg:npm/typescript@5.7.3",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "vitest",
+      "version": "^3.2.7",
+      "purl": "pkg:npm/vitest@3.2.7",
+      "license": "MIT"
+    }
+  ]
+}

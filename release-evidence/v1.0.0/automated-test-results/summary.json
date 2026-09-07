@@ -1,0 +1,38 @@
+{
+  "testRun": {
+    "framework": "vitest",
+    "version": "3.2.7",
+    "timestamp": "2026-09-07T04:46:18Z",
+    "status": "PASSED",
+    "totalTestFiles": 21,
+    "passedTestFiles": 21,
+    "failedTestFiles": 0,
+    "totalTests": 172,
+    "passedTests": 172,
+    "failedTests": 0,
+    "durationSeconds": 12.03,
+    "suites": [
+      { "file": "apps/worker/src/worker.test.ts", "tests": 1, "passed": 1 },
+      { "file": "packages/policy/src/policy.test.ts", "tests": 6, "passed": 6 },
+      { "file": "packages/domain/src/finance.test.ts", "tests": 5, "passed": 5 },
+      { "file": "packages/domain/src/stage-graph.test.ts", "tests": 6, "passed": 6 },
+      { "file": "apps/web/src/web.test.ts", "tests": 13, "passed": 13 },
+      { "file": "packages/domain/src/rollout.test.ts", "tests": 5, "passed": 5 },
+      { "file": "packages/domain/src/operations.test.ts", "tests": 11, "passed": 11 },
+      { "file": "packages/domain/src/portfolio-ai.test.ts", "tests": 7, "passed": 7 },
+      { "file": "packages/domain/src/finance-reporting.test.ts", "tests": 10, "passed": 10 },
+      { "file": "tests/lifecycle-e2e.test.ts", "tests": 1, "passed": 1 },
+      { "file": "packages/domain/src/procurement.test.ts", "tests": 12, "passed": 12 },
+      { "file": "packages/domain/src/boq.test.ts", "tests": 13, "passed": 13 },
+      { "file": "apps/api/src/phase07.test.ts", "tests": 6, "passed": 6 },
+      { "file": "apps/api/src/phase04.test.ts", "tests": 11, "passed": 11 },
+      { "file": "apps/api/src/api.test.ts", "tests": 9, "passed": 9 },
+      { "file": "apps/api/src/phase06.test.ts", "tests": 7, "passed": 7 },
+      { "file": "apps/api/src/phase02.test.ts", "tests": 9, "passed": 9 },
+      { "file": "apps/api/src/phase03.test.ts", "tests": 12, "passed": 12 },
+      { "file": "apps/api/src/phase05.test.ts", "tests": 14, "passed": 14 },
+      { "file": "apps/api/src/phase01.test.ts", "tests": 11, "passed": 11 },
+      { "file": "tests/infrastructure.test.ts", "tests": 3, "passed": 3 }
+    ]
+  }
+}
