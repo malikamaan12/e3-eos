@@ -804,6 +804,65 @@ export const CountryCellCreateSchema = z.object({
 
 export type CountryCellCreateDto = z.infer<typeof CountryCellCreateSchema>;
 
+export const ProductionGateCheckSchema = z.object({
+  environment: z.enum(['production', 'staging', 'development']).default('production'),
+  connectors: z
+    .array(
+      z.object({
+        connectorId: z.string().min(1),
+        endpointUrl: z.string().min(5),
+        isVerified: z.boolean(),
+        isMock: z.boolean().default(false),
+      })
+    )
+    .min(1),
+});
+
+export type ProductionGateCheckDto = z.infer<typeof ProductionGateCheckSchema>;
+
+export const CompensatingCancellationSchema = z.object({
+  cancellationReason: z.string().min(5),
+  supplierAcknowledged: z.boolean().default(true),
+});
+
+export type CompensatingCancellationDto = z.infer<typeof CompensatingCancellationSchema>;
+
+export const RestoreDrillSchema = z.object({
+  backupSnapshotId: z.string().min(2),
+  backupManifests: z
+    .array(
+      z.object({
+        recordType: z.string(),
+        recordCount: z.number().int().nonnegative(),
+        dataHash: z.string(),
+      })
+    )
+    .min(1),
+  restoredManifests: z
+    .array(
+      z.object({
+        recordType: z.string(),
+        recordCount: z.number().int().nonnegative(),
+        dataHash: z.string(),
+      })
+    )
+    .min(1),
+});
+
+export type RestoreDrillDto = z.infer<typeof RestoreDrillSchema>;
+
+export const SupportFailureDrillSchema = z.object({
+  incidentType: z.enum([
+    'remote_provider_timeout',
+    'offline_attendance_conflict',
+    'duplicate_invoice_attempt',
+  ]),
+  details: z.string().min(5),
+});
+
+export type SupportFailureDrillDto = z.infer<typeof SupportFailureDrillSchema>;
+
+
 
 
 export interface CommandResult<T = any> {

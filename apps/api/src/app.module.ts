@@ -16,6 +16,7 @@ import { ReportingController } from './reporting/reporting.controller.js';
 import { IntegrationsController } from './integrations/integrations.controller.js';
 import { PortfolioController } from './portfolio/portfolio.controller.js';
 import { AiController } from './ai/ai.controller.js';
+import { RolloutController } from './rollout/rollout.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
 import { IdempotencyGuard } from './common/idempotency.guard.js';
 import { TenantIsolationGuard } from './common/tenant.guard.js';
@@ -40,6 +41,7 @@ import { TenantIsolationGuard } from './common/tenant.guard.js';
     IntegrationsController,
     PortfolioController,
     AiController,
+    RolloutController,
   ],
   providers: [DocumentQuarantineService, IdempotencyGuard, TenantIsolationGuard],
 })
