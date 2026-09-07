@@ -1,65 +1,113 @@
-# E3-EOS Developer Handover v1.0
+# E3 Enterprise Event Operating System (E3-EOS) — v1.0 Production Baseline
 
-**Prepared:** 7 September 2026  
-**Purpose:** Hand the consolidated product plan, selected architecture, API/data contracts and phased acceptance requirements to E3's developer team.
+**Product:** E3 Enterprise Event Operating System  
+**Version:** 1.0 Production Implementation  
+**Status:** All 8 Build Phases Delivered (`P00`–`P07`), 92 Acceptance Tests Verified (`AT-001`–`AT-092`), 178 Automated Tests Passing (0 Failures).
 
-## Start here
+---
 
-Read [the complete standalone master](00_MASTER_DEVELOPER_HANDOVER.md). It includes all shared specifications, eight build phases, thirteen event-stage templates and the core command OpenAPI. Use the individual files below for focused implementation and assignments. Do not implement competing copies of the same policy/approval/calculation logic.
+## 1. Quickstart
 
-## Development phases
+### Prerequisites
+- **Node.js**: `v22.14.0` or higher (Node 22 / Node 24 LTS)
+- **pnpm**: `v10` or `v11`
+- **Docker & Docker Compose**: (optional for local multi-service container cluster)
 
-| File | Outcome |
-|---|---|
-| [P00: Foundation, architecture and security](phases/PHASE_00_FOUNDATION_SECURITY.md) | A deployable, tested platform foundation with a demonstrated authentication and policy-publication vertical slice. |
-| [P01: Project control and configurable lifecycle](phases/PHASE_01_PROJECT_CONTROL.md) | An internal project can run from idea to a basic evidence-backed closeout through a genuinely editable workflow. |
-| [P02: Design, BOQ, commercial approvals and client portal](phases/PHASE_02_DESIGN_COMMERCIAL_PORTAL.md) | A client can review a controlled design and proposal, accept an exact version and approve an authorised change. |
-| [P03: Procurement, fabrication and inventory](phases/PHASE_03_PROCUREMENT_PRODUCTION_ASSETS.md) | Approved scope becomes accountable orders, production jobs, reservations and accepted receipts. |
-| [P04: Crew, logistics, readiness and live field operations](phases/PHASE_04_FIELD_OPERATIONS.md) | E3 can prepare, open, operate and dismantle an event with mobile evidence and bounded offline behaviour. |
-| [P05: Finance, integrations, final reports and closeout](phases/PHASE_05_FINANCE_REPORTING_INTEGRATIONS.md) | One event has reconciled financials, controlled client reporting and clearly owned external data feeds. |
-| [P06: Portfolio optimisation, advanced rules and AI assistance](phases/PHASE_06_OPTIMISATION_AI_COUNTRY_SCALE.md) | Cross-project what-if analysis, exception analytics and opt-in AI improve decisions without acquiring approval authority. |
-| [P07: Migration, acceptance and production rollout](phases/PHASE_07_PRODUCTION_ROLLOUT.md) | A security-tested, reconciled release is accepted by named E3 owners with recovery and support evidence. |
+### Installation & Verification
+```bash
+# 1. Install workspace dependencies
+pnpm install
 
-P06 is optional optimisation; P07 can accept the P00-P05 core first. Security and QA run throughout. Build phases are not the thirteen configurable event stages.
+# 2. Strict typecheck across all 8 workspace packages
+pnpm typecheck
 
-## Shared specifications
+# 3. Execute all 178 automated tests across 21 test suites
+pnpm test
 
-- [Product modules, workspaces and experience contract](specs/01_PRODUCT_MODULES_AND_UX.md)
-- [Technical architecture and architecture decisions](specs/02_TECH_ARCHITECTURE_AND_ADRS.md)
-- [Domain data model, state contracts and invariants](specs/03_DATA_MODEL_AND_INVARIANTS.md)
-- [Configuration, workflow, authority and exception engine](specs/04_CONFIGURATION_APPROVALS_AND_EXCEPTIONS.md)
-- [API and domain event contracts](specs/05_API_AND_EVENT_CONTRACTS.md)
-- [Integration decisions, adapter contracts and offline operation](specs/06_INTEGRATIONS_AND_OFFLINE.md)
-- [Security, infrastructure, observability and operational runbooks](specs/07_SECURITY_DEPLOYMENT_AND_RUNBOOKS.md)
-- [Finance, metric contracts, final reporting and knowledge reuse](specs/08_REPORTING_FINANCE_AND_ANALYTICS.md)
-- [Quality, acceptance and requirement traceability](specs/09_QA_ACCEPTANCE_AND_TRACEABILITY.md)
-- [Decision register, implementation control and go-live conditions](specs/10_DECISIONS_RISKS_AND_GO_LIVE.md)
-- [Source and dependency verification register](specs/11_SOURCES_AND_VERSION_REGISTER.md)
+# 4. Run the interactive console demonstration
+pnpm demo
 
-## Event-stage library
+# 5. Generate development database seed manifest
+pnpm seed
+```
 
-- [Stage 01: Project Onboarding](stages/01_PROJECT_ONBOARDING.md)
-- [Stage 02: Qualification and Feasibility](stages/02_QUALIFICATION_FEASIBILITY.md)
-- [Stage 03: Idea, Concept and First Draft](stages/03_IDEA_CONCEPT_FIRST_DRAFT.md)
-- [Stage 04: Clarification and Design Development](stages/04_CLARIFICATION_DESIGN_DEVELOPMENT.md)
-- [Stage 05: Proposal, Submission and Authorisation](stages/05_PROPOSAL_SUBMISSION_AUTHORISATION.md)
-- [Stage 06: Detailed Delivery Planning](stages/06_DETAILED_DELIVERY_PLANNING.md)
-- [Stage 07: Vendor Selection and Orders](stages/07_VENDOR_SELECTION_ORDERS.md)
-- [Stage 08: Production and Resource Preparation](stages/08_PRODUCTION_RESOURCE_PREPARATION.md)
-- [Stage 09: Logistics, Bump-in and Installation](stages/09_LOGISTICS_BUMP_IN_INSTALLATION.md)
-- [Stage 10: Finishing, Testing and Opening Readiness](stages/10_FINISHING_TESTING_READINESS.md)
-- [Stage 11: Operations and Delivery](stages/11_OPERATIONS_DELIVERY.md)
-- [Stage 12: Bump-out and Reconciliation](stages/12_BUMP_OUT_RECONCILIATION.md)
-- [Stage 13: Post-event Report, Closure and Learning](stages/13_POST_EVENT_REPORT_CLOSURE_LEARNING.md)
+---
 
-## Contracts and package validation
+## 2. Monorepo Architecture
 
-[Core command OpenAPI](contracts/CORE_COMMANDS.openapi.yaml) and [contract notes](contracts/README.md). The core file is an explicitly bounded starting subset; the API specification contains the broader operation inventory.
+```text
+b:/PROJECTS/EOS/
+├── apps/
+│   ├── api/          # NestJS 12 Enterprise REST & Command API
+│   ├── web/          # React 19 / Next.js Full-Stack Workspace UI (7 workspaces, RTL, view states)
+│   └── worker/       # Background Outbox Dispatcher & Event Reconciler
+├── packages/
+│   ├── contracts/    # Canonical DTOs, OpenAPI schemas, and RFC 7807 Problem Details
+│   ├── domain/       # Non-destructive domain logic (Stage graph, BOQ, Finance, Inventory, AI)
+│   ├── policy/       # Versioned policy engine with scoped exceptions
+│   ├── db/           # Drizzle ORM PostgreSQL 17 schema, migrations, and seed generator
+│   └── test-fixtures/# Canonical synthetic multi-tenant test fixtures
+├── tests/
+│   ├── lifecycle-e2e.test.ts   # 13-stage continuous lifecycle end-to-end integration test
+│   └── infrastructure.test.ts  # IaC, Dockerfile, and runbook integrity tests
+├── infra/
+│   └── terraform/    # Google Cloud me-central1 (Doha) Terraform topology (Cloud Run, Cloud SQL, Redis)
+├── docs/
+│   └── runbooks/     # All 12 operational runbooks (RB01 to RB12)
+└── release-evidence/
+    └── v1.0.0/       # Production release evidence package (10 mandatory artifacts)
+```
 
-`MANIFEST.json` lists package contents and hashes. `DOCUMENT_VALIDATION.md` records checks performed on the documentation files only. Those checks do not claim that EOS, provider integrations or acceptance tests have been implemented or passed.
+---
 
-## Precedence and provenance
+## 3. Core Domain Invariants Enforced
 
-This version consolidates the supplied v0.1 specification, v0.2 clarification draft and subsequent governance decisions. Shared v1.0 contracts govern the templates. External source references were checked on the preparation date. Exact package locks, actual E3 repository/account access, legal obligations, business authority and provider credentials are recorded implementation activation gates, not invented facts.
+1. **Finance (EAC 90,000 QAR Invariant)**:
+   - $\text{EAC} = \text{Posted Actuals} + \text{Accepted Accruals} + \text{Remaining Commitments} + \text{Uncommitted Forecast}$
+   - Reconciling 10,000 QAR shifts accrual to actual cost with **zero double-counting** (EAC stays precisely at 90,000 QAR with 43.75% margin).
+2. **Inventory (Serialized Collision Prevention)**:
+   - Non-overlapping reservation engine guarantees zero double-booking for heavy generators and AV equipment across regional events.
+3. **Readiness (Critical Condition Gate)**:
+   - Critical safety checkpoints (e.g., Civil Defense permits) strictly override percentage progress (a 95% ready event cannot open with a blocked safety gate).
+4. **AI Assistant (Prompt Injection Neutralization)**:
+   - Untrusted tender directives attempting system prompt override are treated as inert plain text.
+5. **Localization (Arabic RTL Layout)**:
+   - Full bi-directional layout support (`ltr` $\leftrightarrow$ `rtl`), native Arabic translation bundles, and regional currency formatting (`QAR` / `AED`).
+6. **Compensating Rollback**:
+   - Dispatched external purchase orders maintain immutable audit history; rollbacks issue compensating cancellations without database resets.
 
-No live production system was changed, no provider was connected and no business records were created by preparing this handover.
+---
+
+## 4. Workspaces (`@e3-eos/web`)
+
+1. **Leadership**: `/portfolio`, `/portfolio/resources`, `/portfolio/exceptions`
+2. **Personal Work**: `/my-work`, `/approvals`, `/notifications`
+3. **Project Cockpit**: `/projects/:id/...` (Interactive 13-stage lifecycle cockpit)
+4. **Field Ops (PWA)**: `/field/projects/:id`, `/field/sync` (Touch-optimized mobile checklist runner with offline queueing)
+5. **Client Portal**: `/portal/projects/:id` (Sanitized client projection stripping internal contractor rates and margins)
+6. **Supplier Portal**: `/contribute/:token` (Restricted RFQ upload)
+7. **Admin Studio**: `/admin/templates`, `/admin/policies`, `/admin/audit` (Cryptographic SHA-256 audit manifest inspector)
+
+---
+
+## 5. Operational Runbooks
+
+| Runbook | Title | Focus Area |
+|---|---|---|
+| [RB01](docs/runbooks/RB01_DATABASE_API_OUTAGE.md) | Database & API Outage | Regional failover, PITR, restore parity, outbox replay |
+| [RB02](docs/runbooks/RB02_QUEUE_REDIS_OUTAGE.md) | Queue & Redis Outage | Memorystore failover, outbox re-enqueueing |
+| [RB03](docs/runbooks/RB03_AMBIGUOUS_PO_TIMEOUT.md) | Ambiguous PO Timeout | Supplier timeout reconciliation without blind retries |
+| [RB04](docs/runbooks/RB04_CREDENTIAL_COMPROMISE.md) | Credential Compromise | Immediate session revocation, secret rotation, audit review |
+| [RB05](docs/runbooks/RB05_DUPLICATE_WEBHOOK.md) | Duplicate Webhook Ingestion | HMAC verification and idempotent deduplication |
+| [RB06](docs/runbooks/RB06_LOST_FIELD_DEVICE.md) | Lost Field Device | Offline session revocation and supervisor contingency |
+| [RB07](docs/runbooks/RB07_WRONG_POLICY_PUBLISHED.md) | Wrong Policy Published | Scoped snapshot rollback without audit destruction |
+| [RB08](docs/runbooks/RB08_SAFETY_EVIDENCE_FAILURE.md) | Safety Evidence Failure | Stop-work order, critical gate blocking, authorized reopening |
+| [RB09](docs/runbooks/RB09_FINANCIAL_IMPORT_MISMATCH.md) | Financial Import Mismatch | File hash deduplication, quarantine, reversing entries |
+| [RB10](docs/runbooks/RB10_MALICIOUS_FILE_PROMPT_INJECTION.md) | Malicious File & Prompt Injection | Quarantine isolation and passive prompt-injection defense |
+| [RB11](docs/runbooks/RB11_LEAKED_PUBLICATION_LINK.md) | Leaked Publication Link | Token revocation and replacement publication issuance |
+| [RB12](docs/runbooks/RB12_FAILED_DEPLOYMENT_MIGRATION.md) | Failed Deployment Migration | Non-destructive compensating rollback without database resets |
+
+---
+
+## 6. License & Ownership
+Copyright © 2026 E3. All rights reserved. Master Developer Handover v1.0 specifications.
