@@ -5,4 +5,7 @@ export * from './schema/decisions.js';
 export * from './schema/infrastructure.js';
 export * from './schema/scope.js';
 export * from './schema/work.js';
+export * from './schema/commercial.js';
+export * from './schema/designs.js';
+export * from './schema/portal.js';
 export * from './rls.js';

@@ -192,6 +192,137 @@ export const ExceptionAuthoriseSchema = z.object({
 
 export type ExceptionAuthoriseDto = z.infer<typeof ExceptionAuthoriseSchema>;
 
+export const EstimateCreateSchema = z.object({
+  name: z.string().min(2).max(200),
+  currency: z.string().default('QAR'),
+});
+
+export type EstimateCreateDto = z.infer<typeof EstimateCreateSchema>;
+
+export const BOQLineCreateSchema = z.object({
+  lineCode: z.string().min(1).max(50),
+  description: z.string().min(2).max(500),
+  descriptionAr: z.string().max(500).optional(),
+  quantity: z.string().min(1),
+  uom: z.string().min(1).max(50),
+  unitCost: z.string().min(1),
+  unitSell: z.string().min(1),
+  durationMultiplier: z.string().default('1'),
+  isLumpSum: z.boolean().default(false),
+  parentLineId: z.string().optional(),
+  allocatedLumpSumPortion: z.string().optional(),
+  discountPercent: z.string().default('0'),
+  taxRate: z.string().default('0'),
+});
+
+export type BOQLineCreateDto = z.infer<typeof BOQLineCreateSchema>;
+
+export const EstimateCalculateSchema = z.object({
+  overallDiscountPercent: z.string().optional(),
+  overallFeePercent: z.string().optional(),
+  defaultTaxRate: z.string().optional(),
+});
+
+export type EstimateCalculateDto = z.infer<typeof EstimateCalculateSchema>;
+
+export const ProposalCreateSchema = z.object({
+  estimateId: z.string(),
+  proposalCode: z.string().min(2).max(50),
+  title: z.string().min(2).max(200),
+  clientOrganisationId: z.string(),
+  validUntil: z.string().optional(),
+});
+
+export type ProposalCreateDto = z.infer<typeof ProposalCreateSchema>;
+
+export const VariationCreateSchema = z.object({
+  variationCode: z.string().min(2).max(50),
+  title: z.string().min(2).max(200),
+  titleAr: z.string().max(200).optional(),
+  scopeDescription: z.string().min(5),
+  costImpact: z.string(),
+  sellImpact: z.string(),
+  timeImpactDays: z.number().int().default(0),
+});
+
+export type VariationCreateDto = z.infer<typeof VariationCreateSchema>;
+
+export const VariationApplySchema = z.object({
+  clientDecisionId: z.string(),
+  clientAuthorisedAt: z.string(),
+  targetHash: z.string().min(10),
+});
+
+export type VariationApplyDto = z.infer<typeof VariationApplySchema>;
+
+export const DesignCreateSchema = z.object({
+  title: z.string().min(2).max(200),
+  titleAr: z.string().max(200).optional(),
+  category: z.enum(['moodboard', 'technical_drawing', 'floorplan', '3d_render']),
+});
+
+export type DesignCreateDto = z.infer<typeof DesignCreateSchema>;
+
+export const DesignVersionCreateSchema = z.object({
+  versionNumber: z.number().int().positive(),
+  storageKey: z.string().min(1),
+  title: z.string().min(2).max(200),
+  titleAr: z.string().max(200).optional(),
+  purpose: z.enum(['for_review', 'for_client_approval', 'for_fabrication']).default('for_review'),
+  contentData: z.string().min(1), // Base64 or content representation for hashing
+});
+
+export type DesignVersionCreateDto = z.infer<typeof DesignVersionCreateSchema>;
+
+export const DesignReleaseSchema = z.object({
+  versionId: z.string(),
+  purpose: z.enum(['for_review', 'for_client_approval', 'for_fabrication']),
+  approvalHash: z.string().min(10),
+  approverId: z.string().uuid(),
+});
+
+export type DesignReleaseDto = z.infer<typeof DesignReleaseSchema>;
+
+export const DesignAnnotationSchema = z.object({
+  versionId: z.string(),
+  pageNumber: z.number().int().positive().default(1),
+  coordinates: z.object({
+    x: z.number(),
+    y: z.number(),
+    width: z.number().optional(),
+    height: z.number().optional(),
+  }),
+  comment: z.string().min(1).max(2000),
+});
+
+export type DesignAnnotationDto = z.infer<typeof DesignAnnotationSchema>;
+
+export const PublicationCreateSchema = z.object({
+  clientOrganisationId: z.string().uuid(),
+  roomType: z.enum(['concept', 'milestones', 'commercial', 'results']),
+  title: z.string().min(2).max(200),
+  titleAr: z.string().max(200).optional(),
+  targetVersionId: z.string().min(1),
+  projectionPayload: z.record(z.unknown()), // strictly sell-side
+});
+
+export type PublicationCreateDto = z.infer<typeof PublicationCreateSchema>;
+
+export const PublicationWithdrawSchema = z.object({
+  reason: z.string().min(3).max(1000),
+});
+
+export type PublicationWithdrawDto = z.infer<typeof PublicationWithdrawSchema>;
+
+export const ClientPortalDecisionSchema = z.object({
+  publicationId: z.string(),
+  decision: z.enum(['accepted', 'rejected', 'revision_requested']),
+  targetHash: z.string().min(10),
+  comment: z.string().max(2000).optional(),
+});
+
+export type ClientPortalDecisionDto = z.infer<typeof ClientPortalDecisionSchema>;
+
 export interface CommandResult<T = any> {
   data: {
     id: string;

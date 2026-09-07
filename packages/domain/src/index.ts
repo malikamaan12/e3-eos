@@ -6,3 +6,7 @@ export * from './finance.js';
 export * from './stage-graph.js';
 export * from './templates.js';
 export * from './cloning.js';
+export * from './boq.js';
+export * from './variations.js';
+export * from './designs.js';
+export * from './portal.js';
