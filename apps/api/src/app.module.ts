@@ -14,6 +14,8 @@ import { FieldSyncController } from './field-sync/field-sync.controller.js';
 import { FinanceController } from './finance/finance.controller.js';
 import { ReportingController } from './reporting/reporting.controller.js';
 import { IntegrationsController } from './integrations/integrations.controller.js';
+import { PortfolioController } from './portfolio/portfolio.controller.js';
+import { AiController } from './ai/ai.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
 import { IdempotencyGuard } from './common/idempotency.guard.js';
 import { TenantIsolationGuard } from './common/tenant.guard.js';
@@ -36,6 +38,8 @@ import { TenantIsolationGuard } from './common/tenant.guard.js';
     FinanceController,
     ReportingController,
     IntegrationsController,
+    PortfolioController,
+    AiController,
   ],
   providers: [DocumentQuarantineService, IdempotencyGuard, TenantIsolationGuard],
 })

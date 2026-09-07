@@ -734,6 +734,77 @@ export const CalendarProposalSchema = z.object({
 
 export type CalendarProposalDto = z.infer<typeof CalendarProposalSchema>;
 
+export const ScenarioCreateSchema = z.object({
+  name: z.string().min(2),
+  description: z.string().optional(),
+  proposedAllocations: z
+    .array(
+      z.object({
+        projectId: z.string().min(1),
+        resourceId: z.string().min(1),
+        windowStart: z.string(),
+        windowEnd: z.string(),
+      })
+    )
+    .min(1),
+});
+
+export type ScenarioCreateDto = z.infer<typeof ScenarioCreateSchema>;
+
+export const ScenarioApplySchema = z.object({
+  idempotencyKey: z.string().min(5),
+});
+
+export type ScenarioApplyDto = z.infer<typeof ScenarioApplySchema>;
+
+export const RuleAnalyticsQuerySchema = z.object({
+  ruleId: z.string().min(2),
+  thresholdPercent: z.number().min(0).max(100).default(15),
+});
+
+export type RuleAnalyticsQueryDto = z.infer<typeof RuleAnalyticsQuerySchema>;
+
+export const EvmEvaluationSchema = z.object({
+  packageId: z.string().min(1),
+  plannedValue: z.string(),
+  actualCost: z.string(),
+  physicalCompletionPercent: z.number().min(0).max(100),
+  hoursLogged: z.number().int().nonnegative(),
+  hoursBudgeted: z.number().int().positive(),
+  currency: z.string().default('QAR'),
+});
+
+export type EvmEvaluationDto = z.infer<typeof EvmEvaluationSchema>;
+
+export const AiDraftRequestSchema = z.object({
+  documentType: z.string().min(2),
+  rawContent: z.string().min(5),
+  classification: z.enum(['public', 'internal', 'confidential', 'restricted']).default('internal'),
+});
+
+export type AiDraftRequestDto = z.infer<typeof AiDraftRequestSchema>;
+
+export const AiDraftAcceptSchema = z.object({
+  draftId: z.string().min(1),
+  requirementId: z.string().min(1),
+  sourcePageNumber: z.number().int().positive(),
+  sourceSectionReference: z.string().min(2),
+  reviewerId: z.string().min(1),
+});
+
+export type AiDraftAcceptDto = z.infer<typeof AiDraftAcceptSchema>;
+
+export const CountryCellCreateSchema = z.object({
+  cellCode: z.string().min(2),
+  countryCode: z.string().min(2).max(3),
+  jurisdiction: z.string().min(2),
+  primaryCurrency: z.string().default('QAR'),
+  dataProcessingRegion: z.string().min(2),
+});
+
+export type CountryCellCreateDto = z.infer<typeof CountryCellCreateSchema>;
+
+
 
 export interface CommandResult<T = any> {
   data: {

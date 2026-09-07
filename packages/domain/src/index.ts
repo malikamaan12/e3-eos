@@ -17,3 +17,6 @@ export * from './field-sync.js';
 export * from './reporting.js';
 export * from './integrations.js';
 export * from './closeout.js';
+export * from './portfolio.js';
+export * from './ai-assistant.js';
+export * from './country-cell.js';
