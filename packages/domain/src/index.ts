@@ -14,3 +14,6 @@ export * from './procurement.js';
 export * from './inventory.js';
 export * from './operations.js';
 export * from './field-sync.js';
+export * from './reporting.js';
+export * from './integrations.js';
+export * from './closeout.js';

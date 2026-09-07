@@ -108,3 +108,128 @@ export class FinancialCalculator {
     };
   }
 }
+
+export interface CostAllocationLine {
+  packageId: string;
+  amount: Money | string | number;
+  notes?: string;
+}
+
+export class CostAllocationEngine {
+  /**
+   * Validates that sum of cost allocations across packages does not exceed invoice line amount (AT-070).
+   */
+  static validateAllocations(
+    invoiceLineAmount: Money,
+    allocations: CostAllocationLine[]
+  ): {
+    totalAllocated: Money;
+    remainingUnallocated: Money;
+    isValid: boolean;
+  } {
+    let total = new Money('0', invoiceLineAmount.currency);
+    for (const alloc of allocations) {
+      const allocMoney =
+        alloc.amount instanceof Money ? alloc.amount : new Money(alloc.amount, invoiceLineAmount.currency);
+      total = total.plus(allocMoney);
+    }
+    if (total.greaterThan(invoiceLineAmount)) {
+      throw new Error(
+        `COST_ALLOCATION_EXCEEDS_INVOICE_LINE: Total allocated amount ${total.toString()} exceeds invoice line total ${invoiceLineAmount.toString()}. Over-allocation rejected.`
+      );
+    }
+    return {
+      totalAllocated: total,
+      remainingUnallocated: invoiceLineAmount.minus(total),
+      isValid: true,
+    };
+  }
+}
+
+export class MultiCurrencyValidator {
+  /**
+   * Asserts all cost components share the same reporting currency unless an explicit conversion rate is applied (AT-071).
+   * Disallows silent mixing of different currencies (e.g. adding USD directly to QAR).
+   */
+  static assertConsistentCurrency(
+    baseCurrency: CurrencyCode,
+    items: Array<{ amount: Money; description: string }>
+  ): void {
+    for (const item of items) {
+      if (item.amount.currency !== baseCurrency) {
+        throw new Error(
+          `MIXED_CURRENCY_DISCREPANCY: Cannot combine ${item.amount.currency} amount (${item.amount.toString()}) into ${baseCurrency} reporting basis without an approved FX conversion rate.`
+        );
+      }
+    }
+  }
+}
+
+export interface CostImportBatch {
+  batchId: string;
+  sourceSystem: string;
+  fileHash: string;
+  importedAt: Date;
+  recordCount: number;
+  totalAmount: Money;
+}
+
+export class SourceImportDeduplicator {
+  /**
+   * Validates uniqueness of financial source file import (AT-067).
+   * Prevents duplicate financial ledger files from creating duplicate business expense effects.
+   */
+  static validateImportUniqueness(
+    newBatch: { sourceSystem: string; fileHash: string; batchId: string },
+    existingBatches: CostImportBatch[]
+  ): void {
+    const duplicate = existingBatches.find(
+      (b) =>
+        b.fileHash === newBatch.fileHash ||
+        (b.sourceSystem === newBatch.sourceSystem && b.batchId === newBatch.batchId)
+    );
+    if (duplicate) {
+      throw new Error(
+        `DUPLICATE_SOURCE_IMPORT: Financial source batch ${newBatch.batchId} with hash ${newBatch.fileHash} has already been imported previously from ${newBatch.sourceSystem} on ${duplicate.importedAt.toISOString()}. Duplicate import rejected.`
+      );
+    }
+  }
+}
+
+export interface CreditNoteAdjustment {
+  creditNoteId: string;
+  invoiceId: string;
+  creditAmount: Money;
+  reason: string;
+  effectiveDate: Date;
+}
+
+export class CreditNoteAdjustmentEngine {
+  /**
+   * Applies post-report credit note adjustment (AT-069).
+   * Reduces posted actual costs and produces revised financial position while preserving original historical snapshot.
+   */
+  static applyCreditAdjustment(
+    position: FinancialPositionInput,
+    credit: CreditNoteAdjustment
+  ): FinancialPositionInput {
+    const c = position.currency;
+    const cred = credit.creditAmount instanceof Money ? credit.creditAmount : new Money(credit.creditAmount, c);
+    const currentActual =
+      position.postedActualCost instanceof Money
+        ? position.postedActualCost
+        : new Money(position.postedActualCost, c);
+
+    if (cred.greaterThan(currentActual)) {
+      throw new Error(
+        `CREDIT_NOTE_EXCEEDS_ACTUAL: Credit note amount ${cred.toString()} cannot exceed total posted actuals ${currentActual.toString()}.`
+      );
+    }
+
+    return {
+      ...position,
+      postedActualCost: currentActual.minus(cred),
+    };
+  }
+}
+

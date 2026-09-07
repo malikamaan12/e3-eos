@@ -605,6 +605,136 @@ export const MediaUploadCompleteSchema = z.object({
 
 export type MediaUploadCompleteDto = z.infer<typeof MediaUploadCompleteSchema>;
 
+export const CostImportSchema = z.object({
+  sourceSystem: z.string().min(2),
+  batchId: z.string().min(2),
+  fileHash: z.string().min(6),
+  currency: z.string().default('QAR'),
+  records: z
+    .array(
+      z.object({
+        externalTxId: z.string(),
+        description: z.string(),
+        amount: z.string(),
+        currency: z.string().default('QAR'),
+      })
+    )
+    .min(1),
+});
+
+export type CostImportDto = z.infer<typeof CostImportSchema>;
+
+export const CostAllocationSchema = z.object({
+  invoiceId: z.string().min(1),
+  lineId: z.string().min(1),
+  allocations: z
+    .array(
+      z.object({
+        packageId: z.string().min(1),
+        amount: z.string(),
+        notes: z.string().optional(),
+      })
+    )
+    .min(1),
+});
+
+export type CostAllocationDto = z.infer<typeof CostAllocationSchema>;
+
+export const InvoiceLedgerStatusSchema = z.object({
+  ledgerStatus: z.enum(['pending_sync', 'synced', 'quarantined_by_ledger', 'rejected_by_ledger']),
+  quarantineReason: z.string().optional(),
+  ledgerReference: z.string().optional(),
+});
+
+export type InvoiceLedgerStatusDto = z.infer<typeof InvoiceLedgerStatusSchema>;
+
+export const BillingRequestSchema = z.object({
+  milestoneId: z.string().min(1),
+  amount: z.string(),
+  currency: z.string().default('QAR'),
+  description: z.string().min(2),
+});
+
+export type BillingRequestDto = z.infer<typeof BillingRequestSchema>;
+
+export const CreditNoteSchema = z.object({
+  invoiceId: z.string().min(1),
+  creditAmount: z.string(),
+  currency: z.string().default('QAR'),
+  reason: z.string().min(3),
+});
+
+export type CreditNoteDto = z.infer<typeof CreditNoteSchema>;
+
+export const ReportCreateSchema = z.object({
+  reportCode: z.string().min(2),
+  periodStart: z.string(),
+  periodEnd: z.string(),
+  targetAudience: z.enum(['internal_command', 'client_portal', 'public_report']).default('client_portal'),
+});
+
+export type ReportCreateDto = z.infer<typeof ReportCreateSchema>;
+
+export const ReportPublishSchema = z.object({
+  idempotencyKey: z.string().min(5),
+});
+
+export type ReportPublishDto = z.infer<typeof ReportPublishSchema>;
+
+export const CloseoutDecisionSchema = z.object({
+  dimension: z.enum(['operational', 'client_acceptance', 'reporting', 'financial_review', 'settlement']),
+  decision: z.enum(['closed', 'reopened', 'pending']),
+  notes: z.string().optional(),
+});
+
+export type CloseoutDecisionDto = z.infer<typeof CloseoutDecisionSchema>;
+
+export const LessonCaptureSchema = z.object({
+  title: z.string().min(3),
+  category: z.enum(['procurement', 'logistics', 'safety', 'commercial']),
+  narrative: z.string().min(10),
+  policyRevisionProposed: z.boolean().default(false),
+});
+
+export type LessonCaptureDto = z.infer<typeof LessonCaptureSchema>;
+
+export const WebhookEventSchema = z.object({
+  provider: z.string().min(2),
+  eventId: z.string().min(2),
+  signature: z.string().min(5),
+  payload: z.record(z.unknown()),
+});
+
+export type WebhookEventDto = z.infer<typeof WebhookEventSchema>;
+
+export const MetricObservationSchema = z.object({
+  metricType: z.enum(['turnstile_entries', 'daily_unique_attendees', 'overall_unique_attendees']),
+  scans: z
+    .array(
+      z.object({
+        ticketId: z.string(),
+        attendeeId: z.string(),
+        day: z.string(),
+        gate: z.string(),
+        timestamp: z.string(),
+      })
+    )
+    .min(1),
+});
+
+export type MetricObservationDto = z.infer<typeof MetricObservationSchema>;
+
+export const CalendarProposalSchema = z.object({
+  externalEventId: z.string().min(2),
+  baselineStart: z.string(),
+  baselineEnd: z.string(),
+  externalStart: z.string(),
+  externalEnd: z.string(),
+});
+
+export type CalendarProposalDto = z.infer<typeof CalendarProposalSchema>;
+
+
 export interface CommandResult<T = any> {
   data: {
     id: string;

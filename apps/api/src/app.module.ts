@@ -11,6 +11,9 @@ import { InventoryController } from './inventory/inventory.controller.js';
 import { ProductionController } from './production/production.controller.js';
 import { OperationsController } from './operations/operations.controller.js';
 import { FieldSyncController } from './field-sync/field-sync.controller.js';
+import { FinanceController } from './finance/finance.controller.js';
+import { ReportingController } from './reporting/reporting.controller.js';
+import { IntegrationsController } from './integrations/integrations.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
 import { IdempotencyGuard } from './common/idempotency.guard.js';
 import { TenantIsolationGuard } from './common/tenant.guard.js';
@@ -30,6 +33,9 @@ import { TenantIsolationGuard } from './common/tenant.guard.js';
     ProductionController,
     OperationsController,
     FieldSyncController,
+    FinanceController,
+    ReportingController,
+    IntegrationsController,
   ],
   providers: [DocumentQuarantineService, IdempotencyGuard, TenantIsolationGuard],
 })

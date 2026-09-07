@@ -13,4 +13,7 @@ export * from './schema/inventory.js';
 export * from './schema/production.js';
 export * from './schema/operations.js';
 export * from './schema/field_sync.js';
+export * from './schema/finance.js';
+export * from './schema/reporting.js';
+export * from './schema/integrations.js';
 export * from './rls.js';
