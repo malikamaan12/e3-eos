@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js';
 // Configure Decimal for financial precision (24 digits, bankers or half-up rounding)
 Decimal.set({ precision: 24, rounding: Decimal.ROUND_HALF_UP });
 
+export { Decimal };
 export type CurrencyCode = 'QAR' | 'USD' | 'EUR' | 'GBP' | 'SAR' | 'AED' | string;
 
 export class Money {
@@ -76,6 +77,10 @@ export class Money {
 
   times(factor: Decimal.Value): Money {
     return new Money(this._amount.times(factor), this._currency);
+  }
+
+  multiply(factor: Decimal.Value): Money {
+    return this.times(factor);
   }
 
   dividedBy(divisor: Decimal.Value): Money {

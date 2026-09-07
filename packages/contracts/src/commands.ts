@@ -323,6 +323,158 @@ export const ClientPortalDecisionSchema = z.object({
 
 export type ClientPortalDecisionDto = z.infer<typeof ClientPortalDecisionSchema>;
 
+export const VendorCreateSchema = z.object({
+  vendorCode: z.string().min(2).max(50),
+  name: z.string().min(2).max(200),
+  category: z.enum(['corporate', 'freelance', 'cash_supplier']).default('corporate'),
+  bankDetails: z
+    .object({
+      bankName: z.string(),
+      accountName: z.string(),
+      accountNumber: z.string(),
+      iban: z.string(),
+      swift: z.string(),
+    })
+    .optional(),
+  complianceVerified: z.boolean().default(false),
+  soleSourceAuthorised: z.boolean().default(false),
+  freelanceGracePeriodUntil: z.string().optional(),
+});
+
+export type VendorCreateDto = z.infer<typeof VendorCreateSchema>;
+
+export const VendorBankChangeSchema = z.object({
+  proposedBankDetails: z.object({
+    bankName: z.string().min(2),
+    accountName: z.string().min(2),
+    accountNumber: z.string().min(4),
+    iban: z.string().min(10),
+    swift: z.string().min(4),
+  }),
+});
+
+export type VendorBankChangeDto = z.infer<typeof VendorBankChangeSchema>;
+
+export const VendorVerifyBankSchema = z.object({
+  requestId: z.string(),
+});
+
+export type VendorVerifyBankDto = z.infer<typeof VendorVerifyBankSchema>;
+
+export const FrameworkContractCreateSchema = z.object({
+  vendorId: z.string(),
+  contractCode: z.string().min(2).max(50),
+  ceilingAmount: z.string(),
+  currency: z.string().default('QAR'),
+  validUntil: z.string(),
+});
+
+export type FrameworkContractCreateDto = z.infer<typeof FrameworkContractCreateSchema>;
+
+export const PurchaseOrderCreateSchema = z.object({
+  poNumber: z.string().min(2).max(50),
+  vendorId: z.string(),
+  frameworkContractId: z.string().optional(),
+  currency: z.string().default('QAR'),
+  totalAmount: z.string(),
+  isSoleSource: z.boolean().default(false),
+  soleSourceRationale: z.string().optional(),
+  lines: z
+    .array(
+      z.object({
+        packageId: z.string(),
+        description: z.string().min(2),
+        quantity: z.string(),
+        unitCost: z.string(),
+      })
+    )
+    .min(1),
+});
+
+export type PurchaseOrderCreateDto = z.infer<typeof PurchaseOrderCreateSchema>;
+
+export const PurchaseOrderReleaseSchema = z.object({
+  idempotencyKey: z.string().min(5),
+});
+
+export type PurchaseOrderReleaseDto = z.infer<typeof PurchaseOrderReleaseSchema>;
+
+export const POReceiptSchema = z.object({
+  deliveryNoteNumber: z.string().min(2),
+  items: z
+    .array(
+      z.object({
+        lineId: z.string(),
+        receivedQuantity: z.string().default('0'),
+        rejectedQuantity: z.string().default('0'),
+      })
+    )
+    .min(1),
+});
+
+export type POReceiptDto = z.infer<typeof POReceiptSchema>;
+
+export const ResourceCreateSchema = z.object({
+  resourceCode: z.string().min(2).max(50),
+  name: z.string().min(2).max(200),
+  type: z.enum(['serialized', 'bulk']),
+  totalQuantity: z.number().int().positive(),
+  warehouseLocation: z.string().min(1),
+  authoritativeSystem: z.enum(['EOS', 'LEGACY_LOCKED']).default('EOS'),
+});
+
+export type ResourceCreateDto = z.infer<typeof ResourceCreateSchema>;
+
+export const ReservationCreateSchema = z.object({
+  resourceId: z.string(),
+  windowStart: z.string(),
+  windowEnd: z.string(),
+  quantity: z.number().int().positive().default(1),
+});
+
+export type ReservationCreateDto = z.infer<typeof ReservationCreateSchema>;
+
+export const MaintenanceHoldSchema = z.object({
+  reason: z.string().min(3),
+  damageReport: z.string().optional(),
+});
+
+export type MaintenanceHoldDto = z.infer<typeof MaintenanceHoldSchema>;
+
+export const MaintenanceReleaseSchema = z.object({
+  inspectorId: z.string(),
+});
+
+export type MaintenanceReleaseDto = z.infer<typeof MaintenanceReleaseSchema>;
+
+export const SubrentalRequestSchema = z.object({
+  resourceId: z.string(),
+  shortageQuantity: z.number().int().positive(),
+  windowStart: z.string(),
+  windowEnd: z.string(),
+  estimatedUnitRate: z.string(),
+});
+
+export type SubrentalRequestDto = z.infer<typeof SubrentalRequestSchema>;
+
+export const ProductionOrderCreateSchema = z.object({
+  designId: z.string(),
+  designVersionNumber: z.number().int().positive(),
+  title: z.string().min(2).max(200),
+  orderedUnits: z.number().int().positive(),
+});
+
+export type ProductionOrderCreateDto = z.infer<typeof ProductionOrderCreateSchema>;
+
+export const ProductionCheckpointSchema = z.object({
+  checkpointName: z.string().min(2),
+  passed: z.boolean(),
+  notes: z.string().optional(),
+  inspectorId: z.string(),
+});
+
+export type ProductionCheckpointDto = z.infer<typeof ProductionCheckpointSchema>;
+
 export interface CommandResult<T = any> {
   data: {
     id: string;

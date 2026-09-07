@@ -8,4 +8,7 @@ export * from './schema/work.js';
 export * from './schema/commercial.js';
 export * from './schema/designs.js';
 export * from './schema/portal.js';
+export * from './schema/procurement.js';
+export * from './schema/inventory.js';
+export * from './schema/production.js';
 export * from './rls.js';

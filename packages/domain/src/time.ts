@@ -66,4 +66,12 @@ export class TimeUtil {
 
     return start1 < end2 && start2 < end1;
   }
+
+  /**
+   * Checks if two TimeWindows overlap.
+   */
+  static overlaps(w1: { start: Date | string }, w2: { start: Date | string; end: Date | string }): boolean;
+  static overlaps(w1: { start: Date | string; end: Date | string }, w2: { start: Date | string; end: Date | string }): boolean {
+    return this.intervalsOverlap(w1.start, w1.end, w2.start, w2.end);
+  }
 }
