@@ -19,3 +19,4 @@ export * from './schema/integrations.js';
 export * from './schema/portfolio.js';
 export * from './schema/rollout.js';
 export * from './rls.js';
+export * from './seed.js';

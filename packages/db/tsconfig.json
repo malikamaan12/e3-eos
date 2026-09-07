@@ -2,7 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "paths": {
+      "@e3-eos/domain": ["../domain/src/index.ts"],
+      "@e3-eos/test-fixtures": ["../test-fixtures/src/index.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

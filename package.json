@@ -7,7 +7,9 @@
     "build": "pnpm -r run build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "demo": "tsx scripts/demo.ts",
+    "seed": "tsx packages/db/src/seed.ts"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",

@@ -8,10 +8,12 @@
     "build": "tsc -b",
     "typecheck": "tsc --noEmit",
     "generate": "drizzle-kit generate",
-    "migrate": "drizzle-kit migrate"
+    "migrate": "drizzle-kit migrate",
+    "seed": "tsx src/seed.ts"
   },
   "dependencies": {
     "@e3-eos/domain": "workspace:*",
+    "@e3-eos/test-fixtures": "workspace:*",
     "drizzle-orm": "^0.39.3",
     "pg": "^8.13.3"
   },
