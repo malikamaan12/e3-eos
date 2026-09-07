@@ -1,10 +1,5 @@
-import { TimeUtil } from './time.js';
+import { TimeUtil, TimeWindow } from './time.js';
 import { Money } from './money.js';
-
-export interface TimeWindow {
-  start: Date;
-  end: Date;
-}
 
 export type ResourceType = 'serialized' | 'bulk';
 export type ResourceStatus = 'serviceable' | 'in_maintenance' | 'quarantined' | 'retired';

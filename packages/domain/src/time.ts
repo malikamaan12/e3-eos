@@ -10,6 +10,11 @@ export interface DateWindow {
   end: ZonedInstant;
 }
 
+export interface TimeWindow {
+  start: Date;
+  end: Date;
+}
+
 export class TimeUtil {
   /**
    * Creates a ZonedInstant from a Date or ISO string and IANA timezone.

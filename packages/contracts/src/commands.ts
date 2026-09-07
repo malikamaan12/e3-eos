@@ -475,6 +475,136 @@ export const ProductionCheckpointSchema = z.object({
 
 export type ProductionCheckpointDto = z.infer<typeof ProductionCheckpointSchema>;
 
+export const ShiftCreateSchema = z.object({
+  workerId: z.string(),
+  role: z.string().min(2),
+  windowStart: z.string(),
+  windowEnd: z.string(),
+});
+
+export type ShiftCreateDto = z.infer<typeof ShiftCreateSchema>;
+
+export const AttendanceCaptureSchema = z.object({
+  shiftId: z.string().optional(),
+  workerId: z.string(),
+  checkInAt: z.string(),
+  checkOutAt: z.string().optional(),
+  verificationMethod: z.string().default('field_app'),
+});
+
+export type AttendanceCaptureDto = z.infer<typeof AttendanceCaptureSchema>;
+
+export const TripCreateSchema = z.object({
+  vehicleId: z.string().min(2),
+  driverId: z.string(),
+  loadingStart: z.string(),
+  travelStart: z.string(),
+  venueArrival: z.string(),
+  eventStart: z.string(),
+  eventEnd: z.string(),
+  bumpOutEnd: z.string(),
+  returnInspectionEnd: z.string(),
+});
+
+export type TripCreateDto = z.infer<typeof TripCreateSchema>;
+
+export const PermitRecordSchema = z.object({
+  authorityName: z.string().min(2),
+  permitType: z.string().min(2),
+  permitNumber: z.string().optional(),
+  status: z.enum(['obtained', 'absent', 'alternative_verified']).default('absent'),
+  hasDigitalUpload: z.boolean().default(false),
+});
+
+export type PermitRecordDto = z.infer<typeof PermitRecordSchema>;
+
+export const PermitAlternativeVerifySchema = z.object({
+  verifiedBy: z.string(),
+  method: z.string().min(2),
+  physicalDocReference: z.string().min(2),
+});
+
+export type PermitAlternativeVerifyDto = z.infer<typeof PermitAlternativeVerifySchema>;
+
+export const ReadinessCheckpointSchema = z.object({
+  zone: z.string().min(1),
+  title: z.string().min(2),
+  isCritical: z.boolean().default(false),
+  status: z.enum(['pending', 'passed', 'failed']).default('pending'),
+  notes: z.string().optional(),
+  inspectorId: z.string().optional(),
+});
+
+export type ReadinessCheckpointDto = z.infer<typeof ReadinessCheckpointSchema>;
+
+export const OpeningReleaseSchema = z.object({
+  zone: z.string().min(1),
+  releasedBy: z.string(),
+});
+
+export type OpeningReleaseDto = z.infer<typeof OpeningReleaseSchema>;
+
+export const IncidentCaptureSchema = z.object({
+  title: z.string().min(2),
+  severity: z.enum(['low', 'medium', 'high', 'critical']),
+  operationalImpact: z.string().min(2),
+  restrictedPersonalNarrative: z.string().optional(),
+  reportedBy: z.string(),
+});
+
+export type IncidentCaptureDto = z.infer<typeof IncidentCaptureSchema>;
+
+export const VenueHandoverSchema = z.object({
+  deliveryCompleted: z.boolean().default(true),
+  venueReinstatementStatus: z.enum(['pending', 'inspected', 'accepted', 'remedial_required']).default('pending'),
+  openDamageClaims: z
+    .array(
+      z.object({
+        claimId: z.string(),
+        description: z.string(),
+        estimatedCost: z.number(),
+        resolved: z.boolean(),
+      })
+    )
+    .default([]),
+  depositStatus: z.enum(['held', 'partially_retained', 'released']).default('held'),
+});
+
+export type VenueHandoverDto = z.infer<typeof VenueHandoverSchema>;
+
+export const FieldSyncBatchSchema = z.object({
+  deviceId: z.string().min(2),
+  operations: z
+    .array(
+      z.object({
+        clientOperationId: z.string(),
+        entityType: z.enum(['attendance', 'task_completion', 'inspection', 'incident']),
+        action: z.string(),
+        clientTimestamp: z.string(),
+        workerId: z.string(),
+        payload: z.record(z.unknown()),
+      })
+    )
+    .min(1),
+});
+
+export type FieldSyncBatchDto = z.infer<typeof FieldSyncBatchSchema>;
+
+export const MediaUploadIntentSchema = z.object({
+  storageKey: z.string(),
+  expectedBytes: z.number().int().positive(),
+  linkedTaskOrInspectionId: z.string(),
+});
+
+export type MediaUploadIntentDto = z.infer<typeof MediaUploadIntentSchema>;
+
+export const MediaUploadCompleteSchema = z.object({
+  receivedBytes: z.number().int().positive(),
+  isBinaryComplete: z.boolean(),
+});
+
+export type MediaUploadCompleteDto = z.infer<typeof MediaUploadCompleteSchema>;
+
 export interface CommandResult<T = any> {
   data: {
     id: string;
