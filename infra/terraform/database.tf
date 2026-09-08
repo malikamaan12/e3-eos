@@ -25,7 +25,11 @@ resource "google_sql_database_instance" "postgres_instance" {
     }
 
     database_flags {
-      name  = "rds.force_ssl"
+      name  = "log_connections"
+      value = "on"
+    }
+    database_flags {
+      name  = "log_disconnections"
       value = "on"
     }
   }
