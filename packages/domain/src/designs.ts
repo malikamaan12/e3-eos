@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { safeSha256 } from './crypto-util.js';
 
 export type ReleasePurpose = 'for_review' | 'for_client_approval' | 'for_fabrication';
 
@@ -36,8 +36,8 @@ export class DesignReleaseEngine {
   /**
    * Computes SHA-256 hash of design file bytes or specification data.
    */
-  static computeVersionHash(data: string | Buffer): string {
-    return createHash('sha256').update(data).digest('hex');
+  static computeVersionHash(data: string | Buffer | Uint8Array): string {
+    return safeSha256(data);
   }
 
   /**
@@ -121,18 +121,14 @@ export class CertificateValidator {
     }
 
     // A certificate cannot claim it existed prior to its actual release
-    const hash = createHash('sha256')
-      .update(
-        JSON.stringify({
-          certificateId: params.certificateId,
-          projectId: params.projectId,
-          activityType: params.activityType,
-          activityPerformedAt: params.activityPerformedAt.toISOString(),
-          issuedAt: params.issuedAt.toISOString(),
-          issuerId: params.issuerId,
-        })
-      )
-      .digest('hex');
+    const hash = safeSha256({
+      certificateId: params.certificateId,
+      projectId: params.projectId,
+      activityType: params.activityType,
+      activityPerformedAt: params.activityPerformedAt.toISOString(),
+      issuedAt: params.issuedAt.toISOString(),
+      issuerId: params.issuerId,
+    });
 
     return {
       certificateId: params.certificateId,

@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { safeSha256 } from './crypto-util.js';
 
 export type ClientRoomType = 'concept' | 'milestones' | 'commercial' | 'results';
 
@@ -56,8 +56,7 @@ export class ClientPortalManager {
    * Computes SHA-256 hash of published projection payload.
    */
   static computePayloadHash(payload: Record<string, unknown>): string {
-    const canonical = JSON.stringify(payload, Object.keys(payload).sort());
-    return createHash('sha256').update(canonical).digest('hex');
+    return safeSha256(payload);
   }
 
   /**

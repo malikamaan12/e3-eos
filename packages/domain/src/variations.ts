@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { safeSha256 } from './crypto-util.js';
 import { Money, CurrencyCode } from './money.js';
 import { Decimal } from 'decimal.js';
 
@@ -53,8 +53,7 @@ export class VariationLedger {
    * Computes the SHA-256 canonical hash of an object/document.
    */
   static computeContentHash(data: unknown): string {
-    const canonicalJson = JSON.stringify(data, Object.keys(data as any).sort());
-    return createHash('sha256').update(canonicalJson).digest('hex');
+    return safeSha256(data);
   }
 
   /**
