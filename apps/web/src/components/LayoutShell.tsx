@@ -38,6 +38,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     { id: 'field', labelEn: 'Field Ops Mobile PWA', labelAr: 'عمليات الموقع الميدانية', icon: '📱' },
     { id: 'client', labelEn: 'Client Collaboration Portal', labelAr: 'بوابة تعاون العميل', icon: '🤝' },
     { id: 'admin', labelEn: 'Admin Configuration Studio', labelAr: 'استوديو الإعدادات والسياسات', icon: '⚙️' },
+    { id: 'supplier', labelEn: 'Supplier Portal (RFQ)', labelAr: 'بوابة الموردين والشركاء', icon: '🏢' },
   ];
 
   return (
