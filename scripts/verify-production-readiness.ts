@@ -25,7 +25,7 @@ async function runPreflight() {
       durationMs: 0,
     },
     {
-      name: '2. Vitest Automated Suites (213 Tests across 24 Files)',
+      name: '2. Vitest Automated Suites (242 Tests across 26 Files, incl. 15 Brutal Invariants)',
       command: 'pnpm test',
       status: 'PENDING',
       durationMs: 0,
