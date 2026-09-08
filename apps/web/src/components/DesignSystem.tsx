@@ -276,6 +276,9 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
         borderBottom: '1px solid #e2e8f0',
         marginBottom: '20px',
         overflowX: 'auto',
+        overflowY: 'hidden',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
       }}
     >
       {tabs.map((tab) => {

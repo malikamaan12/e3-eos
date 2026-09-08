@@ -11,7 +11,14 @@ import {
 
 export const AdminStudioView: React.FC = () => {
   const { currentLanguage } = useEosContext();
-  const [activeTab, setActiveTab] = useState('audit');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get('tab');
+      if (t) return t;
+    }
+    return 'audit';
+  });
   const [selectedTemplateId, setSelectedTemplateId] = useState<'tmpl-standard-13-stage' | 'tmpl-compressed-5-stage'>('tmpl-standard-13-stage');
   const [clonedMessage, setClonedMessage] = useState<string | null>(null);
 

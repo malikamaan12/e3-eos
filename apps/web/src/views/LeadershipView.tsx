@@ -7,7 +7,14 @@ import { formatCurrencyInLocale } from '../localization.js';
 
 export const LeadershipView: React.FC = () => {
   const { currentLanguage, currentOrg, projects, setActiveWorkspace, setSelectedProjectId } = useEosContext();
-  const [activeTab, setActiveTab] = useState('portfolio');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get('tab');
+      if (t) return t;
+    }
+    return 'portfolio';
+  });
   // P06 What-If Scenario State
   const [scenarioDelayWeeks, setScenarioDelayWeeks] = useState(0);
   const [scenarioOvertimeRate, setScenarioOvertimeRate] = useState(1.0);

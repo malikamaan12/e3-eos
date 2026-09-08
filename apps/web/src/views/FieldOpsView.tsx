@@ -55,7 +55,7 @@ export const FieldOpsView: React.FC = () => {
     : ViewStateFactory.ready(checklists);
 
   return (
-    <div data-testid="field-ops-workspace" style={{ maxWidth: '680px', margin: '0 auto' }}>
+    <div data-testid="field-ops-workspace" style={{ maxWidth: '1080px', margin: '0 auto' }}>
       {/* Mobile-First Header */}
       <div
         style={{
@@ -90,8 +90,9 @@ export const FieldOpsView: React.FC = () => {
         }}
       >
         {() => (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Quick Actions Panel */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(280px, 340px)', gap: '20px', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Quick Actions Panel */}
             <div
               style={{
                 backgroundColor: '#ffffff',
@@ -181,6 +182,50 @@ export const FieldOpsView: React.FC = () => {
                     )}
                   </div>
                 ))}
+              </div>
+            </div>
+          
+            </div>
+
+            {/* Desktop Field Ops Telemetry & Storage Sidebar */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '16px' }}>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                  {currentLanguage === 'ar' ? 'تشخيصات الجهاز وحالة PWA' : 'Device Telemetry & Offline Status'}
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
+                    <span style={{ color: '#64748b' }}>Network State:</span>
+                    <Badge variant={isOffline ? 'warning' : 'success'}>{isOffline ? 'OFFLINE (Cached)' : 'ONLINE'}</Badge>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
+                    <span style={{ color: '#64748b' }}>Service Worker:</span>
+                    <span style={{ fontWeight: 600, color: '#16a34a' }}>Active (sw.js v1.0.0)</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
+                    <span style={{ color: '#64748b' }}>Queued Mutations:</span>
+                    <span style={{ fontWeight: 700, color: pendingMutations.length > 0 ? '#ea580c' : '#059669' }}>
+                      {pendingMutations.length} Pending Replay
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
+                    <span style={{ color: '#64748b' }}>Offline Sync Policy:</span>
+                    <span style={{ fontWeight: 600 }}>Bounded / Non-Authoritative</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Storage Quota:</span>
+                    <span style={{ fontWeight: 600 }}>IndexedDB Ready</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '16px' }}>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+                  {currentLanguage === 'ar' ? 'ضمانات الأمان الميداني (AT-055 / AT-058)' : 'Field Security Invariants'}
+                </h4>
+                <p style={{ margin: 0, fontSize: '11px', color: '#64748b', lineHeight: 1.5 }}>
+                  Under E3 safety policy, offline cached authority cannot issue financial spending or override missing QCDD permits. Observations sync safely upon network restoration.
+                </p>
               </div>
             </div>
           </div>

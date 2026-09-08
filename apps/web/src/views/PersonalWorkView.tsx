@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { Badge, Button, Tabs, AlertBanner } from '../components/DesignSystem.js';
+import { Badge, Button, Tabs, AlertBanner, Modal } from '../components/DesignSystem.js';
 import { ViewStateRenderer } from '../components/ViewStateRenderer.js';
 import { ViewStateFactory } from '../view-states.js';
 
@@ -8,6 +8,7 @@ export const PersonalWorkView: React.FC = () => {
   const { currentLanguage, currentUser } = useEosContext();
   const [activeTab, setActiveTab] = useState('approvals');
   const [signedItems, setSignedItems] = useState<string[]>([]);
+  const [inspectingItem, setInspectingItem] = useState<any | null>(null);
 
   const tabs = [
     { id: 'approvals', label: currentLanguage === 'ar' ? 'الموافقات المعلقة' : 'Pending Approvals', badge: 2 - signedItems.length },
@@ -114,7 +115,7 @@ export const PersonalWorkView: React.FC = () => {
                           <div style={{ fontSize: '12px', color: '#475569' }}>{item.notes}</div>
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" onClick={() => setInspectingItem(item)}>
                             {currentLanguage === 'ar' ? 'فحص النسخة' : 'Inspect Diff'}
                           </Button>
                           <Button size="sm" variant="primary" onClick={() => handleSign(item.id)}>
@@ -161,6 +162,56 @@ export const PersonalWorkView: React.FC = () => {
           </div>
         )}
       </ViewStateRenderer>
+    
+      {inspectingItem && (
+        <Modal
+          isOpen={!!inspectingItem}
+          onClose={() => setInspectingItem(null)}
+          title={inspectingItem.type === 'Drawings Release' ? 'Technical Revision Diff: v2.3 -> v2.4' : 'Commercial Allocation Check: PO-2026-089'}
+          footer={
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <Button variant="secondary" size="sm" onClick={() => setInspectingItem(null)}>
+                {currentLanguage === 'ar' ? 'إغلاق' : 'Close'}
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  handleSign(inspectingItem.id);
+                  setInspectingItem(null);
+                }}
+              >
+                {currentLanguage === 'ar' ? 'اعتماد وتوقيع' : 'Approve & Sign'}
+              </Button>
+            </div>
+          }
+        >
+          {inspectingItem.type === 'Drawings Release' ? (
+            <div>
+              <div style={{ marginBottom: '12px', fontSize: '13px', color: '#475569' }}>
+                Target Entity: <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>CAD_RIGGING_V2.4</code> | Target Hash: <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>9f86d08188...</code>
+              </div>
+              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', fontFamily: 'monospace', fontSize: '12px' }}>
+                <div style={{ color: '#dc2626' }}>- v2.3: Point loads 4.2 kN per hoist node (Rigging Truss West)</div>
+                <div style={{ color: '#16a34a' }}>+ v2.4: Point loads recalculated to 3.8 kN with safety factor 2.5 (LEEIS Certified)</div>
+                <div style={{ color: '#16a34a' }}>+ v2.4: Motor pick point moved 450mm south to avoid existing HVAC ducting</div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ marginBottom: '12px', fontSize: '13px', color: '#475569' }}>
+                Contract Framework Ceiling: <strong>100,000 QAR</strong> | Committed Prior: <strong>55,000 QAR</strong>
+              </div>
+              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', fontFamily: 'monospace', fontSize: '12px' }}>
+                <div>Parent Framework ID: FRM-2026-AV-LED-01</div>
+                <div>Proposed Call-Off Amount: +30,000 QAR</div>
+                <div style={{ color: '#16a34a' }}>Post-Commitment Total: 85,000 QAR / 100,000 QAR (Passes Ceiling Invariant AT-044)</div>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
+
     </div>
   );
 };

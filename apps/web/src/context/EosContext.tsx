@@ -44,13 +44,44 @@ export interface EosContextValue {
 const EosContext = createContext<EosContextValue | undefined>(undefined);
 
 export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const getInitialWorkspace = (): WorkspaceType => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const wsParam = params.get('workspace') as WorkspaceType;
+      if (['leadership', 'personal', 'project', 'field', 'client', 'admin', 'supplier'].includes(wsParam)) {
+        return wsParam;
+      }
+      const hash = window.location.hash.replace('#', '') as WorkspaceType;
+      if (['leadership', 'personal', 'project', 'field', 'client', 'admin', 'supplier'].includes(hash)) {
+        return hash;
+      }
+    }
+    return 'leadership';
+  };
+
+  const getInitialLanguage = (): SupportedLocale => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const langParam = params.get('lang') as SupportedLocale;
+      if (langParam === 'ar' || langParam === 'en') return langParam;
+    }
+    return 'en';
+  };
+
   const [currentUser, setCurrentUser] = useState<SyntheticUser>(SYNTHETIC_USERS.superAdmin);
   const [currentOrg, setCurrentOrg] = useState<SyntheticOrganisation>(SYNTHETIC_ORGANISATIONS.e3Internal);
-  const [currentLanguage, setLanguageState] = useState<SupportedLocale>('en');
+  const [currentLanguage, setLanguageState] = useState<SupportedLocale>(getInitialLanguage);
   const [isOffline, setIsOffline] = useState<boolean>(false);
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>('leadership');
+  const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceType>(getInitialWorkspace);
   const [selectedProjectId, setSelectedProjectId] = useState<string>(SYNTHETIC_PROJECTS.sampleExhibition.id);
   const [pendingMutations, setPendingMutations] = useState<PendingOfflineMutation[]>([]);
+
+  const setActiveWorkspace = (ws: WorkspaceType) => {
+    setActiveWorkspaceState(ws);
+    if (typeof window !== 'undefined') {
+      window.location.hash = ws;
+    }
+  };
 
   const direction: 'ltr' | 'rtl' = currentLanguage === 'ar' ? 'rtl' : 'ltr';
 
