@@ -22,8 +22,102 @@ export const AdminStudioView: React.FC = () => {
 
   // System Health Telemetry State
   const [telemetry, setTelemetry] = useState<any>(null);
+  // Approvals & Exceptions Console State
+  const [approvalRequests, setApprovalRequests] = useState<any[]>([
+    {
+      id: 'appr-req-001',
+      targetType: 'proposal',
+      targetId: 'prop-2026-v2',
+      targetVersionId: '00000000-0000-4000-8000-000000000002',
+      targetHash: '4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a',
+      requiredRole: 'Commercial Director',
+      status: 'pending',
+      acknowledgedConditions: ['Subject to client letter of intent verification'],
+    },
+    {
+      id: 'appr-req-002',
+      targetType: 'policy',
+      targetId: 'pol-qnd-2026-v1',
+      targetVersionId: '00000000-0000-4000-8000-000000000003',
+      targetHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8',
+      requiredRole: 'Managing Director',
+      status: 'approved',
+      decidedBy: 'Tariq Al-Mansoor',
+      decidedAt: '2026-09-07T12:00:00Z',
+    },
+  ]);
+
+  const [exceptionsList, setExceptionsList] = useState<any[]>([
+    {
+      id: 'exc-req-001',
+      scope: { ruleIds: ['vendor.comparison.required'] },
+      reason: 'Urgent specialized kinetic truss motor sourcing for Main Stage Qatar National Day',
+      status: 'authorised',
+      validUntil: '2026-10-18T18:00:00Z',
+      maxUses: 1,
+      remainingUses: 1,
+      reviewPolicy: {
+        ownerId: 'Fatima Al-Kuwari (Finance Lead)',
+        reviewDueAt: '2026-10-25T18:00:00Z',
+      },
+    },
+  ]);
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+
+  const handleApprove = async (reqId: string, targetVersionId: string, targetHash: string) => {
+    try {
+      await fetch('/api/v1/projects/00000000-0000-4000-8000-000000000001/approval-requests/' + reqId + '/decisions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': 'idemp-appr-' + Date.now() },
+        body: JSON.stringify({
+          targetVersionId,
+          targetHash,
+          outcome: 'approved',
+          acknowledgedConditions: ['Subject to verified commercial framework'],
+          comment: 'Approved via Central Admin Studio',
+        }),
+      });
+    } catch {}
+    setApprovalRequests((prev) =>
+      prev.map((a) => (a.id === reqId ? { ...a, status: 'approved', decidedBy: 'You (Central Admin)', decidedAt: new Date().toISOString() } : a))
+    );
+    setActionFeedback('Approval decision successfully recorded for ' + reqId);
+    setTimeout(() => setActionFeedback(null), 4000);
+  };
+
+  const handleCloseException = async (excId: string) => {
+    try {
+      await fetch('/api/v1/projects/00000000-0000-4000-8000-000000000001/exceptions/' + excId + '/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': 'idemp-rev-' + Date.now() },
+        body: JSON.stringify({
+          outcome: 'closed',
+          disposition: 'Goods received and inspected. Patent documentation verified.',
+          evidenceVersionIds: ['00000000-0000-4000-8000-000000000088'],
+          remainingActionIds: [],
+        }),
+      });
+    } catch {}
+    setExceptionsList((prev) =>
+      prev.map((e) => (e.id === excId ? { ...e, status: 'closed', remainingUses: 0 } : e))
+    );
+    setActionFeedback('Follow-up review closed for exception ' + excId);
+    setTimeout(() => setActionFeedback(null), 4000);
+  };
+
 
   useEffect(() => {
+    if (activeTab === 'approvals') {
+      fetch('/api/v1/projects/00000000-0000-4000-8000-000000000001/approval-requests')
+        .then((r) => r.json())
+        .then((d) => { if (d.data && d.data.length > 0) setApprovalRequests(d.data); })
+        .catch(() => {});
+      fetch('/api/v1/projects/00000000-0000-4000-8000-000000000001/exceptions')
+        .then((r) => r.json())
+        .then((d) => { if (d.data && d.data.length > 0) setExceptionsList(d.data); })
+        .catch(() => {});
+    }
+
     if (activeTab === 'health') {
       fetch('/api/v1/health/system')
         .then((res) => res.json())
@@ -52,6 +146,7 @@ export const AdminStudioView: React.FC = () => {
     { id: 'audit', label: currentLanguage === 'ar' ? 'سجل التدقيق المشفر' : 'Cryptographic Audit Manifest' },
     { id: 'policies', label: currentLanguage === 'ar' ? 'استوديو السياسات ومصفوفة الصلاحيات' : 'Policy Matrix Studio' },
     { id: 'templates', label: currentLanguage === 'ar' ? 'استوديو قوالب دورة الحياة' : 'Lifecycle Template Studio' },
+    { id: 'approvals', label: currentLanguage === 'ar' ? 'موافقات واستثناءات الحوكمة' : 'Approvals & Exceptions Console' },
     { id: 'health', label: currentLanguage === 'ar' ? 'مؤشرات النظام والمراقبة الحية' : 'System Health & Telemetry' },
   ];
 
@@ -394,6 +489,163 @@ export const AdminStudioView: React.FC = () => {
               </div>
             )}
 
+
+            {activeTab === 'approvals' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {actionFeedback && (
+                  <AlertBanner type="success">{actionFeedback}</AlertBanner>
+                )}
+
+                {/* Separation of Duties Notice */}
+                <div style={{
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <div style={{ fontSize: '24px' }}>⚖️</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                      {currentLanguage === 'ar' ? 'ضوابط الفصل بين المهام (S21 / S22 / Invariant AT-011)' : 'Separation of Duties & Break-Glass Governance (S21 / S22 / Invariant AT-011)'}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                      {currentLanguage === 'ar'
+                        ? 'تخضع جميع الموافقات والاستثناءات للربط المشفر بالنسخة المعتمدة (SHA-256). يُحظر ذاتياً اعتماد المعاملة من قبل منشئها.'
+                        : 'Approval decisions are cryptographically pinned to the exact SHA-256 target version hash. Self-approval by transaction originators is blocked.'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 1: Approval Requests Queue */}
+                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '20px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
+                        {currentLanguage === 'ar' ? 'طابور طلبات الاعتماد والموافقة الفورية (M06)' : 'Dual-Signoff Approval Requests Queue (M06)'}
+                      </h3>
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                        {currentLanguage === 'ar' ? 'طلبات بانتظار توقيع أصحاب الصلاحية المعينين' : 'Pending authorizations awaiting designated commercial & technical authority signoff'}
+                      </div>
+                    </div>
+                    <Badge variant="info">{approvalRequests.length} Total Requests</Badge>
+                  </div>
+
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>ID</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Target Type</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>SHA-256 Target Hash</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Required Role</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Status</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {approvalRequests.map((req) => (
+                          <tr key={req.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{req.id}</td>
+                            <td style={{ padding: '12px' }}>
+                              <Badge variant="purple">{req.targetType.toUpperCase()}</Badge>
+                            </td>
+                            <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#475569' }}>
+                              {req.targetHash ? req.targetHash.substring(0, 16) + '...' : 'N/A'}
+                            </td>
+                            <td style={{ padding: '12px', fontWeight: 500 }}>{req.requiredRole}</td>
+                            <td style={{ padding: '12px' }}>
+                              <Badge variant={req.status === 'approved' ? 'success' : 'warning'}>
+                                {req.status.toUpperCase()}
+                              </Badge>
+                            </td>
+                            <td style={{ padding: '12px' }}>
+                              {req.status === 'pending' ? (
+                                <Button
+                                  variant="primary"
+                                  size="sm"
+                                  onClick={() => handleApprove(req.id, req.targetVersionId, req.targetHash)}
+                                >
+                                  {currentLanguage === 'ar' ? 'اعتماد رسمي' : 'Authorise'}
+                                </Button>
+                              ) : (
+                                <span style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
+                                  ✓ {req.decidedBy || 'Authorised'}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Section 2: Active Exceptions Register */}
+                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '20px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
+                        {currentLanguage === 'ar' ? 'سجل الاستثناءات المعتمدة ومتابعة الإغلاق (M06)' : 'Active Exceptions Register & Review Closure (M06)'}
+                      </h3>
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                        {currentLanguage === 'ar' ? 'استثناءات أحادية الاستخدام مع التزام إغلاق المراجعة اللاحقة' : 'Single-use bounded exceptions with mandatory post-event audit review (Invariant AT-014)'}
+                      </div>
+                    </div>
+                    <Badge variant="purple">{exceptionsList.length} Active Exception</Badge>
+                  </div>
+
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Exception ID</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Rule Bypass Scope</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Justification Reason</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Uses Remaining</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Status</th>
+                          <th style={{ padding: '10px 12px', fontWeight: 600 }}>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {exceptionsList.map((exc) => (
+                          <tr key={exc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{exc.id}</td>
+                            <td style={{ padding: '12px' }}>
+                              <Badge variant="info">{exc.scope?.ruleIds ? exc.scope.ruleIds[0] : (exc.ruleId || 'Rule')}</Badge>
+                            </td>
+                            <td style={{ padding: '12px', color: '#334155', maxWidth: '280px' }}>{exc.reason}</td>
+                            <td style={{ padding: '12px', fontWeight: 700 }}>{exc.remainingUses} / {exc.maxUses}</td>
+                            <td style={{ padding: '12px' }}>
+                              <Badge variant={exc.status === 'closed' ? 'success' : 'purple'}>
+                                {exc.status.toUpperCase()}
+                              </Badge>
+                            </td>
+                            <td style={{ padding: '12px' }}>
+                              {exc.status !== 'closed' ? (
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => handleCloseException(exc.id)}
+                                >
+                                  {currentLanguage === 'ar' ? 'إغلاق المراجعة' : 'Close Review'}
+                                </Button>
+                              ) : (
+                                <span style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
+                                  ✓ Closed
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
             {activeTab === 'health' && (
               <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>

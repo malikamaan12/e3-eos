@@ -13,6 +13,7 @@ import { Request } from 'express';
 import {
   ResourceCreateSchema,
   ReservationCreateSchema,
+  ReservationConfirmSchema,
   MaintenanceHoldSchema,
   MaintenanceReleaseSchema,
   SubrentalRequestSchema,
@@ -183,6 +184,58 @@ export class InventoryController {
       },
       meta: {
         requestId: (req.headers['x-request-id'] as string) || 'req-rsv',
+      },
+    };
+  }
+
+  @Post('projects/:projectId/reservations/:id/confirm')
+  @UseGuards(TenantIsolationGuard, IdempotencyGuard)
+  confirmReservation(
+    @Param('projectId') projectId: string,
+    @Param('id') reservationId: string,
+    @Body() body: unknown,
+    @Req() req: Request
+  ): CommandResult<StoredReservation> {
+    const parseResult = ReservationConfirmSchema.safeParse(body);
+    if (!parseResult.success) {
+      throw new HttpException(
+        { message: 'VALIDATION_FAILED', errors: parseResult.error.errors },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const project = projectRepository.get(projectId);
+    if (!project || project.organisationId !== orgId) {
+      throw new HttpException({ message: 'PROJECT_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+
+    let reservation = reservationRepository.get(reservationId);
+    if (!reservation || reservation.projectId !== projectId || reservation.organisationId !== orgId) {
+      throw new HttpException({ message: 'RESERVATION_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+
+    reservation = {
+      ...reservation,
+      status: 'confirmed',
+      confirmedAt: new Date(),
+      window: {
+        start: new Date(parseResult.data.planningStart),
+        end: new Date(parseResult.data.planningEnd),
+      },
+      quantity: parseResult.data.quantity,
+    };
+    reservationRepository.set(reservationId, reservation);
+
+    return {
+      data: {
+        id: reservation.id,
+        status: reservation.status,
+        recordVersion: 2,
+        payload: reservation,
+      },
+      meta: {
+        requestId: (req.headers['x-request-id'] as string) || 'req-rsv-confirm',
       },
     };
   }

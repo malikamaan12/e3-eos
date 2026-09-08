@@ -174,6 +174,40 @@ export const ApprovalDecisionSchema = z.object({
 
 export type ApprovalDecisionDto = z.infer<typeof ApprovalDecisionSchema>;
 
+export const ExceptionScopeSchema = z.object({
+  projectId: z.string().uuid(),
+  targetRecordId: z.string().uuid(),
+  targetVersionId: z.string().uuid(),
+  ruleIds: z.array(z.string()).min(1),
+  allowedActions: z.array(z.string()).min(1),
+  conditions: z.array(z.string()).optional(),
+});
+
+export type ExceptionScopeDto = z.infer<typeof ExceptionScopeSchema>;
+
+export const ExceptionReviewPolicySchema = z.object({
+  mode: z.enum(['required', 'not_required_with_basis']),
+  ownerId: z.string().uuid(),
+  reviewDueAt: z.string(),
+  templateId: z.string().uuid().optional(),
+  basis: z.string().optional(),
+});
+
+export type ExceptionReviewPolicyDto = z.infer<typeof ExceptionReviewPolicySchema>;
+
+export const ExceptionRequestSchema = z.object({
+  scope: ExceptionScopeSchema,
+  reason: z.string().min(1),
+  authorityBasisId: z.string().uuid(),
+  validFrom: z.string(),
+  validUntil: z.string(),
+  maxUses: z.number().int().min(1).default(1),
+  reviewPolicy: ExceptionReviewPolicySchema,
+  evidenceVersionIds: z.array(z.string().uuid()).default([]),
+});
+
+export type ExceptionRequestDto = z.infer<typeof ExceptionRequestSchema>;
+
 export const ExceptionAuthoriseSchema = z.object({
   targetVersionId: z.string().uuid(),
   targetHash: z.string().regex(/^[a-f0-9]{64}$/i, 'Must be valid 64-character hex SHA-256'),
@@ -191,6 +225,15 @@ export const ExceptionAuthoriseSchema = z.object({
 });
 
 export type ExceptionAuthoriseDto = z.infer<typeof ExceptionAuthoriseSchema>;
+
+export const ExceptionReviewSchema = z.object({
+  outcome: z.enum(['in_review', 'remediation_required', 'closed']),
+  disposition: z.string().min(1),
+  evidenceVersionIds: z.array(z.string().uuid()).default([]),
+  remainingActionIds: z.array(z.string().uuid()).default([]),
+});
+
+export type ExceptionReviewDto = z.infer<typeof ExceptionReviewSchema>;
 
 export const EstimateCreateSchema = z.object({
   name: z.string().min(2).max(200),
@@ -433,6 +476,16 @@ export const ReservationCreateSchema = z.object({
 });
 
 export type ReservationCreateDto = z.infer<typeof ReservationCreateSchema>;
+
+export const ReservationConfirmSchema = z.object({
+  expectedResourceVersion: z.number().int().min(1).default(1),
+  planningStart: z.string(),
+  planningEnd: z.string(),
+  quantity: z.number().int().positive().default(1),
+  authorityBasisId: z.string().uuid().optional(),
+});
+
+export type ReservationConfirmDto = z.infer<typeof ReservationConfirmSchema>;
 
 export const MaintenanceHoldSchema = z.object({
   reason: z.string().min(3),

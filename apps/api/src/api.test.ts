@@ -418,5 +418,204 @@ describe('OpenAPI Specification & Interactive Docs Endpoints', () => {
   });
 });
 
+describe('M06 Governance, Approvals and Exceptions Suite', () => {
+  const projectId = '00000000-0000-4000-8000-000000000001';
+  const orgId = '11111111-1111-4111-8111-111111111111';
+
+  beforeEach(() => {
+    projectRepository.set(projectId, {
+      id: projectId,
+      organisationId: orgId,
+      projectCode: 'PRJ-QATAR-2026',
+      title: 'Qatar National Day 2026',
+      description: 'National celebrations production and live delivery',
+      originCode: 'DIRECT',
+      ownerId: '00000000-0000-4000-8000-000000000005',
+      maturity: 'detailed_planning',
+      outcome: 'undetermined',
+      rowVersion: 1,
+    });
+  });
+
+  it('publishes project policy draft with SHA-256 immutable snapshot', async () => {
+    const { GovernanceController } = await import('./governance/governance.controller.js');
+    const controller = new GovernanceController();
+
+    const mockReq = {
+      organisationId: orgId,
+      headers: { 'x-request-id': 'req-test-pub' },
+    } as any;
+
+    const result = controller.publishProjectPolicy(
+      projectId,
+      '00000000-0000-4000-8000-000000000055',
+      {
+        draftVersionId: '00000000-0000-4000-8000-000000000011',
+        impactReportId: '00000000-0000-4000-8000-000000000022',
+        authorityDecisionIds: ['00000000-0000-4000-8000-000000000033'],
+      },
+      mockReq
+    );
+
+    expect(result.data.status).toBe('published');
+    expect(result.data.payload!.status).toBe('active');
+    expect(result.data.payload!.snapshotHash).toHaveLength(64);
+  });
+
+  it('records approval decision bound to immutable SHA-256 target hash', async () => {
+    const { GovernanceController } = await import('./governance/governance.controller.js');
+    const { createHash } = await import('crypto');
+    const controller = new GovernanceController();
+
+    const targetHash = createHash('sha256').update('prop-2026-v2-target-content').digest('hex');
+    const mockReq = {
+      organisationId: orgId,
+      userId: 'usr-commercial-dir',
+      headers: { 'x-request-id': 'req-test-appr' },
+    } as any;
+
+    const result = controller.decideApproval(
+      projectId,
+      'appr-req-001',
+      {
+        targetVersionId: '00000000-0000-4000-8000-000000000002',
+        targetHash,
+        outcome: 'approved',
+        acknowledgedConditions: ['Subject to client letter of intent verification'],
+        comment: 'Commercial terms authorized under delegation matrix',
+      },
+      mockReq
+    );
+
+    expect(result.data.status).toBe('approved');
+    expect(result.data.payload!.decidedBy).toBe('usr-commercial-dir');
+    expect(result.data.payload!.acknowledgedConditions).toContain('Subject to client letter of intent verification');
+  });
+
+  it('enforces full 4-step exception lifecycle: request -> authorise -> follow-up review closure', async () => {
+    const { GovernanceController } = await import('./governance/governance.controller.js');
+    const { createHash } = await import('crypto');
+    const controller = new GovernanceController();
+
+    const mockReq = {
+      organisationId: orgId,
+      userId: 'usr-gov-lead',
+      headers: { 'x-request-id': 'req-test-exc' },
+    } as any;
+
+    // Step 1: Request
+    const requestRes = controller.requestException(
+      projectId,
+      {
+        scope: {
+          projectId,
+          targetRecordId: '00000000-0000-4000-8000-000000000100',
+          targetVersionId: '00000000-0000-4000-8000-000000000200',
+          ruleIds: ['vendor.comparison.required'],
+          allowedActions: ['purchase_order.release'],
+        },
+        reason: 'Sole source vendor justified by proprietary patent license',
+        authorityBasisId: '00000000-0000-4000-8000-000000000300',
+        validFrom: new Date().toISOString(),
+        validUntil: new Date(Date.now() + 86400000 * 2).toISOString(),
+        maxUses: 1,
+        reviewPolicy: {
+          mode: 'required',
+          ownerId: '00000000-0000-4000-8000-000000000400',
+          reviewDueAt: new Date(Date.now() + 86400000 * 5).toISOString(),
+        },
+        evidenceVersionIds: ['00000000-0000-4000-8000-000000000500'],
+      },
+      mockReq
+    );
+
+    expect(requestRes.data.status).toBe('requested');
+    const excId = requestRes.data.id;
+
+    // Step 2: Authorise
+    const authTargetHash = createHash('sha256').update(excId).digest('hex');
+    const authRes = controller.authoriseException(
+      projectId,
+      excId,
+      {
+        targetVersionId: '00000000-0000-4000-8000-000000000200',
+        targetHash: authTargetHash,
+        authorityDecisionIds: ['00000000-0000-4000-8000-000000000600'],
+        approvedScope: {
+          targetRuleId: 'vendor.comparison.required',
+          maxUses: 1,
+          validFrom: new Date().toISOString(),
+          validUntil: new Date(Date.now() + 86400000 * 2).toISOString(),
+        },
+        reviewPolicy: {
+          reviewOwnerId: '00000000-0000-4000-8000-000000000400',
+          reviewDueAt: new Date(Date.now() + 86400000 * 5).toISOString(),
+        },
+      },
+      mockReq
+    );
+
+    expect(authRes.data.status).toBe('authorised');
+    expect(authRes.data.payload!.authorisedBy).toBe('usr-gov-lead');
+
+    // Step 3: Follow-up Review & Closure (Invariant AT-014)
+    const reviewRes = controller.reviewException(
+      projectId,
+      excId,
+      {
+        outcome: 'closed',
+        disposition: 'Goods received and accepted with patent documentation attached',
+        evidenceVersionIds: ['00000000-0000-4000-8000-000000000700'],
+        remainingActionIds: [],
+      },
+      mockReq
+    );
+
+    expect(reviewRes.data.status).toBe('closed');
+    expect(reviewRes.data.payload!.closureDisposition).toContain('Goods received');
+    expect(reviewRes.data.payload!.closedAt).toBeDefined();
+  });
+
+  it('confirms pending inventory reservation with updated planning window and authority basis', async () => {
+    const { InventoryController, reservationRepository } = await import('./inventory/inventory.controller.js');
+    const controller = new InventoryController();
+
+    const mockReq = {
+      organisationId: orgId,
+      headers: { 'x-request-id': 'req-test-rsv-conf' },
+    } as any;
+
+    // Seed a pending reservation
+    const testRsvId = 'rsv-test-conf-01';
+    reservationRepository.set(testRsvId, {
+      id: testRsvId,
+      resourceId: 'res-truss-01',
+      organisationId: orgId,
+      projectId,
+      window: {
+        start: new Date('2026-12-10T00:00:00Z'),
+        end: new Date('2026-12-20T00:00:00Z'),
+      },
+      quantity: 50,
+      status: 'pending' as any,
+    });
+
+    const result = controller.confirmReservation(
+      projectId,
+      testRsvId,
+      {
+        expectedResourceVersion: 1,
+        planningStart: '2026-12-10T08:00:00Z',
+        planningEnd: '2026-12-19T22:00:00Z',
+        quantity: 45,
+      },
+      mockReq
+    );
+
+    expect(result.data.status).toBe('confirmed');
+    expect(result.data.payload!.quantity).toBe(45);
+  });
+});
+
 
 

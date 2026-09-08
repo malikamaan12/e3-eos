@@ -17,6 +17,7 @@ import { IntegrationsController } from './integrations/integrations.controller.j
 import { PortfolioController } from './portfolio/portfolio.controller.js';
 import { AiController } from './ai/ai.controller.js';
 import { RolloutController } from './rollout/rollout.controller.js';
+import { GovernanceController } from './governance/governance.controller.js';
 import { HealthController } from './common/health.controller.js';
 import { OpenApiController } from './common/openapi.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
@@ -30,6 +31,7 @@ import { TenantIsolationGuard } from './common/tenant.guard.js';
     HealthController,
     IdentityController,
     ProjectsController,
+    GovernanceController,
     ScopeController,
     WorkController,
     CommercialController,
