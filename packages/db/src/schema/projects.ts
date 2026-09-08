@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, integer, uniqueIndex, jsonb } from 'drizzle-orm/pg-core';
 import { organisations, users } from './identity.js';
 
 export const projects = pgTable(
@@ -24,5 +24,48 @@ export const projects = pgTable(
   },
   (table) => [
     uniqueIndex('project_org_code_idx').on(table.organisationId, table.projectCode),
+  ]
+);
+
+export const projectStageInstances = pgTable(
+  'project_stage_instances',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('project_id').references(() => projects.id).notNull(),
+    organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+    stageNumber: integer('stage_number').notNull(),
+    stageName: text('stage_name').notNull(),
+    status: text('status').default('not_started').notNull(), // 'not_started', 'in_progress', 'completed'
+    progressPercent: integer('progress_percent').default(0).notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('proj_stage_idx').on(table.projectId, table.stageNumber),
+  ]
+);
+
+export const projectStageActivities = pgTable(
+  'project_stage_activities',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('project_id').references(() => projects.id).notNull(),
+    organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+    stageNumber: integer('stage_number').notNull(),
+    activityCode: text('activity_code').notNull(),
+    title: text('title').notNull(),
+    description: text('description').notNull(),
+    accountableRole: text('accountable_role').notNull(),
+    status: text('status').default('not_started').notNull(), // 'not_started', 'in_progress', 'completed', 'blocked'
+    evidenceUris: jsonb('evidence_uris').$type<string[]>().default([]).notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    completedBy: uuid('completed_by').references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('proj_activity_code_idx').on(table.projectId, table.activityCode),
   ]
 );
