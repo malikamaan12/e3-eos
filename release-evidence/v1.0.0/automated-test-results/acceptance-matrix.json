@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-08T22:17:04.419Z",
+  "verifiedAt": "2026-09-08T22:54:40.017Z",
   "totalScenarios": 92,
   "verifiedCount": 92,
   "coveragePercentage": "100.0%",
@@ -514,6 +514,7 @@
         "tests/lifecycle-e2e.test.ts",
         "apps/api/src/phase03.test.ts",
         "apps/api/src/procurement/procurement.controller.ts",
+        "apps/web/src/views/PersonalWorkView.tsx",
         "packages/domain/src/procurement.test.ts",
         "packages/domain/src/procurement.ts"
       ],
@@ -659,6 +660,7 @@
       "verifiedFiles": [
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/FieldOpsView.tsx",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
       ],
@@ -698,6 +700,7 @@
       "verifiedFiles": [
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/FieldOpsView.tsx",
         "packages/domain/src/field-sync.ts"
       ],
       "status": "VERIFIED"
