@@ -146,39 +146,130 @@ export class BackupManifestReconciliationEngine {
   }
 }
 
+export type RunbookIncidentType =
+  | 'db_api_outage'
+  | 'queue_redis_outage'
+  | 'remote_provider_timeout'
+  | 'credential_compromise'
+  | 'duplicate_webhook'
+  | 'lost_field_device'
+  | 'wrong_policy_published'
+  | 'missing_safety_evidence'
+  | 'financial_import_mismatch'
+  | 'malicious_file_or_prompt_injection'
+  | 'leaked_publication_link'
+  | 'failed_deployment_migration'
+  | 'offline_attendance_conflict'
+  | 'duplicate_invoice_attempt';
+
 export interface SupportFailureDrillInput {
-  incidentType: 'remote_provider_timeout' | 'offline_attendance_conflict' | 'duplicate_invoice_attempt';
+  incidentType: RunbookIncidentType;
   details: string;
 }
 
 export interface SupportFailureResolutionResult {
   incidentType: string;
+  runbookId: string;
   runbookActionTaken: string;
+  immediateAction: string;
+  recoveryAndEvidence: string;
   isAuditPreserved: boolean;
   status: 'resolved_under_runbook';
 }
 
 export class SupportRunbookEngine {
   /**
-   * Simulates support failure resolution according to operational runbooks (AT-092).
+   * Simulates support failure resolution according to operational runbooks RB01 through RB12 (AT-092).
    */
   static executeSupportDrill(input: SupportFailureDrillInput): SupportFailureResolutionResult {
-    let action = '';
-    switch (input.incidentType) {
-      case 'remote_provider_timeout':
-        action = 'Quarantine order in reconciliation_needed; await verified manual supplier callback; resend unlocked without duplicate creation.';
-        break;
-      case 'offline_attendance_conflict':
-        action = 'Retain offline attendance as observation_flagged_for_review; notify HSE lead; block automatic site release.';
-        break;
-      case 'duplicate_invoice_attempt':
-        action = 'Reject duplicate invoice by unique source transaction ID; retain batch history and notify finance controller.';
-        break;
-    }
+    const runbooks: Record<
+      RunbookIncidentType,
+      { runbookId: string; immediateAction: string; recoveryAndEvidence: string }
+    > = {
+      db_api_outage: {
+        runbookId: 'RB01',
+        immediateAction: 'Show degraded state; stop unsafe consequential writes; keep permitted local capture.',
+        recoveryAndEvidence: 'Restore/fail over under approved process; replay outbox; reconcile intents and totals; document RPO/RTO.',
+      },
+      queue_redis_outage: {
+        runbookId: 'RB02',
+        immediateAction: 'Persist domain intents to durable PostgreSQL outbox; display delayed notification/integration.',
+        recoveryAndEvidence: 'Recover queue; re-enqueue incomplete durable intents; deduplicate consumer effects; compare dispatch log.',
+      },
+      remote_provider_timeout: {
+        runbookId: 'RB03',
+        immediateAction: 'Quarantine order in reconciliation_needed; await verified manual supplier callback; resend unlocked without duplicate creation.',
+        recoveryAndEvidence: 'Query provider or obtain supplier confirmation; bind external ID; only approved replay/compensation.',
+      },
+      credential_compromise: {
+        runbookId: 'RB04',
+        immediateAction: 'Revoke token/sessions immediately and pause affected connector.',
+        recoveryAndEvidence: 'Rotate secret in Secret Manager, reauthorise least scopes, inspect access/exfiltration, reconcile changes and notify owners.',
+      },
+      duplicate_webhook: {
+        runbookId: 'RB05',
+        immediateAction: 'Persist and deduplicate via unique idempotency key without repeating business effects.',
+        recoveryAndEvidence: 'Fetch authoritative record, validate version, record reversal/conflict and test replay.',
+      },
+      lost_field_device: {
+        runbookId: 'RB06',
+        immediateAction: 'Revoke future device sessions; identify cached data exposure.',
+        recoveryAndEvidence: 'Purge on reconnect where possible, assess local storage loss, recover queued facts through supervisor review.',
+      },
+      offline_attendance_conflict: {
+        runbookId: 'RB06',
+        immediateAction: 'Retain offline attendance as observation_flagged_for_review; notify HSE lead; block automatic site release.',
+        recoveryAndEvidence: 'Supervisor review against signed badge manifest; reconcile attendance records.',
+      },
+      wrong_policy_published: {
+        runbookId: 'RB07',
+        immediateAction: 'Identify affected scope; suspend relevant future releases.',
+        recoveryAndEvidence: 'Restore reviewed snapshot/compile fix; assess executed actions separately; do not erase decisions.',
+      },
+      missing_safety_evidence: {
+        runbookId: 'RB08',
+        immediateAction: 'Keep affected activity unreleased; allow protective stop-work action and incident capture.',
+        recoveryAndEvidence: 'Obtain actual verification, resolve scope/dependency and record authorised reopening.',
+      },
+      financial_import_mismatch: {
+        runbookId: 'RB09',
+        immediateAction: 'Quarantine batch; keep last reconciled position.',
+        recoveryAndEvidence: 'Validate source mapping, duplicates, tax/currency and allocations; reverse erroneous postings visibly.',
+      },
+      duplicate_invoice_attempt: {
+        runbookId: 'RB09',
+        immediateAction: 'Reject duplicate invoice by unique source transaction ID; retain batch history and notify finance controller.',
+        recoveryAndEvidence: 'Verify ledger uniqueness constraints; log forensic rejection event.',
+      },
+      malicious_file_or_prompt_injection: {
+        runbookId: 'RB10',
+        immediateAction: 'Quarantine content/job and block external execution.',
+        recoveryAndEvidence: 'Preserve safe forensic metadata, verify no cross-project retrieval, purge unauthorised outputs and retest.',
+      },
+      leaked_publication_link: {
+        runbookId: 'RB11',
+        immediateAction: 'Withdraw grant/publication and invalidate future URL issue.',
+        recoveryAndEvidence: 'Record exposure, identify access, communicate under approved process; do not claim downloaded copies recalled.',
+      },
+      failed_deployment_migration: {
+        runbookId: 'RB12',
+        immediateAction: 'Halt rollout and keep prior compatible application.',
+        recoveryAndEvidence: 'Follow expand/contract rollback, restore only under data-owner authority, reconcile domain/external effects.',
+      },
+    };
+
+    const runbook = runbooks[input.incidentType] || {
+      runbookId: 'RB-GENERIC',
+      immediateAction: input.details,
+      recoveryAndEvidence: 'Execute incident response and log forensic audit trail.',
+    };
 
     return {
       incidentType: input.incidentType,
-      runbookActionTaken: action,
+      runbookId: runbook.runbookId,
+      runbookActionTaken: `${runbook.immediateAction} ${runbook.recoveryAndEvidence}`,
+      immediateAction: runbook.immediateAction,
+      recoveryAndEvidence: runbook.recoveryAndEvidence,
       isAuditPreserved: true,
       status: 'resolved_under_runbook',
     };

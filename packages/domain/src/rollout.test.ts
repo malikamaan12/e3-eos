@@ -99,15 +99,54 @@ describe('Phase 07 Domain Logic: Production Rollout, Security, and Recovery Dril
 
   // AT-092: Support operational runbook drill
   describe('AT-092: Support Runbook Engine', () => {
-    it('executes operational failure resolution preserving audit immutability', () => {
+    it('executes operational failure resolution preserving audit immutability (RB03)', () => {
       const res = SupportRunbookEngine.executeSupportDrill({
         incidentType: 'remote_provider_timeout',
         details: 'Vendor ERP timed out during bulk PO submission',
       });
 
       expect(res.status).toBe('resolved_under_runbook');
+      expect(res.runbookId).toBe('RB03');
       expect(res.isAuditPreserved).toBe(true);
       expect(res.runbookActionTaken).toContain('reconciliation_needed');
+      expect(res.immediateAction).toBeDefined();
+      expect(res.recoveryAndEvidence).toBeDefined();
+    });
+
+    it('executes database outage runbook (RB01) with degraded state and replay outbox', () => {
+      const res = SupportRunbookEngine.executeSupportDrill({
+        incidentType: 'db_api_outage',
+        details: 'Cloud SQL primary failover in progress',
+      });
+
+      expect(res.runbookId).toBe('RB01');
+      expect(res.immediateAction).toContain('degraded state');
+      expect(res.recoveryAndEvidence).toContain('replay outbox');
+      expect(res.isAuditPreserved).toBe(true);
+    });
+
+    it('executes credential compromise runbook (RB04) revoking sessions and rotating secrets', () => {
+      const res = SupportRunbookEngine.executeSupportDrill({
+        incidentType: 'credential_compromise',
+        details: 'Suspected API token leak in external telemetry logs',
+      });
+
+      expect(res.runbookId).toBe('RB04');
+      expect(res.immediateAction).toContain('Revoke token/sessions');
+      expect(res.recoveryAndEvidence).toContain('Secret Manager');
+      expect(res.isAuditPreserved).toBe(true);
+    });
+
+    it('executes malicious injection runbook (RB10) quarantining jobs and protecting cross-project retrieval', () => {
+      const res = SupportRunbookEngine.executeSupportDrill({
+        incidentType: 'malicious_file_or_prompt_injection',
+        details: 'Prompt injection attempt detected in uploaded tender document',
+      });
+
+      expect(res.runbookId).toBe('RB10');
+      expect(res.immediateAction).toContain('Quarantine content/job');
+      expect(res.recoveryAndEvidence).toContain('cross-project retrieval');
+      expect(res.isAuditPreserved).toBe(true);
     });
   });
 });

@@ -906,7 +906,18 @@ export type RestoreDrillDto = z.infer<typeof RestoreDrillSchema>;
 
 export const SupportFailureDrillSchema = z.object({
   incidentType: z.enum([
+    'db_api_outage',
+    'queue_redis_outage',
     'remote_provider_timeout',
+    'credential_compromise',
+    'duplicate_webhook',
+    'lost_field_device',
+    'wrong_policy_published',
+    'missing_safety_evidence',
+    'financial_import_mismatch',
+    'malicious_file_or_prompt_injection',
+    'leaked_publication_link',
+    'failed_deployment_migration',
     'offline_attendance_conflict',
     'duplicate_invoice_attempt',
   ]),

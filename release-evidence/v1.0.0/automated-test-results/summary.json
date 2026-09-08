@@ -2,25 +2,20 @@
   "testRun": {
     "framework": "vitest",
     "version": "3.2.7",
-    "timestamp": "2026-09-08T21:51:00.176Z",
+    "timestamp": "2026-09-08T21:55:09.129Z",
     "status": "PASSED",
     "totalTestFiles": 24,
     "passedTestFiles": 24,
     "failedTestFiles": 0,
-    "totalTests": 202,
-    "passedTests": 202,
+    "totalTests": 205,
+    "passedTests": 205,
     "failedTests": 0,
-    "durationSeconds": 1.95,
+    "durationSeconds": 1.98,
     "suites": [
       {
         "file": "packages/domain/src/stage-activities.test.ts",
         "tests": 5,
         "passed": 5
-      },
-      {
-        "file": "apps/worker/src/worker.test.ts",
-        "tests": 1,
-        "passed": 1
       },
       {
         "file": "packages/policy/src/policy.test.ts",
@@ -44,13 +39,8 @@
       },
       {
         "file": "packages/domain/src/rollout.test.ts",
-        "tests": 5,
-        "passed": 5
-      },
-      {
-        "file": "packages/domain/src/operations.test.ts",
-        "tests": 11,
-        "passed": 11
+        "tests": 8,
+        "passed": 8
       },
       {
         "file": "packages/domain/src/portfolio-ai.test.ts",
@@ -58,9 +48,9 @@
         "passed": 7
       },
       {
-        "file": "tests/lifecycle-e2e.test.ts",
-        "tests": 1,
-        "passed": 1
+        "file": "packages/domain/src/operations.test.ts",
+        "tests": 11,
+        "passed": 11
       },
       {
         "file": "packages/domain/src/procurement.test.ts",
@@ -78,9 +68,19 @@
         "passed": 13
       },
       {
+        "file": "tests/lifecycle-e2e.test.ts",
+        "tests": 1,
+        "passed": 1
+      },
+      {
         "file": "tests/load-performance.test.ts",
         "tests": 3,
         "passed": 3
+      },
+      {
+        "file": "apps/worker/src/worker.test.ts",
+        "tests": 1,
+        "passed": 1
       },
       {
         "file": "apps/api/src/phase07.test.ts",
@@ -103,14 +103,14 @@
         "passed": 7
       },
       {
-        "file": "apps/api/src/phase05.test.ts",
-        "tests": 14,
-        "passed": 14
-      },
-      {
         "file": "apps/api/src/phase02.test.ts",
         "tests": 9,
         "passed": 9
+      },
+      {
+        "file": "apps/api/src/phase05.test.ts",
+        "tests": 14,
+        "passed": 14
       },
       {
         "file": "apps/api/src/phase01.test.ts",
