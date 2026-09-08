@@ -376,5 +376,50 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect(adminHtml).toContain('INTACT');
     });
   });
+
+  describe('EosApiClient & Backend Integration Layer', () => {
+    it('should query portfolio metrics with normative 90,000 QAR EAC and 43.75% margin', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      });
+
+      const metrics = await client.getPortfolioDashboard();
+      expect(metrics.estimateAtCompletion).toBe(90000);
+      expect(metrics.totalBudget).toBe(110000);
+      expect(metrics.budgetVariance).toBe(20000);
+      expect(metrics.forecastMarginPercent).toBe('43.75%');
+    });
+
+    it('should project client-safe data through ApiClient with zero leakage', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        organisationId: '22222222-2222-4222-8222-222222222222',
+        userId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+      });
+
+      const portal = await client.getClientPortalProject('f1111111-1111-4111-8111-111111111111');
+      expect(portal.projectCode).toBe('PRJ-2026-SYNTH-01');
+      expect(portal.approvedProposal?.sellPrice).toBe('160000.00');
+      expect((portal as any).internalCost).toBeUndefined();
+      expect((portal as any).profitMargin).toBeUndefined();
+    });
+
+    it('should submit field sync batch mutations successfully', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      });
+
+      const result = await client.syncFieldBatch([
+        { action: 'UPDATE_CHECKLIST', checklistId: 'chk-01' },
+      ]);
+      expect(result.processed).toBe(1);
+      expect(result.failed).toBe(0);
+      expect(result.syncedAt).toBeDefined();
+    });
+  });
 });
 

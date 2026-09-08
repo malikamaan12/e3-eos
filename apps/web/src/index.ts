@@ -13,4 +13,7 @@ export * from './views/ProjectWorkspaceView.js';
 export * from './views/FieldOpsView.js';
 export * from './views/ClientPortalView.js';
 export * from './views/AdminStudioView.js';
+export * from './services/api-client.js';
+export * from './hooks/useEosApi.js';
 export * from './App.js';
+
