@@ -33,7 +33,7 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=4000
 
 # Create non-root user
 USER node
@@ -43,6 +43,6 @@ COPY --chown=node:node --from=builder /app/node_modules ./node_modules
 COPY --chown=node:node --from=builder /app/packages ./packages
 COPY --chown=node:node --from=builder /app/apps/api ./apps/api
 
-EXPOSE 3000
+EXPOSE 4000
 
 CMD ["node", "apps/api/dist/main.js"]

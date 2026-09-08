@@ -33,16 +33,14 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=3000
 
 # Create non-root user
 USER node
 
-COPY --chown=node:node --from=builder /app/package.json /app/pnpm-workspace.yaml ./
-COPY --chown=node:node --from=builder /app/node_modules ./node_modules
-COPY --chown=node:node --from=builder /app/packages ./packages
-COPY --chown=node:node --from=builder /app/apps/web ./apps/web
+COPY --chown=node:node --from=builder /app/apps/web/dist ./apps/web/dist
+COPY --chown=node:node --from=builder /app/apps/web/server.cjs ./apps/web/server.cjs
 
-EXPOSE 3001
+EXPOSE 3000
 
-CMD ["node", "apps/web/dist/index.js"]
+CMD ["node", "apps/web/server.cjs"]
