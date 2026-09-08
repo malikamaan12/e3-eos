@@ -1,12 +1,12 @@
 # Acceptance Test Traceability Matrix (AT-001 to AT-092)
 
 **Release:** v1.0.0  
-**Generated:** 2026-09-08T22:54:40.018Z  
+**Generated:** 2026-09-08T22:59:44.185Z  
 **Compliance Status:** 100% COMPLETE (92/92 Verified)
 
 | ID | Phase | Scenario | Expected Invariant | Verified In | Status |
 |---|---|---|---|---|---|
-| AT-001 | P00 | Unauthorised organisation/project ID supplied | API, exports, file access, search and job status deny cross-scope data; no existence leakage. | `apps/api/src/api.test.ts`, `apps/api/src/portal/portal.controller.ts`, `apps/api/src/projects/projects.controller.ts`, `packages/domain/src/portal.ts`, `scripts/verify-acceptance-matrix.ts` | **VERIFIED** |
+| AT-001 | P00 | Unauthorised organisation/project ID supplied | API, exports, file access, search and job status deny cross-scope data; no existence leakage. | `apps/api/src/api.test.ts`, `apps/api/src/portal/portal.controller.ts`, `apps/api/src/projects/projects.controller.ts`, `packages/domain/src/portal.ts`, `scripts/verify-acceptance-matrix.ts`, `scripts/verify-production-readiness.ts` | **VERIFIED** |
 | AT-002 | P00 | Client calls internal costing API | Request denied server-side; response and logs contain no buying rates or payroll. | `apps/api/src/api.test.ts`, `apps/api/src/commercial/commercial.controller.ts`, `apps/api/src/common/tenant.guard.ts`, `apps/api/src/phase02.test.ts`, `packages/domain/src/boq.ts` | **VERIFIED** |
 | AT-003 | P00 | Approver role revoked after policy publication | Next decision/release denied despite old snapshot or active browser session. | `packages/policy/src/evaluator.ts`, `packages/policy/src/policy.test.ts` | **VERIFIED** |
 | AT-004 | P00 | One identity assigned two approval roles | Cannot satisfy a required independent two-person decision. | `packages/policy/src/evaluator.ts`, `packages/policy/src/policy.test.ts` | **VERIFIED** |
@@ -97,4 +97,4 @@
 | AT-089 | P07 | Production deployment contains mock data or placeholder connector success | Go-live blocked; only approved source records/configuration activated. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx`, `packages/domain/src/rollout.test.ts`, `packages/domain/src/rollout.ts`, `scripts/demo.ts` | **VERIFIED** |
 | AT-090 | P07 | Large event load and dependency pressure | Agreed p95/queue freshness targets met or launch scope/capacity adjusted with evidence. | `apps/api/src/phase07.test.ts` | **VERIFIED** |
 | AT-091 | P07 | RLS/export/file/portal independent security assessment | No unresolved exploitable critical/high defects in accepted release scope. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx` | **VERIFIED** |
-| AT-092 | P07 | Operational owner support drill | Named owners can use runbooks, reconcile failures and verify actual project closure. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx`, `packages/domain/src/rollout.test.ts`, `packages/domain/src/rollout.ts`, `scripts/verify-acceptance-matrix.ts` | **VERIFIED** |
+| AT-092 | P07 | Operational owner support drill | Named owners can use runbooks, reconcile failures and verify actual project closure. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx`, `packages/domain/src/rollout.test.ts`, `packages/domain/src/rollout.ts`, `scripts/verify-acceptance-matrix.ts`, `scripts/verify-production-readiness.ts` | **VERIFIED** |

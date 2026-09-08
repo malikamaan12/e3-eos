@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-08T22:54:40.017Z",
+  "verifiedAt": "2026-09-08T22:59:44.183Z",
   "totalScenarios": 92,
   "verifiedCount": 92,
   "coveragePercentage": "100.0%",
@@ -14,7 +14,8 @@
         "apps/api/src/portal/portal.controller.ts",
         "apps/api/src/projects/projects.controller.ts",
         "packages/domain/src/portal.ts",
-        "scripts/verify-acceptance-matrix.ts"
+        "scripts/verify-acceptance-matrix.ts",
+        "scripts/verify-production-readiness.ts"
       ],
       "status": "VERIFIED"
     },
@@ -1152,7 +1153,8 @@
         "apps/web/src/views/AdminStudioView.tsx",
         "packages/domain/src/rollout.test.ts",
         "packages/domain/src/rollout.ts",
-        "scripts/verify-acceptance-matrix.ts"
+        "scripts/verify-acceptance-matrix.ts",
+        "scripts/verify-production-readiness.ts"
       ],
       "status": "VERIFIED"
     }

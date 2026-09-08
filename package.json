@@ -11,6 +11,7 @@
     "demo": "tsx scripts/demo.ts",
     "seed": "tsx packages/db/src/seed.ts",
     "verify:matrix": "tsx scripts/verify-acceptance-matrix.ts",
+    "verify:preflight": "tsx scripts/verify-production-readiness.ts",
     "dev": "pnpm --filter @e3-eos/web dev",
     "dev:api": "pnpm --filter @e3-eos/api dev"
   },
