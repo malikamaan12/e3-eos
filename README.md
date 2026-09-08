@@ -27,16 +27,19 @@ pnpm test
 # 4. Verify complete 92/92 acceptance test traceability matrix
 pnpm verify:matrix
 
-# 5. Production build across all packages and frontend bundles
+# 5. Run single-command comprehensive pre-flight verification gate (all 6 layers)
+pnpm verify:preflight
+
+# 6. Production build across all packages and frontend bundles
 pnpm build
 
-# 6. Run the interactive console demonstration (10 core invariants)
+# 7. Run the interactive console demonstration (10 core invariants)
 pnpm demo
 
-# 7. Generate development database seed manifest (13 stages & 312 activities)
+# 8. Generate development database seed manifest (13 stages & 312 activities)
 pnpm seed
 
-# 8. Start live local services
+# 9. Start live local services
 pnpm dev:api   # NestJS API on http://localhost:4000 (OpenAPI docs: /api/v1/docs)
 pnpm dev       # React 19 Web on http://localhost:3000 (with port 3001 redirect bridge & Field PWA)
 ```
@@ -48,8 +51,8 @@ pnpm dev       # React 19 Web on http://localhost:3000 (with port 3001 redirect 
 ```text
 b:/PROJECTS/EOS/
 ├── apps/
-│   ├── api/          # NestJS 12 Enterprise REST & Command API
-│   ├── web/          # React 19 / Next.js Full-Stack Workspace UI (7 workspaces, RTL, view states)
+│   ├── api/          # NestJS 11 Enterprise REST & Command API
+│   ├── web/          # React 19 Full-Stack Workspace UI (7 workspaces, RTL, view states)
 │   └── worker/       # Background Outbox Dispatcher & Event Reconciler
 ├── packages/
 │   ├── contracts/    # Canonical DTOs, OpenAPI schemas, and RFC 7807 Problem Details
@@ -61,7 +64,7 @@ b:/PROJECTS/EOS/
 │   ├── lifecycle-e2e.test.ts   # 13-stage continuous lifecycle end-to-end integration test
 │   └── infrastructure.test.ts  # IaC, Dockerfile, and runbook integrity tests
 ├── infra/
-│   └── terraform/    # Google Cloud me-central1 (Doha) Terraform topology (Cloud Run, Cloud SQL, Redis)
+│   └── terraform/    # Google Cloud me-central2 (Doha, Qatar) Terraform topology (Cloud Run, Cloud SQL, Redis)
 ├── docs/
 │   └── runbooks/     # All 12 operational runbooks (RB01 to RB12)
 └── release-evidence/
