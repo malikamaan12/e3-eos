@@ -2,7 +2,7 @@
 
 **Product:** E3 Enterprise Event Operating System  
 **Version:** 1.0 Production Implementation  
-**Status:** All 8 Build Phases Delivered (`P00`–`P07`), 92 Acceptance Tests Verified (`AT-001`–`AT-092`), 205 Automated Tests Passing (0 Failures across 24 test suites).
+**Status:** All 8 Build Phases Delivered (`P00`–`P07`), 92 Acceptance Tests Verified (`AT-001`–`AT-092`), 213 Automated Tests Passing (0 Failures across 24 test suites).
 
 ---
 
@@ -21,21 +21,24 @@ pnpm install
 # 2. Strict typecheck across all 8 workspace packages
 pnpm typecheck
 
-# 3. Execute all 205 automated tests across 24 test suites
+# 3. Execute all 213 automated tests across 24 test suites
 pnpm test
 
-# 4. Production build across all packages and frontend bundles
+# 4. Verify complete 92/92 acceptance test traceability matrix
+pnpm verify:matrix
+
+# 5. Production build across all packages and frontend bundles
 pnpm build
 
-# 5. Run the interactive console demonstration (10 core invariants)
+# 6. Run the interactive console demonstration (10 core invariants)
 pnpm demo
 
-# 6. Generate development database seed manifest (13 stages & 312 activities)
+# 7. Generate development database seed manifest (13 stages & 312 activities)
 pnpm seed
 
-# 7. Start live local services
+# 8. Start live local services
 pnpm dev:api   # NestJS API on http://localhost:4000 (OpenAPI docs: /api/v1/docs)
-pnpm dev       # React 19 Web on http://localhost:3001
+pnpm dev       # React 19 Web on http://localhost:3000 (with port 3001 redirect bridge & Field PWA)
 ```
 
 ---

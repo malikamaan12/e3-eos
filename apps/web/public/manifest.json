@@ -1,0 +1,22 @@
+{
+  "name": "E3-EOS | Enterprise Event Operating System",
+  "short_name": "E3-EOS",
+  "description": "E3 Enterprise Event Operating System & Field Operations PWA",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "business",
+    "productivity"
+  ]
+}

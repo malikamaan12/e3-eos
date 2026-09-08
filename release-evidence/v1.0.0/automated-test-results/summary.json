@@ -2,13 +2,13 @@
   "testRun": {
     "framework": "vitest",
     "version": "3.2.7",
-    "timestamp": "2026-09-08T21:55:09.129Z",
+    "timestamp": "2026-09-08T22:17:14.662Z",
     "status": "PASSED",
     "totalTestFiles": 24,
     "passedTestFiles": 24,
     "failedTestFiles": 0,
-    "totalTests": 205,
-    "passedTests": 205,
+    "totalTests": 213,
+    "passedTests": 213,
     "failedTests": 0,
     "durationSeconds": 1.98,
     "suites": [
@@ -114,8 +114,8 @@
       },
       {
         "file": "apps/api/src/phase01.test.ts",
-        "tests": 11,
-        "passed": 11
+        "tests": 17,
+        "passed": 17
       },
       {
         "file": "apps/web/src/web.test.ts",
@@ -129,8 +129,8 @@
       },
       {
         "file": "tests/infrastructure.test.ts",
-        "tests": 3,
-        "passed": 3
+        "tests": 5,
+        "passed": 5
       }
     ]
   }

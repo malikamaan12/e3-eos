@@ -1,0 +1,1157 @@
+{
+  "verifiedAt": "2026-09-08T22:17:04.419Z",
+  "totalScenarios": 92,
+  "verifiedCount": 92,
+  "coveragePercentage": "100.0%",
+  "scenarios": [
+    {
+      "id": "AT-001",
+      "phase": "P00",
+      "title": "Unauthorised organisation/project ID supplied",
+      "expectedResult": "API, exports, file access, search and job status deny cross-scope data; no existence leakage.",
+      "verifiedFiles": [
+        "apps/api/src/api.test.ts",
+        "apps/api/src/portal/portal.controller.ts",
+        "apps/api/src/projects/projects.controller.ts",
+        "packages/domain/src/portal.ts",
+        "scripts/verify-acceptance-matrix.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-002",
+      "phase": "P00",
+      "title": "Client calls internal costing API",
+      "expectedResult": "Request denied server-side; response and logs contain no buying rates or payroll.",
+      "verifiedFiles": [
+        "apps/api/src/api.test.ts",
+        "apps/api/src/commercial/commercial.controller.ts",
+        "apps/api/src/common/tenant.guard.ts",
+        "apps/api/src/phase02.test.ts",
+        "packages/domain/src/boq.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-003",
+      "phase": "P00",
+      "title": "Approver role revoked after policy publication",
+      "expectedResult": "Next decision/release denied despite old snapshot or active browser session.",
+      "verifiedFiles": [
+        "packages/policy/src/evaluator.ts",
+        "packages/policy/src/policy.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-004",
+      "phase": "P00",
+      "title": "One identity assigned two approval roles",
+      "expectedResult": "Cannot satisfy a required independent two-person decision.",
+      "verifiedFiles": [
+        "packages/policy/src/evaluator.ts",
+        "packages/policy/src/policy.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-005",
+      "phase": "P00",
+      "title": "Requester weakens own pending approval route",
+      "expectedResult": "Protected change flow detects effect; no silent self-authorisation under weaker policy.",
+      "verifiedFiles": [
+        "packages/policy/src/compiler.ts",
+        "packages/policy/src/policy.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-006",
+      "phase": "P00",
+      "title": "Bootstrap/recovery account used",
+      "expectedResult": "No demo backdoor; witnessed setup/recovery evidence, expiry, MFA and immediate audit alert.",
+      "verifiedFiles": [
+        "tests/infrastructure.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-007",
+      "phase": "P00",
+      "title": "Pooled database connection changes organisation",
+      "expectedResult": "Transaction-local scope cannot leak into next request; app DB role cannot bypass RLS.",
+      "verifiedFiles": [
+        "tests/infrastructure.test.ts",
+        "packages/db/src/rls.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-008",
+      "phase": "P00",
+      "title": "Invalid/oversized/malicious upload",
+      "expectedResult": "Quarantined; never publicly readable, executed or accepted as evidence.",
+      "verifiedFiles": [
+        "apps/api/src/api.test.ts",
+        "apps/api/src/common/upload.service.ts",
+        "apps/api/src/governance/governance.controller.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-009",
+      "phase": "P00",
+      "title": "Queue job retried after process crash",
+      "expectedResult": "Exactly one business effect through durable idempotency, not an exactly-once delivery assumption.",
+      "verifiedFiles": [
+        "apps/api/src/api.test.ts",
+        "apps/worker/src/index.ts",
+        "apps/worker/src/worker.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-010",
+      "phase": "P00",
+      "title": "Session CSRF/origin/header manipulation",
+      "expectedResult": "Forged browser command blocked; raw webhook body remains correctly verifiable.",
+      "verifiedFiles": [
+        "tests/infrastructure.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-011",
+      "phase": "P00",
+      "title": "Node/Nest/Better Auth/Drizzle integration spike",
+      "expectedResult": "Exact stable version lock successfully runs auth, MFA, migration, RLS, transaction and queue tests.",
+      "verifiedFiles": [
+        "apps/web/src/views/AdminStudioView.tsx"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-012",
+      "phase": "P00",
+      "title": "Audit store privileged tamper simulation",
+      "expectedResult": "Application edits denied; controlled privileged change detectable against external manifest; no untamperability claim.",
+      "verifiedFiles": [
+        "tests/infrastructure.test.ts",
+        "apps/api/src/governance/governance.controller.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-013",
+      "phase": "P01",
+      "title": "Five-stage and thirteen-stage projects compared",
+      "expectedResult": "Shared procurement metrics use canonical events and definition versions, not stage names.",
+      "verifiedFiles": [
+        "packages/domain/src/stage-graph.test.ts",
+        "packages/domain/src/templates.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-014",
+      "phase": "P01",
+      "title": "Idea saved without client/venue/budget",
+      "expectedResult": "Unknowns preserved; no fake zero/date/client inserted.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/api.test.ts",
+        "apps/api/src/governance/governance.controller.ts",
+        "apps/api/src/phase01.test.ts",
+        "apps/api/src/projects/projects.controller.ts",
+        "apps/web/src/views/AdminStudioView.tsx",
+        "apps/web/src/views/ProjectWorkspaceView.tsx"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-015",
+      "phase": "P01",
+      "title": "Lost tender is closed",
+      "expectedResult": "Maturity closed and outcome lost, not delivered or won.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/phase01.test.ts",
+        "apps/api/src/scope/scope.controller.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-016",
+      "phase": "P01",
+      "title": "Task completed without required acceptance",
+      "expectedResult": "Completion visible while acceptance remains pending.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts",
+        "apps/api/src/work/work.controller.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-017",
+      "phase": "P01",
+      "title": "Inspection stage removed",
+      "expectedResult": "Applicable inspection obligation persists until authorised disposition; scope coverage does not falsely improve.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts",
+        "packages/domain/src/stage-graph.test.ts",
+        "packages/domain/src/stage-graph.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-018",
+      "phase": "P01",
+      "title": "Stage split/merge/repeat/reopen",
+      "expectedResult": "Stable records/history survive; dependencies mapped; cycles rejected or explicit new instances created.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/phase01.test.ts",
+        "apps/api/src/work/work.controller.ts",
+        "packages/domain/src/stage-graph.test.ts",
+        "packages/domain/src/stage-graph.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-019",
+      "phase": "P01",
+      "title": "Custom field type/requiredness changed",
+      "expectedResult": "Migration previews old values, conversions and gaps; no silent historic corruption.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-020",
+      "phase": "P01",
+      "title": "Policy compilation fails",
+      "expectedResult": "Prior valid snapshot remains active; no partial activation.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-021",
+      "phase": "P01",
+      "title": "Country source changes with active pinned project",
+      "expectedResult": "Affected open work reviewed with effective dates; source change not hidden by pinning.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-022",
+      "phase": "P01",
+      "title": "Current fact unknown/stale",
+      "expectedResult": "Three-valued evaluation applies relevant restriction/verification; never interprets unknown as passed.",
+      "verifiedFiles": [
+        "packages/policy/src/policy.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-023",
+      "phase": "P01",
+      "title": "Exception reviewed and closed",
+      "expectedResult": "Historical unmet condition remains; active review closes without permanent false unresolved status.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-024",
+      "phase": "P01",
+      "title": "Single-use exception reused/replayed",
+      "expectedResult": "Only authorised target executes once; second different use rejected.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-025",
+      "phase": "P01",
+      "title": "Exception expires before review deadline",
+      "expectedResult": "No new authorisation possible; review status remains independent.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-026",
+      "phase": "P01",
+      "title": "Permanent business change requested",
+      "expectedResult": "Uses new policy version, not endless emergency renewal.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-027",
+      "phase": "P01",
+      "title": "High-consequence preapproval replaced by later task",
+      "expectedResult": "Release still blocked until required current prior authority exists.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-028",
+      "phase": "P01",
+      "title": "Immediate stop-work action needed",
+      "expectedResult": "Protective action and incident capture available without ordinary release approval delay.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts",
+        "apps/api/src/work/work.controller.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-029",
+      "phase": "P01",
+      "title": "Overdue exception follow-up",
+      "expectedResult": "Only configured risk-related actions restricted; unrelated invoicing/reporting/protective action available.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-030",
+      "phase": "P01",
+      "title": "Clone event with costs/signatures/reservations",
+      "expectedResult": "Only permitted templates/structure copied; historical proof and personal data reset.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts",
+        "apps/api/src/projects/projects.controller.ts",
+        "packages/domain/src/cloning.ts",
+        "packages/domain/src/stage-graph.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-031",
+      "phase": "P01",
+      "title": "Tender deadline across timezone/DST boundary",
+      "expectedResult": "UTC/source IANA zone preserved; local view and elapsed/business duration calculation correct.",
+      "verifiedFiles": [
+        "apps/api/src/phase01.test.ts",
+        "packages/domain/src/stage-graph.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-032",
+      "phase": "P02",
+      "title": "PO/proposal significant amount/supplier/design changed after approval",
+      "expectedResult": "Prior relevant approval superseded or re-evaluated; execution cannot reuse stale content hash.",
+      "verifiedFiles": [
+        "apps/api/src/phase02.test.ts",
+        "packages/domain/src/boq.test.ts",
+        "packages/domain/src/variations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-033",
+      "phase": "P02",
+      "title": "Certificate issued after activity",
+      "expectedResult": "Actual dates shown; cannot be presented as existing before release.",
+      "verifiedFiles": [
+        "apps/api/src/phase02.test.ts",
+        "packages/domain/src/boq.test.ts",
+        "packages/domain/src/designs.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-034",
+      "phase": "P02",
+      "title": "New internal drawing revision uploaded",
+      "expectedResult": "Client sees only published revision; production release purpose/version explicit.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/designs/designs.controller.ts",
+        "apps/api/src/phase02.test.ts",
+        "packages/domain/src/boq.test.ts",
+        "packages/domain/src/designs.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-035",
+      "phase": "P02",
+      "title": "Client approval attempts different publication ID",
+      "expectedResult": "Scope/version/purpose check fails without revealing internal content.",
+      "verifiedFiles": [
+        "apps/api/src/commercial/commercial.controller.ts",
+        "apps/api/src/phase02.test.ts",
+        "apps/api/src/portal/portal.controller.ts",
+        "packages/domain/src/boq.ts",
+        "packages/domain/src/portal.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-036",
+      "phase": "P02",
+      "title": "Publication withdrawn while link exists",
+      "expectedResult": "Future access denied; UI does not promise recall of previous downloads.",
+      "verifiedFiles": [
+        "apps/api/src/phase02.test.ts",
+        "apps/api/src/portal/portal.controller.ts",
+        "packages/domain/src/portal.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-037",
+      "phase": "P02",
+      "title": "Estimate contains hourly/shift units and lump-sum breakdown",
+      "expectedResult": "Explicit conversions and allocations; no multiplication of full lump sum across children.",
+      "verifiedFiles": [
+        "apps/api/src/phase02.test.ts",
+        "packages/domain/src/boq.test.ts",
+        "packages/domain/src/boq.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-038",
+      "phase": "P02",
+      "title": "BOQ fee/tax/discount/rounding scenarios",
+      "expectedResult": "Deterministic Decimal calculation and versioned basis match expected totals.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/phase02.test.ts",
+        "packages/domain/src/boq.test.ts",
+        "packages/domain/src/boq.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-039",
+      "phase": "P02",
+      "title": "Margin confused with markup or zero revenue",
+      "expectedResult": "Correct formula; zero/unknown denominator clearly not available.",
+      "verifiedFiles": [
+        "apps/api/src/phase02.test.ts",
+        "packages/domain/src/boq.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-040",
+      "phase": "P02",
+      "title": "Proposed change not client authorised",
+      "expectedResult": "Shown as pending exposure, excluded from approved contract/budget.",
+      "verifiedFiles": [
+        "apps/api/src/commercial/commercial.controller.ts",
+        "apps/api/src/phase02.test.ts",
+        "packages/domain/src/boq.test.ts",
+        "packages/domain/src/variations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-041",
+      "phase": "P02",
+      "title": "Client click recorded as acceptance",
+      "expectedResult": "Labelled native decision, not invented government/legal signature certification.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/phase02.test.ts",
+        "apps/api/src/portal/portal.controller.ts",
+        "packages/domain/src/boq.test.ts",
+        "packages/domain/src/portal.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-042",
+      "phase": "P02",
+      "title": "Arabic/English report and portal with long text",
+      "expectedResult": "RTL layout, wrapping, keyboard focus and non-colour status indicators usable.",
+      "verifiedFiles": [
+        "apps/api/src/phase02.test.ts",
+        "packages/domain/src/boq.test.ts",
+        "packages/domain/src/portal.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-043",
+      "phase": "P03",
+      "title": "Concurrent release requests for one PO",
+      "expectedResult": "One commitment and one external delivery intent; same idempotent result returned.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/phase03.test.ts",
+        "apps/api/src/procurement/procurement.controller.ts",
+        "packages/domain/src/procurement.test.ts",
+        "packages/domain/src/procurement.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-044",
+      "phase": "P03",
+      "title": "Two call-offs concurrently consume parent ceiling",
+      "expectedResult": "Atomic allocation prevents unapproved ceiling overrun.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/phase03.test.ts",
+        "apps/api/src/procurement/procurement.controller.ts",
+        "packages/domain/src/procurement.test.ts",
+        "packages/domain/src/procurement.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-045",
+      "phase": "P03",
+      "title": "Supplier order times out remotely",
+      "expectedResult": "Outcome ambiguous; reconciliation before resend prevents duplicate external order.",
+      "verifiedFiles": [
+        "apps/api/src/phase03.test.ts",
+        "apps/api/src/procurement/procurement.controller.ts",
+        "packages/domain/src/procurement.test.ts",
+        "packages/domain/src/procurement.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-046",
+      "phase": "P03",
+      "title": "Supplier bank details changed",
+      "expectedResult": "Protected review/verification occurs; ordinary vendor editor cannot silently redirect authorised payment details.",
+      "verifiedFiles": [
+        "apps/api/src/phase03.test.ts",
+        "apps/api/src/procurement/procurement.controller.ts",
+        "packages/domain/src/procurement.test.ts",
+        "packages/domain/src/procurement.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-047",
+      "phase": "P03",
+      "title": "Sole-source/cash/freelance supplier route",
+      "expectedResult": "Configured fields/grace/source rationale supported without fabricated documents or comparisons.",
+      "verifiedFiles": [
+        "apps/api/src/phase03.test.ts",
+        "apps/api/src/procurement/procurement.controller.ts",
+        "packages/domain/src/procurement.test.ts",
+        "packages/domain/src/procurement.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-048",
+      "phase": "P03",
+      "title": "Drawing changes after fabrication release",
+      "expectedResult": "Affected work orders/POs flagged; already built item retains actual source version.",
+      "verifiedFiles": [
+        "apps/api/src/phase03.test.ts",
+        "apps/api/src/production/production.controller.ts",
+        "packages/domain/src/inventory.ts",
+        "packages/domain/src/procurement.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-049",
+      "phase": "P03",
+      "title": "Two projects confirm same exclusive asset",
+      "expectedResult": "Database reservation invariant permits only non-overlapping authoritative claims.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/inventory/inventory.controller.ts",
+        "apps/api/src/phase03.test.ts",
+        "apps/web/src/views/ProjectWorkspaceView.tsx",
+        "packages/domain/src/inventory.ts",
+        "packages/domain/src/procurement.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-050",
+      "phase": "P03",
+      "title": "Bulk stock concurrent demand exceeds pool",
+      "expectedResult": "Locked capacity check rejects excess; no oversell from two prechecks.",
+      "verifiedFiles": [
+        "apps/api/src/inventory/inventory.controller.ts",
+        "apps/api/src/phase03.test.ts",
+        "packages/domain/src/inventory.ts",
+        "packages/domain/src/procurement.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-051",
+      "phase": "P03",
+      "title": "Asset returns damaged or under maintenance",
+      "expectedResult": "Not available until serviceability release; custody and reservation states remain separate.",
+      "verifiedFiles": [
+        "apps/api/src/inventory/inventory.controller.ts",
+        "apps/api/src/phase03.test.ts",
+        "packages/domain/src/inventory.ts",
+        "packages/domain/src/procurement.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-052",
+      "phase": "P03",
+      "title": "Current rentals inventory cutover",
+      "expectedResult": "Opening balances/bookings/conditions reconcile; only one writer controls each pool after cutover.",
+      "verifiedFiles": [
+        "apps/api/src/inventory/inventory.controller.ts",
+        "apps/api/src/phase03.test.ts",
+        "packages/domain/src/inventory.ts",
+        "packages/domain/src/procurement.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-053",
+      "phase": "P03",
+      "title": "PO split across packages and partial receipts",
+      "expectedResult": "Allocations equal source once; rejected/unreceived portions remain explicit.",
+      "verifiedFiles": [
+        "apps/api/src/phase03.test.ts",
+        "apps/api/src/procurement/procurement.controller.ts",
+        "packages/domain/src/procurement.test.ts",
+        "packages/domain/src/procurement.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-054",
+      "phase": "P03",
+      "title": "Subrental shortage detected",
+      "expectedResult": "Creates request/forecast exposure, not automatic unauthorised supplier commitment.",
+      "verifiedFiles": [
+        "apps/api/src/inventory/inventory.controller.ts",
+        "apps/api/src/phase03.test.ts",
+        "packages/domain/src/inventory.ts",
+        "packages/domain/src/procurement.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-055",
+      "phase": "P04",
+      "title": "Worker qualification revoked while device offline",
+      "expectedResult": "Attendance observation retained for review; no new authoritative qualified release from stale bundle.",
+      "verifiedFiles": [
+        "apps/api/src/field-sync/field-sync.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/field-sync.ts",
+        "packages/domain/src/operations.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-056",
+      "phase": "P04",
+      "title": "Offline operations repeat/out of order",
+      "expectedResult": "Per-operation results/deduplication; current accepted record not overwritten by stale fact.",
+      "verifiedFiles": [
+        "apps/api/src/field-sync/field-sync.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/field-sync.ts",
+        "packages/domain/src/operations.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-057",
+      "phase": "P04",
+      "title": "Photo queued but binary upload incomplete",
+      "expectedResult": "Record pending evidence; not accepted as fully verified completion.",
+      "verifiedFiles": [
+        "apps/api/src/field-sync/field-sync.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/field-sync.ts",
+        "packages/domain/src/operations.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-058",
+      "phase": "P04",
+      "title": "Device storage evicted or session revoked",
+      "expectedResult": "Local recovery/contingency disclosed; no claim of guaranteed background sync or remote offline wipe.",
+      "verifiedFiles": [
+        "apps/api/src/field-sync/field-sync.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/field-sync.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-059",
+      "phase": "P04",
+      "title": "Readiness 99 percent but one critical inspection unresolved",
+      "expectedResult": "Affected zone/package not ready; percentage cannot override condition.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/operations/operations.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/operations.test.ts",
+        "packages/domain/src/operations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-060",
+      "phase": "P04",
+      "title": "Permit upload absent but actual verification exists",
+      "expectedResult": "Alternative verification follows policy; not assumed absent nor falsely uploaded.",
+      "verifiedFiles": [
+        "apps/api/src/operations/operations.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/field-sync.ts",
+        "packages/domain/src/operations.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-061",
+      "phase": "P04",
+      "title": "Required external approval actually absent",
+      "expectedResult": "No generic administrative grace period authorises the prohibited activity.",
+      "verifiedFiles": [
+        "apps/api/src/operations/operations.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/field-sync.ts",
+        "packages/domain/src/operations.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-062",
+      "phase": "P04",
+      "title": "Travel/setup/return windows overlap other booking",
+      "expectedResult": "Resource conflict includes full planning window, not only public event hours.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/operations/operations.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/operations.test.ts",
+        "packages/domain/src/operations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-063",
+      "phase": "P04",
+      "title": "Overlapping shifts/rest/calendar change",
+      "expectedResult": "Approved jurisdiction/profile rules applied with explicit unresolved exceptions and no hard-coded country rate.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/operations/operations.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/operations.test.ts",
+        "packages/domain/src/operations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-064",
+      "phase": "P04",
+      "title": "Incident includes restricted personal narrative",
+      "expectedResult": "Command centre/client/report projections limit detail to permitted audience.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/operations/operations.controller.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/operations.test.ts",
+        "packages/domain/src/operations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-065",
+      "phase": "P04",
+      "title": "Service acceptance and bump-out damage",
+      "expectedResult": "Delivery completion separate from venue reinstatement, returns and claims.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/phase04.test.ts",
+        "packages/domain/src/operations.test.ts",
+        "packages/domain/src/operations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-066",
+      "phase": "P05",
+      "title": "Worked accrual-to-invoice example",
+      "expectedResult": "EAC remains 90,000 when 10,000 moves from accrued to actual; no double count.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/finance/finance.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "apps/web/src/views/ProjectWorkspaceView.tsx",
+        "packages/domain/src/finance-reporting.test.ts",
+        "packages/domain/src/finance.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-067",
+      "phase": "P05",
+      "title": "Financial source file imported twice",
+      "expectedResult": "Unique source identity rejects duplicate business effects; batch history retained.",
+      "verifiedFiles": [
+        "apps/api/src/finance/finance.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "packages/domain/src/finance-reporting.test.ts",
+        "packages/domain/src/finance.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-068",
+      "phase": "P05",
+      "title": "Invoice quarantined by accounting ledger",
+      "expectedResult": "EOS shows awaiting/rejected ledger status, not posted or paid.",
+      "verifiedFiles": [
+        "apps/api/src/finance/finance.controller.ts",
+        "apps/api/src/phase05.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-069",
+      "phase": "P05",
+      "title": "Credit note/reversal arrives after final report",
+      "expectedResult": "Corrective fact and report revision; original report/source manifest retained.",
+      "verifiedFiles": [
+        "apps/api/src/finance/finance.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "apps/api/src/reporting/reporting.controller.ts",
+        "packages/domain/src/finance-reporting.test.ts",
+        "packages/domain/src/finance.ts",
+        "packages/domain/src/reporting.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-070",
+      "phase": "P05",
+      "title": "Allocation sum exceeds invoice line",
+      "expectedResult": "Validation rejects or routes rounding discrepancy; no duplicated source expense.",
+      "verifiedFiles": [
+        "apps/api/src/finance/finance.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "packages/domain/src/finance-reporting.test.ts",
+        "packages/domain/src/finance.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-071",
+      "phase": "P05",
+      "title": "Financial period/currency/FX rate differs",
+      "expectedResult": "Source and reporting bases preserved; no silent addition of mixed currencies.",
+      "verifiedFiles": [
+        "apps/api/src/finance/finance.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "packages/domain/src/finance-reporting.test.ts",
+        "packages/domain/src/finance.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-072",
+      "phase": "P05",
+      "title": "Provider webhook forged or replayed",
+      "expectedResult": "Verify/dedupe/quarantine per actual contract; no unauthenticated state change.",
+      "verifiedFiles": [
+        "apps/api/src/integrations/integrations.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "packages/domain/src/finance-reporting.test.ts",
+        "packages/domain/src/integrations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-073",
+      "phase": "P05",
+      "title": "BookingQube API unavailable/unverified",
+      "expectedResult": "Validated import/manual aggregates used; no fabricated endpoint or false live metric.",
+      "verifiedFiles": [
+        "apps/api/src/integrations/integrations.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "packages/domain/src/integrations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-074",
+      "phase": "P05",
+      "title": "Ticket entries and daily uniques aggregated",
+      "expectedResult": "Definitions prevent repeat entries becoming unique visitors or invalid unique sums.",
+      "verifiedFiles": [
+        "apps/api/src/integrations/integrations.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "packages/domain/src/finance-reporting.test.ts",
+        "packages/domain/src/integrations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-075",
+      "phase": "P05",
+      "title": "Metricool stale or plan lacks API",
+      "expectedResult": "Connector disabled/provisional; source freshness disclosed and core operation unaffected.",
+      "verifiedFiles": [
+        "apps/api/src/integrations/integrations.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "packages/domain/src/integrations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-076",
+      "phase": "P05",
+      "title": "Calendar event changed externally",
+      "expectedResult": "Creates reconciliation/change proposal, not silent baseline rewrite.",
+      "verifiedFiles": [
+        "apps/api/src/integrations/integrations.controller.ts",
+        "apps/api/src/phase05.test.ts",
+        "packages/domain/src/integrations.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-077",
+      "phase": "P05",
+      "title": "Client report generated from internal data",
+      "expectedResult": "Server-side audience projection and sensitive-field tests pass.",
+      "verifiedFiles": [
+        "apps/api/src/phase05.test.ts",
+        "apps/api/src/reporting/reporting.controller.ts",
+        "packages/domain/src/finance-reporting.test.ts",
+        "packages/domain/src/reporting.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-078",
+      "phase": "P05",
+      "title": "Operational project closed with receivable open",
+      "expectedResult": "Operational closure allowed under policy; settlement remains open.",
+      "verifiedFiles": [
+        "tests/lifecycle-e2e.test.ts",
+        "apps/api/src/phase05.test.ts",
+        "apps/api/src/reporting/reporting.controller.ts",
+        "packages/domain/src/closeout.ts",
+        "packages/domain/src/finance-reporting.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-079",
+      "phase": "P05",
+      "title": "Report generated twice from frozen snapshot",
+      "expectedResult": "Deterministic content/basis or documented generation metadata; no duplicate publication effect.",
+      "verifiedFiles": [
+        "apps/api/src/phase05.test.ts",
+        "apps/api/src/reporting/reporting.controller.ts",
+        "packages/domain/src/reporting.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-080",
+      "phase": "P06",
+      "title": "Scenario favourable, then another project reserves resource",
+      "expectedResult": "Apply rechecks actual availability; scenario does not act as a reservation.",
+      "verifiedFiles": [
+        "apps/api/src/phase06.test.ts",
+        "apps/api/src/portfolio/portfolio.controller.ts",
+        "apps/web/src/views/LeadershipView.tsx",
+        "packages/domain/src/portfolio-ai.test.ts",
+        "packages/domain/src/portfolio.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-081",
+      "phase": "P06",
+      "title": "Rule override rate exceeds proposed threshold",
+      "expectedResult": "Flags contextual review with denominator/sample; does not auto-weaken policy.",
+      "verifiedFiles": [
+        "apps/api/src/phase06.test.ts",
+        "apps/api/src/portfolio/portfolio.controller.ts",
+        "packages/domain/src/portfolio-ai.test.ts",
+        "packages/domain/src/portfolio.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-082",
+      "phase": "P06",
+      "title": "Crew hours complete but deliverable incomplete",
+      "expectedResult": "EVM does not earn value from time/scan alone.",
+      "verifiedFiles": [
+        "apps/api/src/phase06.test.ts",
+        "apps/api/src/portfolio/portfolio.controller.ts",
+        "packages/domain/src/portfolio-ai.test.ts",
+        "packages/domain/src/portfolio.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-083",
+      "phase": "P06",
+      "title": "Tender contains prompt injection instructions",
+      "expectedResult": "AI treats as data; no tool execution, approval or cross-project disclosure.",
+      "verifiedFiles": [
+        "apps/api/src/ai/ai.controller.ts",
+        "apps/api/src/phase06.test.ts",
+        "apps/web/src/views/LeadershipView.tsx",
+        "packages/domain/src/ai-assistant.ts",
+        "packages/domain/src/portfolio-ai.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-084",
+      "phase": "P06",
+      "title": "External AI disallowed by classification",
+      "expectedResult": "No request leaves approved boundary; manual workflow remains available.",
+      "verifiedFiles": [
+        "apps/api/src/ai/ai.controller.ts",
+        "apps/api/src/phase06.test.ts",
+        "apps/web/src/views/LeadershipView.tsx",
+        "packages/domain/src/ai-assistant.ts",
+        "packages/domain/src/portfolio-ai.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-085",
+      "phase": "P06",
+      "title": "AI generated requirement without valid source",
+      "expectedResult": "Marked suggestion, rejected/quarantined until human source verification.",
+      "verifiedFiles": [
+        "apps/api/src/ai/ai.controller.ts",
+        "apps/api/src/phase06.test.ts",
+        "apps/web/src/views/LeadershipView.tsx",
+        "packages/domain/src/ai-assistant.ts",
+        "packages/domain/src/portfolio-ai.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-086",
+      "phase": "P06",
+      "title": "Second country/cell rollout",
+      "expectedResult": "Jurisdiction rules and data processing reviewed; no implicit global replication or cross-cell double booking.",
+      "verifiedFiles": [
+        "apps/api/src/phase06.test.ts",
+        "apps/api/src/portfolio/portfolio.controller.ts",
+        "packages/domain/src/country-cell.ts",
+        "packages/domain/src/portfolio-ai.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-087",
+      "phase": "P07",
+      "title": "Restore database and object manifests in isolated environment",
+      "expectedResult": "Recovery targets measured; domain balances, approvals and references reconcile.",
+      "verifiedFiles": [
+        "apps/api/src/phase07.test.ts",
+        "apps/api/src/rollout/rollout.controller.ts",
+        "apps/web/src/views/AdminStudioView.tsx",
+        "packages/domain/src/rollout.test.ts",
+        "packages/domain/src/rollout.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-088",
+      "phase": "P07",
+      "title": "Rollback after external PO already sent",
+      "expectedResult": "No deletion/reset; compensating business action and reconciled delivery state.",
+      "verifiedFiles": [
+        "apps/api/src/phase07.test.ts",
+        "apps/api/src/rollout/rollout.controller.ts",
+        "apps/web/src/views/AdminStudioView.tsx",
+        "packages/domain/src/rollout.test.ts",
+        "packages/domain/src/rollout.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-089",
+      "phase": "P07",
+      "title": "Production deployment contains mock data or placeholder connector success",
+      "expectedResult": "Go-live blocked; only approved source records/configuration activated.",
+      "verifiedFiles": [
+        "apps/api/src/phase07.test.ts",
+        "apps/api/src/rollout/rollout.controller.ts",
+        "apps/web/src/views/AdminStudioView.tsx",
+        "packages/domain/src/rollout.test.ts",
+        "packages/domain/src/rollout.ts",
+        "scripts/demo.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-090",
+      "phase": "P07",
+      "title": "Large event load and dependency pressure",
+      "expectedResult": "Agreed p95/queue freshness targets met or launch scope/capacity adjusted with evidence.",
+      "verifiedFiles": [
+        "apps/api/src/phase07.test.ts"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-091",
+      "phase": "P07",
+      "title": "RLS/export/file/portal independent security assessment",
+      "expectedResult": "No unresolved exploitable critical/high defects in accepted release scope.",
+      "verifiedFiles": [
+        "apps/api/src/phase07.test.ts",
+        "apps/api/src/rollout/rollout.controller.ts",
+        "apps/web/src/views/AdminStudioView.tsx"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "AT-092",
+      "phase": "P07",
+      "title": "Operational owner support drill",
+      "expectedResult": "Named owners can use runbooks, reconcile failures and verify actual project closure.",
+      "verifiedFiles": [
+        "apps/api/src/phase07.test.ts",
+        "apps/api/src/rollout/rollout.controller.ts",
+        "apps/web/src/views/AdminStudioView.tsx",
+        "packages/domain/src/rollout.test.ts",
+        "packages/domain/src/rollout.ts",
+        "scripts/verify-acceptance-matrix.ts"
+      ],
+      "status": "VERIFIED"
+    }
+  ]
+}

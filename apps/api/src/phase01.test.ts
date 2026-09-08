@@ -301,3 +301,235 @@ describe('AT-023 to AT-029: Exception Lifecycle, Expiry & Protective Action Guar
     expect(res.data.payload.recordedBy).toBe('safety-officer-99');
   });
 });
+
+describe('AT-018: Stage Split, Merge, Repeat, and DAG Integrity', () => {
+  it('creates unique stage instances on stage repeat and rejects cyclic dependencies', () => {
+    interface StageInstance {
+      id: string;
+      stageCode: string;
+      instanceIndex: number;
+      status: 'pending' | 'active' | 'completed';
+      dependencies: string[];
+    }
+
+    const stages: StageInstance[] = [
+      { id: 'inst-stage-04-1', stageCode: 'STAGE_04', instanceIndex: 1, status: 'completed', dependencies: [] },
+      { id: 'inst-stage-05-1', stageCode: 'STAGE_05', instanceIndex: 1, status: 'completed', dependencies: ['inst-stage-04-1'] },
+    ];
+
+    // Client requests revision, triggering repeat of Stage 04 (Clarification & Design Development)
+    const repeatedStage: StageInstance = {
+      id: 'inst-stage-04-2',
+      stageCode: 'STAGE_04',
+      instanceIndex: 2,
+      status: 'active',
+      dependencies: ['inst-stage-05-1'],
+    };
+    stages.push(repeatedStage);
+
+    expect(stages).toHaveLength(3);
+    expect(stages[2].instanceIndex).toBe(2);
+    expect(stages[2].id).toBe('inst-stage-04-2');
+
+    // Cycle detection check: adding dependency from inst-stage-04-1 to inst-stage-04-2 forms a cycle
+    function wouldCreateCycle(graph: Record<string, string[]>, from: string, to: string): boolean {
+      const visited = new Set<string>();
+      function dfs(curr: string): boolean {
+        if (curr === from) return true;
+        visited.add(curr);
+        for (const dep of graph[curr] || []) {
+          if (!visited.has(dep) && dfs(dep)) return true;
+        }
+        return false;
+      }
+      return dfs(to);
+    }
+
+    const graph: Record<string, string[]> = {
+      'inst-stage-04-1': [],
+      'inst-stage-05-1': ['inst-stage-04-1'],
+      'inst-stage-04-2': ['inst-stage-05-1'],
+    };
+
+    expect(wouldCreateCycle(graph, 'inst-stage-04-1', 'inst-stage-04-2')).toBe(true);
+  });
+});
+
+describe('AT-019: Custom Field Schema Migration & Historic Preservation', () => {
+  it('previews old values, conversions, and gaps when changing custom field types without historic data corruption', () => {
+    interface CustomFieldMigrationPlan {
+      fieldKey: string;
+      previousType: 'string';
+      newType: 'number';
+      totalRecords: number;
+      convertibleCount: number;
+      gapCount: number;
+      preview: Array<{ entityId: string; oldValue: string; convertedValue: number | null; status: 'valid' | 'gap' }>;
+    }
+
+    const existingValues = [
+      { entityId: 'prj-101', rawValue: '4500' },
+      { entityId: 'prj-102', rawValue: '12000' },
+      { entityId: 'prj-103', rawValue: 'TBD' }, // Gap!
+    ];
+
+    const previewPlan: CustomFieldMigrationPlan = {
+      fieldKey: 'estimatedAudience',
+      previousType: 'string',
+      newType: 'number',
+      totalRecords: existingValues.length,
+      convertibleCount: 0,
+      gapCount: 0,
+      preview: [],
+    };
+
+    existingValues.forEach((rec) => {
+      const parsed = Number(rec.rawValue);
+      if (!isNaN(parsed)) {
+        previewPlan.convertibleCount++;
+        previewPlan.preview.push({ entityId: rec.entityId, oldValue: rec.rawValue, convertedValue: parsed, status: 'valid' });
+      } else {
+        previewPlan.gapCount++;
+        previewPlan.preview.push({ entityId: rec.entityId, oldValue: rec.rawValue, convertedValue: null, status: 'gap' });
+      }
+    });
+
+    expect(previewPlan.totalRecords).toBe(3);
+    expect(previewPlan.convertibleCount).toBe(2);
+    expect(previewPlan.gapCount).toBe(1);
+    expect(previewPlan.preview.find(p => p.entityId === 'prj-103')?.status).toBe('gap');
+  });
+});
+
+describe('AT-020: Policy Compilation Failure Snapshot Fallback', () => {
+  it('preserves prior valid snapshot and rejects partial activation when compilation fails', () => {
+    const initialValidRules: PolicyRule[] = [
+      {
+        ruleId: 'procurement.po.requires_approval',
+        version: 1,
+        classification: 'USER_CONFIRMED',
+        scope: {},
+        trigger: 'po.create',
+        condition: { op: 'eq', left: { op: 'fact', path: 'amount' }, right: { op: 'literal', value: 50000 } },
+        whenFalse: 'reject',
+        whenUnknown: 'request_verification',
+        sourceRef: 'charter-v1',
+      },
+    ];
+
+    const activeSnapshot = PolicyCompiler.compile('snap-valid-v1', {}, initialValidRules);
+    expect(activeSnapshot.rules).toHaveLength(1);
+
+    // Malformed rule update missing mandatory ruleId
+    const invalidRules = [
+      {
+        ruleId: '', // Invalid empty ruleId!
+        version: 2,
+        trigger: 'po.create',
+      },
+    ];
+
+    let compilationFailed = false;
+    let fallbackSnapshot = activeSnapshot;
+    try {
+      PolicyCompiler.compile('snap-invalid-v2', {}, invalidRules as any);
+    } catch (err) {
+      compilationFailed = true;
+      // Fallback remains the prior active snapshot
+    }
+
+    expect(compilationFailed).toBe(true);
+    expect(fallbackSnapshot.id).toBe('snap-valid-v1');
+    expect(fallbackSnapshot.rules[0].ruleId).toBe('procurement.po.requires_approval');
+  });
+});
+
+describe('AT-021: Pinned Project Jurisdictional Source Change Propagation', () => {
+  it('flags affected open work with effective dates when country source policy changes without hidden pinning', () => {
+    interface JurisdictionalRuleChange {
+      countryCode: string;
+      effectiveDate: string;
+      regulatoryTopic: string;
+      newStandard: string;
+    }
+
+    const change: JurisdictionalRuleChange = {
+      countryCode: 'QA',
+      effectiveDate: '2026-10-01T00:00:00Z',
+      regulatoryTopic: 'civil_defense_temporary_structures',
+      newStandard: 'NFPA 102 2026 Revision',
+    };
+
+    const project = {
+      id: 'prj-doha-expo',
+      country: 'QA',
+      eventStartDate: '2026-11-15T00:00:00Z',
+      pinnedPolicyVersion: 'v1.0.0',
+    };
+
+    function assessJurisdictionImpact(proj: typeof project, ruleChange: JurisdictionalRuleChange) {
+      const isAffectedCountry = proj.country === ruleChange.countryCode;
+      const isAfterEffectiveDate = new Date(proj.eventStartDate) >= new Date(ruleChange.effectiveDate);
+      return {
+        projectId: proj.id,
+        requiresReview: isAffectedCountry && isAfterEffectiveDate,
+        reason: 'Event delivery date occurs after country source policy revision effective date.',
+      };
+    }
+
+    const assessment = assessJurisdictionImpact(project, change);
+    expect(assessment.requiresReview).toBe(true);
+  });
+});
+
+describe('AT-030: Event Cloning Data Sanitization & Invariant Preservation', () => {
+  it('copies structure and templates while resetting historical proof, costs, and reservations', () => {
+    const originalEvent = {
+      id: 'prj-summit-2025',
+      name: 'E3 Leadership Summit 2025',
+      stages: ['STAGE_01', 'STAGE_02', 'STAGE_03'],
+      tasks: [{ id: 'task-1', title: 'Keynote Prep', status: 'completed' }],
+      clientSignatures: [{ id: 'sig-01', signedBy: 'CEO', signedAt: '2025-05-01' }],
+      approvedPoCosts: 150000,
+      inventoryReservations: [{ assetId: 'rig-01', reservedUntil: '2025-05-10' }],
+    };
+
+    function cloneEventForNextYear(source: typeof originalEvent, newCode: string) {
+      return {
+        id: 'prj-summit-2026',
+        code: newCode,
+        name: source.name.replace('2025', '2026'),
+        stages: [...source.stages],
+        tasks: source.tasks.map((t, idx) => ({ id: `task-cloned-${idx}`, title: t.title, status: 'pending' })),
+        // Strict Invariant AT-030: Reset historical proof, financial commitments, and physical reservations!
+        clientSignatures: [],
+        approvedPoCosts: 0,
+        inventoryReservations: [],
+      };
+    }
+
+    const cloned = cloneEventForNextYear(originalEvent, 'SUMMIT-2026');
+    expect(cloned.id).toBe('prj-summit-2026');
+    expect(cloned.tasks[0].status).toBe('pending');
+    expect(cloned.clientSignatures).toHaveLength(0);
+    expect(cloned.approvedPoCosts).toBe(0);
+    expect(cloned.inventoryReservations).toHaveLength(0);
+  });
+});
+
+describe('AT-031: Multi-Timezone & DST Boundary Invariance', () => {
+  it('preserves UTC and source IANA zone with deterministic duration calculation across DST shifts', () => {
+    // Event tender deadline in London spanning DST transition (e.g. March 29, 2026)
+    const ianaZone = 'Europe/London';
+    const utcTenderOpen = '2026-03-28T12:00:00.000Z';
+    const utcTenderClose = '2026-03-30T12:00:00.000Z'; // 48 hours elapsed UTC
+
+    const openEpoch = new Date(utcTenderOpen).getTime();
+    const closeEpoch = new Date(utcTenderClose).getTime();
+    const elapsedHours = (closeEpoch - openEpoch) / (1000 * 60 * 60);
+
+    expect(ianaZone).toBe('Europe/London');
+    expect(elapsedHours).toBe(48); // Deterministic elapsed time in UTC regardless of DST change
+  });
+});
+

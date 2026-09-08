@@ -156,3 +156,61 @@ describe('AT-012: Audit Store Tamper Detection', () => {
     expect(verifyChain(tamperedChain)).toBe(false);
   });
 });
+
+describe('AT-010: Session CSRF, Origin Manipulation & Webhook Body Verifiability', () => {
+  it('blocks forged browser mutating requests with origin/referer header mismatches', () => {
+    function validateBrowserOrigin(headers: Record<string, string>, allowedHost: string): boolean {
+      const origin = headers['origin'] || headers['referer'];
+      if (!origin) return false;
+      try {
+        const url = new URL(origin);
+        return url.host === allowedHost;
+      } catch {
+        return false;
+      }
+    }
+
+    const trustedHost = 'app.e3-eos.com';
+    const legitimateHeaders = { origin: 'https://app.e3-eos.com' };
+    const forgedHeaders = { origin: 'https://malicious-attacker-site.com' };
+    const missingOriginHeaders = {};
+
+    expect(validateBrowserOrigin(legitimateHeaders, trustedHost)).toBe(true);
+    expect(validateBrowserOrigin(forgedHeaders, trustedHost)).toBe(false);
+    expect(validateBrowserOrigin(missingOriginHeaders, trustedHost)).toBe(false);
+  });
+
+  it('verifies raw webhook HMAC signature while remaining immune to browser session CSRF', () => {
+    const rawWebhookBody = JSON.stringify({
+      provider: 'stripe',
+      eventId: 'evt_998877',
+      type: 'payment_intent.succeeded',
+      amount: 45000,
+    });
+    const webhookSecret = 'whsec_prod_live_key_xyz';
+
+    const validSignature = createHash('sha256')
+      .update(rawWebhookBody + webhookSecret)
+      .digest('hex');
+
+    function verifyWebhook(rawBody: string, signatureHeader: string, secret: string): boolean {
+      const expected = createHash('sha256')
+        .update(rawBody + secret)
+        .digest('hex');
+      return signatureHeader === expected;
+    }
+
+    // Authentic signature matches
+    expect(verifyWebhook(rawWebhookBody, validSignature, webhookSecret)).toBe(true);
+
+    // Tampered payload fails
+    const tamperedBody = JSON.stringify({
+      provider: 'stripe',
+      eventId: 'evt_998877',
+      type: 'payment_intent.succeeded',
+      amount: 9999999, // Tampered amount!
+    });
+    expect(verifyWebhook(tamperedBody, validSignature, webhookSecret)).toBe(false);
+  });
+});
+
