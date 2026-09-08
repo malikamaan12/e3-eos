@@ -2,7 +2,7 @@
 
 **Product:** E3 Enterprise Event Operating System  
 **Version:** 1.0 Production Implementation  
-**Status:** All 8 Build Phases Delivered (`P00`–`P07`), 92 Acceptance Tests Verified (`AT-001`–`AT-092`), 178 Automated Tests Passing (0 Failures).
+**Status:** All 8 Build Phases Delivered (`P00`–`P07`), 92 Acceptance Tests Verified (`AT-001`–`AT-092`), 205 Automated Tests Passing (0 Failures across 24 test suites).
 
 ---
 
@@ -21,14 +21,21 @@ pnpm install
 # 2. Strict typecheck across all 8 workspace packages
 pnpm typecheck
 
-# 3. Execute all 178 automated tests across 21 test suites
+# 3. Execute all 205 automated tests across 24 test suites
 pnpm test
 
-# 4. Run the interactive console demonstration
+# 4. Production build across all packages and frontend bundles
+pnpm build
+
+# 5. Run the interactive console demonstration (10 core invariants)
 pnpm demo
 
-# 5. Generate development database seed manifest
+# 6. Generate development database seed manifest (13 stages & 312 activities)
 pnpm seed
+
+# 7. Start live local services
+pnpm dev:api   # NestJS API on http://localhost:4000 (OpenAPI docs: /api/v1/docs)
+pnpm dev       # React 19 Web on http://localhost:3001
 ```
 
 ---
@@ -82,15 +89,24 @@ b:/PROJECTS/EOS/
 
 1. **Leadership**: `/portfolio`, `/portfolio/resources`, `/portfolio/exceptions`
 2. **Personal Work**: `/my-work`, `/approvals`, `/notifications`
-3. **Project Cockpit**: `/projects/:id/...` (Interactive 13-stage lifecycle cockpit)
+3. **Project Cockpit**: `/projects/:id/...` (Interactive 13-stage lifecycle cockpit & 312 stage activities)
 4. **Field Ops (PWA)**: `/field/projects/:id`, `/field/sync` (Touch-optimized mobile checklist runner with offline queueing)
 5. **Client Portal**: `/portal/projects/:id` (Sanitized client projection stripping internal contractor rates and margins)
-6. **Supplier Portal**: `/contribute/:token` (Restricted RFQ upload)
-7. **Admin Studio**: `/admin/templates`, `/admin/policies`, `/admin/audit` (Cryptographic SHA-256 audit manifest inspector)
+6. **Supplier Portal**: `/contribute/:token` (Restricted RFQ upload & virus quarantine defense)
+7. **Admin Studio**: `/admin/templates`, `/admin/policies`, `/admin/audit` (P07 Go-Live Gate, Drills, and RB01-RB12 Runbook Console)
 
 ---
 
-## 5. Operational Runbooks
+## 5. API & OpenAPI 3.1 Specification (`@e3-eos/api`)
+
+- **Interactive Scalar API Reference**: [`http://localhost:4000/api/v1/docs`](http://localhost:4000/api/v1/docs)
+- **Raw OpenAPI 3.1 Contract (YAML)**: [`http://localhost:4000/api/v1/openapi.yaml`](http://localhost:4000/api/v1/openapi.yaml)
+- **Core Commands**: All 16 normative commands implemented with strict Zod validation, RFC 7807 problem details, and multi-tenant RLS context.
+- **Health & Telemetry Probes**: [`http://localhost:4000/api/v1/health`](http://localhost:4000/api/v1/health)
+
+---
+
+## 6. Operational Runbooks
 
 | Runbook | Title | Focus Area |
 |---|---|---|
@@ -109,5 +125,5 @@ b:/PROJECTS/EOS/
 
 ---
 
-## 6. License & Ownership
+## 7. License & Ownership
 Copyright © 2026 E3. All rights reserved. Master Developer Handover v1.0 specifications.
