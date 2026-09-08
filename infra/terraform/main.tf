@@ -25,8 +25,8 @@ variable "project_id" {
 
 variable "region" {
   type        = string
-  description = "Target primary region (me-central1 Doha per ADR)"
-  default     = "me-central1"
+  description = "Target primary region (me-central2 Doha, Qatar per Master Handover)"
+  default     = "me-central2"
 }
 
 variable "environment" {

@@ -24,7 +24,7 @@ resource "google_cloud_run_v2_service" "api_service" {
     }
 
     containers {
-      image = "me-central1-docker.pkg.dev/${var.project_id}/e3-eos/api:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/e3-eos/api:latest"
 
       resources {
         limits = {
@@ -39,7 +39,7 @@ resource "google_cloud_run_v2_service" "api_service" {
       }
       env {
         name  = "PORT"
-        value = "3000"
+        value = "4000"
       }
       env {
         name  = "REGION"
@@ -49,7 +49,7 @@ resource "google_cloud_run_v2_service" "api_service" {
       startup_probe {
         http_get {
           path = "/api/v1/health"
-          port = 3000
+          port = 4000
         }
         initial_delay_seconds = 5
         period_seconds        = 10
@@ -59,7 +59,7 @@ resource "google_cloud_run_v2_service" "api_service" {
       liveness_probe {
         http_get {
           path = "/api/v1/health"
-          port = 3000
+          port = 4000
         }
         period_seconds = 15
       }
@@ -82,7 +82,7 @@ resource "google_cloud_run_v2_service" "web_service" {
     }
 
     containers {
-      image = "me-central1-docker.pkg.dev/${var.project_id}/e3-eos/web:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/e3-eos/web:latest"
 
       resources {
         limits = {
@@ -97,7 +97,48 @@ resource "google_cloud_run_v2_service" "web_service" {
       }
       env {
         name  = "PORT"
-        value = "3001"
+        value = "3000"
+      }
+    }
+  }
+}
+
+# --- Cloud Run: Dedicated Background Worker Service ---
+resource "google_cloud_run_v2_service" "worker_service" {
+  name     = "e3-eos-worker-${var.environment}"
+  location = var.region
+  ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
+
+  template {
+    service_account = google_service_account.eos_runner.email
+
+    scaling {
+      min_instance_count = 1
+      max_instance_count = 5
+    }
+
+    vpc_access {
+      connector = google_vpc_access_connector.serverless_connector.id
+      egress    = "ALL_TRAFFIC"
+    }
+
+    containers {
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/e3-eos/worker:latest"
+
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "1Gi"
+        }
+      }
+
+      env {
+        name  = "NODE_ENV"
+        value = "production"
+      }
+      env {
+        name  = "REGION"
+        value = var.region
       }
     }
   }
