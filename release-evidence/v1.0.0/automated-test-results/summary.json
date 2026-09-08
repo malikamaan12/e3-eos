@@ -2,15 +2,15 @@
   "testRun": {
     "framework": "vitest",
     "version": "3.2.7",
-    "timestamp": "2026-09-08T21:44:05Z",
+    "timestamp": "2026-09-08T21:51:00.176Z",
     "status": "PASSED",
-    "totalTestFiles": 23,
-    "passedTestFiles": 23,
+    "totalTestFiles": 24,
+    "passedTestFiles": 24,
     "failedTestFiles": 0,
-    "totalTests": 201,
-    "passedTests": 201,
+    "totalTests": 202,
+    "passedTests": 202,
     "failedTests": 0,
-    "durationSeconds": 2.37,
+    "durationSeconds": 1.95,
     "suites": [
       {
         "file": "packages/domain/src/stage-activities.test.ts",
@@ -36,6 +36,11 @@
         "file": "packages/domain/src/stage-graph.test.ts",
         "tests": 6,
         "passed": 6
+      },
+      {
+        "file": "packages/db/src/seed.test.ts",
+        "tests": 1,
+        "passed": 1
       },
       {
         "file": "packages/domain/src/rollout.test.ts",
