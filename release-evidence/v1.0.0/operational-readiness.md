@@ -7,24 +7,24 @@
 
 ## 1. Platform Infrastructure & Environment
 
-- **Core API**: NestJS 10 running on Node.js 22 LTS with cluster mode / container scaling.
-- **Database**: Managed PostgreSQL 16 with write-ahead logging (WAL), automated snapshot backups every 6 hours, and continuous point-in-time recovery (PITR).
-- **Object Storage**: S3-compatible cloud object store for drawings, photos, and report manifests.
-- **Worker & Queue**: Dedicated background worker (`apps/worker`) reading outbox events with idempotent message processing.
+- **Core API**: NestJS 11 running on Node.js 22 LTS with container scaling on Google Cloud Run v2 (Doha `me-central2`).
+- **Database**: Cloud SQL PostgreSQL 17 Regional HA (High Availability across Doha zones) with automated backups and continuous point-in-time recovery (PITR).
+- **Object Storage**: Google Cloud Storage buckets for CAD drawings, site photos, and report manifests with CMEK encryption.
+- **Worker & Queue**: Dedicated background worker (`apps/worker`) running in private VPC reading BullMQ/Postgres outbox events with idempotent message processing.
+- **Frontend & PWA**: React 19 + Vite 6 + Tailwind CSS with Service Worker offline caching (`sw.js v1.0.0`).
 
 ---
 
 ## 2. Standard Operational Runbooks
 
 ### Runbook 1: Production Deployment & Smoke Verification
-1. Verify pre-flight production deployment gate (`AT-089`):
+1. Verify comprehensive pre-flight production deployment gate (`AT-089`):
    ```bash
-   pnpm test
-   pnpm typecheck
+   pnpm verify:preflight
    ```
-2. Apply database migrations:
+2. Apply database migrations & verify seed integrity:
    ```bash
-   pnpm db:migrate
+   pnpm seed
    ```
 3. Deploy new API container instances; health check `/api/health` returns 200 OK.
 4. Verify authoritative writer cutover status (`AT-052`).
