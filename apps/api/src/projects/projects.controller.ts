@@ -72,10 +72,100 @@ export function getOrInitProjectActivities(projectId: string): InstantiatedActiv
   return activities;
 }
 
+export function seedInitialProjects(): void {
+  if (projectRepository.size > 0) return;
+
+  const defaultProjects: StoredProject[] = [
+    {
+      id: 'f1111111-1111-4111-8111-111111111111',
+      organisationId: '11111111-1111-4111-8111-111111111111',
+      projectCode: 'PRJ-2026-SYNTH-01',
+      title: 'Synthetic International Tech Expo 2026',
+      description: 'A complete synthetic test project for verifying EOS core commands and invariants.',
+      originCode: 'DIRECT_AWARD',
+      ownerId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      maturity: 'delivery',
+      outcome: 'undetermined',
+      rowVersion: 1,
+      clientOrganisationId: '22222222-2222-4222-8222-222222222222',
+      costingData: {
+        contractorBuyRateHourly: '120.00 QAR',
+        internalMarginTarget: '43.75%',
+        payrollSchedule: 'CONFIDENTIAL-INTERNAL',
+      },
+    },
+    {
+      id: 'f2222222-2222-4222-8222-222222222222',
+      organisationId: '11111111-1111-4111-8111-111111111111',
+      projectCode: 'PRJ-2026-LUS-02',
+      title: 'Lusail Cultural Light & Sound Summit',
+      description: 'Large-scale outdoor projection mapping and audio installation in Lusail Plaza.',
+      originCode: 'TENDER',
+      ownerId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      maturity: 'onboarding',
+      outcome: 'undetermined',
+      rowVersion: 1,
+      clientOrganisationId: '22222222-2222-4222-8222-222222222222',
+      costingData: {
+        contractorBuyRateHourly: '110.00 QAR',
+        internalMarginTarget: '40.00%',
+        payrollSchedule: 'CONFIDENTIAL-INTERNAL',
+      },
+    },
+    {
+      id: 'f3333333-3333-4333-8333-333333333333',
+      organisationId: '11111111-1111-4111-8111-111111111111',
+      projectCode: 'PRJ-2026-AK-03',
+      title: 'Al Khor National Sports Championship 2026',
+      description: 'Opening and closing ceremony staging, lighting, and temporary grandstand infrastructure.',
+      originCode: 'CALL_OFF',
+      ownerId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      maturity: 'delivery',
+      outcome: 'undetermined',
+      rowVersion: 1,
+      costingData: {
+        contractorBuyRateHourly: '135.00 QAR',
+        internalMarginTarget: '45.00%',
+        payrollSchedule: 'CONFIDENTIAL-INTERNAL',
+      },
+    },
+  ];
+
+  for (const proj of defaultProjects) {
+    projectRepository.set(proj.id, proj);
+  }
+}
+
+seedInitialProjects();
+
 @Controller('projects')
 @UseFilters(ProblemDetailsFilter)
 @UseGuards(TenantIsolationGuard)
 export class ProjectsController {
+  @Get()
+  listProjects(@Req() req: Request) {
+    const callerOrgId = (req as any).organisationId;
+    const all = Array.from(projectRepository.values());
+    const visible = callerOrgId
+      ? all.filter((p) => p.organisationId === callerOrgId)
+      : all;
+
+    return {
+      data: visible.map((p) => ({
+        id: p.id,
+        projectCode: p.projectCode,
+        title: p.title,
+        description: p.description,
+        maturity: p.maturity,
+        outcome: p.outcome,
+        originCode: p.originCode,
+        clientOrganisationId: p.clientOrganisationId,
+        rowVersion: p.rowVersion,
+      })),
+      meta: { total: visible.length },
+    };
+  }
+
   @Post()
   @UseGuards(IdempotencyGuard)
   createProject(@Body() body: unknown, @Req() req: Request): CommandResult {

@@ -334,5 +334,37 @@ describe('Stage Activity Library & Progression Endpoints', () => {
     expect(stage1?.status).toBe('in_progress');
     expect(stage1?.completionPercent).toBe(4); // 1 / 24 = 4.16% ~ 4%
   });
+
+  it('lists projects strictly scoped to caller organisation', () => {
+    const mockReqAlpha = { organisationId: 'org-alpha', headers: {} } as any;
+    const resAlpha = controller.listProjects(mockReqAlpha);
+    expect(resAlpha.data.length).toBe(1);
+    expect(resAlpha.data[0].id).toBe('proj-stage-test');
+
+    // Caller from another org with no projects sees empty list
+    const mockReqOther = { organisationId: 'org-other', headers: {} } as any;
+    const resOther = controller.listProjects(mockReqOther);
+    expect(resOther.data.length).toBe(0);
+  });
 });
+
+describe('System Health & Observability Endpoints', () => {
+  it('serves liveness and deep system telemetry with 312 activities and 18 active modules', async () => {
+    const { HealthController } = await import('./common/health.controller.js');
+    const health = new HealthController();
+
+    const liveness = health.getLiveness();
+    expect(liveness.status).toBe('ok');
+    expect(liveness.service).toBe('e3-eos-api');
+
+    const system = health.getSystemHealth();
+    expect(system.status).toBe('healthy');
+    expect(system.governance.multiTenantIsolation).toBe('enforced');
+    expect(system.governance.documentQuarantineService).toBe('active');
+    expect(system.catalog.totalStageActivities).toBe(312);
+    expect(system.catalog.activeModules).toBe(18);
+    expect(system.systemMetrics.rssMb).toBeGreaterThan(0);
+  });
+});
+
 

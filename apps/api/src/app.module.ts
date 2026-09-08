@@ -17,6 +17,7 @@ import { IntegrationsController } from './integrations/integrations.controller.j
 import { PortfolioController } from './portfolio/portfolio.controller.js';
 import { AiController } from './ai/ai.controller.js';
 import { RolloutController } from './rollout/rollout.controller.js';
+import { HealthController } from './common/health.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
 import { IdempotencyGuard } from './common/idempotency.guard.js';
 import { TenantIsolationGuard } from './common/tenant.guard.js';
@@ -24,6 +25,7 @@ import { TenantIsolationGuard } from './common/tenant.guard.js';
 @Module({
   imports: [],
   controllers: [
+    HealthController,
     IdentityController,
     ProjectsController,
     ScopeController,
