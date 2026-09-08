@@ -176,6 +176,30 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             )}
           </button>
 
+          {/* OpenAPI Docs Link */}
+          <a
+            href="/api/v1/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open Interactive OpenAPI Documentation"
+            style={{
+              backgroundColor: '#1e293b',
+              color: '#38bdf8',
+              border: '1px solid #0284c7',
+              borderRadius: '6px',
+              padding: '4px 10px',
+              fontSize: '12px',
+              fontWeight: 600,
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <span>⚡</span>
+            <span>API Docs</span>
+          </a>
+
           {/* Language / RTL Toggle */}
           <button
             onClick={toggleLanguage}

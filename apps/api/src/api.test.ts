@@ -367,4 +367,56 @@ describe('System Health & Observability Endpoints', () => {
   });
 });
 
+describe('OpenAPI Specification & Interactive Docs Endpoints', () => {
+  it('serves the OpenAPI 3.1.0 YAML specification with text/yaml content-type', async () => {
+    const { OpenApiController } = await import('./common/openapi.controller.js');
+    const controller = new OpenApiController();
+
+    let setHeaderKey = '';
+    let setHeaderVal = '';
+    let sentContent = '';
+
+    const mockRes = {
+      setHeader: (k: string, v: string) => {
+        setHeaderKey = k;
+        setHeaderVal = v;
+      },
+      send: (body: string) => {
+        sentContent = body;
+      },
+      status: () => mockRes,
+    } as any;
+
+    controller.getOpenApiYaml(mockRes);
+    expect(setHeaderKey).toBe('Content-Type');
+    expect(setHeaderVal).toBe('text/yaml; charset=utf-8');
+    expect(sentContent).toContain('openapi: 3.1.0');
+    expect(sentContent).toContain('title: E3-EOS Core Command Contracts');
+  });
+
+  it('serves interactive API documentation UI with text/html content-type', async () => {
+    const { OpenApiController } = await import('./common/openapi.controller.js');
+    const controller = new OpenApiController();
+
+    let setHeaderVal = '';
+    let sentHtml = '';
+
+    const mockRes = {
+      setHeader: (_k: string, v: string) => {
+        setHeaderVal = v;
+      },
+      send: (body: string) => {
+        sentHtml = body;
+      },
+    } as any;
+
+    controller.getApiDocs(mockRes);
+    expect(setHeaderVal).toBe('text/html; charset=utf-8');
+    expect(sentHtml).toContain('E3-EOS Core Command API Reference');
+    expect(sentHtml).toContain('@scalar/api-reference');
+    expect(sentHtml).toContain('data-url="/api/v1/openapi.yaml"');
+  });
+});
+
+
 
