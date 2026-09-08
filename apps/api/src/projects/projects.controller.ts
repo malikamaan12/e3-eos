@@ -9,6 +9,7 @@ import {
   HttpStatus,
   UseGuards,
   UseFilters,
+  Query,
 } from '@nestjs/common';
 import { Request } from 'express';
 import {
@@ -20,7 +21,14 @@ import {
   CloseDimensionDto,
   CommandResult,
 } from '@e3-eos/contracts';
-import { ProjectCloningEngine } from '@e3-eos/domain';
+import {
+  ProjectCloningEngine,
+  ALL_STAGE_ACTIVITIES,
+  instantiateProjectActivities,
+  calculateStageProgress,
+  STANDARD_THIRTEEN_STAGE_TEMPLATE,
+  InstantiatedActivity,
+} from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard, AllowedAudiences } from '../common/tenant.guard.js';
@@ -51,6 +59,18 @@ export interface StoredProject {
 
 // In-memory / repository store for projects
 export const projectRepository = new Map<string, StoredProject>();
+
+// In-memory / repository store for instantiated project activities (312 canonical library)
+export const projectActivitiesRepository = new Map<string, InstantiatedActivity[]>();
+
+export function getOrInitProjectActivities(projectId: string): InstantiatedActivity[] {
+  let activities = projectActivitiesRepository.get(projectId);
+  if (!activities) {
+    activities = instantiateProjectActivities(projectId);
+    projectActivitiesRepository.set(projectId, activities);
+  }
+  return activities;
+}
 
 @Controller('projects')
 @UseFilters(ProblemDetailsFilter)
@@ -130,6 +150,19 @@ export class ProjectsController {
     };
   }
 
+  /**
+   * Retrieves the canonical 312 stage activity definitions across all 13 stages.
+   */
+  @Get('stage-library')
+  getStageLibrary() {
+    return {
+      data: {
+        totalActivities: ALL_STAGE_ACTIVITIES.length,
+        activities: ALL_STAGE_ACTIVITIES,
+      },
+    };
+  }
+
   @Get(':id')
   getProject(@Param('id') id: string, @Req() req: Request) {
     const project = projectRepository.get(id);
@@ -163,6 +196,111 @@ export class ProjectsController {
       },
     };
   }
+
+  /**
+   * Retrieves 13 event lifecycle stages with computed progress and status for a project.
+   */
+  @Get(':id/stages')
+  getProjectStages(@Param('id') id: string, @Req() req: Request) {
+    const project = projectRepository.get(id);
+    const callerOrgId = (req as any).organisationId;
+
+    if (!project || (callerOrgId && project.organisationId !== callerOrgId)) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Project not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const activities = getOrInitProjectActivities(id);
+    const stages = STANDARD_THIRTEEN_STAGE_TEMPLATE.stages.map((stage, idx) => {
+      const stageNum = idx + 1;
+      const progress = calculateStageProgress(activities, stageNum);
+      let status: 'completed' | 'in_progress' | 'blocked' | 'not_started' = 'not_started';
+      if (progress.percent === 100) status = 'completed';
+      else if (progress.blocked > 0) status = 'blocked';
+      else if (progress.inProgress > 0 || progress.completed > 0) status = 'in_progress';
+
+      return {
+        stageNumber: stageNum,
+        stageCode: stage.templateStageId,
+        name: stage.name,
+        description: stage.description,
+        status,
+        completionPercent: progress.percent,
+        hasCriticalGate: stageNum === 10,
+        metrics: progress,
+      };
+    });
+
+    return { data: stages };
+  }
+
+  /**
+   * Retrieves instantiated activities for a project, optionally filtered by stageNumber.
+   */
+  @Get(':id/activities')
+  getProjectActivities(
+    @Param('id') id: string,
+    @Query('stageNumber') stageNumber: string,
+    @Req() req: Request
+  ) {
+    const project = projectRepository.get(id);
+    const callerOrgId = (req as any).organisationId;
+
+    if (!project || (callerOrgId && project.organisationId !== callerOrgId)) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Project not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    let activities = getOrInitProjectActivities(id);
+    if (stageNumber) {
+      const num = parseInt(stageNumber, 10);
+      activities = activities.filter((a) => a.stageNumber === num);
+    }
+
+    return {
+      data: activities,
+      meta: { total: activities.length },
+    };
+  }
+
+  /**
+   * Updates an instantiated activity status, evidence, notes, or owner.
+   */
+  @Post(':id/activities/:activityId')
+  updateProjectActivity(
+    @Param('id') id: string,
+    @Param('activityId') activityId: string,
+    @Body() body: any,
+    @Req() req: Request
+  ) {
+    const project = projectRepository.get(id);
+    const callerOrgId = (req as any).organisationId;
+
+    if (!project || (callerOrgId && project.organisationId !== callerOrgId)) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Project not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const activities = getOrInitProjectActivities(id);
+    const activity = activities.find(
+      (a) => a.id.toLowerCase() === activityId.toLowerCase() || a.instanceId.toLowerCase() === activityId.toLowerCase()
+    );
+
+    if (!activity) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Activity not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    if (body.status) activity.status = body.status;
+    if (body.evidenceUri !== undefined) activity.evidenceUri = body.evidenceUri;
+    if (body.notes !== undefined) activity.notes = body.notes;
+    if (body.actualOwner !== undefined) activity.actualOwner = body.actualOwner;
+    if (body.status === 'completed' && !activity.completedAt) {
+      activity.completedAt = new Date().toISOString();
+    }
+
+    return {
+      data: activity,
+      meta: { requestId: `req-${Date.now()}` },
+    };
+  }
+
 
   /**
    * Clones a project while strictly resetting consequential data (AT-030).

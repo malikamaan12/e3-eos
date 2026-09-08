@@ -21,4 +21,5 @@ export * from './portfolio.js';
 export * from './ai-assistant.js';
 export * from './country-cell.js';
 export * from './rollout.js';
+export * from './stage-activities.js';
 

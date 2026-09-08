@@ -5,16 +5,45 @@ import { Badge, Button, MetricCard, AlertBanner } from '../components/DesignSyst
 import { ViewStateRenderer } from '../components/ViewStateRenderer.js';
 import { ViewStateFactory } from '../view-states.js';
 import { getStageTitleInLocale, formatCurrencyInLocale } from '../localization.js';
+import { getActivitiesForStage } from '@e3-eos/domain';
 
 export const ProjectWorkspaceView: React.FC = () => {
   const { currentLanguage, projects, selectedProjectId } = useEosContext();
   const [activeStage, setActiveStage] = useState<number>(10); // Default to Stage 10 (Readiness)
+  const [activeTab, setActiveTab] = useState<'activities' | 'drilldown'>('activities');
   const [isDrawingFrozen, setIsDrawingFrozen] = useState<boolean>(true);
   const [isPermitVerified, setIsPermitVerified] = useState<boolean>(true);
+  const [activityStatuses, setActivityStatuses] = useState<Record<string, 'completed' | 'in_progress' | 'blocked' | 'not_started'>>({});
+  const [roleFilter, setRoleFilter] = useState<string>('all');
 
   const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
-
   const viewState = ViewStateFactory.ready(currentProject);
+
+  const stageActivities = getActivitiesForStage(activeStage);
+
+  const getActivityStatus = (actId: string): 'completed' | 'in_progress' | 'blocked' | 'not_started' => {
+    if (activityStatuses[actId]) return activityStatuses[actId];
+    if (activeStage < 10) return 'completed';
+    if (activeStage === 10) {
+      const idx = parseInt(actId.split('-')[1], 10);
+      return idx <= 18 ? 'completed' : 'in_progress';
+    }
+    return 'not_started';
+  };
+
+  const completedCount = stageActivities.filter((a) => getActivityStatus(a.id) === 'completed').length;
+  const stagePercent = Math.round((completedCount / stageActivities.length) * 100);
+
+  const toggleActivityStatus = (actId: string) => {
+    const current = getActivityStatus(actId);
+    const next = current === 'completed' ? 'in_progress' : current === 'in_progress' ? 'not_started' : 'completed';
+    setActivityStatuses((prev) => ({ ...prev, [actId]: next }));
+  };
+
+  const distinctRoles = Array.from(new Set(stageActivities.map((a) => a.proposedOwnerRole))).sort();
+  const filteredActivities = roleFilter === 'all'
+    ? stageActivities
+    : stageActivities.filter((a) => a.proposedOwnerRole === roleFilter);
 
   return (
     <div data-testid="project-workspace">
@@ -78,7 +107,7 @@ export const ProjectWorkspaceView: React.FC = () => {
                 alignItems: 'center',
                 borderBottom: '1px solid #f1f5f9',
                 paddingBottom: '16px',
-                marginBottom: '20px',
+                marginBottom: '16px',
               }}
             >
               <div>
@@ -86,13 +115,200 @@ export const ProjectWorkspaceView: React.FC = () => {
                   Stage {String(activeStage).padStart(2, '0')}: {getStageTitleInLocale(activeStage, currentLanguage)}
                 </h2>
                 <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                  {currentLanguage === 'ar' ? 'التحكم الإجرائي والحوكمة غير القابلة للالتفاف' : 'Strict procedural workflow invariant'}
+                  {currentLanguage === 'ar'
+                    ? `مكتبة الأنشطة المعيارية (24 نشاطاً) • تم إنجاز ${completedCount} من 24 (${stagePercent}%)`
+                    : `Normative Activity Library (24 Activities) • ${completedCount} of 24 Complete (${stagePercent}%)`}
                 </div>
               </div>
-              <Badge variant={activeStage === 10 ? 'warning' : 'success'}>
-                {activeStage === 10 ? (currentLanguage === 'ar' ? 'قيد التدقيق' : 'Gated Review') : (currentLanguage === 'ar' ? 'معتمد' : 'Approved')}
+              <Badge variant={stagePercent === 100 ? 'success' : activeStage === 10 ? 'warning' : 'info'}>
+                {stagePercent === 100
+                  ? (currentLanguage === 'ar' ? 'مكتمل بنسبة 100%' : '100% Completed')
+                  : `${stagePercent}% (${completedCount}/24)`}
               </Badge>
             </div>
+
+            {/* Stage Progress Bar */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', marginBottom: '6px' }}>
+                <span>{currentLanguage === 'ar' ? 'نسبة التقدم الإجرائي في المرحلة' : 'Stage Procedural Progress'}</span>
+                <span style={{ fontWeight: 700, color: stagePercent === 100 ? '#059669' : '#2563eb' }}>{stagePercent}%</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: `${stagePercent}%`,
+                    height: '100%',
+                    backgroundColor: stagePercent === 100 ? '#10b981' : '#3b82f6',
+                    transition: 'width 0.3s ease',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Sub-Tab Navigation */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <button
+                onClick={() => setActiveTab('activities')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  backgroundColor: activeTab === 'activities' ? '#2563eb' : '#f1f5f9',
+                  color: activeTab === 'activities' ? '#ffffff' : '#475569',
+                }}
+              >
+                {currentLanguage === 'ar' ? '📋 قائمة الأنشطة الإلزامية (24)' : '📋 Normative Activities (24)'}
+              </button>
+              <button
+                onClick={() => setActiveTab('drilldown')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  backgroundColor: activeTab === 'drilldown' ? '#2563eb' : '#f1f5f9',
+                  color: activeTab === 'drilldown' ? '#ffffff' : '#475569',
+                }}
+              >
+                {currentLanguage === 'ar' ? '⚡ حوكمة النطاق والقواعد الخاصة' : '⚡ Domain Invariants & Drilldown'}
+              </button>
+            </div>
+
+            {/* TAB 1: Normative Activities Checklist (24 Activities) */}
+            {activeTab === 'activities' && (
+              <div>
+                {/* Role Filter Pills */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+                    {currentLanguage === 'ar' ? 'تصفية حسب الدور المسند:' : 'Filter by Role:'}
+                  </span>
+                  <button
+                    onClick={() => setRoleFilter('all')}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      backgroundColor: roleFilter === 'all' ? '#0f172a' : '#ffffff',
+                      color: roleFilter === 'all' ? '#ffffff' : '#475569',
+                    }}
+                  >
+                    All ({stageActivities.length})
+                  </button>
+                  {distinctRoles.map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => setRoleFilter(role)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        backgroundColor: roleFilter === role ? '#0f172a' : '#ffffff',
+                        color: roleFilter === role ? '#ffffff' : '#475569',
+                      }}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Activities List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {filteredActivities.map((act) => {
+                    const status = getActivityStatus(act.id);
+                    const isDone = status === 'completed';
+                    return (
+                      <div
+                        key={act.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          borderRadius: '6px',
+                          border: isDone ? '1px solid #d1fae5' : '1px solid #e2e8f0',
+                          backgroundColor: isDone ? '#f0fdf4' : '#ffffff',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1 }}>
+                          <button
+                            onClick={() => toggleActivityStatus(act.id)}
+                            style={{
+                              width: '22px',
+                              height: '22px',
+                              borderRadius: '4px',
+                              border: isDone ? 'none' : '2px solid #cbd5e1',
+                              backgroundColor: isDone ? '#10b981' : '#ffffff',
+                              color: '#ffffff',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '12px',
+                              marginTop: '2px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {isDone ? '✓' : ''}
+                          </button>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', fontFamily: 'monospace' }}>
+                                {act.id}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  color: isDone ? '#065f46' : '#1e293b',
+                                  textDecoration: isDone ? 'line-through' : 'none',
+                                }}
+                              >
+                                {act.name}
+                              </span>
+                              <Badge variant="purple">{act.proposedOwnerRole}</Badge>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span>📄</span>
+                              <span><strong>Required Output:</strong> {act.completionOutputOrEvidence}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <Badge variant={isDone ? 'success' : status === 'in_progress' ? 'info' : 'neutral'}>
+                            {isDone ? 'Completed' : status === 'in_progress' ? 'In Progress' : 'Pending'}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant={isDone ? 'outline' : 'secondary'}
+                            onClick={() => toggleActivityStatus(act.id)}
+                          >
+                            {isDone ? 'Reopen' : 'Mark Done'}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: Specialized Domain Invariants & Drilldown */}
+            {activeTab === 'drilldown' && (
+              <div>
+
 
             {/* STAGE 01: Onboarding with Preserved Unknowns */}
             {activeStage === 1 && (
@@ -292,7 +508,10 @@ export const ProjectWorkspaceView: React.FC = () => {
             )}
           </div>
         )}
-      </ViewStateRenderer>
-    </div>
-  );
+      </div>
+    )}
+  </ViewStateRenderer>
+</div>
+);
 };
+

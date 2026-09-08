@@ -420,6 +420,31 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect(result.failed).toBe(0);
       expect(result.syncedAt).toBeDefined();
     });
+
+    it('should query project stages and activities from client layer', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      });
+
+      const stages = await client.getProjectStages('f1111111-1111-4111-8111-111111111111');
+      expect(stages.length).toBe(13);
+      expect(stages[0].stageNumber).toBe(1);
+      expect(stages[9].hasCriticalGate).toBe(true);
+
+      const stage10Acts = await client.getProjectActivities('f1111111-1111-4111-8111-111111111111', 10);
+      expect(stage10Acts.length).toBe(24);
+      expect(stage10Acts[0].id).toBe('S10-01');
+
+      const updated = await client.updateProjectActivity('f1111111-1111-4111-8111-111111111111', 'S10-01', {
+        status: 'completed',
+        notes: 'Testing sign-off complete',
+      });
+      expect(updated.status).toBe('completed');
+      expect(updated.notes).toBe('Testing sign-off complete');
+    });
   });
 });
+
 
