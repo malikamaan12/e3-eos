@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-08T23:05:30.544Z",
+  "verifiedAt": "2026-09-08T23:26:55.123Z",
   "totalScenarios": 92,
   "verifiedCount": 92,
   "coveragePercentage": "100.0%",
@@ -673,6 +673,7 @@
       "title": "Offline operations repeat/out of order",
       "expectedResult": "Per-operation results/deduplication; current accepted record not overwritten by stale fact.",
       "verifiedFiles": [
+        "tests/brutal-qatar-tourism-lifecycle.test.ts",
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
         "packages/domain/src/field-sync.ts",
@@ -712,6 +713,7 @@
       "title": "Readiness 99 percent but one critical inspection unresolved",
       "expectedResult": "Affected zone/package not ready; percentage cannot override condition.",
       "verifiedFiles": [
+        "tests/brutal-qatar-tourism-lifecycle.test.ts",
         "tests/lifecycle-e2e.test.ts",
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
