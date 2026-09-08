@@ -35,48 +35,48 @@ ALTER TABLE IF EXISTS field_inspections FORCE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS incident_records FORCE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS audit_events FORCE ROW LEVEL SECURITY;
 
--- 3. Create Restrictive Tenant Isolation Policies
+-- 3. Create Tenant Isolation Policies (Permissive isolation: rows accessible only when tenant UUID matches)
 -- Invariant: Sessions MUST set 'app.current_org_id' via TenantIsolation.setTenantContext()
 -- Queries executed without context or under foreign tenant UUID evaluate to zero rows.
 
 DROP POLICY IF EXISTS tenant_isolation_projects ON projects;
 CREATE POLICY tenant_isolation_projects ON projects
-    AS RESTRICTIVE
+    AS PERMISSIVE
     FOR ALL
     USING (organisation_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
 
 DROP POLICY IF EXISTS tenant_isolation_stage_instances ON stage_instances;
 CREATE POLICY tenant_isolation_stage_instances ON stage_instances
-    AS RESTRICTIVE
+    AS PERMISSIVE
     FOR ALL
     USING (organisation_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
 
 DROP POLICY IF EXISTS tenant_isolation_stage_activities ON stage_activities;
 CREATE POLICY tenant_isolation_stage_activities ON stage_activities
-    AS RESTRICTIVE
+    AS PERMISSIVE
     FOR ALL
     USING (organisation_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
 
 DROP POLICY IF EXISTS tenant_isolation_boq_items ON boq_items;
 CREATE POLICY tenant_isolation_boq_items ON boq_items
-    AS RESTRICTIVE
+    AS PERMISSIVE
     FOR ALL
     USING (organisation_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
 
 DROP POLICY IF EXISTS tenant_isolation_purchase_orders ON purchase_orders;
 CREATE POLICY tenant_isolation_purchase_orders ON purchase_orders
-    AS RESTRICTIVE
+    AS PERMISSIVE
     FOR ALL
     USING (organisation_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
 
 DROP POLICY IF EXISTS tenant_isolation_audit_events ON audit_events;
 CREATE POLICY tenant_isolation_audit_events ON audit_events
-    AS RESTRICTIVE
+    AS PERMISSIVE
     FOR ALL
     USING (organisation_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
 
 DROP POLICY IF EXISTS tenant_isolation_inventory ON inventory_resources;
 CREATE POLICY tenant_isolation_inventory ON inventory_resources
-    AS RESTRICTIVE
+    AS PERMISSIVE
     FOR ALL
     USING (organisation_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
