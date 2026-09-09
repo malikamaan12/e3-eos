@@ -11,6 +11,7 @@ import {
   UseFilters,
   Optional,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { Request } from 'express';
 import {
   WorkPackageCreateSchema,
@@ -133,12 +134,11 @@ export class WorkController {
           SELECT t.*, u.name as assignee_name
           FROM task_instances t
           LEFT JOIN users u ON u.id = t.assignee_id
-          WHERE t.project_id = $1 OR t.project_id = 'f1111111-1111-4111-8111-111111111111'
+          WHERE t.project_id = $1
           ORDER BY t.created_at DESC;
         `, [projectId]);
-        if (res.rows.length > 0) {
-          return {
-            data: res.rows.map(r => ({
+        return {
+          data: res.rows.map(r => ({
               id: r.id,
               packageId: r.package_id,
               projectId: r.project_id,
@@ -148,8 +148,7 @@ export class WorkController {
               assigneeName: r.assignee_name,
               createdAt: r.created_at,
             })),
-          };
-        }
+        };
       } catch (e) {}
     }
 
@@ -171,7 +170,7 @@ export class WorkController {
 
     const data: TaskCreateDto = parseRes.data;
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
-    const taskId = `task-${Date.now()}`;
+    const taskId = randomUUID();
 
     const task: StoredTask = {
       id: taskId,
@@ -188,9 +187,23 @@ export class WorkController {
 
     if (this.dbService) {
       try {
-        const pkgId = data.packageId || 'e1111111-1111-4111-8111-111111111111';
-        const assignee = data.assigneeId || '10000000-0000-4000-8000-000000000007';
-        await this.dbService.getPool().query(`
+        const pool = this.dbService.getPool();
+        const assignee = data.assigneeId || '10000000-0000-4000-8000-000000000004';
+        
+        let pkgId = data.packageId;
+        const wpCheck = await pool.query('SELECT id FROM work_packages WHERE project_id = $1 LIMIT 1;', [projectId]);
+        if (wpCheck.rows.length > 0) {
+          pkgId = wpCheck.rows[0].id;
+        } else {
+          pkgId = randomUUID();
+          await pool.query(`
+            INSERT INTO work_packages (id, organisation_id, project_id, name, owner_id, status, acceptance_state, created_at)
+            VALUES ($1, $2, $3, 'Deliverables', $4, 'active', 'pending', NOW())
+            ON CONFLICT (id) DO NOTHING;
+          `, [pkgId, orgId, projectId, assignee]);
+        }
+
+        await pool.query(`
           INSERT INTO task_instances (id, package_id, organisation_id, project_id, title, assignee_id, state, is_completed, created_at)
           VALUES ($1, $2, $3, $4, $5, $6, 'planned', false, NOW())
           ON CONFLICT (id) DO NOTHING;
@@ -238,13 +251,16 @@ export class WorkController {
 
     if (this.dbService) {
       try {
-        this.dbService.getPool().query(`
-          UPDATE task_instances
-          SET is_completed = true, state = 'completed', completed_at = NOW()
-          WHERE id = $1;
-        `, [taskId]).catch((e: any) => {
-          console.warn('[WorkController] Task DB complete update notice:', e.message);
-        });
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskId);
+        if (isUuid) {
+          this.dbService.getPool().query(`
+            UPDATE task_instances
+            SET is_completed = true, state = 'completed', completed_at = NOW()
+            WHERE id = $1;
+          `, [taskId]).catch((e: any) => {
+            console.warn('[WorkController] Task DB complete update notice:', e.message);
+          });
+        }
       } catch (e: any) {
         console.warn('[WorkController] Task DB complete update notice:', e.message);
       }

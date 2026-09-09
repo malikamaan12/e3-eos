@@ -91,7 +91,7 @@ describe('AT-002: Client Audience Costing Isolation', () => {
     expect(res.data.costing?.contractorBuyRateHourly).toBe('120.00 QAR');
   });
 
-  it('blocks client audience from costing data via server-side guard', () => {
+  it('blocks client audience from costing data via server-side guard', async () => {
     const reflector = new Reflector();
     const guard = new TenantIsolationGuard(reflector);
 
@@ -110,9 +110,9 @@ describe('AT-002: Client Audience Costing Isolation', () => {
     } as unknown as ExecutionContext;
 
     // The guard must throw 403 FORBIDDEN_AUDIENCE
-    expect(() => guard.canActivate(mockContext)).toThrowError(HttpException);
+    await expect(guard.canActivate(mockContext)).rejects.toThrowError(HttpException);
     try {
-      guard.canActivate(mockContext);
+      await guard.canActivate(mockContext);
     } catch (err: any) {
       expect(err.getStatus()).toBe(403);
       expect(err.getResponse().code).toBe('FORBIDDEN_AUDIENCE');
@@ -335,15 +335,15 @@ describe('Stage Activity Library & Progression Endpoints', () => {
     expect(stage1?.completionPercent).toBe(4); // 1 / 24 = 4.16% ~ 4%
   });
 
-  it('lists projects strictly scoped to caller organisation', () => {
+  it('lists projects strictly scoped to caller organisation', async () => {
     const mockReqAlpha = { organisationId: 'org-alpha', headers: {} } as any;
-    const resAlpha = controller.listProjects(mockReqAlpha);
+    const resAlpha = await controller.listProjects(mockReqAlpha);
     expect(resAlpha.data.length).toBe(1);
     expect(resAlpha.data[0].id).toBe('proj-stage-test');
 
     // Caller from another org with no projects sees empty list
     const mockReqOther = { organisationId: 'org-other', headers: {} } as any;
-    const resOther = controller.listProjects(mockReqOther);
+    const resOther = await controller.listProjects(mockReqOther);
     expect(resOther.data.length).toBe(0);
   });
 });

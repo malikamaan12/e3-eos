@@ -20,15 +20,17 @@ export interface PendingOfflineMutation {
 
 export type { CanonicalUser } from './canonical-users.js';
 import { CANONICAL_E3_USERS } from './canonical-users.js';
+import { EosApiClient } from '../services/api-client.js';
 export { CANONICAL_E3_USERS };
 
 export interface EosContextValue {
-  currentUser: SyntheticUser & { role?: string };
+  currentUser: SyntheticUser & { role?: string; isSuperAdmin?: boolean };
   currentOrg: SyntheticOrganisation;
   currentLanguage: SupportedLocale;
   direction: 'ltr' | 'rtl';
   isOffline: boolean;
   activeWorkspace: WorkspaceType;
+  currentPath: string;
   selectedProjectId: string;
   projects: SyntheticProject[];
   pendingMutations: PendingOfflineMutation[];
@@ -37,12 +39,17 @@ export interface EosContextValue {
   isApprovalModalOpen: boolean;
   isAuditDrawerOpen: boolean;
   refreshTrigger: number;
+  apiClient: EosApiClient;
   triggerRefresh: () => void;
+  navigate: (path: string) => void;
+  login: (email: string) => Promise<any>;
+  logout: () => Promise<void>;
+  switchPersona: (email: string) => Promise<void>;
   setIsNewProjectModalOpen: (open: boolean) => void;
   setIsTaskModalOpen: (open: boolean) => void;
   setIsApprovalModalOpen: (open: boolean) => void;
   setIsAuditDrawerOpen: (open: boolean) => void;
-  setCurrentUser: (user: SyntheticUser & { role?: string }) => void;
+  setCurrentUser: (user: SyntheticUser & { role?: string; isSuperAdmin?: boolean }) => void;
   setCurrentOrg: (org: SyntheticOrganisation) => void;
   setLanguage: (lang: SupportedLocale) => void;
   toggleLanguage: () => void;
@@ -57,19 +64,22 @@ export interface EosContextValue {
 const EosContext = createContext<EosContextValue | undefined>(undefined);
 
 export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const getInitialWorkspace = (): WorkspaceType => {
+  const getInitialPath = (): string => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const wsParam = params.get('workspace') as WorkspaceType;
-      if (['leadership', 'personal', 'project', 'field', 'client', 'admin', 'supplier'].includes(wsParam)) {
-        return wsParam;
+      if (window.location.pathname && window.location.pathname !== '/') {
+        return window.location.pathname;
       }
-      const hash = window.location.hash.replace('#', '') as WorkspaceType;
-      if (['leadership', 'personal', 'project', 'field', 'client', 'admin', 'supplier'].includes(hash)) {
-        return hash;
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        if (hash === 'personal') return '/my-work';
+        if (hash === 'project') return '/projects';
+        if (hash === 'admin') return '/admin/users';
+        if (hash === 'leadership') return '/';
+        return `/${hash}`;
       }
+      return '/';
     }
-    return 'leadership';
+    return '/';
   };
 
   const getInitialLanguage = (): SupportedLocale => {
@@ -81,11 +91,23 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return 'en';
   };
 
-  const [currentUser, setCurrentUser] = useState<SyntheticUser & { role?: string }>(CANONICAL_E3_USERS[3]);
-  const [currentOrg, setCurrentOrg] = useState<SyntheticOrganisation>(SYNTHETIC_ORGANISATIONS.e3Internal);
+  const [currentPath, setCurrentPathState] = useState<string>(getInitialPath);
+  const [currentUser, setCurrentUserState] = useState<SyntheticUser & { role?: string; isSuperAdmin?: boolean }>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('eos_user_email');
+      if (saved) {
+        const found = CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === saved.toLowerCase());
+        if (found) return found as any;
+      }
+    }
+    return CANONICAL_E3_USERS[0];
+  });
+  const [currentOrg, setCurrentOrg] = useState<SyntheticOrganisation>(() => {
+    return SYNTHETIC_ORGANISATIONS.e3Internal;
+  });
   const [currentLanguage, setLanguageState] = useState<SupportedLocale>(getInitialLanguage);
   const [isOffline, setIsOffline] = useState<boolean>(false);
-  const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceType>(getInitialWorkspace);
+  const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceType>('leadership');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('f1111111-1111-4111-8111-111111111111');
   const [pendingMutations, setPendingMutations] = useState<PendingOfflineMutation[]>([]);
 
@@ -95,13 +117,112 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
+  // Persistent API client instance
+  const [apiClient] = useState<EosApiClient>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('eos_user_email') : null;
+    const initialUser = saved
+      ? CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === saved.toLowerCase()) || CANONICAL_E3_USERS[0]
+      : CANONICAL_E3_USERS[0];
+    const savedToken = typeof window !== 'undefined' ? localStorage.getItem('eos_session_token') || undefined : undefined;
+    const client = new EosApiClient({
+      baseUrl: '/api/v1',
+      organisationId: initialUser.organisationId,
+      userId: initialUser.id,
+      userRoles: [initialUser.role],
+    });
+    if (savedToken) {
+      client.setSessionToken(savedToken);
+    }
+    return client;
+  });
+
+  const navigate = (path: string) => {
+    setCurrentPathState(path);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', path);
+    }
+    // Update selectedProjectId if navigating to a project
+    if (path.startsWith('/projects/') && path !== '/projects/new') {
+      const parts = path.split('/');
+      if (parts[2]) {
+        setSelectedProjectId(parts[2]);
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handlePop = () => {
+      setCurrentPathState(window.location.pathname || '/');
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, []);
+
+  const login = async (email: string) => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('eos_user_email', email);
+      }
+      const res = await apiClient.authLogin(email);
+      if (res.user) {
+        const matching = CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === email.toLowerCase());
+        const userObj = matching || {
+          id: res.user.id,
+          name: res.user.name,
+          email: res.user.email,
+          role: res.activeMembership.role,
+          isSuperAdmin: res.user.isSuperAdmin,
+          organisationId: res.activeMembership.organisationId,
+        };
+        setCurrentUserState(userObj as any);
+        apiClient.setContext(res.activeMembership.organisationId, res.user.id, [res.activeMembership.role]);
+        if (typeof window !== 'undefined' && res.sessionToken) {
+          localStorage.setItem('eos_session_token', res.sessionToken);
+        }
+      }
+      return res;
+    } catch (e) {
+      // Fallback persona match if backend auth unreachable
+      const matching = CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (matching) {
+        setCurrentUserState(matching as any);
+        apiClient.setContext(matching.organisationId, matching.id, [matching.role]);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('eos_user_email', email);
+        }
+        return { success: true, user: matching };
+      }
+      throw e;
+    }
+  };
+
+  const switchPersona = async (email: string) => {
+    await login(email);
+    triggerRefresh();
+  };
+
+  const logout = async () => {
+    try {
+      await fetch('/api/v1/auth/logout', { method: 'POST' });
+    } catch {}
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('eos_user_email');
+      localStorage.removeItem('eos_session_token');
+    }
+    apiClient.setSessionToken(undefined);
+    navigate('/login');
+  };
+
   const triggerRefresh = () => setRefreshTrigger((prev) => prev + 1);
 
   const setActiveWorkspace = (ws: WorkspaceType) => {
     setActiveWorkspaceState(ws);
-    if (typeof window !== 'undefined') {
-      window.location.hash = ws;
-    }
+    if (ws === 'leadership') navigate('/');
+    else if (ws === 'personal') navigate('/my-work');
+    else if (ws === 'project') navigate('/projects');
+    else if (ws === 'admin') navigate('/admin/users');
+    else navigate(`/${ws}`);
   };
 
   const direction: 'ltr' | 'rtl' = currentLanguage === 'ar' ? 'rtl' : 'ltr';
@@ -145,6 +266,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         direction,
         isOffline,
         activeWorkspace,
+        currentPath,
         selectedProjectId,
         projects,
         pendingMutations,
@@ -153,12 +275,17 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isApprovalModalOpen,
         isAuditDrawerOpen,
         refreshTrigger,
+        apiClient,
         triggerRefresh,
+        navigate,
+        login,
+        logout,
+        switchPersona,
         setIsNewProjectModalOpen,
         setIsTaskModalOpen,
         setIsApprovalModalOpen,
         setIsAuditDrawerOpen,
-        setCurrentUser,
+        setCurrentUser: setCurrentUserState,
         setCurrentOrg,
         setLanguage,
         toggleLanguage,

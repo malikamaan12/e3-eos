@@ -21,7 +21,10 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     currentLanguage,
     direction,
     isOffline,
-    activeWorkspace,
+    currentPath,
+    navigate,
+    switchPersona,
+    logout,
     pendingMutations,
     selectedProjectId,
     isNewProjectModalOpen,
@@ -45,21 +48,21 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
 
   const organisations = Object.values(SYNTHETIC_ORGANISATIONS) as SyntheticOrganisation[];
 
-  const mainNavItems: Array<{ id: WorkspaceType; labelEn: string; labelAr: string; icon: string }> = [
-    { id: 'leadership', labelEn: 'Home Dashboard', labelAr: 'الرئيسية', icon: '🏠' },
-    { id: 'personal', labelEn: 'My Work', labelAr: 'مهامي الشخصية', icon: '📋' },
-    { id: 'project', labelEn: 'Projects & Cockpit', labelAr: 'المشاريع والمقصورة', icon: '🎪' },
-    { id: 'personal', labelEn: 'Governance Approvals', labelAr: 'الموافقات والحوكمة', icon: '✍️' },
-    { id: 'leadership', labelEn: 'Master Calendar', labelAr: 'التقويم العام', icon: '📅' },
-    { id: 'leadership', labelEn: 'Portfolio Financials', labelAr: 'المحفظة المالية', icon: '📊' },
-    { id: 'admin', labelEn: 'Reports & Audits', labelAr: 'التقارير وسجلات التدقيق', icon: '📈' },
-    { id: 'admin', labelEn: 'Administration & RBAC', labelAr: 'الإدارة والصلاحيات', icon: '⚙️' },
+  const mainNavItems = [
+    { path: '/', labelEn: 'Home Dashboard', labelAr: 'الرئيسية', icon: '🏠', id: 'nav-home' },
+    { path: '/my-work', labelEn: 'My Work', labelAr: 'مهامي الشخصية', icon: '📋', id: 'nav-my-work' },
+    { path: '/projects', labelEn: 'Projects Directory', labelAr: 'دليل المشاريع', icon: '🎪', id: 'nav-projects' },
+    { path: '/approvals', labelEn: 'Governance Approvals', labelAr: 'الموافقات والحوكمة', icon: '✍️', id: 'nav-approvals' },
+    { path: '/calendar', labelEn: 'Master Calendar', labelAr: 'التقويم العام', icon: '📅', id: 'nav-calendar' },
+    { path: '/portfolio', labelEn: 'Portfolio Financials', labelAr: 'المحفظة المالية', icon: '📊', id: 'nav-portfolio' },
+    { path: '/reports', labelEn: 'Reports & Audits', labelAr: 'التقارير وسجلات التدقيق', icon: '📈', id: 'nav-reports' },
+    { path: '/admin/users', labelEn: 'Administration & RBAC', labelAr: 'الإدارة والصلاحيات', icon: '⚙️', id: 'nav-admin' },
   ];
 
-  const portalItems: Array<{ id: WorkspaceType; labelEn: string; labelAr: string; icon: string }> = [
-    { id: 'field', labelEn: 'Field Ops Mobile PWA', labelAr: 'عمليات الموقع الميدانية', icon: '📱' },
-    { id: 'client', labelEn: 'Client Collaboration Portal', labelAr: 'بوابة تعاون العميل', icon: '🤝' },
-    { id: 'supplier', labelEn: 'Supplier Portal (RFQ)', labelAr: 'بوابة الموردين والشركاء', icon: '🏢' },
+  const portalItems = [
+    { path: '/field', labelEn: 'Field Ops Mobile PWA', labelAr: 'عمليات الموقع الميدانية', icon: '📱', id: 'nav-field' },
+    { path: '/client', labelEn: 'Client Collaboration Portal', labelAr: 'بوابة تعاون العميل', icon: '🤝', id: 'nav-client' },
+    { path: '/supplier', labelEn: 'Supplier Portal (RFQ)', labelAr: 'بوابة الموردين والشركاء', icon: '🏢', id: 'nav-supplier' },
   ];
 
   return (
@@ -175,7 +178,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                   id="menu-item-new-project"
                   onClick={() => {
                     setCreateMenuOpen(false);
-                    setIsNewProjectModalOpen(true);
+                    navigate('/projects/new');
                   }}
                   style={{
                     padding: '10px 14px',
@@ -245,38 +248,12 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             )}
           </div>
 
-          {/* Organisation Switcher */}
-          <select
-            value={currentOrg.id}
-            onChange={(e) => {
-              const found = organisations.find((o) => o.id === e.target.value);
-              if (found) setCurrentOrg(found);
-            }}
-            style={{
-              backgroundColor: '#1e293b',
-              color: '#f8fafc',
-              border: '1px solid #334155',
-              borderRadius: '6px',
-              padding: '4px 8px',
-              fontSize: '12px',
-              fontWeight: 500,
-              cursor: 'pointer',
-            }}
-          >
-            {organisations.map((org) => (
-              <option key={org.id} value={org.id}>
-                🏢 {org.name}
-              </option>
-            ))}
-          </select>
-
-          {/* User Switcher (13 Canonical E3 Roles) */}
+          {/* User Persona Switcher (Connected to Authentication Session) */}
           <select
             id="user-persona-select"
-            value={currentUser.id}
+            value={currentUser.email}
             onChange={(e) => {
-              const found = CANONICAL_E3_USERS.find((u) => u.id === e.target.value);
-              if (found) setCurrentUser(found);
+              switchPersona(e.target.value);
             }}
             style={{
               backgroundColor: '#1e293b',
@@ -290,7 +267,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             }}
           >
             {CANONICAL_E3_USERS.map((user) => (
-              <option key={user.id} value={user.id}>
+              <option key={user.email} value={user.email}>
                 👤 {user.name} ({user.role})
               </option>
             ))}
@@ -356,6 +333,44 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             <span>API Docs</span>
           </a>
 
+          {/* User Account / Profile */}
+          <button
+            id="btn-account-profile"
+            onClick={() => navigate('/account')}
+            style={{
+              backgroundColor: '#1e293b',
+              color: '#f8fafc',
+              border: '1px solid #334155',
+              borderRadius: '6px',
+              padding: '4px 10px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>👤</span>
+            <span>Profile</span>
+          </button>
+
+          {/* Logout */}
+          <button
+            id="btn-logout"
+            onClick={logout}
+            style={{
+              backgroundColor: '#1e293b',
+              color: '#f87171',
+              border: '1px solid #7f1d1d',
+              borderRadius: '6px',
+              padding: '4px 8px',
+              fontSize: '12px',
+              cursor: 'pointer',
+            }}
+          >
+            Sign Out
+          </button>
+
           {/* Language / RTL Toggle */}
           <button
             id="btn-toggle-language"
@@ -404,12 +419,15 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             {currentLanguage === 'ar' ? 'التنقل الرئيسي' : 'Main Navigation'}
           </div>
 
-          {mainNavItems.map((item, idx) => {
-            const isActive = item.id === activeWorkspace;
+          {mainNavItems.map((item) => {
+            const isActive = item.path === '/'
+              ? currentPath === '/'
+              : currentPath.startsWith(item.path);
             return (
               <button
-                key={idx}
-                onClick={() => setActiveWorkspace(item.id)}
+                key={item.id}
+                id={item.id}
+                onClick={() => navigate(item.path)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -458,12 +476,13 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             {currentLanguage === 'ar' ? 'البوابات المتخصصة' : 'Portals & Field'}
           </div>
 
-          {portalItems.map((item, idx) => {
-            const isActive = item.id === activeWorkspace;
+          {portalItems.map((item) => {
+            const isActive = currentPath === item.path;
             return (
               <button
-                key={idx}
-                onClick={() => setActiveWorkspace(item.id)}
+                key={item.id}
+                id={item.id}
+                onClick={() => navigate(item.path)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

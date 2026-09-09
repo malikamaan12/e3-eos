@@ -295,14 +295,20 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
     it('should render the full App tree with EosProvider and LayoutShell in both LTR and RTL', async () => {
       const { renderToStaticMarkup } = await import('react-dom/server');
       const { App } = await import('./App.js');
+      const { LeadershipView } = await import('./views/LeadershipView.js');
+      const { EosProvider } = await import('./context/EosContext.js');
       const React = await import('react');
 
       const appHtml = renderToStaticMarkup(React.createElement(App));
       expect(appHtml).toContain('E3');
       expect(appHtml).toContain('EOS');
-      expect(appHtml).toContain('Executive Leadership Portfolio');
-      expect(appHtml).toContain('90,000.00 QAR'); // Normative EAC showcase
       expect(appHtml).toContain('dir="ltr"');
+
+      const portfolioHtml = renderToStaticMarkup(
+        React.createElement(EosProvider, null, React.createElement(LeadershipView))
+      );
+      expect(portfolioHtml).toContain('Executive Leadership Portfolio');
+      expect(portfolioHtml).toContain('90,000.00 QAR');
     });
 
     it('should render the 13-stage graph visualizer with all stages', async () => {

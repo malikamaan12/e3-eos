@@ -150,13 +150,62 @@ export class ProjectsController {
   }
 
   @Get()
-  listProjects(@Req() req: Request) {
+  async listProjects(@Req() req: Request) {
     const callerOrgId = (req as any).organisationId;
+    const callerRole = (req as any).role;
+    const callerAudience = (req as any).audience;
+
+    if (this.dbService) {
+      try {
+        const pool = this.dbService.getPool();
+        let query = `
+          SELECT p.id, p.project_code, p.title, p.description, p.maturity, p.outcome,
+                 p.origin_code, p.client_organisation_id, p.organisation_id, p.row_version,
+                 u.name as owner_name, o.name as client_name
+          FROM projects p
+          LEFT JOIN users u ON u.id = p.owner_id
+          LEFT JOIN organisations o ON o.id = p.client_organisation_id
+        `;
+        const params: any[] = [];
+
+        if (callerAudience === 'client' || callerRole === 'client_user') {
+          query += ` WHERE p.client_organisation_id = $1`;
+          params.push(callerOrgId);
+        } else if (callerOrgId) {
+          query += ` WHERE p.organisation_id = $1`;
+          params.push(callerOrgId);
+        }
+        query += ` ORDER BY p.created_at DESC;`;
+
+        const res = await pool.query(query, params);
+        if (res.rows.length > 0 || callerAudience === 'client' || callerRole === 'client_user') {
+          return {
+            data: res.rows.map((r: any) => ({
+              id: r.id,
+              projectCode: r.project_code,
+              title: r.title,
+              description: r.description,
+              maturity: r.maturity,
+              outcome: r.outcome,
+              originCode: r.origin_code,
+              clientOrganisationId: r.client_organisation_id,
+              clientName: r.client_name,
+              organisationId: r.organisation_id,
+              ownerName: r.owner_name,
+              rowVersion: r.row_version || 1,
+            })),
+            meta: { total: res.rows.length },
+          };
+        }
+      } catch (e: any) {
+        console.warn('[ProjectsController] DB listProjects fallback to repo:', e.message);
+      }
+    }
 
     const all = Array.from(projectRepository.values());
-    const visible = callerOrgId
-      ? all.filter((p) => p.organisationId === callerOrgId)
-      : all;
+    const visible = (callerAudience === 'client' || callerRole === 'client_user')
+      ? all.filter((p) => p.clientOrganisationId === callerOrgId)
+      : (callerOrgId ? all.filter((p) => p.organisationId === callerOrgId) : all);
 
     return {
       data: visible.map((p) => ({
@@ -176,13 +225,13 @@ export class ProjectsController {
 
   @Post()
   @UseGuards(IdempotencyGuard)
-  createProject(@Body() body: unknown, @Req() req: Request): CommandResult {
+  async createProject(@Body() body: unknown, @Req() req: Request): Promise<CommandResult> {
     const b = body as any;
     // 9-Step Onboarding Wizard format
     if (b?.projectIdentity) {
       const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
       const projectId = b.id || `f${Date.now().toString(16).padEnd(31, '0')}`;
-      const projectCode = b.projectIdentity.code || `PRJ-${Date.now().toString().slice(-4)}`;
+      let projectCode = b.projectIdentity.code || `PRJ-${Date.now().toString().slice(-4)}`;
       const title = b.projectIdentity.title || 'Untitled Project';
       const description = b.projectIdentity.description || '';
       const originCode = b.originRoute || 'DIRECT_AWARD';
@@ -214,17 +263,26 @@ export class ProjectsController {
       projectRepository.set(projectId, newProject);
 
       if (this.dbService) {
-        const pool = this.dbService.getPool();
-        pool.query(`
-          INSERT INTO projects (
-            id, organisation_id, project_code, title, description, origin_code, owner_id,
-            client_organisation_id, maturity, outcome, created_by, updated_by, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'onboarding', 'undetermined', $7, $7, NOW(), NOW())
-          ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title;
-        `, [projectId, orgId, projectCode, title, description, originCode, ownerId, clientOrgId])
-        .then(() => {
+        try {
+          const pool = this.dbService.getPool();
+          const existing = await pool.query(
+            'SELECT id FROM projects WHERE organisation_id = $1 AND project_code = $2 LIMIT 1;',
+            [orgId, projectCode]
+          );
+          if (existing.rows.length > 0) {
+            projectCode = `${projectCode}-${Date.now().toString().slice(-4)}`;
+            newProject.projectCode = projectCode;
+          }
+          await pool.query(`
+            INSERT INTO projects (
+              id, organisation_id, project_code, title, description, origin_code, owner_id,
+              client_organisation_id, maturity, outcome, created_by, updated_by, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'onboarding', 'undetermined', $7, $7, NOW(), NOW())
+            ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, updated_at = NOW();
+          `, [projectId, orgId, projectCode, title, description, originCode, ownerId, clientOrgId]);
+
           for (const stage of STANDARD_THIRTEEN_STAGE_TEMPLATE.stages) {
-            pool.query(`
+            await pool.query(`
               INSERT INTO project_stage_instances (
                 id, project_id, organisation_id, stage_number, stage_name, status, progress_percent, created_at, updated_at
               ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())
@@ -238,8 +296,9 @@ export class ProjectsController {
               stage.defaultOrder === 1 ? 15 : 0,
             ]).catch(() => {});
           }
-        })
-        .catch((e: any) => console.warn('[ProjectsController] DB insert notice:', e.message));
+        } catch (e: any) {
+          console.warn('[ProjectsController] DB insert notice:', e.message);
+        }
       }
 
       return {
@@ -373,7 +432,7 @@ export class ProjectsController {
           SELECT t.id, t.title, t.state, t.is_completed, t.created_at, u.name as assignee_name
           FROM task_instances t
           LEFT JOIN users u ON u.id = t.assignee_id
-          WHERE t.project_id = $1 OR t.project_id = 'f1111111-1111-4111-8111-111111111111'
+          WHERE t.project_id = $1
           ORDER BY t.created_at DESC;
         `, [id]);
         taskList = tRes.rows.map(r => ({
@@ -387,7 +446,7 @@ export class ProjectsController {
       } catch (e) {}
     }
 
-    if (taskList.length === 0) {
+    if (taskList.length === 0 && id === 'f1111111-1111-4111-8111-111111111111') {
       taskList = [
         {
           id: 'task-rigging-01',

@@ -23,7 +23,7 @@ export class HealthController {
       status: 'healthy',
       version: '1.0.0',
       service: 'e3-eos-api',
-      environment: process.env.NODE_ENV || 'development',
+      environment: process.env.ENVIRONMENT || 'staging',
       uptimeSeconds,
       timestamp: new Date().toISOString(),
       governance: {

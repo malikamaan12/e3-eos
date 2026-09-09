@@ -566,6 +566,38 @@ export class EosApiClient {
     const json = await res.json();
     return json.data || [];
   }
+
+  /**
+   * Invites a new user.
+   */
+  async inviteUser(data: { name: string; email: string; role?: string; organisationId?: string; department?: string }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/admin/users`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Invite user failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  /**
+   * Assigns project access to a user.
+   */
+  async assignProjectAccess(data: { projectId: string; userId: string; role?: string }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/admin/project-access`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Assign project access failed (${res.status})`);
+    }
+    return await res.json();
+  }
 }
 
 

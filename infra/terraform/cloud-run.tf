@@ -42,6 +42,10 @@ resource "google_cloud_run_v2_service" "api_service" {
         value = "production"
       }
       env {
+        name  = "ENVIRONMENT"
+        value = var.environment
+      }
+      env {
         name  = "REGION"
         value = var.region
       }

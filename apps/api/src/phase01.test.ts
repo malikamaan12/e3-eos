@@ -12,7 +12,7 @@ describe('AT-014: Progressive Completeness & Unknowns Preservation', () => {
     projectRepository.clear();
   });
 
-  it('saves an internal idea without client, venue, or budget, preserving unknowns without fake defaults', () => {
+  it('saves an internal idea without client, venue, or budget, preserving unknowns without fake defaults', async () => {
     const mockReq = {
       headers: { 'idempotency-key': 'idem-idea-01' },
       organisationId: '11111111-1111-4111-8111-111111111111',
@@ -26,7 +26,7 @@ describe('AT-014: Progressive Completeness & Unknowns Preservation', () => {
       // client, budget, and dates are completely absent/unknown
     };
 
-    const res = projectsController.createProject(payload, mockReq);
+    const res = await projectsController.createProject(payload, mockReq);
     expect(res.data.status).toBe('draft_created');
     expect(res.data.payload.maturity).toBe('idea');
     expect(res.data.payload.outcome).toBe('undetermined');

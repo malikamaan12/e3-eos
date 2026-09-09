@@ -407,3 +407,215 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     </div>
   );
 };
+
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  error?: string;
+  hint?: string;
+}
+
+export const Input: React.FC<InputProps> = ({ label, error, hint, style, id, ...props }) => {
+  const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+      {label && (
+        <label htmlFor={inputId} style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+          {label}
+        </label>
+      )}
+      <input
+        id={inputId}
+        style={{
+          padding: '8px 12px',
+          fontSize: '13px',
+          borderRadius: '6px',
+          border: error ? '1px solid #ef4444' : '1px solid #cbd5e1',
+          outline: 'none',
+          backgroundColor: '#ffffff',
+          color: '#0f172a',
+          fontFamily: 'inherit',
+          transition: 'border-color 0.15s ease',
+          ...style,
+        }}
+        {...props}
+      />
+      {hint && !error && <span style={{ fontSize: '11px', color: '#64748b' }}>{hint}</span>}
+      {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 500 }}>{error}</span>}
+    </div>
+  );
+};
+
+export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
+  error?: string;
+  hint?: string;
+  options?: Array<{ value: string; label: string }>;
+}
+
+export const Select: React.FC<SelectProps> = ({ label, error, hint, options, children, style, id, ...props }) => {
+  const selectId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+      {label && (
+        <label htmlFor={selectId} style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+          {label}
+        </label>
+      )}
+      <select
+        id={selectId}
+        style={{
+          padding: '8px 12px',
+          fontSize: '13px',
+          borderRadius: '6px',
+          border: error ? '1px solid #ef4444' : '1px solid #cbd5e1',
+          outline: 'none',
+          backgroundColor: '#ffffff',
+          color: '#0f172a',
+          fontFamily: 'inherit',
+          cursor: 'pointer',
+          ...style,
+        }}
+        {...props}
+      >
+        {options ? options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        )) : children}
+      </select>
+      {hint && !error && <span style={{ fontSize: '11px', color: '#64748b' }}>{hint}</span>}
+      {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 500 }}>{error}</span>}
+    </div>
+  );
+};
+
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  error?: string;
+  hint?: string;
+}
+
+export const Textarea: React.FC<TextareaProps> = ({ label, error, hint, style, id, ...props }) => {
+  const textareaId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+      {label && (
+        <label htmlFor={textareaId} style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+          {label}
+        </label>
+      )}
+      <textarea
+        id={textareaId}
+        style={{
+          padding: '8px 12px',
+          fontSize: '13px',
+          borderRadius: '6px',
+          border: error ? '1px solid #ef4444' : '1px solid #cbd5e1',
+          outline: 'none',
+          backgroundColor: '#ffffff',
+          color: '#0f172a',
+          fontFamily: 'inherit',
+          resize: 'vertical',
+          minHeight: '80px',
+          ...style,
+        }}
+        {...props}
+      />
+      {hint && !error && <span style={{ fontSize: '11px', color: '#64748b' }}>{hint}</span>}
+      {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 500 }}>{error}</span>}
+    </div>
+  );
+};
+
+export interface CardProps {
+  title?: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+  noPadding?: boolean;
+}
+
+export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, style, noPadding = false }) => {
+  return (
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '8px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        overflow: 'hidden',
+        marginBottom: '16px',
+        ...style,
+      }}
+    >
+      {(title || action) && (
+        <div
+          style={{
+            padding: '12px 18px',
+            borderBottom: '1px solid #f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            {title && <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>{title}</h4>}
+            {subtitle && <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>{subtitle}</p>}
+          </div>
+          {action && <div>{action}</div>}
+        </div>
+      )}
+      <div style={{ padding: noPadding ? 0 : '16px 18px' }}>{children}</div>
+    </div>
+  );
+};
+
+export interface EmptyStateProps {
+  icon?: string;
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}
+
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon = '📂', title, description, action }) => {
+  return (
+    <div
+      style={{
+        padding: '40px 20px',
+        textAlign: 'center',
+        backgroundColor: '#ffffff',
+        borderRadius: '8px',
+        border: '1px dashed #cbd5e1',
+        margin: '16px 0',
+      }}
+    >
+      <div style={{ fontSize: '36px', marginBottom: '12px' }}>{icon}</div>
+      <h4 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>{title}</h4>
+      <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#64748b', maxWidth: '400px', marginInline: 'auto' }}>
+        {description}
+      </p>
+      {action && <div>{action}</div>}
+    </div>
+  );
+};
+
+export const Skeleton: React.FC<{ width?: string | number; height?: string | number; style?: React.CSSProperties }> = ({
+  width = '100%',
+  height = '16px',
+  style,
+}) => {
+  return (
+    <div
+      style={{
+        width,
+        height,
+        backgroundColor: '#e2e8f0',
+        borderRadius: '4px',
+        animation: 'pulse 1.5s ease-in-out infinite',
+        ...style,
+      }}
+    />
+  );
+};
+

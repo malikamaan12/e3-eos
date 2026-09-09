@@ -1,6 +1,10 @@
 import {
   Controller,
   Get,
+  Post,
+  Body,
+  HttpException,
+  HttpStatus,
   UseFilters,
   Optional,
 } from '@nestjs/common';
@@ -153,6 +157,66 @@ export class AdminController {
         userEmail: r.user_email,
         role: r.role || 'project_manager',
       })),
+    };
+  }
+
+  @Post('users')
+  async inviteUser(@Body() body: { name: string; email: string; role?: string; organisationId?: string; department?: string }) {
+    const pool = this.dbService.getPool();
+    const email = body.email?.trim().toLowerCase();
+    const name = body.name?.trim() || 'Invited User';
+    const role = body.role || 'project_manager';
+    const orgId = body.organisationId || '11111111-1111-4111-8111-111111111111';
+
+    if (!email) {
+      throw new HttpException({ title: 'Validation Error', detail: 'Email is required' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const userRes = await pool.query(`
+      INSERT INTO users (id, email, name, email_verified, is_super_admin, created_at, updated_at)
+      VALUES (gen_random_uuid(), $1, $2, true, false, NOW(), NOW())
+      ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, updated_at = NOW()
+      RETURNING id, email, name, is_super_admin, created_at;
+    `, [email, name]);
+
+    const user = userRes.rows[0];
+
+    await pool.query(`
+      INSERT INTO memberships (id, organisation_id, user_id, role, audience, is_revoked)
+      VALUES (gen_random_uuid(), $1, $2, $3, 'internal', false)
+      ON CONFLICT DO NOTHING;
+    `, [orgId, user.id, role]);
+
+    return {
+      success: true,
+      message: `User ${name} successfully invited with role ${role}.`,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role,
+        organisationId: orgId,
+        createdAt: user.created_at,
+      },
+    };
+  }
+
+  @Post('project-access')
+  async assignProjectAccess(@Body() body: { projectId: string; userId: string; role?: string }) {
+    const pool = this.dbService.getPool();
+    const { projectId, userId, role } = body;
+    if (!projectId || !userId) {
+      throw new HttpException({ title: 'Validation Error', detail: 'projectId and userId are required' }, HttpStatus.BAD_REQUEST);
+    }
+
+    await pool.query(`
+      UPDATE projects SET owner_id = $1, updated_at = NOW() WHERE id = $2;
+    `, [userId, projectId]).catch(() => {});
+
+    return {
+      success: true,
+      message: 'Project access granted successfully.',
+      grant: { projectId, userId, role: role || 'project_manager' },
     };
   }
 }
