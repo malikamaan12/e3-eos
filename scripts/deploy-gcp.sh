@@ -47,7 +47,8 @@ gcloud services enable \
     secretmanager.googleapis.com \
     artifactregistry.googleapis.com \
     vpcaccess.googleapis.com \
-    compute.googleapis.com
+    compute.googleapis.com \
+    servicenetworking.googleapis.com
 
 # Step 4: Artifact Registry Setup & Container Builds
 echo "[4/6] Ensuring Artifact Registry in ${REGION}..."
