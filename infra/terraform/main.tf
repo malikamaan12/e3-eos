@@ -25,7 +25,13 @@ variable "project_id" {
 
 variable "region" {
   type        = string
-  description = "Target primary region (me-central2 Doha, Qatar per Master Handover)"
+  description = "Target primary region (me-central1 Doha, Qatar)"
+  default     = "me-central1"
+}
+
+variable "dr_region" {
+  type        = string
+  description = "Secondary disaster recovery region (me-central2 Dammam, Saudi Arabia)"
   default     = "me-central2"
 }
 

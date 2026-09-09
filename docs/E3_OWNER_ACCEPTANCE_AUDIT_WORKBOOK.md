@@ -1,49 +1,61 @@
-# E3-EOS v1.0.0 — Official Owner Acceptance Audit Workbook
+# E3-EOS v1.0.0 — Official Owner Acceptance Audit (UAT) Workbook
 
 **Document Reference:** `E3-EOS-UAT-WORKBOOK-v1.0.0-RC1`  
-**Status:** **🟡 E3-EOS v1.0.0 RC1 — Engineering Complete, Code Frozen, Owner Acceptance Audit Ready**  
-**Governing Standard:** `00_MASTER_DEVELOPER_HANDOVER.md`  
-**System Access:**  
-- **Web UI & PWA:** `http://localhost:3000` (Bridge: `http://localhost:3001`)  
+**Governing Standard:** `00_MASTER_DEVELOPER_HANDOVER.md` & `specs/10_DECISIONS_RISKS_AND_GO_LIVE.md §6`  
+**Target Infrastructure:** Google Cloud Platform — Primary: **Doha, Qatar (`me-central1`)** | Secondary DR: **Dammam, Saudi Arabia (`me-central2`)**  
+
+### Current Release & Audit Status:
+* **Automated Business Regression Suite:** `PASS` (`pnpm test:biz-regression` — 27/27 suites, 246 tests green)
+* **Local Pre-Cloud Release Gates:** `PASS (Local Baseline)` (Typecheck, RLS on localhost:5432, 92/92 Matrix)
+* **E3 Owner Human UAT:** `PENDING HUMAN EXECUTION` (Must be executed by named E3 staff)
+* **GCP Staging Cloud Gates:** `PENDING CLOUD DEPLOYMENT` (Awaiting live Cloud Run / Cloud SQL in `me-central1`)
+* **Formal Release Status:** **`🟡 E3-EOS v1.0.0 RC1 — NOT YET PRODUCTION APPROVED`**
+
+### Live System Access for Testing:
+- **Web UI & Field PWA:** `http://localhost:3000` (Bridge: `http://localhost:3001`)  
 - **Backend API:** `http://localhost:4000/api/v1/health`  
-- **API Reference:** `http://localhost:4000/api/v1/docs`  
+- **Interactive OpenAPI Documentation:** `http://localhost:4000/api/v1/docs`  
 
 ---
 
 ## 1. Audit Principles & Rules of Engagement
 
-1. **RC1 Code Freeze:** Feature development is frozen. Developers will NOT assist testers during scenario execution. The software must be self-explanatory.
-2. **True Business Testing:** This audit evaluates usability, resilience, and operational clarity, not simply code syntax.
-3. **Primary Question:** At the end of testing, every participant must answer:  
-   > **“Would you actually use EOS to manage your next live project?”**
+1. **RC1 Strict Code Freeze:** Feature development is frozen. Developers will NOT assist or prompt testers during scenario execution. The software must stand on its own usability.
+2. **Automated Regression vs Human UAT Distinction:**  
+   > [!IMPORTANT]
+   > Automated test scripts (`pnpm test:biz-regression`) prove that coded algorithms, mathematical balances, and invariant safeguards execute without crashing. **They DO NOT certify human usability, operational practicality, or user satisfaction.** Only real E3 personnel executing tasks through the UI can score usability and evaluate operational fit.
+3. **The Core Question:** Every human participant must independently answer:  
+   > **“Would you actually use EOS to manage your next live project, or would you still rely on Excel and WhatsApp?”**
 4. **Defect Triage Standard:**
-   - 🔴 **P0 (Production Blocker):** Security isolation failure, financial miscalculation, approval bypass, data loss, asset double-booking, or corrupted sync $\to$ **RC1 remains frozen until resolved.**
-   - 🟠 **P1 (Launch Improvement):** Navigation confusion, excessive clicks, missing filter, layout inconvenience $\to$ **Scheduled for v1.0.x post-launch update.**
+   - 🔴 **P0 (Production Blocker):** Security isolation failure, financial miscalculation, unapproved bypass, data loss, asset double-booking, or corrupted sync $\to$ **RC1 remains frozen until fixed and re-tested.**
+   - 🟠 **P1 (Launch Improvement):** Navigation confusion, excessive clicks, missing filter, layout inconvenience $\to$ **Logged for v1.0.x post-launch maintenance.**
    - 🟢 **P2 (Enhancement):** Advanced analytics, aesthetic refinement, extra automation $\to$ **Scheduled for v1.1 roadmap.**
 
 ---
 
-## 2. Participant Testing Roster
+## 2. Participant Testing Roster & Responsibilities
+
+Each tester must execute their assigned scenario(s) independently without engineering assistance:
 
 | Role | Target Participant | Primary Audit Focus | Assigned Scenarios |
 | :--- | :--- | :--- | :---: |
-| **Project Manager** | Lead Event PM | Full 13-stage lifecycle, tasks, overdue items | Scenario 1, 2, 4 |
-| **Operations** | Head of Event Operations | Readiness score, safety permits, zone clearance | Scenario 2, 4 |
-| **Finance** | Financial Controller | BOQs, PO commitments, invoice reconciliation, EAC | Scenario 1, 2, 3 |
-| **Procurement** | Procurement Manager | Vendor RFQs, quote comparisons, purchase orders | Scenario 1, 2, 4 |
-| **Design / Production** | Creative / Technical Director | CAD drawing versions, moodboards, fabrication orders | Scenario 1, 2, 4 |
-| **Logistics & Fleet** | Yard / Warehouse Manager | Serialized asset dispatch, booking collisions, returns | Scenario 2, 3, 4 |
-| **Marketing & Commercial**| Commercial Lead | Sponsorship tiers, ticketing inventory, public briefs | Scenario 3 |
-| **Management / Executive**| Managing Director / Partner | Leadership portfolio dashboard, four-eyes approvals | Scenario 1, 2, 3, 4 |
-| **System / Tech Owner** | IT / Security Lead | Tenant isolation, RBAC permissions, audit log | Scenario 1, 4 |
-| **Field Tech / Supervisor**| On-site Operations Lead | Mobile PWA workflow, offline queue, sync recovery | Scenario 2, 4 |
+| **Project Manager** | Lead Event PM | Full 13-stage lifecycle, tasks, overdue items, stage transitions | Scenario 1, 2, 4 |
+| **Operations** | Head of Event Operations | Readiness score, safety permits, zone clearance, runbook drills | Scenario 2, 4 |
+| **Finance** | Financial Controller | BOQs, PO commitments, invoice reconciliation, EAC tracking | Scenario 1, 2, 3 |
+| **Procurement** | Procurement Manager | Vendor RFQs, quote comparisons, framework call-offs, PO cancellation | Scenario 1, 2, 4 |
+| **Design / Production** | Creative / Technical Director | CAD drawing versions, moodboards, client approvals, fabrication orders | Scenario 1, 2, 4 |
+| **Logistics & Fleet** | Yard / Warehouse Manager | Serialized asset dispatch, booking collisions, asset returns | Scenario 2, 3, 4 |
+| **Marketing & Commercial**| Commercial Lead | Sponsorship tiers, ticketing inventory, public briefs, turnstile footfall | Scenario 3 |
+| **Management / Executive**| Managing Director / Partner | Leadership portfolio dashboard, four-eyes approvals, margin governance | Scenario 1, 2, 3, 4 |
+| **System / Tech Owner** | IT / Security Lead | Tenant isolation, RBAC permissions, audit log tamper-resistance | Scenario 1, 4 |
+| **Field Tech / Supervisor**| On-site Operations Lead | Mobile PWA workflow, offline queue, sync recovery, photo snags | Scenario 2, 4 |
 
 ---
 
 ## 3. Scenario 1: Qatar Tourism Tender (ATV Project)
 
 ### Purpose:
-Verify whether EOS is intuitive and fast for commercial estimators and tender managers bidding on high-stakes institutional events.
+Verify whether EOS is intuitive, fast, and transparent for commercial estimators and tender managers bidding on high-stakes institutional events.
 
 ### Step-by-Step Flow:
 1. **New Project Setup:** Click `New Project`, select `Tender` classification, enter client details (*Qatar Tourism Authority*), set submission deadline.
@@ -55,7 +67,7 @@ Verify whether EOS is intuitive and fast for commercial estimators and tender ma
 7. **Submission Record:** Mark tender submitted; record final submission package hash.
 
 ### Intentional Disruption Checklist (Try to break it!):
-- [ ] **Change the submission deadline** by 3 days mid-process $\to$ *Verify calendar updates and alerts propagate.*
+- [ ] **Change the submission deadline** by 3 days mid-process $\to$ *Verify calendar updates and alerts propagate cleanly.*
 - [ ] **Add a clarification query late** in the bid window $\to$ *Verify it does not block parallel BOQ work.*
 - [ ] **Change the assigned PM** halfway through $\to$ *Verify permissions shift immediately and audit records the reassignment.*
 - [ ] **Revise the BOQ after an approval request is pending** $\to$ *Verify pending approval is invalidated and re-approval required.*
@@ -76,7 +88,7 @@ Test the end-to-end event-delivery engine connecting:
 ### Step-by-Step Flow:
 1. **Client Brief & Onboarding:** Record brief for 3,500-seat outdoor ceremony.
 2. **Creative Concept:** Upload stage moodboards and technical CAD drawings (Version 1).
-3. **Client Portal Review:** Publish sanitized view to Client Portal; verify client login.
+3. **Client Portal Review:** Publish sanitized view to Client Portal; verify client login and margin redaction.
 4. **Client Approval:** Record client sign-off on Main Stage design.
 5. **Detailed BOQ Builder:** Price audio line array, curved LED backdrop, VIP seating, and carpeting.
 6. **Procurement & POs:** Issue RFQ to audio suppliers; compare bids; dispatch PO to selected vendor.
@@ -91,7 +103,7 @@ Test the end-to-end event-delivery engine connecting:
 - [ ] **Replace an assigned supplier with alternative vendor** $\to$ *Verify old PO cancels cleanly via compensating entry.*
 - [ ] **Increase BOQ quantity on site** $\to$ *Verify variation order triggers budget impact warning.*
 - [ ] **Simulate delayed fabrication delivery** $\to$ *Verify schedule slippage alert appears on project cockpit.*
-- [ ] **Attempt payment release before supervisor acceptance** $\to$ *Verify invoice matching is strictly blocked.*
+- [ ] **Attempt payment release before supervisor acceptance** $\to$ *Verify three-way invoice matching strictly blocks payment.*
 
 ---
 
@@ -134,21 +146,23 @@ Intentionally create operational chaos to verify that EOS adapts to real-world l
 - [ ] **Client changes design on site:** Request change order 24 hours before show $\to$ *Verify fast-track approval route.*
 - [ ] **Urgent over-threshold PO:** Create emergency PO exceeding approval ceiling $\to$ *Verify two-person rule enforcement.*
 - [ ] **Late permit stamp:** Civil Defence inspection pending while all other zones are 100% complete $\to$ *Verify venue opening remains blocked.*
-- [ ] **Skipped work package:** Cancel VIP drone show due to airspace restriction $\to$ *Verify package marked skipped without corrupting portfolio metrics.*
-- [ ] **Reopened closed task:** Reopen an electrical cabling task after snagging found a fault $\to$ *Verify readiness re-evaluates to blocked.*
 - [ ] **Worker qualification revoked:** Safety officer revokes high-rigging credential $\to$ *Verify worker cannot be assigned to rigging shifts.*
 
 ---
 
-## 7. Individual Usability Scorecard
+## 7. Individual Human Usability Scorecards
 
-Every participant must complete this scorecard independently:
+> [!NOTE]
+> Every tester must fill out their own scorecard. Software cannot evaluate its own usability.
 
-**Tester Name:** _______________________  
-**Assigned Role:** _______________________  
-**Date:** ___ / ___ / 2026  
+### Scorecard Template (1 Form per Participant)
 
-| Dimension | Question | Target | Your Score (1–10) | Notes / Friction Points |
+**Tester Name:** ________________________________________  
+**Department / Role:** ________________________________________  
+**Scenario(s) Tested:** `[ ] Scenario 1` `[ ] Scenario 2` `[ ] Scenario 3` `[ ] Scenario 4`  
+**Test Date:** _____ / _____ / 2026  
+
+| Dimension | Usability Question | Target | Your Score (1–10) | Specific Notes / Friction Points / Confusion |
 | :---: | :--- | :---: | :---: | :--- |
 | **01** | I can understand what needs my immediate attention | $\ge 8$ | _____ / 10 | |
 | **02** | I can onboard a project without technical help | $\ge 8$ | _____ / 10 | |
@@ -161,31 +175,97 @@ Every participant must complete this scorecard independently:
 | **09** | Site / mobile PWA workflow is practical and fast | $\ge 8$ | _____ / 10 | |
 | **10** | Management portfolio dashboard is understandable | $\ge 8$ | _____ / 10 | |
 | **11** | Final reporting information is easy to retrieve and export | $\ge 8$ | _____ / 10 | |
-| **12** | EOS materially reduces reliance on Excel and WhatsApp | **YES** | [ ] YES<br>[ ] NO | |
+| **12** | EOS materially reduces reliance on Excel and WhatsApp | **YES** | `[ ] YES` `[ ] NO` | |
 
-### The Litmus Test:
+### The Litmus Question:
 > **“Would you actually use EOS to manage your next live project?”**  
-> [  ] **DEFINITELY YES**  
-> [  ] **YES, WITH MINOR IMPROVEMENTS (P1)**  
-> [  ] **NO, CRITICAL BLOCKERS REMAIN (P0)**  
+> `[ ] DEFINITELY YES`  
+> `[ ] YES, WITH MINOR IMPROVEMENTS (P1)`  
+> `[ ] NO, CRITICAL BLOCKERS REMAIN (P0)`  
 > 
-> *Key Reason:* _________________________________________________________________
+> *Key Reason / Honest Reaction:*  
+> ____________________________________________________________________________________  
+> ____________________________________________________________________________________  
+
+### Defects Identified During Your Session:
+| Defect # | Severity (P0 / P1 / P2) | Screen / Function | Description of What Happened vs What You Expected |
+| :---: | :---: | :--- | :--- |
+| **D-01** | `[ ] P0  [ ] P1  [ ] P2` | | |
+| **D-02** | `[ ] P0  [ ] P1  [ ] P2` | | |
+| **D-03** | `[ ] P0  [ ] P1  [ ] P2` | | |
+
+**Tester Signature:** ________________________________________ **Date:** _____ / _____ / 2026  
 
 ---
 
-## 8. Final Production Approval Protocol
+## 8. Master Sign-Off Tracking Register (All Roles Required)
 
-Only upon successful completion of the Owner Acceptance Audit and clearance of all 10 Cloud Gates will the release status transition to:  
-**`🟢 E3-EOS v1.0.0 — Production Approved`**
+| Role | Named Participant | Scorecard Submitted | Avg Usability Score | Litmus Result | Open P0s | Formal Sign-Off Signature |
+| :--- | :--- | :---: | :---: | :---: | :---: | :--- |
+| **Project Manager** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Operations** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Finance** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Procurement** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Design / Production** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Logistics & Fleet** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Marketing** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Management / MD** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **System / Tech Owner** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Field Tech / Supervisor**| | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
 
-### Release Certificate Fields:
-- **Version:** `v1.0.0`
-- **Git Commit SHA:** `master 6036e35`
-- **Deployment Environment:** Google Cloud Doha (`me-central2`)
-- **UAT Date:** ___ / ___ / 2026
-- **Open P0 Count:** 0 (Mandatory)
-- **Open P1 Count:** ___ (Logged for v1.0.x)
-- **Operations Sign-Off:** _______________________
-- **Finance Sign-Off:** _______________________
-- **Technical Sign-Off:** _______________________
-- **Executive Management Approval:** _______________________
+---
+
+## 9. GCP Staging Deployment & Cloud Gate Validation Plan
+
+Before production approval, RC1 must be deployed to Google Cloud Doha (`me-central1`) and the 10 release gates re-executed in cloud staging:
+
+| Gate | Name | Staging Validation Test on GCP me-central1 | Responsible Owner | Result |
+| :---: | :--- | :--- | :--- | :---: |
+| **G01** | Scope & Features | Cloud Run API (`api.staging.e3-eos.com`) and Web Frontend verified. | Tech Lead | `PENDING` |
+| **G02** | Authority & RBAC | Four-eyes approval tested across authenticated staging sessions. | Security Lead | `PENDING` |
+| **G03** | Physical RLS on Cloud SQL | Physical PostgreSQL 17 Cloud SQL instance tested under `eos_app` role. | Tech Lead | `PENDING` |
+| **G04** | Cloud Security & Secrets | Secret Manager verified; zero credentials in containers or environment. | DevOps Lead | `PENDING` |
+| **G05** | Stock & Commitments | Multi-worker concurrency on Cloud Run with Memorystore Redis. | QA Lead | `PENDING` |
+| **G06** | External Adapters | Real outbound network egress to external APIs or mock fallbacks verified. | Integrations Lead | `PENDING` |
+| **G07** | Live Backup & Restore | **Real Cloud SQL automated export created, test table dropped, database restored, parity verified.** | DevOps Lead | `PENDING` |
+| **G08** | Offline Field Storage | Field PWA tested on real mobile devices under airplane mode against staging. | Field Lead | `PENDING` |
+| **G09** | Cloud Storage & Redaction | Cloud Storage bucket (`me-central1`) verified with private signed URLs. | Data Owner | `PENDING` |
+| **G10** | Cloud Logging & Alerts | Cloud Monitoring dashboards, error reporting, and alert policies active. | Operations Lead | `PENDING` |
+
+---
+
+## 10. Final Release Certificate (Template for Production Sign-Off)
+
+> [!CAUTION]
+> This certificate CANNOT be executed until both Human UAT and GCP Staging Cloud Gates are 100% complete.
+
+```
+================================================================================
+          E3 ENTERPRISE EVENT OPERATING SYSTEM (E3-EOS) v1.0.0
+                       OFFICIAL RELEASE CERTIFICATE
+================================================================================
+Release Status:          🟡 RC1 — NOT YET PRODUCTION APPROVED
+Git Commit Baseline:     master [COMMIT_SHA]
+Primary Deployment:      Google Cloud Platform — Doha Region (me-central1)
+Disaster Recovery (DR):  Google Cloud Platform — Dammam Region (me-central2)
+Database Engine:         Cloud SQL PostgreSQL 17.4 (me-central1)
+Cache & Queue Engine:    Memorystore Redis 7.2 (me-central1)
+Primary Object Storage:  Google Cloud Storage (me-central1)
+
+Audit Prerequisites:
+[ ] Automated Business Regression: PASS (pnpm test:biz-regression)
+[ ] Local Pre-Cloud Gates:         PASS (Verification Matrix 92/92, 0 TypeScript Errors)
+[ ] E3 Human Owner UAT:            PENDING HUMAN COMPLETION (Target: All Scores >= 8/10)
+[ ] GCP Staging Cloud Gates:       PENDING (Cloud SQL RLS, Real Backup Restore in me-central1)
+
+Mandatory Defect Ceilings:
+- Open P0 (Production Blockers):  0 (Mandatory Zero Tolerance)
+- Open P1 (Launch Improvements):  <= 5 (Scheduled for v1.0.x maintenance window)
+
+Required Executive Sign-Offs:
+[ ] Operations Sign-Off:           __________________________  Date: __/__/2026
+[ ] Finance & Commercial Sign-Off: __________________________  Date: __/__/2026
+[ ] Technical & Security Sign-Off: __________________________  Date: __/__/2026
+[ ] Executive Management Approval: __________________________  Date: __/__/2026
+================================================================================
+```

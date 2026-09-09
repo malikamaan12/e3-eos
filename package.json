@@ -13,7 +13,7 @@
     "seed": "tsx packages/db/src/seed.ts",
     "verify:matrix": "tsx scripts/verify-acceptance-matrix.ts",
     "verify:preflight": "tsx scripts/verify-production-readiness.ts",
-    "test:uat": "tsx scripts/execute-uat-audit-dossier.ts",
+    "test:biz-regression": "tsx scripts/execute-business-regression.ts",
     "deploy:gcp": "pwsh -File scripts/deploy-gcp.ps1",
     "dev": "pnpm --filter @e3-eos/web dev",
     "dev:api": "pnpm --filter @e3-eos/api dev"

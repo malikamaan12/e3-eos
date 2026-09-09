@@ -2,9 +2,9 @@
 
 **Date:** September 9, 2026  
 **System:** E3 Enterprise Event Operating System (E3-EOS)  
-**Target Infrastructure:** Google Cloud Platform — Doha, Qatar (`me-central2`)  
+**Target Infrastructure:** Google Cloud Platform — Primary: Doha, Qatar (`me-central1`) | Secondary DR: Dammam, Saudi Arabia (`me-central2`)  
 **Specification:** `00_MASTER_DEVELOPER_HANDOVER.md` (Modules M01–M18, Phases P00–P07)  
-**Status:** **100% COMPLETE & PRODUCTION-READY**
+**Status:** **🟡 RC1: Automated Engineering Complete — Human UAT & GCP Staging Pending**
 
 ---
 
@@ -46,7 +46,7 @@ b:\PROJECTS\EOS\
 │   ├── test-fixtures/    # Synthetic test data sets (projects, users, BOQs, rates)
 │   └── db/               # PostgreSQL schema migrations, Drizzle ORM models, seed generator
 ├── infra/
-│   ├── terraform/        # Production GCP Doha (`me-central2`) infrastructure code
+│   ├── terraform/        # Production GCP Doha (`me-central1`) infrastructure code
 │   └── docker-compose.yml# Local backing services (PostgreSQL 17, Redis 7.2, MinIO, MailHog)
 ├── release-evidence/     # Audited release artifacts, SBOMs, traceability matrices
 └── specs/                # Complete technical specifications (01 through 11)
@@ -120,9 +120,9 @@ All visual audit evidence is permanently recorded with embedded screenshots in:
 
 ---
 
-## 6. Infrastructure & Deployment Blueprint (GCP Doha `me-central2`)
+## 6. Infrastructure & Deployment Blueprint (GCP Doha `me-central1`)
 
-The infrastructure specification is codified in `infra/terraform/` specifically targeting Google Cloud's official **Doha, Qatar region (`me-central2`)**:
+The infrastructure specification is codified in `infra/terraform/` specifically targeting Google Cloud's official **Doha, Qatar region (`me-central1`)** with secondary disaster recovery targeting Dammam, Saudi Arabia (`me-central2`):
 
 - **Compute**: Google Cloud Run v2 services for API, Web frontend, and dedicated private VPC BullMQ Worker.
 - **Database**: Cloud SQL PostgreSQL 17 Regional HA (High Availability across Doha zones) with automated backups and private IP.

@@ -1,8 +1,8 @@
 # ==============================================================================
-# E3-EOS v1.0.0 — Automated Google Cloud Doha (me-central2) Deployment Script
+# E3-EOS v1.0.0 — Automated Google Cloud Doha (me-central1) Deployment Script
 # ==============================================================================
 # Usage:
-#   .\scripts\deploy-gcp.ps1 -ProjectId "your-gcp-project-id" [-Region "me-central2"]
+#   .\scripts\deploy-gcp.ps1 -ProjectId "your-gcp-project-id" [-Region "me-central1"]
 # ==============================================================================
 
 param (
@@ -10,7 +10,7 @@ param (
     [string]$ProjectId = "e3-eos-production",
 
     [Parameter(Mandatory = $false)]
-    [string]$Region = "me-central2",
+    [string]$Region = "me-central1",
 
     [Parameter(Mandatory = $false)]
     [string]$Environment = "production"

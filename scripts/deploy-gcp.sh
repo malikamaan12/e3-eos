@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# E3-EOS v1.0.0 — Automated Google Cloud Doha (me-central2) Deployment Script
+# E3-EOS v1.0.0 — Automated Google Cloud Doha (me-central1) Deployment Script
 # ==============================================================================
 # Usage:
 #   ./scripts/deploy-gcp.sh [PROJECT_ID] [REGION] [ENVIRONMENT]
@@ -9,7 +9,7 @@
 set -euo pipefail
 
 PROJECT_ID="${1:-e3-eos-production}"
-REGION="${2:-me-central2}"
+REGION="${2:-me-central1}"
 ENVIRONMENT="${3:-production}"
 
 echo "================================================================================"

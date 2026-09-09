@@ -6,7 +6,7 @@ resource "google_sql_database_instance" "postgres_instance" {
 
   settings {
     tier              = "db-custom-4-16384" # 4 vCPU, 16 GB RAM
-    availability_type = "REGIONAL"         # High availability across zones in me-central2 (Doha, Qatar)
+    availability_type = "REGIONAL"         # High availability across zones in me-central1 (Doha, Qatar)
 
     backup_configuration {
       enabled                        = true

@@ -64,7 +64,7 @@ b:/PROJECTS/EOS/
 │   ├── lifecycle-e2e.test.ts   # 13-stage continuous lifecycle end-to-end integration test
 │   └── infrastructure.test.ts  # IaC, Dockerfile, and runbook integrity tests
 ├── infra/
-│   └── terraform/    # Google Cloud me-central2 (Doha, Qatar) Terraform topology (Cloud Run, Cloud SQL, Redis)
+│   └── terraform/    # Google Cloud me-central1 (Doha, Qatar) Terraform topology (Cloud Run, Cloud SQL, Redis)
 ├── docs/
 │   └── runbooks/     # All 12 operational runbooks (RB01 to RB12)
 └── release-evidence/

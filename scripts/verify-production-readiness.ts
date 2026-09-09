@@ -104,7 +104,7 @@ async function runPreflight() {
   }
 
   console.log('\n>>> SUCCESS: All 6 Production Gates PASSED.');
-  console.log('>>> E3-EOS v1.0.0 is CERTIFIED READY for Google Cloud Doha (me-central2) deployment.');
+  console.log('>>> E3-EOS v1.0.0 is CERTIFIED READY for Google Cloud Doha (me-central1) deployment.');
   console.log('================================================================================\n');
 }
 
