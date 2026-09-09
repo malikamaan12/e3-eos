@@ -79,9 +79,10 @@ resource "google_cloud_run_v2_service" "api_service" {
           path = "/api/v1/health"
           port = 4000
         }
-        initial_delay_seconds = 5
+        initial_delay_seconds = 10
         period_seconds        = 10
-        failure_threshold     = 3
+        failure_threshold     = 6
+        timeout_seconds       = 5
       }
 
       liveness_probe {
@@ -89,7 +90,8 @@ resource "google_cloud_run_v2_service" "api_service" {
           path = "/api/v1/health"
           port = 4000
         }
-        period_seconds = 15
+        period_seconds  = 15
+        timeout_seconds = 5
       }
     }
   }
