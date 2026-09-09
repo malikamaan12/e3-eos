@@ -10,6 +10,7 @@ export class HealthController {
     return {
       status: 'ok',
       service: 'e3-eos-api',
+      environment: process.env.ENVIRONMENT || 'staging',
       timestamp: new Date().toISOString(),
     };
   }

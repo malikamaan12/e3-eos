@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { DbService } from '../common/db.service.js';
+import crypto from 'crypto';
 
 export const CANONICAL_ROLES_CATALOG = [
   {
@@ -187,6 +188,14 @@ export class AdminController {
       ON CONFLICT DO NOTHING;
     `, [orgId, user.id, role]);
 
+    const inviteToken = crypto.randomBytes(24).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000); // 7 days
+
+    await pool.query(`
+      INSERT INTO user_invitations (id, organisation_id, email, name, role, department, token, expires_at, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, NOW());
+    `, [orgId, email, name, role, body.department || null, inviteToken, expiresAt]);
+
     return {
       success: true,
       message: `User ${name} successfully invited with role ${role}.`,
@@ -198,6 +207,8 @@ export class AdminController {
         organisationId: orgId,
         createdAt: user.created_at,
       },
+      inviteToken,
+      inviteUrl: `/accept-invite?token=${inviteToken}`,
     };
   }
 

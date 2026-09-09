@@ -5,6 +5,7 @@ import { LayoutShell } from './components/LayoutShell.js';
 // Dedicated Enterprise Views
 import { LoginView } from './views/LoginView.js';
 import { ForgotPasswordView } from './views/ForgotPasswordView.js';
+import { AcceptInviteView } from './views/AcceptInviteView.js';
 import { AccountView } from './views/AccountView.js';
 import { HomeView } from './views/HomeView.js';
 import { MyWorkView } from './views/MyWorkView.js';
@@ -30,6 +31,9 @@ const AppRouter: React.FC = () => {
   }
   if (currentPath === '/forgot-password') {
     return <ForgotPasswordView />;
+  }
+  if (currentPath === '/accept-invite') {
+    return <AcceptInviteView />;
   }
 
   // Shell-Wrapped Views

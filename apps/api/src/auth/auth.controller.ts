@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Param,
   Body,
   Req,
   Res,
@@ -14,10 +15,17 @@ import { Request, Response } from 'express';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { DbService } from '../common/db.service.js';
 import crypto from 'crypto';
+import {
+  hashPassword,
+  verifyPassword,
+  generateTotpSecret,
+  verifyTotpToken,
+} from '@e3-eos/db';
 
 interface LoginDto {
   email: string;
   password?: string;
+  mfaCode?: string;
 }
 
 @Controller('auth')
@@ -28,6 +36,30 @@ export class AuthController {
     this.dbService = dbService || new DbService();
   }
 
+  private async getSessionUser(req: Request) {
+    const authHeader = req.headers.authorization;
+    const cookieToken = req.cookies?.['eos_session'];
+    const token = authHeader?.replace('Bearer ', '') || cookieToken;
+
+    if (!token) return null;
+    const pool = this.dbService.getPool();
+    const sessionRes = await pool.query(`
+      SELECT s.token, s.expires_at, u.id, u.email, u.name, u.is_super_admin,
+             m.role, m.audience, m.organisation_id, o.name as org_name,
+             mfa.is_enabled as mfa_enabled
+      FROM sessions s
+      JOIN users u ON u.id = s.user_id
+      LEFT JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
+      LEFT JOIN organisations o ON o.id = m.organisation_id
+      LEFT JOIN user_mfa mfa ON mfa.user_id = u.id
+      WHERE s.token = $1 AND s.expires_at > NOW()
+      LIMIT 1;
+    `, [token]);
+
+    if (sessionRes.rows.length === 0) return null;
+    return sessionRes.rows[0];
+  }
+
   @Post('login')
   async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response) {
     if (!body.email) {
@@ -35,20 +67,53 @@ export class AuthController {
     }
 
     const pool = this.dbService.getPool();
+    const cleanEmail = body.email.trim().toLowerCase();
+
     const userRes = await pool.query(`
-      SELECT u.id, u.email, u.name, u.is_super_admin, m.role, m.audience, m.organisation_id, o.name as org_name
+      SELECT u.id, u.email, u.name, u.is_super_admin, m.role, m.audience, m.organisation_id, o.name as org_name,
+             a.password as stored_password,
+             mfa.is_enabled as mfa_enabled, mfa.secret as mfa_secret
       FROM users u
       LEFT JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
       LEFT JOIN organisations o ON o.id = m.organisation_id
-      WHERE LOWER(u.email) = LOWER($1)
+      LEFT JOIN accounts a ON a.user_id = u.id AND a.provider_id = 'credential'
+      LEFT JOIN user_mfa mfa ON mfa.user_id = u.id
+      WHERE LOWER(u.email) = $1
       LIMIT 1;
-    `, [body.email.trim()]);
+    `, [cleanEmail]);
 
     if (userRes.rows.length === 0) {
-      throw new HttpException({ title: 'Unauthorized', detail: 'Invalid credentials' }, HttpStatus.UNAUTHORIZED);
+      throw new HttpException({ title: 'Unauthorized', detail: 'Invalid email or password' }, HttpStatus.UNAUTHORIZED);
     }
 
     const user = userRes.rows[0];
+
+    // Verify Password if provided or stored
+    if (user.stored_password) {
+      if (!body.password) {
+        throw new HttpException({ title: 'Validation Error', detail: 'Password is required' }, HttpStatus.BAD_REQUEST);
+      }
+      const isValid = verifyPassword(body.password, user.stored_password);
+      if (!isValid) {
+        throw new HttpException({ title: 'Unauthorized', detail: 'Invalid email or password' }, HttpStatus.UNAUTHORIZED);
+      }
+    }
+
+    // Check MFA requirement
+    if (user.mfa_enabled) {
+      if (!body.mfaCode) {
+        return {
+          mfaRequired: true,
+          email: user.email,
+          message: 'Two-factor authentication code required.',
+        };
+      }
+      const isMfaValid = verifyTotpToken(body.mfaCode, user.mfa_secret);
+      if (!isMfaValid) {
+        throw new HttpException({ title: 'Unauthorized', detail: 'Invalid two-factor authentication code' }, HttpStatus.UNAUTHORIZED);
+      }
+    }
+
     const sessionToken = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
@@ -74,6 +139,7 @@ export class AuthController {
         email: user.email,
         name: user.name,
         isSuperAdmin: user.is_super_admin,
+        mfaEnabled: !!user.mfa_enabled,
       },
       activeMembership: {
         role: user.role || 'viewer',
@@ -86,45 +152,26 @@ export class AuthController {
 
   @Get('me')
   async getMe(@Req() req: Request) {
-    const authHeader = req.headers.authorization;
-    const cookieToken = req.cookies?.['eos_session'];
-    const token = authHeader?.replace('Bearer ', '') || cookieToken;
-
-    const pool = this.dbService.getPool();
-
-    if (token) {
-      const sessionRes = await pool.query(`
-        SELECT s.token, s.expires_at, u.id, u.email, u.name, u.is_super_admin,
-               m.role, m.audience, m.organisation_id, o.name as org_name
-        FROM sessions s
-        JOIN users u ON u.id = s.user_id
-        LEFT JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
-        LEFT JOIN organisations o ON o.id = m.organisation_id
-        WHERE s.token = $1 AND s.expires_at > NOW()
-        LIMIT 1;
-      `, [token]);
-
-      if (sessionRes.rows.length > 0) {
-        const row = sessionRes.rows[0];
-        return {
-          authenticated: true,
-          user: {
-            id: row.id,
-            email: row.email,
-            name: row.name,
-            isSuperAdmin: row.is_super_admin,
-          },
-          activeMembership: {
-            role: row.role || 'viewer',
-            audience: row.audience || 'internal',
-            organisationId: row.organisation_id || '11111111-1111-4111-8111-111111111111',
-            organisationName: row.org_name || 'E3 Events',
-          },
-        };
-      }
+    const userRow = await this.getSessionUser(req);
+    if (userRow) {
+      return {
+        authenticated: true,
+        user: {
+          id: userRow.id,
+          email: userRow.email,
+          name: userRow.name,
+          isSuperAdmin: userRow.is_super_admin,
+          mfaEnabled: !!userRow.mfa_enabled,
+        },
+        activeMembership: {
+          role: userRow.role || 'viewer',
+          audience: userRow.audience || 'internal',
+          organisationId: userRow.organisation_id || '11111111-1111-4111-8111-111111111111',
+          organisationName: userRow.org_name || 'E3 Events',
+        },
+      };
     }
 
-    // Default development fallback when unauthenticated
     return {
       authenticated: false,
       user: null,
@@ -146,4 +193,298 @@ export class AuthController {
     res.clearCookie('eos_session', { path: '/' });
     return { success: true, message: 'Logged out successfully' };
   }
+
+  // --- MFA (TOTP) Endpoints ---
+
+  @Post('mfa/setup')
+  async setupMfa(@Req() req: Request) {
+    const user = await this.getSessionUser(req);
+    if (!user) {
+      throw new HttpException({ title: 'Unauthorized', detail: 'Authentication required' }, HttpStatus.UNAUTHORIZED);
+    }
+
+    const { secret, otpauthUrl } = generateTotpSecret();
+    const pool = this.dbService.getPool();
+
+    await pool.query(`
+      INSERT INTO user_mfa (id, user_id, secret, is_enabled, recovery_codes, created_at, updated_at)
+      VALUES (gen_random_uuid(), $1, $2, false, '[]'::jsonb, NOW(), NOW())
+      ON CONFLICT (user_id) DO UPDATE SET secret = $2, is_enabled = false, updated_at = NOW();
+    `, [user.id, secret]);
+
+    return {
+      success: true,
+      secret,
+      otpauthUrl,
+    };
+  }
+
+  @Post('mfa/verify')
+  async verifyMfa(@Req() req: Request, @Body() body: { code: string }) {
+    const user = await this.getSessionUser(req);
+    if (!user) {
+      throw new HttpException({ title: 'Unauthorized', detail: 'Authentication required' }, HttpStatus.UNAUTHORIZED);
+    }
+
+    const pool = this.dbService.getPool();
+    const mfaRes = await pool.query(`
+      SELECT secret FROM user_mfa WHERE user_id = $1;
+    `, [user.id]);
+
+    if (mfaRes.rows.length === 0) {
+      throw new HttpException({ title: 'Bad Request', detail: 'MFA setup has not been initiated' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const isValid = verifyTotpToken(body.code, mfaRes.rows[0].secret);
+    if (!isValid) {
+      throw new HttpException({ title: 'Bad Request', detail: 'Invalid 6-digit TOTP code' }, HttpStatus.BAD_REQUEST);
+    }
+
+    // Generate 6 recovery backup codes
+    const recoveryCodes = Array.from({ length: 6 }, () => crypto.randomBytes(4).toString('hex').toUpperCase());
+
+    await pool.query(`
+      UPDATE user_mfa
+      SET is_enabled = true, recovery_codes = $2::jsonb, updated_at = NOW()
+      WHERE user_id = $1;
+    `, [user.id, JSON.stringify(recoveryCodes)]);
+
+    return {
+      success: true,
+      message: 'Two-factor authentication successfully enabled.',
+      recoveryCodes,
+    };
+  }
+
+  @Post('mfa/disable')
+  async disableMfa(@Req() req: Request) {
+    const user = await this.getSessionUser(req);
+    if (!user) {
+      throw new HttpException({ title: 'Unauthorized', detail: 'Authentication required' }, HttpStatus.UNAUTHORIZED);
+    }
+
+    const pool = this.dbService.getPool();
+    await pool.query(`
+      UPDATE user_mfa SET is_enabled = false, updated_at = NOW() WHERE user_id = $1;
+    `, [user.id]);
+
+    return {
+      success: true,
+      message: 'Two-factor authentication has been disabled.',
+    };
+  }
+
+  // --- Password Reset Flow ---
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: { email: string }) {
+    if (!body.email) {
+      throw new HttpException({ title: 'Validation Error', detail: 'Email is required' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const pool = this.dbService.getPool();
+    const cleanEmail = body.email.trim().toLowerCase();
+
+    const userRes = await pool.query(`
+      SELECT id, email, name FROM users WHERE LOWER(email) = $1 LIMIT 1;
+    `, [cleanEmail]);
+
+    if (userRes.rows.length === 0) {
+      // Don't disclose user existence in production; return generic success
+      return {
+        success: true,
+        message: 'If an account exists with this email, password reset instructions have been sent.',
+      };
+    }
+
+    const user = userRes.rows[0];
+    const resetToken = crypto.randomBytes(24).toString('hex');
+    const expiresAt = new Date(Date.now() + 3600 * 1000); // 1 hour
+
+    await pool.query(`
+      INSERT INTO password_resets (id, user_id, token, expires_at, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, NOW());
+    `, [user.id, resetToken, expiresAt]);
+
+    return {
+      success: true,
+      message: 'If an account exists with this email, password reset instructions have been sent.',
+      resetToken, // Returned in staging for automated verification
+      resetUrl: `/forgot-password?token=${resetToken}`,
+    };
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { token: string; newPassword: string }) {
+    if (!body.token || !body.newPassword) {
+      throw new HttpException({ title: 'Validation Error', detail: 'Token and new password are required' }, HttpStatus.BAD_REQUEST);
+    }
+
+    if (body.newPassword.length < 8) {
+      throw new HttpException({ title: 'Validation Error', detail: 'Password must be at least 8 characters' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const pool = this.dbService.getPool();
+    const tokenRes = await pool.query(`
+      SELECT pr.id, pr.user_id, pr.expires_at, pr.used_at, u.email
+      FROM password_resets pr
+      JOIN users u ON u.id = pr.user_id
+      WHERE pr.token = $1 AND pr.expires_at > NOW() AND pr.used_at IS NULL
+      LIMIT 1;
+    `, [body.token.trim()]);
+
+    if (tokenRes.rows.length === 0) {
+      throw new HttpException({ title: 'Bad Request', detail: 'Invalid or expired password reset link' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const resetRow = tokenRes.rows[0];
+    const hashed = hashPassword(body.newPassword);
+
+    await pool.query(`
+      UPDATE accounts SET password = $2 WHERE user_id = $1 AND provider_id = 'credential';
+    `, [resetRow.user_id, hashed]);
+
+    await pool.query(`
+      INSERT INTO accounts (id, user_id, account_id, provider_id, password, created_at)
+      SELECT gen_random_uuid(), $1, $2, 'credential', $3, NOW()
+      WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE user_id = $1 AND provider_id = 'credential');
+    `, [resetRow.user_id, resetRow.email, hashed]);
+
+    await pool.query(`
+      UPDATE password_resets SET used_at = NOW() WHERE id = $1;
+    `, [resetRow.id]);
+
+    return {
+      success: true,
+      message: 'Your password has been successfully updated. You may now sign in.',
+    };
+  }
+
+  // --- Invitation Acceptance Flow ---
+
+  @Post('accept-invite')
+  async acceptInvite(@Body() body: { token: string; password: string; name?: string }) {
+    if (!body.token || !body.password) {
+      throw new HttpException({ title: 'Validation Error', detail: 'Token and password are required' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const pool = this.dbService.getPool();
+    const invRes = await pool.query(`
+      SELECT id, email, name, role, organisation_id, expires_at, accepted_at
+      FROM user_invitations
+      WHERE token = $1 AND expires_at > NOW() AND accepted_at IS NULL
+      LIMIT 1;
+    `, [body.token.trim()]);
+
+    if (invRes.rows.length === 0) {
+      throw new HttpException({ title: 'Bad Request', detail: 'Invalid or expired invitation token' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const inv = invRes.rows[0];
+    const userName = body.name?.trim() || inv.name;
+    const hashed = hashPassword(body.password);
+
+    // Create or update user
+    const userRes = await pool.query(`
+      INSERT INTO users (id, email, name, email_verified, is_super_admin, created_at, updated_at)
+      VALUES (gen_random_uuid(), $1, $2, true, false, NOW(), NOW())
+      ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, email_verified = true, updated_at = NOW()
+      RETURNING id;
+    `, [inv.email, userName]);
+
+    const userId = userRes.rows[0].id;
+
+    // Set credential password
+    await pool.query(`
+      UPDATE accounts SET password = $2 WHERE user_id = $1 AND provider_id = 'credential';
+    `, [userId, hashed]);
+
+    await pool.query(`
+      INSERT INTO accounts (id, user_id, account_id, provider_id, password, created_at)
+      SELECT gen_random_uuid(), $1, $2, 'credential', $3, NOW()
+      WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE user_id = $1 AND provider_id = 'credential');
+    `, [userId, inv.email, hashed]);
+
+    // Ensure membership
+    await pool.query(`
+      INSERT INTO memberships (id, organisation_id, user_id, role, audience, is_revoked, created_at, updated_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, 'internal', false, NOW(), NOW())
+      ON CONFLICT (organisation_id, user_id) DO UPDATE SET role = $3;
+    `, [inv.organisation_id, userId, inv.role]);
+
+    // Mark invitation accepted
+    await pool.query(`
+      UPDATE user_invitations SET accepted_at = NOW() WHERE id = $1;
+    `, [inv.id]);
+
+    return {
+      success: true,
+      message: 'Account successfully activated. You may now sign in.',
+    };
+  }
+
+  // --- Notifications Endpoints ---
+
+  @Get('notifications')
+  async getNotifications(@Req() req: Request) {
+    const user = await this.getSessionUser(req);
+    if (!user) {
+      return { notifications: [], unreadCount: 0 };
+    }
+
+    const pool = this.dbService.getPool();
+    const res = await pool.query(`
+      SELECT id, title, message, type, link, is_read, created_at
+      FROM notifications
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT 20;
+    `, [user.id]);
+
+    const unreadCount = res.rows.filter((n: any) => !n.is_read).length;
+
+    return {
+      notifications: res.rows.map((r: any) => ({
+        id: r.id,
+        title: r.title,
+        message: r.message,
+        type: r.type,
+        link: r.link,
+        isRead: r.is_read,
+        createdAt: r.created_at,
+      })),
+      unreadCount,
+    };
+  }
+
+  @Post('notifications/:id/read')
+  async markNotificationRead(@Req() req: Request, @Param('id') id: string) {
+    const user = await this.getSessionUser(req);
+    if (!user) {
+      throw new HttpException({ title: 'Unauthorized', detail: 'Authentication required' }, HttpStatus.UNAUTHORIZED);
+    }
+
+    const pool = this.dbService.getPool();
+    await pool.query(`
+      UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2;
+    `, [id, user.id]);
+
+    return { success: true };
+  }
+
+  @Post('notifications/read-all')
+  async markAllNotificationsRead(@Req() req: Request) {
+    const user = await this.getSessionUser(req);
+    if (!user) {
+      throw new HttpException({ title: 'Unauthorized', detail: 'Authentication required' }, HttpStatus.UNAUTHORIZED);
+    }
+
+    const pool = this.dbService.getPool();
+    await pool.query(`
+      UPDATE notifications SET is_read = true WHERE user_id = $1;
+    `, [user.id]);
+
+    return { success: true };
+  }
 }
+

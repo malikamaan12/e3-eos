@@ -8,6 +8,7 @@ import {
   STANDARD_THIRTEEN_STAGE_TEMPLATE,
 } from '@e3-eos/domain';
 import pg from 'pg';
+import { hashPassword } from './auth-crypto.js';
 
 export interface SeedDataManifest {
   seededAt: string;
@@ -139,6 +140,52 @@ export async function runSeed(): Promise<SeedDataManifest> {
     const client = await pool.connect();
     console.log('[*] Connected to PostgreSQL. Seeding persistent tables...');
 
+    // 0. Ensure Sprint 01 hardening tables exist
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_invitations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organisation_id UUID NOT NULL REFERENCES organisations(id),
+        email TEXT NOT NULL,
+        name TEXT NOT NULL,
+        role TEXT NOT NULL,
+        department TEXT,
+        token TEXT NOT NULL UNIQUE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        accepted_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS password_resets (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token TEXT NOT NULL UNIQUE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS user_mfa (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+        secret TEXT NOT NULL,
+        is_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        recovery_codes JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS notifications (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'info',
+        link TEXT,
+        is_read BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
     // 1. Seed Organisations
     for (const org of Object.values(SYNTHETIC_ORGANISATIONS)) {
       await client.query(`
@@ -149,6 +196,8 @@ export async function runSeed(): Promise<SeedDataManifest> {
     }
 
     // 2. Seed Users & Accounts for 13 Roles
+    const defaultHashedPassword = hashPassword('Password123!');
+
     for (const u of CANONICAL_E3_ROLES_USERS) {
       const orgId = (u as any).orgId || '11111111-1111-4111-8111-111111111111';
       await client.query(`
@@ -157,12 +206,16 @@ export async function runSeed(): Promise<SeedDataManifest> {
         ON CONFLICT (id) DO UPDATE SET email = $2, name = $3, is_super_admin = $4;
       `, [u.id, u.email, u.name, u.isSuperAdmin]);
 
-      // Password account (password: 'Password123!')
+      // Password account (password: 'Password123!' hashed with scrypt salt)
+      await client.query(`
+        UPDATE accounts SET password = $2 WHERE user_id = $1 AND provider_id = 'credential';
+      `, [u.id, defaultHashedPassword]);
+
       await client.query(`
         INSERT INTO accounts (id, user_id, account_id, provider_id, password, created_at)
-        VALUES (gen_random_uuid(), $1, $2, 'credential', 'Password123!', NOW())
-        ON CONFLICT DO NOTHING;
-      `, [u.id, u.email]);
+        SELECT gen_random_uuid(), $1, $2, 'credential', $3, NOW()
+        WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE user_id = $1 AND provider_id = 'credential');
+      `, [u.id, u.email, defaultHashedPassword]);
 
       // Membership
       await client.query(`
@@ -221,6 +274,16 @@ export async function runSeed(): Promise<SeedDataManifest> {
       VALUES ($1, $2, $3, $4, 'Finalize CAD Structural Rigging Calculations', '10000000-0000-4000-8000-000000000007', 'active', false, NOW())
       ON CONFLICT (id) DO NOTHING;
     `, [taskId, workPackageId, e3OrgId, qatarProjectId]);
+
+    // Seed sample notifications
+    await client.query(`
+      INSERT INTO notifications (id, user_id, title, message, type, link, is_read, created_at)
+      VALUES 
+        (gen_random_uuid(), $1, 'Project Kickoff Milestone', 'Qatar Tourism Gala 2026 onboarding complete and ready for Stage 1 deliverables.', 'task', '/cockpit/' || $2, false, NOW()),
+        (gen_random_uuid(), $1, 'Approval Request Pending', 'Commercial budget sign-off requested by Khalid Al-Thani.', 'approval', '/approvals', false, NOW() - INTERVAL '2 hours'),
+        (gen_random_uuid(), '10000000-0000-4000-8000-000000000001', 'System Security Notice', 'MFA foundation activated for all privileged administrator accounts.', 'system', '/account', false, NOW() - INTERVAL '1 day')
+      ON CONFLICT DO NOTHING;
+    `, [pmUserId, qatarProjectId]);
 
     console.log('[*] ✓ Successfully populated persistent PostgreSQL tables with 13 roles, Qatar Tourism project, stages, and work tasks.');
     client.release();

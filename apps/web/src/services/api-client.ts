@@ -333,28 +333,146 @@ export class EosApiClient {
   }
 
   /**
-   * Authenticats against PostgreSQL sessions table.
+   * Authenticates against PostgreSQL sessions table.
    */
-  async authLogin(email: string): Promise<{
-    success: boolean;
-    sessionToken: string;
-    user: { id: string; email: string; name: string; isSuperAdmin: boolean };
-    activeMembership: { role: string; audience: string; organisationId: string; organisationName: string };
+  async authLogin(email: string, password?: string, mfaCode?: string): Promise<{
+    success?: boolean;
+    mfaRequired?: boolean;
+    sessionToken?: string;
+    user?: { id: string; email: string; name: string; isSuperAdmin: boolean; mfaEnabled?: boolean };
+    activeMembership?: { role: string; audience: string; organisationId: string; organisationName: string };
+    message?: string;
   }> {
     const res = await fetch(`${this.baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, mfaCode }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Login failed with status ${res.status}`);
+    }
+    const data = await res.json();
+    if (data.sessionToken && data.user && data.activeMembership) {
+      this.sessionToken = data.sessionToken;
+      this.userId = data.user.id;
+      this.organisationId = data.activeMembership.organisationId;
+      this.userRoles = [data.activeMembership.role];
+    }
+    return data;
+  }
+
+  async forgotPassword(email: string): Promise<{ success: boolean; message: string; resetToken?: string; resetUrl?: string }> {
+    const res = await fetch(`${this.baseUrl}/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
     if (!res.ok) {
-      throw new Error(`Login failed with status ${res.status}`);
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || 'Password reset request failed');
     }
-    const data = await res.json();
-    this.sessionToken = data.sessionToken;
-    this.userId = data.user.id;
-    this.organisationId = data.activeMembership.organisationId;
-    this.userRoles = [data.activeMembership.role];
-    return data;
+    return await res.json();
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${this.baseUrl}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || 'Password reset failed');
+    }
+    return await res.json();
+  }
+
+  async acceptInvite(token: string, password: string, name?: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${this.baseUrl}/auth/accept-invite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password, name }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || 'Invitation activation failed');
+    }
+    return await res.json();
+  }
+
+  async mfaSetup(): Promise<{ success: boolean; secret: string; otpauthUrl: string }> {
+    const res = await fetch(`${this.baseUrl}/auth/mfa/setup`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || 'MFA setup request failed');
+    }
+    return await res.json();
+  }
+
+  async mfaVerify(code: string): Promise<{ success: boolean; message: string; recoveryCodes: string[] }> {
+    const res = await fetch(`${this.baseUrl}/auth/mfa/verify`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ code }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || 'MFA verification failed');
+    }
+    return await res.json();
+  }
+
+  async mfaDisable(): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${this.baseUrl}/auth/mfa/disable`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || 'MFA disable request failed');
+    }
+    return await res.json();
+  }
+
+  async getNotifications(): Promise<{
+    notifications: Array<{ id: string; title: string; message: string; type: string; link?: string; isRead: boolean; createdAt: string }>;
+    unreadCount: number;
+  }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/notifications`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) return await res.json();
+    } catch {}
+    return { notifications: [], unreadCount: 0 };
+  }
+
+  async markNotificationRead(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/notifications/${id}/read`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async markAllNotificationsRead(): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/notifications/read-all`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 
   /**

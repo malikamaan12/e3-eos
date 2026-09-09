@@ -24,7 +24,7 @@ import { EosApiClient } from '../services/api-client.js';
 export { CANONICAL_E3_USERS };
 
 export interface EosContextValue {
-  currentUser: SyntheticUser & { role?: string; isSuperAdmin?: boolean };
+  currentUser: SyntheticUser & { role?: string; isSuperAdmin?: boolean; mfaEnabled?: boolean };
   currentOrg: SyntheticOrganisation;
   currentLanguage: SupportedLocale;
   direction: 'ltr' | 'rtl';
@@ -40,9 +40,17 @@ export interface EosContextValue {
   isAuditDrawerOpen: boolean;
   refreshTrigger: number;
   apiClient: EosApiClient;
+  isImpersonating: boolean;
+  impersonatedBy: string | null;
+  notifications: Array<{ id: string; title: string; message: string; type: string; link?: string; isRead: boolean; createdAt: string }>;
+  unreadNotificationCount: number;
+  refreshNotifications: () => Promise<void>;
+  markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
+  exitImpersonation: () => Promise<void>;
   triggerRefresh: () => void;
   navigate: (path: string) => void;
-  login: (email: string) => Promise<any>;
+  login: (email: string, password?: string, mfaCode?: string) => Promise<any>;
   logout: () => Promise<void>;
   switchPersona: (email: string) => Promise<void>;
   setIsNewProjectModalOpen: (open: boolean) => void;
@@ -92,7 +100,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const [currentPath, setCurrentPathState] = useState<string>(getInitialPath);
-  const [currentUser, setCurrentUserState] = useState<SyntheticUser & { role?: string; isSuperAdmin?: boolean }>(() => {
+  const [currentUser, setCurrentUserState] = useState<SyntheticUser & { role?: string; isSuperAdmin?: boolean; mfaEnabled?: boolean }>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('eos_user_email');
       if (saved) {
@@ -117,6 +125,12 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
+  const [isImpersonating, setIsImpersonating] = useState<boolean>(false);
+  const [impersonatedBy, setImpersonatedBy] = useState<string | null>(null);
+
+  const [notifications, setNotifications] = useState<Array<{ id: string; title: string; message: string; type: string; link?: string; isRead: boolean; createdAt: string }>>([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState<number>(0);
+
   // Persistent API client instance
   const [apiClient] = useState<EosApiClient>(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('eos_user_email') : null;
@@ -135,6 +149,30 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     return client;
   });
+
+  const refreshNotifications = async () => {
+    try {
+      const data = await apiClient.getNotifications();
+      setNotifications(data.notifications || []);
+      setUnreadNotificationCount(data.unreadCount || 0);
+    } catch {}
+  };
+
+  const markNotificationRead = async (id: string) => {
+    await apiClient.markNotificationRead(id);
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    setUnreadNotificationCount((prev) => Math.max(0, prev - 1));
+  };
+
+  const markAllNotificationsRead = async () => {
+    await apiClient.markAllNotificationsRead();
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setUnreadNotificationCount(0);
+  };
+
+  React.useEffect(() => {
+    refreshNotifications();
+  }, [currentUser, refreshTrigger]);
 
   const navigate = (path: string) => {
     setCurrentPathState(path);
@@ -159,13 +197,16 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => window.removeEventListener('popstate', handlePop);
   }, []);
 
-  const login = async (email: string) => {
+  const login = async (email: string, password?: string, mfaCode?: string) => {
     try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('eos_user_email', email);
+      const res = await apiClient.authLogin(email, password, mfaCode);
+      if (res.mfaRequired) {
+        return res;
       }
-      const res = await apiClient.authLogin(email);
-      if (res.user) {
+      if (res.user && res.activeMembership) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('eos_user_email', email);
+        }
         const matching = CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === email.toLowerCase());
         const userObj = matching || {
           id: res.user.id,
@@ -174,6 +215,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           role: res.activeMembership.role,
           isSuperAdmin: res.user.isSuperAdmin,
           organisationId: res.activeMembership.organisationId,
+          mfaEnabled: res.user.mfaEnabled,
         };
         setCurrentUserState(userObj as any);
         apiClient.setContext(res.activeMembership.organisationId, res.user.id, [res.activeMembership.role]);
@@ -183,22 +225,22 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return res;
     } catch (e) {
-      // Fallback persona match if backend auth unreachable
-      const matching = CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === email.toLowerCase());
-      if (matching) {
-        setCurrentUserState(matching as any);
-        apiClient.setContext(matching.organisationId, matching.id, [matching.role]);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('eos_user_email', email);
-        }
-        return { success: true, user: matching };
-      }
+      // If backend login fails, throw so the login form displays error
       throw e;
     }
   };
 
   const switchPersona = async (email: string) => {
-    await login(email);
+    setIsImpersonating(true);
+    setImpersonatedBy('Tareq Al-Kuwari (Root Super Admin)');
+    await login(email, 'Password123!');
+    triggerRefresh();
+  };
+
+  const exitImpersonation = async () => {
+    setIsImpersonating(false);
+    setImpersonatedBy(null);
+    await login('superadmin@e3.qa', 'Password123!');
     triggerRefresh();
   };
 
@@ -211,6 +253,8 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem('eos_session_token');
     }
     apiClient.setSessionToken(undefined);
+    setIsImpersonating(false);
+    setImpersonatedBy(null);
     navigate('/login');
   };
 

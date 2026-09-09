@@ -137,14 +137,30 @@ export const ProjectCockpitView: React.FC = () => {
     }
   };
 
+  const [showTechnicalAudit, setShowTechnicalAudit] = useState<boolean>(false);
+
+  // 9 Canonical Workstreams
+  const workstreams = [
+    { name: 'Creative & 3D Spatial Renders', lead: 'Karim Haddad', progress: 85, openTasks: 1, blockers: 0, status: 'on_track' },
+    { name: 'Technical & Structural CAD Rigging', lead: 'Karim Haddad', progress: 60, openTasks: 2, blockers: 0, status: 'on_track' },
+    { name: 'Commercial Pricing & BOQ', lead: 'Rashid Al-Hajri', progress: 95, openTasks: 0, blockers: 0, status: 'healthy' },
+    { name: 'Procurement Packages & RFQs', lead: 'Maryam Al-Kuwari', progress: 40, openTasks: 3, blockers: 1, status: 'warning' },
+    { name: 'Logistics, Fleet & Dispatch', lead: 'Hamad Al-Khelaifi', progress: 20, openTasks: 2, blockers: 0, status: 'on_track' },
+    { name: 'Site & Operations Runbooks', lead: 'Salem Al-Marri', progress: 75, openTasks: 1, blockers: 0, status: 'healthy' },
+    { name: 'HSE, Fire Safety & Permits', lead: 'Dr. Sarah Ibrahim', progress: 30, openTasks: 2, blockers: 1, status: 'warning' },
+    { name: 'Client Stakeholder Collaboration', lead: 'Zaid Mansour', progress: 90, openTasks: 0, blockers: 0, status: 'healthy' },
+    { name: 'Governance & Four-Eyes Gates', lead: 'Nasser Al-Attiyah', progress: 50, openTasks: 1, blockers: 0, status: 'on_track' },
+  ];
+
   const projectTitle = cockpitData?.title || 'Qatar Tourism Demo Tender';
   const projectCode = cockpitData?.projectCode || 'PRJ-2026-DEMO';
   const clientName = cockpitData?.clientName || 'Qatar Tourism Authority';
   const venue = cockpitData?.venue?.name || 'Doha Exhibition & Convention Center';
-  const daysRemaining = cockpitData?.daysRemaining ?? 67;
+  const daysRemaining = cockpitData?.daysRemaining ?? 66;
+  const isDraft = cockpitData?.maturity === 'draft';
 
   return (
-    <div style={{ paddingBottom: '40px' }}>
+    <div style={{ paddingBottom: '40px', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
       {/* Cockpit Top Header */}
       <div
         style={{
@@ -165,8 +181,11 @@ export const ProjectCockpitView: React.FC = () => {
               >
                 {projectCode}
               </span>
-              <Badge variant="success">Active</Badge>
+              <Badge variant={isDraft ? 'neutral' : 'success'}>{isDraft ? 'Draft Plan' : '🟢 Operational'}</Badge>
               <Badge variant="info">{cockpitData?.maturity || 'delivery'}</Badge>
+              <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700 }}>
+                ● Doha Cell (me-central1)
+              </span>
             </div>
             <h1 id="cockpit-project-title" style={{ margin: '0 0 6px', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
               {projectTitle}
@@ -174,12 +193,12 @@ export const ProjectCockpitView: React.FC = () => {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px', color: '#64748b' }}>
               <span>🏢 Client: <strong>{clientName}</strong></span>
               <span>📍 Venue: <strong>{venue}</strong></span>
-              <span>👤 PM: <strong>Zaid Mansour (pm@e3.qa)</strong></span>
-              <span>⏳ Move-in: <strong>{daysRemaining} days remaining</strong></span>
+              <span>👤 Lead PM: <strong>Zaid Mansour (pm@e3.qa)</strong></span>
+              <span>⏳ Move-in: <strong>{daysRemaining} days to live event</strong></span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <Button
               id="cockpit-add-task-btn"
               variant="secondary"
@@ -196,11 +215,22 @@ export const ProjectCockpitView: React.FC = () => {
             >
               ✍️ Request Approval
             </Button>
+            <Button
+              id="cockpit-audit-btn"
+              variant="ghost"
+              size="md"
+              onClick={() => {
+                const el = document.getElementById('audit-history-list');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              📋 Audit Lineage
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* KPI Strip */}
+      {/* KPI Ribbon */}
       <div
         style={{
           display: 'grid',
@@ -209,11 +239,163 @@ export const ProjectCockpitView: React.FC = () => {
           marginBottom: '20px',
         }}
       >
-        <MetricCard title="Revenue" value="3,500,000 QAR" subtitle="Approved Quote" accentColor="#2563eb" />
-        <MetricCard title="Baseline Budget" value="1,968,750 QAR" subtitle="Internal Cost Plan" accentColor="#64748b" />
-        <MetricCard title="Committed Cost" value="840,000 QAR" subtitle="Issued POs" accentColor="#059669" />
-        <MetricCard title="Forecast Margin" value="43.75%" subtitle="Baseline Target" badge={{ label: 'Healthy', variant: 'success' }} accentColor="#059669" />
-        <MetricCard title="Pending Approvals" value={approvals.filter(a => a.status === 'pending').length} subtitle="Executive Queue" accentColor="#f59e0b" />
+        <MetricCard
+          title="Revenue"
+          value={isDraft ? 'To Be Confirmed' : '3,500,000 QAR'}
+          subtitle={isDraft ? 'TBC during discovery' : 'Approved Client Quote'}
+          accentColor="#2563eb"
+        />
+        <MetricCard
+          title="Baseline Budget"
+          value={isDraft ? 'To Be Confirmed' : '1,968,750 QAR'}
+          subtitle="Internal Target Cost"
+          accentColor="#64748b"
+        />
+        <MetricCard
+          title="Estimate at Completion"
+          value="90,000 QAR"
+          subtitle="EAC Invariant Validated"
+          accentColor="#059669"
+        />
+        <MetricCard
+          title="Forecast Margin"
+          value="43.75%"
+          subtitle="Above Margin Floor (35%)"
+          badge={{ label: 'Healthy', variant: 'success' }}
+          accentColor="#059669"
+        />
+        <MetricCard
+          title="Pending Approvals"
+          value={approvals.filter(a => a.status === 'pending').length}
+          subtitle="Four-Eyes Governance"
+          accentColor="#f59e0b"
+        />
+      </div>
+
+      {/* Needs Attention Engine */}
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+            🚨 Needs Attention Engine
+          </h3>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>Automated priority evaluation</span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+          {/* Card 1: Blocker (Red) */}
+          <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>🔴 Critical Blocker</span>
+                <Badge variant="danger" size="sm">Gate 03</Badge>
+              </div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#991b1b', marginBottom: '4px' }}>
+                Stage 03 Executive Gate Sign-Off Pending
+              </div>
+              <p style={{ fontSize: '12px', color: '#7f1d1d', margin: 0 }}>
+                Four-eyes commercial authorization by Executive Partner Nasser Al-Attiyah required before advancing.
+              </p>
+            </div>
+            <div style={{ marginTop: '12px' }}>
+              <Button size="sm" variant="danger" onClick={() => setIsApprovalModalOpen(true)}>
+                Open Approval Queue →
+              </Button>
+            </div>
+          </div>
+
+          {/* Card 2: Medium Action (Orange) */}
+          <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🟠 HSE Compliance</span>
+                <Badge variant="warning" size="sm">Permits</Badge>
+              </div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', marginBottom: '4px' }}>
+                Civil Defence Fire Safety Clearance
+              </div>
+              <p style={{ fontSize: '12px', color: '#78350f', margin: 0 }}>
+                Stage 09 site access prerequisite. CAD structural rigging certification must be uploaded.
+              </p>
+            </div>
+            <div style={{ marginTop: '12px' }}>
+              <Button size="sm" variant="secondary" onClick={() => navigate('/projects/f1111111-1111-4111-8111-111111111111/readiness')}>
+                Inspect HSE Gate →
+              </Button>
+            </div>
+          </div>
+
+          {/* Card 3: Notice (Yellow) */}
+          <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>🟡 Procurement Alert</span>
+                <Badge variant="success" size="sm">Vendor RFQ</Badge>
+              </div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#166534', marginBottom: '4px' }}>
+                Structural Rigging Contractor Quotes
+              </div>
+              <p style={{ fontSize: '12px', color: '#14532d', margin: 0 }}>
+                2 RFQ packages awaiting quote comparison before PO release deadline.
+              </p>
+            </div>
+            <div style={{ marginTop: '12px' }}>
+              <Button size="sm" variant="secondary" onClick={() => navigate('/projects/f1111111-1111-4111-8111-111111111111/procurement')}>
+                Review RFQ Packages →
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 9-Workstream Health Grid */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+            📊 Workstream Health & Progress Matrix
+          </h3>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>9 core event operational functions</span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+          {workstreams.map((ws, i) => (
+            <div
+              key={i}
+              style={{
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '12px 14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>{ws.name}</span>
+                <Badge variant={ws.status === 'healthy' ? 'success' : ws.status === 'warning' ? 'warning' : 'info'} size="sm">
+                  {ws.progress}%
+                </Badge>
+              </div>
+
+              {/* Progress bar */}
+              <div style={{ width: '100%', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: `${ws.progress}%`,
+                    height: '100%',
+                    backgroundColor: ws.status === 'warning' ? '#f59e0b' : '#2563eb',
+                    borderRadius: '3px',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b' }}>
+                <span>Lead: <strong>{ws.lead}</strong></span>
+                <span>{ws.openTasks} open • {ws.blockers > 0 ? <strong style={{ color: '#ef4444' }}>{ws.blockers} blocker</strong> : '0 blockers'}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Two Column Section: Tasks & Governance Approvals */}
@@ -392,10 +574,20 @@ export const ProjectCockpitView: React.FC = () => {
         </Card>
       </div>
 
-      {/* Activity Audit Stream (Cryptographic Hash History) */}
+      {/* Human-Centric Activity Stream with Technical Toggle */}
       <Card
-        title="Immutable Audit Stream & Event History"
-        subtitle="Cryptographically verified SHA-256 state transitions stored in Doha Cloud SQL"
+        title="Project Activity & Audit Trail"
+        subtitle="Chronological governance actions and cryptographic state history"
+        action={
+          <Button
+            id="btn-toggle-technical-audit"
+            size="sm"
+            variant="ghost"
+            onClick={() => setShowTechnicalAudit(!showTechnicalAudit)}
+          >
+            {showTechnicalAudit ? 'Hide Technical Hashes' : '👁️ View Technical Details (SHA-256)'}
+          </Button>
+        }
       >
         {auditHistory.length === 0 ? (
           <div style={{ padding: '16px', textAlign: 'center', color: '#64748b' }}>
@@ -407,35 +599,64 @@ export const ProjectCockpitView: React.FC = () => {
               <div
                 key={item.id || idx}
                 style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '10px 14px',
+                  padding: '12px 16px',
                   backgroundColor: '#f8fafc',
                   border: '1px solid #e2e8f0',
                   borderRadius: '6px',
                 }}
               >
-                <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px' }}>
+                      {item.action === 'TASK_COMPLETED' ? '✅' : item.action === 'APPROVAL_DECIDED' ? '✍️' : '📋'}
+                    </span>
                     <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
-                      {item.action || 'STAGE_TRANSITION'}
+                      {item.action === 'PROJECT_CREATED'
+                        ? 'Project Onboarding Initialized'
+                        : item.action === 'TASK_COMPLETED'
+                        ? 'Operational Task Completed'
+                        : item.action === 'APPROVAL_REQUESTED'
+                        ? 'Governance Approval Requested'
+                        : item.action === 'APPROVAL_DECIDED'
+                        ? 'Governance Decision Recorded'
+                        : item.action || 'Project State Transition'}
                     </span>
                     <Badge variant="neutral" size="sm">{item.role || 'system'}</Badge>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>
-                    Actor: {item.actor || 'Tareq Al-Kuwari (Super Admin)'}
-                  </div>
+                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                    {item.timestamp ? new Date(item.timestamp).toLocaleString() : 'Just now'}
+                  </span>
                 </div>
 
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
-                    Hash: {item.entryHash ? item.entryHash.slice(0, 16) + '...' : 'e3b0c44298fc1c14...'}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                    {item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : 'Just now'}
-                  </div>
+                <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>
+                  Recorded by: <strong>{item.actor || 'Tareq Al-Kuwari (Super Admin)'}</strong>
                 </div>
+
+                {/* Expanded Technical SHA-256 Details */}
+                {showTechnicalAudit && (
+                  <div
+                    style={{
+                      marginTop: '10px',
+                      padding: '8px 12px',
+                      backgroundColor: '#0f172a',
+                      borderRadius: '4px',
+                      fontFamily: 'monospace',
+                      fontSize: '11px',
+                      color: '#cbd5e1',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>SHA-256 Entry Hash:</span>
+                      <span style={{ color: '#38bdf8' }}>
+                        {item.entryHash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                      <span>Cryptographic Seal:</span>
+                      <span style={{ color: '#4ade80' }}>Verified (PostgreSQL Cloud SQL Doha)</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

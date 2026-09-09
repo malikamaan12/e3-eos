@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, boolean, uniqueIndex, jsonb } from 'drizzle-orm/pg-core';
 
 export const organisations = pgTable('organisations', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -65,3 +65,46 @@ export const memberships = pgTable(
     uniqueIndex('membership_org_user_idx').on(table.organisationId, table.userId),
   ]
 );
+
+export const userInvitations = pgTable('user_invitations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  email: text('email').notNull(),
+  name: text('name').notNull(),
+  role: text('role').notNull(),
+  department: text('department'),
+  token: text('token').notNull().unique(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  acceptedAt: timestamp('accepted_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const passwordResets = pgTable('password_resets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  token: text('token').notNull().unique(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  usedAt: timestamp('used_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const userMfa = pgTable('user_mfa', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  secret: text('secret').notNull(),
+  isEnabled: boolean('is_enabled').default(false).notNull(),
+  recoveryCodes: jsonb('recovery_codes').default([]).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  type: text('type').default('info').notNull(), // 'task', 'approval', 'system', 'mention'
+  link: text('link'),
+  isRead: boolean('is_read').default(false).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});

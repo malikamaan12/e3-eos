@@ -39,7 +39,7 @@ export async function runWorker() {
   const port = parseInt(process.env.PORT || '8080', 10);
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', service: 'e3-eos-worker' }));
+    res.end(JSON.stringify({ status: 'ok', service: 'e3-eos-worker', environment: process.env.ENVIRONMENT || 'staging' }));
   });
   server.listen(port, '0.0.0.0', () => {
     console.log(`[Worker] Health server listening on 0.0.0.0:${port}`);

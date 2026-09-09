@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { Tabs, Card, Badge, Button, EmptyState } from '../components/DesignSystem.js';
+import { Tabs, Card, Badge, Button, EmptyState, Modal, Textarea } from '../components/DesignSystem.js';
 
 export const MyWorkView: React.FC = () => {
   const { currentUser, currentLanguage, apiClient, selectedProjectId, navigate, refreshTrigger, triggerRefresh } = useEosContext();
-  const [activeTab, setActiveTab] = useState<string>('tasks');
+  const [activeTab, setActiveTab] = useState<string>('action');
   const [tasks, setTasks] = useState<any[]>([]);
   const [approvals, setApprovals] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [taskFilter, setTaskFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [approvalFilter, setApprovalFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+
+  // Decision Modal State
+  const [decidingApproval, setDecidingApproval] = useState<any | null>(null);
+  const [decisionOutcome, setDecisionOutcome] = useState<'approved' | 'rejected'>('approved');
+  const [decisionComment, setDecisionComment] = useState<string>('');
+  const [isSubmittingDecision, setIsSubmittingDecision] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -15,8 +23,8 @@ export const MyWorkView: React.FC = () => {
       setLoading(true);
       try {
         const [taskList, apprList] = await Promise.all([
-          apiClient.getTasks(selectedProjectId),
-          apiClient.getApprovalRequests(selectedProjectId),
+          apiClient.getTasks(selectedProjectId).catch(() => []),
+          apiClient.getApprovalRequests(selectedProjectId).catch(() => []),
         ]);
         if (isMounted) {
           setTasks(taskList || []);
@@ -42,22 +50,80 @@ export const MyWorkView: React.FC = () => {
     }
   };
 
+  const handleDecideApproval = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!decidingApproval) return;
+    setIsSubmittingDecision(true);
+    try {
+      await apiClient.decideApproval(selectedProjectId, decidingApproval.id, {
+        outcome: decisionOutcome,
+        comment: decisionComment || (decisionOutcome === 'approved' ? 'Approved in My Work' : 'Rework requested'),
+      });
+      setDecidingApproval(null);
+      setDecisionComment('');
+      triggerRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Failed to record decision');
+    } finally {
+      setIsSubmittingDecision(false);
+    }
+  };
+
+  // Filtered lists
+  const pendingApprovals = useMemo(() => approvals.filter(a => a.status === 'pending'), [approvals]);
+  const rejectedApprovals = useMemo(() => approvals.filter(a => a.status === 'rejected'), [approvals]);
+  const activeTasks = useMemo(() => tasks.filter(t => !(t.isCompleted || t.state === 'completed' || t.status === 'completed')), [tasks]);
+  const completedTasks = useMemo(() => tasks.filter(t => t.isCompleted || t.state === 'completed' || t.status === 'completed'), [tasks]);
+
+  const filteredTasks = useMemo(() => {
+    if (taskFilter === 'active') return activeTasks;
+    if (taskFilter === 'completed') return completedTasks;
+    return tasks;
+  }, [tasks, taskFilter, activeTasks, completedTasks]);
+
+  const filteredApprovals = useMemo(() => {
+    if (approvalFilter === 'all') return approvals;
+    return approvals.filter(a => a.status === approvalFilter);
+  }, [approvals, approvalFilter]);
+
   const tabs = [
-    { id: 'action', label: currentLanguage === 'ar' ? 'يتطلب إجراءً' : 'Needs Action', badge: approvals.filter(a => a.status === 'pending').length },
-    { id: 'tasks', label: currentLanguage === 'ar' ? 'مهامي' : 'My Tasks', badge: tasks.length },
-    { id: 'approvals', label: currentLanguage === 'ar' ? 'الموافقات' : 'Approvals', badge: approvals.length },
-    { id: 'upcoming', label: currentLanguage === 'ar' ? 'المواعيد القادمة' : 'Upcoming Milestones' },
-    { id: 'activity', label: currentLanguage === 'ar' ? 'آخر التحديثات' : 'Recently Updated' },
+    {
+      id: 'action',
+      label: currentLanguage === 'ar' ? 'يتطلب إجراءً' : 'Needs Action',
+      badge: pendingApprovals.length + (activeTasks.length > 0 ? activeTasks.length : 0),
+    },
+    {
+      id: 'assigned',
+      label: currentLanguage === 'ar' ? 'مسندة إليّ' : 'Assigned to Me',
+      badge: activeTasks.length,
+    },
+    {
+      id: 'approvals',
+      label: currentLanguage === 'ar' ? 'الموافقات' : 'Approvals',
+      badge: approvals.length,
+    },
+    {
+      id: 'blocked',
+      label: currentLanguage === 'ar' ? 'معطّلة / معلقة' : 'Blocked',
+      badge: rejectedApprovals.length,
+    },
+    {
+      id: 'upcoming',
+      label: currentLanguage === 'ar' ? 'المواعيد القادمة' : 'Upcoming',
+    },
   ];
 
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
-            {currentLanguage === 'ar' ? 'مهامي ومسؤولياتي' : 'My Work'}
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+              {currentLanguage === 'ar' ? 'مهامي ومسؤولياتي' : 'My Work'}
+            </h1>
+            <Badge variant="neutral">Qatar Live Operations</Badge>
+          </div>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
             {currentLanguage === 'ar'
               ? `المهام والموافقات والقرارات المسندة إلى: ${currentUser.name}`
@@ -69,208 +135,534 @@ export const MyWorkView: React.FC = () => {
           <Button variant="secondary" size="sm" onClick={triggerRefresh}>
             🔄 Refresh
           </Button>
-          <Button variant="primary" size="sm" onClick={() => navigate('/projects')}>
-            Browse Projects
+          <Button variant="primary" size="sm" onClick={() => navigate(`/projects/${selectedProjectId}`)}>
+            Open Cockpit
           </Button>
         </div>
       </div>
 
-      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      {/* Tabs */}
+      <Tabs tabs={tabs} activeTab={activeTab === 'tasks' ? 'assigned' : activeTab} onChange={setActiveTab} />
 
       {/* Tab 1: Needs Action */}
       {activeTab === 'action' && (
-        <div>
-          {approvals.filter(a => a.status === 'pending').length === 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {pendingApprovals.length === 0 && activeTasks.length === 0 ? (
             <EmptyState
               icon="✅"
               title="All caught up!"
-              description="No immediate approvals or blocked decisions waiting for your signature."
+              description="No immediate approvals or blocked decisions waiting for your action."
             />
           ) : (
-            approvals.filter(a => a.status === 'pending').map((appr) => (
-              <Card key={appr.id} style={{ borderLeft: '4px solid #f59e0b' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <Badge variant="warning">Approval Pending</Badge>
-                      <span style={{ fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>{appr.id}</span>
-                    </div>
-                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                      {appr.reason || `Approval Request for ${appr.targetType}`}
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                      Target Hash: <span style={{ fontFamily: 'monospace' }}>{appr.targetHash?.slice(0, 16)}...</span> • Required Role: {appr.requiredRole || 'Executive'}
-                    </div>
+            <>
+              {/* Approvals requiring signature */}
+              {pendingApprovals.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    ⚠️ Approvals Awaiting Review ({pendingApprovals.length})
                   </div>
-                  <Button variant="primary" size="sm" onClick={() => navigate(`/projects/${selectedProjectId}`)}>
-                    Review in Cockpit
-                  </Button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {pendingApprovals.map((appr) => (
+                      <Card key={appr.id} style={{ borderLeft: '4px solid #f59e0b', padding: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                          <div style={{ flex: 1, minWidth: '240px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                              <Badge variant="warning">Awaiting Sign-off</Badge>
+                              <span style={{ fontSize: '12px', color: '#64748b', fontFamily: 'monospace' }}>{appr.id}</span>
+                              <Badge variant="neutral">{appr.requiredRole || 'Executive'}</Badge>
+                            </div>
+                            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                              {appr.reason || `Approval Request for ${appr.targetType}`}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+                              Target: <strong>{appr.targetType}</strong> • Project: <strong>Qatar Tourism</strong> • Hash: <span style={{ fontFamily: 'monospace' }}>{appr.targetHash ? appr.targetHash.slice(0, 16) + '...' : 'Verified SHA-256'}</span>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <Button
+                              id={`quick-reject-btn-${appr.id}`}
+                              size="sm"
+                              variant="danger"
+                              onClick={() => {
+                                setDecidingApproval(appr);
+                                setDecisionOutcome('rejected');
+                                setDecisionComment('Clarification required on deliverables.');
+                              }}
+                            >
+                              Reject
+                            </Button>
+                            <Button
+                              id={`quick-approve-btn-${appr.id}`}
+                              size="sm"
+                              variant="success"
+                              onClick={() => {
+                                setDecidingApproval(appr);
+                                setDecisionOutcome('approved');
+                                setDecisionComment('Approved as submitted.');
+                              }}
+                            >
+                              ✓ Sign & Authorize
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => navigate(`/projects/${selectedProjectId}`)}
+                            >
+                              Cockpit
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
-              </Card>
-            ))
+              )}
+
+              {/* Active tasks requiring execution */}
+              {activeTasks.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e40af', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    📋 Active Action Items ({activeTasks.length})
+                  </div>
+                  <Card noPadding>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {activeTasks.map((task) => (
+                        <div
+                          key={task.id}
+                          id={`action-task-${task.id}`}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '12px 18px',
+                            borderBottom: '1px solid #f1f5f9',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <input
+                              type="checkbox"
+                              checked={false}
+                              onChange={() => handleToggleComplete(task.id, false)}
+                              style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                            />
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                                {task.title}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                                Assignee: {task.assignee || task.assigneeName || currentUser.name} • Stage: Concept Architecture
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            id={`action-complete-btn-${task.id}`}
+                            variant="success"
+                            size="sm"
+                            onClick={() => handleToggleComplete(task.id, false)}
+                          >
+                            ✓ Mark Done
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
 
-      {/* Tab 2: My Tasks */}
-      {activeTab === 'tasks' && (
-        <Card noPadding>
-          {tasks.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
-              No tasks currently assigned to you in the selected project.
-            </div>
-          ) : (
-            <div>
-              <div
+      {/* Tab 2: Assigned to Me */}
+      {(activeTab === 'assigned' || activeTab === 'tasks') && (
+        <div>
+          {/* Filter Bar */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            {(['all', 'active', 'completed'] as const).map((filter) => (
+              <button
+                key={filter}
+                id={`task-filter-${filter}`}
+                onClick={() => setTaskFilter(filter)}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '40px 1fr 140px 120px 140px',
-                  padding: '10px 18px',
-                  backgroundColor: '#f8fafc',
-                  borderBottom: '1px solid #e2e8f0',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#64748b',
-                  textTransform: 'uppercase',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  border: '1px solid',
+                  borderColor: taskFilter === filter ? '#2563eb' : '#cbd5e1',
+                  backgroundColor: taskFilter === filter ? '#eff6ff' : '#ffffff',
+                  color: taskFilter === filter ? '#1d4ed8' : '#64748b',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
                 }}
               >
-                <span>Done</span>
-                <span>Task Description</span>
-                <span>Assignee</span>
-                <span>Status</span>
-                <span style={{ textAlign: 'right' }}>Action</span>
+                {filter === 'all' ? `All Tasks (${tasks.length})` : filter === 'active' ? `Active (${activeTasks.length})` : `Completed (${completedTasks.length})`}
+              </button>
+            ))}
+          </div>
+
+          <Card noPadding>
+            {filteredTasks.length === 0 ? (
+              <div style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                No {taskFilter !== 'all' ? taskFilter : ''} tasks found for your profile.
               </div>
-              {tasks.map((task) => {
-                const completed = task.isCompleted || task.state === 'completed' || task.status === 'completed';
-                return (
-                  <div
-                    key={task.id}
-                    id={`task-row-${task.id}`}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '40px 1fr 140px 120px 140px',
-                      alignItems: 'center',
-                      padding: '12px 18px',
-                      borderBottom: '1px solid #f1f5f9',
-                      backgroundColor: completed ? '#f8fafc' : '#ffffff',
-                    }}
-                  >
-                    <div>
-                      <input
-                        type="checkbox"
-                        checked={completed}
-                        onChange={() => handleToggleComplete(task.id, completed)}
-                        disabled={completed}
-                        style={{ cursor: completed ? 'default' : 'pointer', width: '16px', height: '16px' }}
-                      />
-                    </div>
-                    <div>
-                      <span
-                        style={{
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          color: completed ? '#94a3b8' : '#0f172a',
-                          textDecoration: completed ? 'line-through' : 'none',
-                        }}
-                      >
-                        {task.title}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>
-                      {task.assignee || task.assigneeName || currentUser.name}
-                    </div>
-                    <div>
-                      <Badge variant={completed ? 'success' : 'info'}>
-                        {completed ? 'Completed' : 'Active'}
-                      </Badge>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      {!completed ? (
-                        <Button
-                          id={`complete-task-btn-${task.id}`}
-                          variant="success"
-                          size="sm"
-                          onClick={() => handleToggleComplete(task.id, false)}
+            ) : (
+              <div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '40px 1fr 160px 110px 130px',
+                    padding: '10px 18px',
+                    backgroundColor: '#f8fafc',
+                    borderBottom: '1px solid #e2e8f0',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  <span>Done</span>
+                  <span>Task Description</span>
+                  <span>Assignee</span>
+                  <span>Status</span>
+                  <span style={{ textAlign: 'right' }}>Action</span>
+                </div>
+                {filteredTasks.map((task) => {
+                  const completed = task.isCompleted || task.state === 'completed' || task.status === 'completed';
+                  return (
+                    <div
+                      key={task.id}
+                      id={`task-row-${task.id}`}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '40px 1fr 160px 110px 130px',
+                        alignItems: 'center',
+                        padding: '12px 18px',
+                        borderBottom: '1px solid #f1f5f9',
+                        backgroundColor: completed ? '#f8fafc' : '#ffffff',
+                      }}
+                    >
+                      <div>
+                        <input
+                          type="checkbox"
+                          checked={completed}
+                          onChange={() => handleToggleComplete(task.id, completed)}
+                          disabled={completed}
+                          style={{ cursor: completed ? 'default' : 'pointer', width: '16px', height: '16px' }}
+                        />
+                      </div>
+                      <div>
+                        <span
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: completed ? '#94a3b8' : '#0f172a',
+                            textDecoration: completed ? 'line-through' : 'none',
+                          }}
                         >
-                          ✓ Mark Done
-                        </Button>
-                      ) : (
-                        <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>Verified</span>
-                      )}
+                          {task.title}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                        {task.assignee || task.assigneeName || currentUser.name}
+                      </div>
+                      <div>
+                        <Badge variant={completed ? 'success' : 'info'}>
+                          {completed ? 'Completed' : 'Active'}
+                        </Badge>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        {!completed ? (
+                          <Button
+                            id={`complete-task-btn-${task.id}`}
+                            variant="success"
+                            size="sm"
+                            onClick={() => handleToggleComplete(task.id, false)}
+                          >
+                            ✓ Mark Done
+                          </Button>
+                        ) : (
+                          <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>Verified</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
       )}
 
       {/* Tab 3: Approvals */}
       {activeTab === 'approvals' && (
         <div>
-          {approvals.length === 0 ? (
-            <EmptyState icon="✍️" title="No Approvals Logged" description="No formal gate sign-off requests registered." />
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            {(['all', 'pending', 'approved', 'rejected'] as const).map((filter) => (
+              <button
+                key={filter}
+                id={`approval-filter-${filter}`}
+                onClick={() => setApprovalFilter(filter)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  border: '1px solid',
+                  borderColor: approvalFilter === filter ? '#2563eb' : '#cbd5e1',
+                  backgroundColor: approvalFilter === filter ? '#eff6ff' : '#ffffff',
+                  color: approvalFilter === filter ? '#1d4ed8' : '#64748b',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {filter === 'all' ? `All (${approvals.length})` : filter}
+              </button>
+            ))}
+          </div>
+
+          {filteredApprovals.length === 0 ? (
+            <EmptyState icon="✍️" title="No Approvals Found" description="No formal governance requests match your filter." />
           ) : (
-            approvals.map((appr) => (
-              <Card key={appr.id} style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>{appr.id}</span>
-                      <Badge variant={appr.status === 'approved' ? 'success' : appr.status === 'rejected' ? 'danger' : 'warning'}>
-                        {appr.status?.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                      Target: {appr.targetType} ({appr.targetId}) • Decider Role: {appr.requiredRole}
-                    </div>
-                    {appr.comment && (
-                      <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px', backgroundColor: '#fef2f2', padding: '6px 10px', borderRadius: '4px' }}>
-                        Decision Comment: "{appr.comment}"
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {filteredApprovals.map((appr) => (
+                <Card key={appr.id} style={{ borderLeft: `4px solid ${appr.status === 'approved' ? '#10b981' : appr.status === 'rejected' ? '#ef4444' : '#f59e0b'}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700, fontSize: '13px', fontFamily: 'monospace', color: '#2563eb' }}>{appr.id}</span>
+                        <Badge variant={appr.status === 'approved' ? 'success' : appr.status === 'rejected' ? 'danger' : 'warning'}>
+                          {appr.status?.toUpperCase()}
+                        </Badge>
+                        <Badge variant="neutral">{appr.requiredRole || 'Executive'}</Badge>
                       </div>
-                    )}
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '4px' }}>
+                        {appr.reason || `Sign-off for ${appr.targetType}`}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                        Target: {appr.targetType} ({appr.targetId}) • Role: {appr.requiredRole}
+                      </div>
+                      {appr.comment && (
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: appr.status === 'rejected' ? '#b91c1c' : '#15803d',
+                            backgroundColor: appr.status === 'rejected' ? '#fef2f2' : '#f0fdf4',
+                            border: `1px solid ${appr.status === 'rejected' ? '#fecaca' : '#bbf7d0'}`,
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            marginTop: '8px',
+                          }}
+                        >
+                          <strong>Reviewer Feedback:</strong> "{appr.comment}"
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      {appr.status === 'pending' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() => {
+                              setDecidingApproval(appr);
+                              setDecisionOutcome('rejected');
+                              setDecisionComment('Clarification required on scope.');
+                            }}
+                          >
+                            Reject
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="success"
+                            onClick={() => {
+                              setDecidingApproval(appr);
+                              setDecisionOutcome('approved');
+                              setDecisionComment('Approved as submitted.');
+                            }}
+                          >
+                            Approve
+                          </Button>
+                        </>
+                      )}
+                      <Button variant="secondary" size="sm" onClick={() => navigate(`/projects/${selectedProjectId}`)}>
+                        Cockpit
+                      </Button>
+                    </div>
                   </div>
-                  <Button variant="secondary" size="sm" onClick={() => navigate(`/projects/${selectedProjectId}`)}>
-                    View Cockpit
-                  </Button>
-                </div>
-              </Card>
-            ))
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       )}
 
-      {/* Tab 4: Upcoming */}
-      {activeTab === 'upcoming' && (
-        <Card title="Upcoming Deliverable Deadlines">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '6px' }}>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '13px', color: '#0f172a' }}>Stage 04: Concept Design Sign-off</div>
-                <div style={{ fontSize: '11px', color: '#64748b' }}>Client: Qatar Tourism Authority</div>
+      {/* Tab 4: Blocked */}
+      {activeTab === 'blocked' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {rejectedApprovals.length === 0 ? (
+            <EmptyState
+              icon="🎉"
+              title="No Blocked Items"
+              description="No rejected approvals, pending blockers, or gated issues currently impediment your workflow."
+            />
+          ) : (
+            <>
+              <div
+                style={{
+                  padding: '12px 16px',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '6px',
+                  color: '#991b1b',
+                  fontSize: '13px',
+                }}
+              >
+                <strong>Attention Required:</strong> You have {rejectedApprovals.length} item(s) flagged as rejected or blocked by governance controllers. Review comments below and take corrective action.
               </div>
-              <Badge variant="warning">Due Oct 15, 2026</Badge>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '6px' }}>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '13px', color: '#0f172a' }}>Stage 09: Site Logistics & DECC Bump-in</div>
-                <div style={{ fontSize: '11px', color: '#64748b' }}>Venue: Doha Exhibition & Conv. Center</div>
-              </div>
-              <Badge variant="info">Due Nov 10, 2026</Badge>
-            </div>
-          </div>
-        </Card>
+
+              {rejectedApprovals.map((item) => (
+                <Card key={item.id} style={{ borderLeft: '4px solid #ef4444' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <Badge variant="danger">REJECTED / BLOCKED</Badge>
+                        <span style={{ fontSize: '12px', fontFamily: 'monospace', color: '#64748b' }}>{item.id}</span>
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                        {item.reason}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          padding: '8px 12px',
+                          backgroundColor: '#fef2f2',
+                          border: '1px solid #fecaca',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          color: '#991b1b',
+                        }}
+                      >
+                        <strong>Governance Reason:</strong> "{item.comment || 'Revision requested prior to sign-off.'}"
+                      </div>
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => navigate(`/projects/${selectedProjectId}`)}
+                    >
+                      Rework in Cockpit
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </>
+          )}
+        </div>
       )}
 
-      {/* Tab 5: Recently Updated */}
-      {activeTab === 'activity' && (
-        <Card title="Audit Stream Summary">
-          <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.6 }}>
-            All operations, task completions, and governance signatures are immutably signed with SHA-256 hashes and stored in Cloud SQL PostgreSQL.
-          </div>
-        </Card>
+      {/* Tab 5: Upcoming */}
+      {activeTab === 'upcoming' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Card title="Upcoming Deliverable Deadlines & Milestones" subtitle="Project roadmap dates and operational venue commitments">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '14px 16px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Badge variant="info">Stage Gate 04</Badge>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                      Concept Design & Master Architectural Package
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                    Client: <strong>Qatar Tourism Authority</strong> • Venue: Doha Exhibition & Convention Center
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <Badge variant="warning">Due Oct 15, 2026</Badge>
+                  <div style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 600, marginTop: '2px' }}>
+                    35 Days Remaining
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '14px 16px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Badge variant="neutral">Milestone 09</Badge>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                      On-site Bump-in & Technical Rehearsal
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                    Location: <strong>DECC Hall 1 & 2</strong> • Workstream: Live Ops & AV Production
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <Badge variant="info">Due Nov 10, 2026</Badge>
+                  <div style={{ fontSize: '11px', color: '#2563eb', fontWeight: 600, marginTop: '2px' }}>
+                    61 Days Remaining
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
       )}
+
+      {/* Decision Modal */}
+      <Modal
+        isOpen={decidingApproval !== null}
+        onClose={() => setDecidingApproval(null)}
+        title={decisionOutcome === 'approved' ? 'Confirm Governance Approval' : 'Reject Approval with Feedback'}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setDecidingApproval(null)}>Cancel</Button>
+            <Button
+              id="submit-mywork-decision-btn"
+              variant={decisionOutcome === 'approved' ? 'success' : 'danger'}
+              isLoading={isSubmittingDecision}
+              onClick={handleDecideApproval}
+            >
+              {decisionOutcome === 'approved' ? 'Sign & Authorize' : 'Confirm Rejection'}
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleDecideApproval}>
+          <p style={{ fontSize: '13px', color: '#64748b', marginTop: 0 }}>
+            Request: <strong>{decidingApproval?.id}</strong> ({decidingApproval?.reason})
+          </p>
+          <Textarea
+            id="mywork-decision-comment-input"
+            label="Decision Comment / Feedback *"
+            value={decisionComment}
+            onChange={(e) => setDecisionComment(e.target.value)}
+            placeholder="Provide governance rationale..."
+            required
+          />
+        </form>
+      </Modal>
     </div>
   );
 };

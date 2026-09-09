@@ -19,8 +19,8 @@ provider "google" {
 
 variable "project_id" {
   type        = string
-  description = "Google Cloud Project ID for E3-EOS production"
-  default     = "e3-eos-production"
+  description = "Google Cloud Project ID for E3-EOS staging"
+  default     = "e3-eos-staging"
 }
 
 variable "region" {
@@ -44,7 +44,7 @@ variable "dr_region" {
 variable "environment" {
   type        = string
   description = "Environment name"
-  default     = "production"
+  default     = "staging"
 }
 
 # --- VPC & Private Networking ---

@@ -31,6 +31,13 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     isTaskModalOpen,
     isApprovalModalOpen,
     isAuditDrawerOpen,
+    isImpersonating,
+    impersonatedBy,
+    exitImpersonation,
+    notifications,
+    unreadNotificationCount,
+    markNotificationRead,
+    markAllNotificationsRead,
     toggleLanguage,
     toggleOffline,
     setActiveWorkspace,
@@ -44,6 +51,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
   } = useEosContext();
 
   const [createMenuOpen, setCreateMenuOpen] = useState<boolean>(false);
+  const [notificationsOpen, setNotificationsOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const organisations = Object.values(SYNTHETIC_ORGANISATIONS) as SyntheticOrganisation[];
@@ -76,6 +84,48 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         color: '#0f172a',
       }}
     >
+      {/* Impersonation Audit Banner */}
+      {isImpersonating && (
+        <div
+          id="impersonation-warning-banner"
+          style={{
+            backgroundColor: '#fef3c7',
+            color: '#92400e',
+            borderBottom: '1px solid #f59e0b',
+            padding: '8px 24px',
+            fontSize: '12px',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            zIndex: 110,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>⚠️</span>
+            <span>
+              <strong>Impersonation Audit Active:</strong> Operating as <strong>{currentUser.name}</strong> ({currentUser.role}). All mutations logged under <em>{impersonatedBy || 'Super Admin'}</em>.
+            </span>
+          </div>
+          <button
+            id="btn-exit-impersonation"
+            onClick={exitImpersonation}
+            style={{
+              backgroundColor: '#92400e',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '3px 10px',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Exit Impersonation
+          </button>
+        </div>
+      )}
+
       {/* Top Application Header */}
       <header
         style={{
@@ -90,8 +140,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
           zIndex: 100,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => navigate('/')}>
             <span
               style={{
                 backgroundColor: '#2563eb',
@@ -107,14 +157,34 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             </span>
             <span style={{ fontWeight: 700, fontSize: '16px', letterSpacing: '0.5px' }}>EOS</span>
           </div>
-          <span style={{ color: '#64748b', fontSize: '13px' }}>|</span>
+
+          {/* Staging Environment Badge */}
+          <span
+            id="staging-env-badge"
+            style={{
+              backgroundColor: '#d97706',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '10px',
+              padding: '2px 7px',
+              borderRadius: '4px',
+              letterSpacing: '0.8px',
+              textTransform: 'uppercase',
+              boxShadow: '0 0 8px rgba(217, 119, 6, 0.4)',
+            }}
+            title="Google Cloud Doha (me-central1)"
+          >
+            STAGING
+          </span>
+
+          <span style={{ color: '#475569', fontSize: '13px' }}>|</span>
           <span style={{ fontSize: '13px', color: '#94a3b8' }}>
             {currentLanguage === 'ar' ? 'نظام تشغيل الفعاليات المؤسسي' : 'Enterprise Event Operating System'}
           </span>
         </div>
 
         {/* Global Search Bar */}
-        <div style={{ flex: 1, maxWidth: '380px', margin: '0 20px' }}>
+        <div style={{ flex: 1, maxWidth: '340px', margin: '0 20px' }}>
           <input
             type="text"
             placeholder={currentLanguage === 'ar' ? 'بحث في المشاريع والمهام وأوامر الشراء...' : 'Search projects, tasks, approvals, POs...'}
@@ -134,10 +204,11 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         </div>
 
         {/* Header Right Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
           {/* + Create Dropdown */}
           <div style={{ position: 'relative' }}>
             <button
+              id="btn-create-menu"
               onClick={() => setCreateMenuOpen(!createMenuOpen)}
               style={{
                 backgroundColor: '#16a34a',
@@ -248,90 +319,137 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             )}
           </div>
 
-          {/* User Persona Switcher (Connected to Authentication Session) */}
-          <select
-            id="user-persona-select"
-            value={currentUser.email}
-            onChange={(e) => {
-              switchPersona(e.target.value);
-            }}
+          {/* In-App Notifications Bell */}
+          <div style={{ position: 'relative' }}>
+            <button
+              id="btn-notifications-bell"
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              style={{
+                backgroundColor: '#1e293b',
+                color: '#f8fafc',
+                border: '1px solid #334155',
+                borderRadius: '6px',
+                padding: '5px 9px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                position: 'relative',
+              }}
+              title="Notifications"
+            >
+              <span>🔔</span>
+              {unreadNotificationCount > 0 && (
+                <span
+                  id="notification-count-badge"
+                  style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    right: '-4px',
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    borderRadius: '10px',
+                    padding: '1px 5px',
+                    lineHeight: 1,
+                  }}
+                >
+                  {unreadNotificationCount}
+                </span>
+              )}
+            </button>
+
+            {notificationsOpen && (
+              <div
+                id="notifications-flyout"
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: direction === 'ltr' ? 0 : 'auto',
+                  left: direction === 'rtl' ? 0 : 'auto',
+                  marginTop: '8px',
+                  backgroundColor: '#ffffff',
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+                  border: '1px solid #cbd5e1',
+                  width: '320px',
+                  zIndex: 250,
+                  overflow: 'hidden',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
+                  <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>Notifications</span>
+                  {unreadNotificationCount > 0 && (
+                    <button
+                      onClick={() => markAllNotificationsRead()}
+                      style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
+                      No notifications
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          markNotificationRead(n.id);
+                          if (n.link) {
+                            navigate(n.link);
+                            setNotificationsOpen(false);
+                          }
+                        }}
+                        style={{
+                          padding: '10px 14px',
+                          borderBottom: '1px solid #f8fafc',
+                          backgroundColor: n.isRead ? '#ffffff' : '#f0f9ff',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '2px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: n.isRead ? 500 : 700, fontSize: '12px', color: '#0f172a' }}>
+                            {n.title}
+                          </span>
+                          {!n.isRead && (
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2563eb' }} />
+                          )}
+                        </div>
+                        <span style={{ fontSize: '11px', color: '#64748b' }}>{n.message}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* User Persona & Role Badge */}
+          <div
+            id="current-user-badge"
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
               backgroundColor: '#1e293b',
-              color: '#f8fafc',
               border: '1px solid #334155',
               borderRadius: '6px',
               padding: '4px 8px',
               fontSize: '12px',
-              fontWeight: 500,
-              cursor: 'pointer',
+              color: '#f8fafc',
             }}
           >
-            {CANONICAL_E3_USERS.map((user) => (
-              <option key={user.email} value={user.email}>
-                👤 {user.name} ({user.role})
-              </option>
-            ))}
-          </select>
-
-          {/* Offline Mode Toggle Button */}
-          <button
-            onClick={toggleOffline}
-            title={isOffline ? 'Offline Mode Active' : 'Online Mode'}
-            style={{
-              backgroundColor: isOffline ? '#ea580c' : '#1e293b',
-              color: '#ffffff',
-              border: `1px solid ${isOffline ? '#f97316' : '#334155'}`,
-              borderRadius: '6px',
-              padding: '4px 10px',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <span>{isOffline ? '📡' : '🟢'}</span>
-            <span>{isOffline ? (currentLanguage === 'ar' ? 'غير متصل' : 'Offline') : (currentLanguage === 'ar' ? 'متصل' : 'Online')}</span>
-            {isOffline && pendingMutations.length > 0 && (
-              <span
-                style={{
-                  backgroundColor: '#ffffff',
-                  color: '#ea580c',
-                  padding: '1px 5px',
-                  borderRadius: '10px',
-                  fontSize: '10px',
-                  fontWeight: 800,
-                }}
-              >
-                {pendingMutations.length}
-              </span>
-            )}
-          </button>
-
-          {/* OpenAPI Docs Link */}
-          <a
-            href="/api/v1/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open Interactive OpenAPI Documentation"
-            style={{
-              backgroundColor: '#1e293b',
-              color: '#38bdf8',
-              border: '1px solid #0284c7',
-              borderRadius: '6px',
-              padding: '4px 10px',
-              fontSize: '12px',
-              fontWeight: 600,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            <span>⚡</span>
-            <span>API Docs</span>
-          </a>
+            <span>👤</span>
+            <span style={{ fontWeight: 600 }}>{currentUser.name}</span>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>({currentUser.role || 'viewer'})</span>
+          </div>
 
           {/* User Account / Profile */}
           <button
@@ -350,7 +468,6 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               gap: '6px',
             }}
           >
-            <span>👤</span>
             <span>Profile</span>
           </button>
 
