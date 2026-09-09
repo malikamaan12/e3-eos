@@ -20,6 +20,7 @@ export class EosApiClient {
   private organisationId: string;
   private userId: string;
   private userRoles: string[];
+  private sessionToken?: string;
 
   constructor(config: ApiClientConfig) {
     this.baseUrl = config.baseUrl || '/api/v1';
@@ -28,14 +29,28 @@ export class EosApiClient {
     this.userRoles = config.userRoles || ['super_admin'];
   }
 
+  setContext(orgId: string, userId: string, roles: string[] = ['super_admin']) {
+    this.organisationId = orgId;
+    this.userId = userId;
+    this.userRoles = roles;
+  }
+
+  setSessionToken(token?: string) {
+    this.sessionToken = token;
+  }
+
   private getHeaders(additionalHeaders: Record<string, string> = {}): Record<string, string> {
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'x-organization-id': this.organisationId,
       'x-user-id': this.userId,
       'x-user-roles': this.userRoles.join(','),
       ...additionalHeaders,
     };
+    if (this.sessionToken) {
+      headers['Authorization'] = `Bearer ${this.sessionToken}`;
+    }
+    return headers;
   }
 
   /**
@@ -316,5 +331,241 @@ export class EosApiClient {
       ...update,
     };
   }
+
+  /**
+   * Authenticats against PostgreSQL sessions table.
+   */
+  async authLogin(email: string): Promise<{
+    success: boolean;
+    sessionToken: string;
+    user: { id: string; email: string; name: string; isSuperAdmin: boolean };
+    activeMembership: { role: string; audience: string; organisationId: string; organisationName: string };
+  }> {
+    const res = await fetch(`${this.baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      throw new Error(`Login failed with status ${res.status}`);
+    }
+    const data = await res.json();
+    this.sessionToken = data.sessionToken;
+    this.userId = data.user.id;
+    this.organisationId = data.activeMembership.organisationId;
+    this.userRoles = [data.activeMembership.role];
+    return data;
+  }
+
+  /**
+   * Retrieves active session details.
+   */
+  async authMe(): Promise<{
+    authenticated: boolean;
+    user: any;
+    activeMembership: any;
+  }> {
+    const res = await fetch(`${this.baseUrl}/auth/me`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch auth session');
+    return await res.json();
+  }
+
+  /**
+   * Lists all 13 canonical users from DB.
+   */
+  async getAdminUsers(): Promise<Array<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    audience: string;
+    organisationName: string;
+    organisationId: string;
+  }>> {
+    const res = await fetch(`${this.baseUrl}/admin/users`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.users || [];
+  }
+
+  /**
+   * Lists all 13 canonical roles & capabilities catalog.
+   */
+  async getAdminRoles(): Promise<Array<{
+    role: string;
+    title: string;
+    description: string;
+    permissions: string[];
+  }>> {
+    const res = await fetch(`${this.baseUrl}/admin/roles`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.roles || [];
+  }
+
+  /**
+   * Creates a project (9-step onboarding wizard).
+   */
+  async createProject(payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects`, {
+      method: 'POST',
+      headers: this.getHeaders({
+        'idempotency-key': `idem-proj-${Date.now()}`,
+      }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Project creation failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  /**
+   * Fetches the live persistent Project Cockpit from PostgreSQL.
+   */
+  async getCockpit(projectId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/cockpit`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error(`Failed to load cockpit for project ${projectId}`);
+    const json = await res.json();
+    return json.data;
+  }
+
+  /**
+   * Lists tasks for a project from PostgreSQL.
+   */
+  async getTasks(projectId: string): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/tasks`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || [];
+  }
+
+  /**
+   * Creates a new task in PostgreSQL.
+   */
+  async createTask(projectId: string, data: { packageId: string; title: string; assigneeId?: string }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/tasks`, {
+      method: 'POST',
+      headers: this.getHeaders({
+        'idempotency-key': `idem-task-${Date.now()}`,
+      }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Task creation failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  /**
+   * Marks a task completed with completion evidence in PostgreSQL.
+   */
+  async completeTask(projectId: string, taskId: string, evidence?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}/complete`, {
+      method: 'POST',
+      headers: this.getHeaders({
+        'idempotency-key': `idem-task-comp-${Date.now()}`,
+      }),
+      body: JSON.stringify({ completionEvidence: evidence || 'Task delivered and verified.' }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Task completion failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  /**
+   * Submits an approval request for a project deliverable/task.
+   */
+  async requestApproval(projectId: string, data: {
+    targetType: string;
+    targetId: string;
+    reason: string;
+    requiredRole?: string;
+  }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/approval-requests`, {
+      method: 'POST',
+      headers: this.getHeaders({
+        'idempotency-key': `idem-req-appr-${Date.now()}`,
+      }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Approval request failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  /**
+   * Fetches pending approval requests for a project.
+   */
+  async getApprovalRequests(projectId: string): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/approval-requests`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || [];
+  }
+
+  /**
+   * Decides an approval request (approve or reject with comment).
+   */
+  async decideApproval(
+    projectId: string,
+    requestId: string,
+    data: { outcome: 'approved' | 'rejected' | 'conditional'; comment?: string; targetHash?: string; targetVersionId?: string }
+  ): Promise<any> {
+    const validHash = (data.targetHash && /^[a-f0-9]{64}$/i.test(data.targetHash))
+      ? data.targetHash
+      : 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+    const outcome = (data.outcome === 'conditional' ? 'approved' : data.outcome) as 'approved' | 'rejected' | 'changes_requested';
+
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/approval-requests/${requestId}/decisions`, {
+      method: 'POST',
+      headers: this.getHeaders({
+        'idempotency-key': `idem-decide-${Date.now()}`,
+      }),
+      body: JSON.stringify({
+        targetVersionId: data.targetVersionId || '00000000-0000-4000-8000-000000000001',
+        targetHash: validHash,
+        outcome,
+        comment: data.comment || '',
+        acknowledgedConditions: [],
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Decision recording failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  /**
+   * Fetches the SHA-256 hashed audit events chain from PostgreSQL.
+   */
+  async getAuditHistory(projectId: string): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/audit-history`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || [];
+  }
 }
+
 

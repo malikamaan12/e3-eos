@@ -20,3 +20,4 @@ export * from './schema/portfolio.js';
 export * from './schema/rollout.js';
 export * from './rls.js';
 export * from './seed.js';
+export * from './client.js';

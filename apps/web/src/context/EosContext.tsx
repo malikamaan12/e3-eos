@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import {
   SYNTHETIC_ORGANISATIONS,
-  SYNTHETIC_USERS,
   SYNTHETIC_PROJECTS,
   SyntheticOrganisation,
   SyntheticUser,
@@ -19,8 +18,12 @@ export interface PendingOfflineMutation {
   status: 'pending' | 'syncing' | 'synced' | 'failed';
 }
 
+export type { CanonicalUser } from './canonical-users.js';
+import { CANONICAL_E3_USERS } from './canonical-users.js';
+export { CANONICAL_E3_USERS };
+
 export interface EosContextValue {
-  currentUser: SyntheticUser;
+  currentUser: SyntheticUser & { role?: string };
   currentOrg: SyntheticOrganisation;
   currentLanguage: SupportedLocale;
   direction: 'ltr' | 'rtl';
@@ -29,7 +32,17 @@ export interface EosContextValue {
   selectedProjectId: string;
   projects: SyntheticProject[];
   pendingMutations: PendingOfflineMutation[];
-  setCurrentUser: (user: SyntheticUser) => void;
+  isNewProjectModalOpen: boolean;
+  isTaskModalOpen: boolean;
+  isApprovalModalOpen: boolean;
+  isAuditDrawerOpen: boolean;
+  refreshTrigger: number;
+  triggerRefresh: () => void;
+  setIsNewProjectModalOpen: (open: boolean) => void;
+  setIsTaskModalOpen: (open: boolean) => void;
+  setIsApprovalModalOpen: (open: boolean) => void;
+  setIsAuditDrawerOpen: (open: boolean) => void;
+  setCurrentUser: (user: SyntheticUser & { role?: string }) => void;
   setCurrentOrg: (org: SyntheticOrganisation) => void;
   setLanguage: (lang: SupportedLocale) => void;
   toggleLanguage: () => void;
@@ -68,13 +81,21 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return 'en';
   };
 
-  const [currentUser, setCurrentUser] = useState<SyntheticUser>(SYNTHETIC_USERS.superAdmin);
+  const [currentUser, setCurrentUser] = useState<SyntheticUser & { role?: string }>(CANONICAL_E3_USERS[3]);
   const [currentOrg, setCurrentOrg] = useState<SyntheticOrganisation>(SYNTHETIC_ORGANISATIONS.e3Internal);
   const [currentLanguage, setLanguageState] = useState<SupportedLocale>(getInitialLanguage);
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceType>(getInitialWorkspace);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(SYNTHETIC_PROJECTS.sampleExhibition.id);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('f1111111-1111-4111-8111-111111111111');
   const [pendingMutations, setPendingMutations] = useState<PendingOfflineMutation[]>([]);
+
+  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState<boolean>(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState<boolean>(false);
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState<boolean>(false);
+  const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState<boolean>(false);
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+
+  const triggerRefresh = () => setRefreshTrigger((prev) => prev + 1);
 
   const setActiveWorkspace = (ws: WorkspaceType) => {
     setActiveWorkspaceState(ws);
@@ -127,6 +148,16 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedProjectId,
         projects,
         pendingMutations,
+        isNewProjectModalOpen,
+        isTaskModalOpen,
+        isApprovalModalOpen,
+        isAuditDrawerOpen,
+        refreshTrigger,
+        triggerRefresh,
+        setIsNewProjectModalOpen,
+        setIsTaskModalOpen,
+        setIsApprovalModalOpen,
+        setIsAuditDrawerOpen,
         setCurrentUser,
         setCurrentOrg,
         setLanguage,

@@ -1,7 +1,7 @@
 # Acceptance Test Traceability Matrix (AT-001 to AT-092)
 
 **Release:** v1.0.0  
-**Generated:** 2026-09-09T12:00:51.704Z  
+**Generated:** 2026-09-09T12:54:22.359Z  
 **Compliance Status:** 100% COMPLETE (92/92 Verified)
 
 | ID | Phase | Scenario | Expected Invariant | Verified In | Status |
@@ -19,7 +19,7 @@
 | AT-011 | P00 | Node/Nest/Better Auth/Drizzle integration spike | Exact stable version lock successfully runs auth, MFA, migration, RLS, transaction and queue tests. | `apps/web/src/views/AdminStudioView.tsx` | **VERIFIED** |
 | AT-012 | P00 | Audit store privileged tamper simulation | Application edits denied; controlled privileged change detectable against external manifest; no untamperability claim. | `tests/infrastructure.test.ts`, `apps/api/src/governance/governance.controller.ts` | **VERIFIED** |
 | AT-013 | P01 | Five-stage and thirteen-stage projects compared | Shared procurement metrics use canonical events and definition versions, not stage names. | `packages/domain/src/stage-graph.test.ts`, `packages/domain/src/templates.ts` | **VERIFIED** |
-| AT-014 | P01 | Idea saved without client/venue/budget | Unknowns preserved; no fake zero/date/client inserted. | `tests/lifecycle-e2e.test.ts`, `apps/api/src/api.test.ts`, `apps/api/src/governance/governance.controller.ts`, `apps/api/src/phase01.test.ts`, `apps/api/src/projects/projects.controller.ts`, `apps/web/src/views/AdminStudioView.tsx`, `apps/web/src/views/ProjectWorkspaceView.tsx` | **VERIFIED** |
+| AT-014 | P01 | Idea saved without client/venue/budget | Unknowns preserved; no fake zero/date/client inserted. | `tests/lifecycle-e2e.test.ts`, `apps/api/src/api.test.ts`, `apps/api/src/governance/governance.controller.ts`, `apps/api/src/phase01.test.ts`, `apps/web/src/views/AdminStudioView.tsx`, `apps/web/src/views/ProjectWorkspaceView.tsx` | **VERIFIED** |
 | AT-015 | P01 | Lost tender is closed | Maturity closed and outcome lost, not delivered or won. | `tests/lifecycle-e2e.test.ts`, `apps/api/src/phase01.test.ts`, `apps/api/src/scope/scope.controller.ts` | **VERIFIED** |
 | AT-016 | P01 | Task completed without required acceptance | Completion visible while acceptance remains pending. | `apps/api/src/phase01.test.ts`, `apps/api/src/work/work.controller.ts` | **VERIFIED** |
 | AT-017 | P01 | Inspection stage removed | Applicable inspection obligation persists until authorised disposition; scope coverage does not falsely improve. | `apps/api/src/phase01.test.ts`, `packages/domain/src/stage-graph.test.ts`, `packages/domain/src/stage-graph.ts` | **VERIFIED** |

@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-09T12:00:51.702Z",
+  "verifiedAt": "2026-09-09T12:54:22.354Z",
   "totalScenarios": 92,
   "verifiedCount": 92,
   "coveragePercentage": "100.0%",
@@ -163,7 +163,6 @@
         "apps/api/src/api.test.ts",
         "apps/api/src/governance/governance.controller.ts",
         "apps/api/src/phase01.test.ts",
-        "apps/api/src/projects/projects.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
         "apps/web/src/views/ProjectWorkspaceView.tsx"
       ],

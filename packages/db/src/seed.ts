@@ -2,11 +2,12 @@ import {
   SYNTHETIC_ORGANISATIONS,
   SYNTHETIC_USERS,
   SYNTHETIC_PROJECTS,
-} from '../../test-fixtures/src/index.js';
+} from '@e3-eos/test-fixtures';
 import {
   ALL_STAGE_ACTIVITIES,
   STANDARD_THIRTEEN_STAGE_TEMPLATE,
-} from '../../domain/src/index.js';
+} from '@e3-eos/domain';
+import pg from 'pg';
 
 export interface SeedDataManifest {
   seededAt: string;
@@ -40,6 +41,22 @@ export interface SeedDataManifest {
     }>;
   };
 }
+
+export const CANONICAL_E3_ROLES_USERS = [
+  { id: '10000000-0000-4000-8000-000000000001', name: 'Tareq Al-Kuwari (Super Admin)', email: 'superadmin@e3.qa', role: 'super_admin', isSuperAdmin: true },
+  { id: '10000000-0000-4000-8000-000000000002', name: 'Nasser Al-Attiyah (Executive Partner)', email: 'executive@e3.qa', role: 'executive', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000003', name: 'Fatima Al-Sulaiti (Project Director)', email: 'director@e3.qa', role: 'project_director', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000004', name: 'Zaid Mansour (Lead Event PM)', email: 'pm@e3.qa', role: 'project_manager', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000005', name: 'Rashid Al-Hajri (Financial Controller)', email: 'finance@e3.qa', role: 'finance', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000006', name: 'Maryam Al-Kuwari (Procurement Lead)', email: 'procurement@e3.qa', role: 'procurement', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000007', name: 'Karim Haddad (Technical & Creative Director)', email: 'designer@e3.qa', role: 'design_production', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000008', name: 'Salem Al-Marri (Head of Live Operations)', email: 'ops@e3.qa', role: 'operations', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000009', name: 'Hamad Al-Khelaifi (Logistics & Fleet)', email: 'logistics@e3.qa', role: 'logistics', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000010', name: 'Dr. Sarah Ibrahim (HSE & Quality Inspector)', email: 'hse@e3.qa', role: 'hse_quality', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000011', name: 'Khalid Al-Thani (Commercial & Marketing)', email: 'commercial@e3.qa', role: 'marketing_commercial', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000012', name: 'Omar Farooq (Site Field Supervisor)', email: 'field@e3.qa', role: 'field_supervisor', isSuperAdmin: false },
+  { id: '20000000-0000-4000-8000-000000000013', name: 'Hessa Al-Nuaimi (Qatar Tourism Authority)', email: 'client@qatartourism.qa', role: 'client_user', isSuperAdmin: false, orgId: '22222222-2222-4222-8222-222222222222' },
+];
 
 /**
  * Builds the canonical synthetic development seed data manifest.
@@ -107,16 +124,115 @@ export function generateSeedManifest(): SeedDataManifest {
 
 export async function runSeed(): Promise<SeedDataManifest> {
   const manifest = generateSeedManifest();
-  console.log(`[E3-EOS DB Seed] Successfully generated synthetic development seed:`);
-  console.log(`  - Organisations: ${manifest.organisationsCount}`);
-  console.log(`  - Users: ${manifest.usersCount}`);
-  console.log(`  - Projects: ${manifest.projectsCount}`);
-  console.log(`  - Stage Instances: ${manifest.stageInstancesCount}`);
-  console.log(`  - Stage Activities: ${manifest.stageActivitiesCount}`);
+  console.log(`[E3-EOS DB Seed] Synthetic manifest generated (${manifest.projectsCount} projects, ${manifest.stageInstancesCount} stages).`);
+
+  // Attempt real database insert if database is reachable
+  const pool = new pg.Pool({
+    host: process.env.DB_HOST || 'localhost',
+    port: Number(process.env.DB_PORT) || 5432,
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+    database: process.env.DB_NAME || 'postgres',
+  });
+
+  try {
+    const client = await pool.connect();
+    console.log('[*] Connected to PostgreSQL. Seeding persistent tables...');
+
+    // 1. Seed Organisations
+    for (const org of Object.values(SYNTHETIC_ORGANISATIONS)) {
+      await client.query(`
+        INSERT INTO organisations (id, name, code, created_at, updated_at)
+        VALUES ($1, $2, $3, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET name = $2, code = $3;
+      `, [org.id, org.name, org.code]);
+    }
+
+    // 2. Seed Users & Accounts for 13 Roles
+    for (const u of CANONICAL_E3_ROLES_USERS) {
+      const orgId = (u as any).orgId || '11111111-1111-4111-8111-111111111111';
+      await client.query(`
+        INSERT INTO users (id, email, name, email_verified, is_super_admin, created_at, updated_at)
+        VALUES ($1, $2, $3, true, $4, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET email = $2, name = $3, is_super_admin = $4;
+      `, [u.id, u.email, u.name, u.isSuperAdmin]);
+
+      // Password account (password: 'Password123!')
+      await client.query(`
+        INSERT INTO accounts (id, user_id, account_id, provider_id, password, created_at)
+        VALUES (gen_random_uuid(), $1, $2, 'credential', 'Password123!', NOW())
+        ON CONFLICT DO NOTHING;
+      `, [u.id, u.email]);
+
+      // Membership
+      await client.query(`
+        INSERT INTO memberships (id, organisation_id, user_id, role, audience, is_revoked, created_at, updated_at)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, false, NOW(), NOW())
+        ON CONFLICT (organisation_id, user_id) DO UPDATE SET role = $3;
+      `, [orgId, u.id, u.role, (u as any).orgId ? 'client' : 'internal']);
+    }
+
+    // 3. Seed Qatar Tourism Tender Project & 13 Stages
+    const qatarProjectId = 'f1111111-1111-4111-8111-111111111111';
+    const e3OrgId = '11111111-1111-4111-8111-111111111111';
+    const pmUserId = '10000000-0000-4000-8000-000000000004'; // Zaid Mansour
+
+    await client.query(`
+      INSERT INTO projects (
+        id, organisation_id, project_code, title, description, origin_code, owner_id,
+        client_organisation_id, maturity, outcome, created_by, updated_by, created_at, updated_at
+      ) VALUES (
+        $1, $2, 'PRJ-2026-QATAR-01', 'Qatar Tourism Annual Exhibition & Gala 2026',
+        'Flagship cultural tender for Qatar Tourism with main stage, gala dinner, and immersive lighting installation.',
+        'TENDER_RFP', $3, '22222222-2222-4222-8222-222222222222', 'developing', 'undetermined', $3, $3, NOW(), NOW()
+      ) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title;
+    `, [qatarProjectId, e3OrgId, pmUserId]);
+
+    // Seed 13 Stages for Qatar Tourism Project
+    for (const stage of STANDARD_THIRTEEN_STAGE_TEMPLATE.stages) {
+      await client.query(`
+        INSERT INTO project_stage_instances (
+          id, project_id, organisation_id, stage_number, stage_name, status, progress_percent, created_at, updated_at
+        ) VALUES (
+          gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW()
+        ) ON CONFLICT (project_id, stage_number) DO UPDATE SET
+          stage_name = EXCLUDED.stage_name, status = EXCLUDED.status, progress_percent = EXCLUDED.progress_percent;
+      `, [
+        qatarProjectId,
+        e3OrgId,
+        stage.defaultOrder,
+        stage.name,
+        stage.defaultOrder === 1 ? 'in_progress' : 'not_started',
+        stage.defaultOrder === 1 ? 40 : 0
+      ]);
+    }
+
+    // Seed a sample Work Package and Task
+    const workPackageId = 'e1111111-1111-4111-8111-111111111111';
+    await client.query(`
+      INSERT INTO work_packages (id, organisation_id, project_id, name, owner_id, status, acceptance_state, created_at)
+      VALUES ($1, $2, $3, 'Stage Rigging & Structural Design', $4, 'active', 'pending', NOW())
+      ON CONFLICT (id) DO NOTHING;
+    `, [workPackageId, e3OrgId, qatarProjectId, pmUserId]);
+
+    const taskId = 'd1111111-1111-4111-8111-111111111111';
+    await client.query(`
+      INSERT INTO task_instances (id, package_id, organisation_id, project_id, title, assignee_id, state, is_completed, created_at)
+      VALUES ($1, $2, $3, $4, 'Finalize CAD Structural Rigging Calculations', '10000000-0000-4000-8000-000000000007', 'active', false, NOW())
+      ON CONFLICT (id) DO NOTHING;
+    `, [taskId, workPackageId, e3OrgId, qatarProjectId]);
+
+    console.log('[*] ✓ Successfully populated persistent PostgreSQL tables with 13 roles, Qatar Tourism project, stages, and work tasks.');
+    client.release();
+  } catch (err: any) {
+    console.warn('[*] Database persistent seed notice:', err.message);
+  } finally {
+    await pool.end();
+  }
+
   return manifest;
 }
 
 if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
   runSeed().catch(console.error);
 }
-

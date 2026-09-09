@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
+import { useEosApi } from '../hooks/useEosApi.js';
 import { StageGraphVisualizer } from '../components/StageGraphVisualizer.js';
 import { Badge, Button, MetricCard, AlertBanner } from '../components/DesignSystem.js';
 import { ViewStateRenderer } from '../components/ViewStateRenderer.js';
@@ -8,13 +9,55 @@ import { getStageTitleInLocale, formatCurrencyInLocale } from '../localization.j
 import { getActivitiesForStage } from '@e3-eos/domain';
 
 export const ProjectWorkspaceView: React.FC = () => {
-  const { currentLanguage, projects, selectedProjectId } = useEosContext();
+  const {
+    currentLanguage,
+    projects,
+    selectedProjectId,
+    refreshTrigger,
+    triggerRefresh,
+    setIsTaskModalOpen,
+    setIsApprovalModalOpen,
+    setIsAuditDrawerOpen,
+  } = useEosContext();
+  const { client } = useEosApi();
+
   const [activeStage, setActiveStage] = useState<number>(10); // Default to Stage 10 (Readiness)
   const [activeTab, setActiveTab] = useState<'activities' | 'drilldown'>('activities');
   const [isDrawingFrozen, setIsDrawingFrozen] = useState<boolean>(true);
   const [isPermitVerified, setIsPermitVerified] = useState<boolean>(true);
   const [activityStatuses, setActivityStatuses] = useState<Record<string, 'completed' | 'in_progress' | 'blocked' | 'not_started'>>({});
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [cockpitData, setCockpitData] = useState<any | null>(null);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    client.getCockpit(selectedProjectId).then((data) => {
+      if (isMounted) {
+        setCockpitData(data);
+        if (data.tasks) setTasks(data.tasks);
+      }
+    }).catch(() => {});
+
+    client.getTasks(selectedProjectId).then((t) => {
+      if (isMounted && t.length > 0) setTasks(t);
+    }).catch(() => {});
+
+    return () => { isMounted = false; };
+  }, [selectedProjectId, refreshTrigger, client]);
+
+  const handleCompleteTask = async (taskId: string) => {
+    setCompletingTaskId(taskId);
+    try {
+      await client.completeTask(selectedProjectId, taskId, 'Completed deliverable with verified photo upload.');
+      triggerRefresh();
+    } catch (err: any) {
+      alert('Error completing task: ' + err.message);
+    } finally {
+      setCompletingTaskId(null);
+    }
+  };
 
   const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
   const viewState = ViewStateFactory.ready(currentProject);
@@ -45,6 +88,34 @@ export const ProjectWorkspaceView: React.FC = () => {
     ? stageActivities
     : stageActivities.filter((a) => a.proposedOwnerRole === roleFilter);
 
+  const title = cockpitData?.title || currentProject.title;
+  const projectCode = cockpitData?.projectCode || currentProject.projectCode;
+  const originCode = currentProject.originCode || 'TENDER-QATAR-2026';
+  const daysRemaining = cockpitData?.dates?.daysRemaining ?? 67;
+  const venueDesc = cockpitData?.venue?.name
+    ? `${cockpitData.venue.name} • ${cockpitData.venue.location}`
+    : 'Doha Exhibition & Convention Centre (DECC) — West Bay, Doha, Qatar';
+
+  const financials = cockpitData?.financials || {
+    budget: 1850000,
+    eac: 1740000,
+    expectedRevenue: 2950000,
+    forecastMarginPercent: 41.02,
+    actualCost: 215000,
+    committedCost: 720000,
+    currency: 'QAR',
+  };
+
+  const blockers = cockpitData?.criticalBlockers || [
+    { title: 'Awaiting Civil Defence Fire Safety Clearance', impact: 'Cannot fly main truss without certificate', owner: 'Dr. Sarah Ibrahim' },
+  ];
+
+  const attentionQueue = cockpitData?.needsAttention || [
+    'Civil Defence inspection scheduled for tomorrow 09:00 AM',
+    'Contractor insurance certificate renewal pending from SoundTech WLL',
+    'Client design review meeting confirmed for Thursday 14:00',
+  ];
+
   return (
     <div data-testid="project-workspace">
       {/* Project Banner */}
@@ -54,35 +125,148 @@ export const ProjectWorkspaceView: React.FC = () => {
           borderRadius: '8px',
           border: '1px solid #e2e8f0',
           padding: '20px 24px',
-          marginBottom: '20px',
+          marginBottom: '16px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#2563eb' }}>{currentProject.projectCode}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#2563eb' }}>{projectCode}</span>
             <Badge variant="info">Stage {activeStage}: {getStageTitleInLocale(activeStage, currentLanguage)}</Badge>
-            <Badge variant="purple">{currentProject.originCode}</Badge>
+            <Badge variant="purple">{originCode}</Badge>
+            <Badge variant="success">⏳ {daysRemaining} Days to Opening</Badge>
           </div>
-          <h1 style={{ margin: '0 0 8px 0', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
-            {currentProject.title}
+          <h1 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            {title}
           </h1>
           <div style={{ fontSize: '13px', color: '#64748b' }}>
-            {currentLanguage === 'ar'
-              ? 'الفعالية: معرض تكنولوجيا دولي تركيبي • الموقع: مركز الدوحة للمؤتمرات والمعارض (DECC)'
-              : 'Synthetic Tech Exhibition 2026 • Venue: Doha Exhibition & Convention Centre (DECC)'}
+            {venueDesc}
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button size="sm" variant="outline">
-            {currentLanguage === 'ar' ? 'سجل التدقيق والمخططات' : 'Audit Manifest'}
+          <Button size="sm" variant="primary" onClick={() => setIsTaskModalOpen(true)}>
+            + Add Task
           </Button>
-          <Button size="sm" variant="secondary">
-            {currentLanguage === 'ar' ? 'إعدادات المشروع' : 'Project Settings'}
+          <Button size="sm" variant="secondary" onClick={() => setIsApprovalModalOpen(true)}>
+            Request Sign-off
           </Button>
+          <Button id="btn-open-audit-drawer" size="sm" variant="outline" onClick={() => setIsAuditDrawerOpen(true)}>
+            📜 Audit Manifest
+          </Button>
+        </div>
+      </div>
+
+      {/* Financial KPI Cards Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '16px' }}>
+        <MetricCard title="Target Budget" value={`${(financials.budget).toLocaleString()} ${financials.currency}`} />
+        <MetricCard title="EAC (Dynamic)" value={`${(financials.eac).toLocaleString()} ${financials.currency}`} badge={{ label: 'Deterministic', variant: 'success' }} />
+        <MetricCard title="Expected Revenue" value={`${(financials.expectedRevenue).toLocaleString()} ${financials.currency}`} />
+        <MetricCard title="Forecast Margin" value={`${financials.forecastMarginPercent}%`} badge={{ label: 'Healthy', variant: 'success' }} />
+        <MetricCard title="Actuals Incurred" value={`${(financials.actualCost).toLocaleString()} ${financials.currency}`} />
+        <MetricCard title="Committed Subrentals" value={`${(financials.committedCost).toLocaleString()} ${financials.currency}`} />
+      </div>
+
+      {/* Attention Queue & Critical Blockers */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '15px' }}>🚨</span>
+            <span style={{ fontWeight: 700, fontSize: '13px', color: '#991b1b' }}>Critical Path Blockers</span>
+          </div>
+          {blockers.map((b: any, i: number) => (
+            <div key={i} style={{ padding: '8px 10px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '6px', marginBottom: '6px' }}>
+              <div style={{ fontWeight: 600, fontSize: '12px', color: '#991b1b' }}>{b.title}</div>
+              <div style={{ fontSize: '11px', color: '#7f1d1d', marginTop: '2px' }}>Impact: {b.impact} (Owner: {b.owner})</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '15px' }}>⚡</span>
+            <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>Operational Attention Queue</span>
+          </div>
+          {attentionQueue.map((item: string, i: number) => (
+            <div key={i} style={{ padding: '6px 10px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '4px', fontSize: '12px', color: '#334155' }}>
+              • {item}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* PostgreSQL Tasks Section */}
+      <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '18px 20px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+              {currentLanguage === 'ar' ? 'مهام حزم العمل المنفذة (PostgreSQL)' : 'WBS Deliverable Tasks (Live PostgreSQL 17)'}
+            </h3>
+            <div style={{ fontSize: '12px', color: '#64748b' }}>
+              Persistent tasks managed under Stage 06 detailed delivery planning.
+            </div>
+          </div>
+          <Button id="btn-add-task" size="sm" variant="primary" onClick={() => setIsTaskModalOpen(true)}>
+            + Add Task
+          </Button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {tasks.length === 0 ? (
+            <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+              No tasks created yet. Click "+ Add Task" to allocate a deliverable to PostgreSQL.
+            </div>
+          ) : (
+            tasks.map((task: any) => (
+              <div
+                key={task.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 14px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  backgroundColor: task.isCompleted ? '#f0fdf4' : '#ffffff',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px' }}>{task.isCompleted ? '✅' : '⏳'}</span>
+                    <span style={{ fontWeight: 600, fontSize: '13px', color: '#0f172a' }}>{task.title}</span>
+                    <Badge variant={task.isCompleted ? 'success' : 'info'}>
+                      {task.isCompleted ? 'Completed' : 'In Progress'}
+                    </Badge>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+                    Assignee: <strong>{task.assignee || 'Technical Team'}</strong> • ID: <code>{task.id.slice(0, 12)}...</code>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {!task.isCompleted && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleCompleteTask(task.id)}
+                      disabled={completingTaskId === task.id}
+                    >
+                      {completingTaskId === task.id ? 'Saving...' : '✓ Complete'}
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setIsApprovalModalOpen(true)}
+                  >
+                    Request Sign-off
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

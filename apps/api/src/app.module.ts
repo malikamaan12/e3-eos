@@ -18,17 +18,22 @@ import { PortfolioController } from './portfolio/portfolio.controller.js';
 import { AiController } from './ai/ai.controller.js';
 import { RolloutController } from './rollout/rollout.controller.js';
 import { GovernanceController } from './governance/governance.controller.js';
+import { AuthController } from './auth/auth.controller.js';
+import { AdminController } from './admin/admin.controller.js';
 import { HealthController } from './common/health.controller.js';
 import { OpenApiController } from './common/openapi.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
 import { IdempotencyGuard } from './common/idempotency.guard.js';
 import { TenantIsolationGuard } from './common/tenant.guard.js';
+import { DbService } from './common/db.service.js';
 
 @Module({
   imports: [],
   controllers: [
     OpenApiController,
     HealthController,
+    AuthController,
+    AdminController,
     IdentityController,
     ProjectsController,
     GovernanceController,
@@ -49,6 +54,7 @@ import { TenantIsolationGuard } from './common/tenant.guard.js';
     AiController,
     RolloutController,
   ],
-  providers: [DocumentQuarantineService, IdempotencyGuard, TenantIsolationGuard],
+  providers: [DbService, DocumentQuarantineService, IdempotencyGuard, TenantIsolationGuard],
+  exports: [DbService],
 })
 export class AppModule {}

@@ -1,6 +1,6 @@
 # E3-EOS v1.0.0 — Automated Business Acceptance Regression Report
 
-**Execution Date:** 2026-09-09T11:59:43.366Z  
+**Execution Date:** 2026-09-09T12:42:09.111Z  
 **Git Commit Baseline:** `master`  
 **Governing Standard:** `specs/10_DECISIONS_RISKS_AND_GO_LIVE.md §6`  
 **Target Infrastructure:** Google Cloud Platform — Primary: Doha Region (`me-central1`) | Secondary DR: Optional Dammam (`me-central2`, subject to E3 governance approval)  
@@ -50,7 +50,7 @@
 
 - [S2.1] Design History Invariant: V1 preserved as immutable baseline when V2 submitted.
 - [S2.2] Data Isolation Invariant: Internal cost & margin strictly stripped from external client projection.
-- [S2.3] Reversal Invariant: Non-destructive compensating reversal comp-canc-1788955183359-67rge issued.
+- [S2.3] Reversal Invariant: Non-destructive compensating reversal comp-canc-1788957729109-9bvnt issued.
 - [S2.4] EAC Invariant: Variation order raised budget to 3.7M QAR, EAC tracked at 3500000.000000 QAR.
 - [S2.5] Three-Way Match Invariant: Payment blocked prior to supervisor physical acceptance.
 - [S2.6] Readiness Invariant: All critical checkpoints cleared (100% completion).

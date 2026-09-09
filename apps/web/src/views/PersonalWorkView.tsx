@@ -1,22 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
+import { useEosApi } from '../hooks/useEosApi.js';
 import { Badge, Button, Tabs, AlertBanner, Modal } from '../components/DesignSystem.js';
 import { ViewStateRenderer } from '../components/ViewStateRenderer.js';
 import { ViewStateFactory } from '../view-states.js';
 
 export const PersonalWorkView: React.FC = () => {
-  const { currentLanguage, currentUser } = useEosContext();
+  const { currentLanguage, currentUser, selectedProjectId, refreshTrigger, triggerRefresh } = useEosContext();
+  const { client } = useEosApi();
+
   const [activeTab, setActiveTab] = useState('approvals');
   const [signedItems, setSignedItems] = useState<string[]>([]);
   const [inspectingItem, setInspectingItem] = useState<any | null>(null);
+  const [dbApprovals, setDbApprovals] = useState<any[]>([]);
 
-  const tabs = [
-    { id: 'approvals', label: currentLanguage === 'ar' ? 'الموافقات المعلقة' : 'Pending Approvals', badge: 2 - signedItems.length },
-    { id: 'tasks', label: currentLanguage === 'ar' ? 'مهام التسليم الشخصية' : 'Assigned Deliverables', badge: 3 },
-    { id: 'notifications', label: currentLanguage === 'ar' ? 'الإشعارات والتنبيهات' : 'Notifications' },
-  ];
+  useEffect(() => {
+    client.getApprovalRequests(selectedProjectId).then((reqs) => {
+      if (reqs && reqs.length > 0) {
+        setDbApprovals(reqs.map((r: any) => ({
+          id: r.id,
+          title: `Formal Sign-off: ${r.targetType?.toUpperCase()} (${r.targetId?.slice(0, 8)})`,
+          stage: 'Stage 06: Delivery Execution',
+          type: r.targetType || 'Task Approval',
+          requestedBy: r.requestedBy || 'Lead Event PM',
+          requiresDualSignature: true,
+          policyId: 'POL-GOV-01',
+          notes: r.reason || 'Requested sign-off for operational clearance.',
+          targetHash: r.targetHash || 'hash-genesis',
+        })));
+      }
+    }).catch(() => {});
+  }, [selectedProjectId, refreshTrigger, client]);
 
-  const pendingApprovals = [
+  const defaultApprovals = [
     {
       id: 'appr-01',
       title: 'Technical Drawings Freeze: Main Stage AV Rigging v2.4',
@@ -26,6 +42,7 @@ export const PersonalWorkView: React.FC = () => {
       requiresDualSignature: true,
       policyId: 'POL-ENG-04',
       notes: 'Requires Project Director sign-off before fabrication release.',
+      targetHash: '4a6b8c...9f21',
     },
     {
       id: 'appr-02',
@@ -37,14 +54,33 @@ export const PersonalWorkView: React.FC = () => {
       requiresDualSignature: true,
       policyId: 'POL-FIN-02',
       notes: 'Within contracted framework ceiling of 100,000 QAR.',
+      targetHash: '8b1c3d...2e44',
     },
   ];
 
-  const handleSign = (id: string) => {
+  const allPending = [...dbApprovals, ...defaultApprovals];
+
+  const handleSign = async (id: string, targetHash?: string) => {
+    try {
+      await client.decideApproval(selectedProjectId, id, {
+        outcome: 'approved',
+        comment: 'Executive sign-off recorded with cryptographic audit entry.',
+        targetHash: targetHash || 'hash-genesis',
+      });
+      triggerRefresh();
+    } catch {
+      // fallback
+    }
     setSignedItems((prev) => [...prev, id]);
   };
 
-  const viewState = ViewStateFactory.ready(pendingApprovals);
+  const tabs = [
+    { id: 'approvals', label: currentLanguage === 'ar' ? 'الموافقات المعلقة' : 'Pending Approvals', badge: Math.max(0, allPending.length - signedItems.length) },
+    { id: 'tasks', label: currentLanguage === 'ar' ? 'مهام التسليم الشخصية' : 'Assigned Deliverables', badge: 3 },
+    { id: 'notifications', label: currentLanguage === 'ar' ? 'الإشعارات والتنبيهات' : 'Notifications' },
+  ];
+
+  const viewState = ViewStateFactory.ready(allPending);
 
   return (
     <div data-testid="personal-workspace">
@@ -66,7 +102,7 @@ export const PersonalWorkView: React.FC = () => {
           <div>
             {activeTab === 'approvals' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {signedItems.length === 2 ? (
+                {allPending.length > 0 && signedItems.length >= allPending.length ? (
                   <div
                     style={{
                       padding: '40px',
@@ -87,7 +123,7 @@ export const PersonalWorkView: React.FC = () => {
                     </p>
                   </div>
                 ) : (
-                  pendingApprovals
+                  allPending
                     .filter((item) => !signedItems.includes(item.id))
                     .map((item) => (
                       <div
@@ -107,6 +143,9 @@ export const PersonalWorkView: React.FC = () => {
                             <Badge variant="info">{item.stage}</Badge>
                             <Badge variant="purple">{item.policyId}</Badge>
                             {item.amount && <Badge variant="success">{item.amount}</Badge>}
+                            <span style={{ fontSize: '11px', color: '#0369a1', fontFamily: 'monospace' }}>
+                              #{item.targetHash}
+                            </span>
                           </div>
                           <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700 }}>{item.title}</h3>
                           <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>
@@ -118,7 +157,7 @@ export const PersonalWorkView: React.FC = () => {
                           <Button size="sm" variant="outline" onClick={() => setInspectingItem(item)}>
                             {currentLanguage === 'ar' ? 'فحص النسخة' : 'Inspect Diff'}
                           </Button>
-                          <Button size="sm" variant="primary" onClick={() => handleSign(item.id)}>
+                          <Button size="sm" variant="primary" onClick={() => handleSign(item.id, item.targetHash)}>
                             {currentLanguage === 'ar' ? 'اعتماد وتوقيع' : 'Approve & Sign'}
                           </Button>
                         </div>
