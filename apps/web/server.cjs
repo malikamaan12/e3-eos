@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
+const API_URL = process.env.API_URL;
 const DIST_DIR = path.join(__dirname, 'dist');
 
 const MIME_TYPES = {
@@ -24,6 +25,33 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
+  // Reverse proxy /api requests to backend Cloud Run if API_URL is set
+  if (API_URL && req.url && (req.url.startsWith('/api/') || req.url === '/api')) {
+    const targetUrl = new URL(req.url, API_URL);
+    const client = targetUrl.protocol === 'https:' ? https : http;
+    const proxyReq = client.request(
+      targetUrl,
+      {
+        method: req.method,
+        headers: {
+          ...req.headers,
+          host: targetUrl.host,
+        },
+      },
+      (proxyRes) => {
+        res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
+        proxyRes.pipe(res);
+      }
+    );
+    proxyReq.on('error', (proxyErr) => {
+      console.error('[API Proxy Error]:', proxyErr.message);
+      res.writeHead(502, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Bad Gateway', message: proxyErr.message }));
+    });
+    req.pipe(proxyReq);
+    return;
+  }
+
   let reqPath = req.url ? req.url.split('?')[0] : '/';
   if (reqPath === '/') reqPath = '/index.html';
 

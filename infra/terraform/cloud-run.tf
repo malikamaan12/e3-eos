@@ -45,6 +45,34 @@ resource "google_cloud_run_v2_service" "api_service" {
         name  = "REGION"
         value = var.region
       }
+      env {
+        name  = "DB_HOST"
+        value = google_sql_database_instance.postgres_instance.private_ip_address
+      }
+      env {
+        name  = "DB_PORT"
+        value = "5432"
+      }
+      env {
+        name  = "DB_USER"
+        value = google_sql_user.app_user.name
+      }
+      env {
+        name  = "DB_NAME"
+        value = google_sql_database.database.name
+      }
+      env {
+        name  = "DB_PASSWORD"
+        value = google_secret_manager_secret_version.db_password_version.secret_data
+      }
+      env {
+        name  = "REDIS_HOST"
+        value = google_redis_instance.redis_cache.host
+      }
+      env {
+        name  = "REDIS_PORT"
+        value = tostring(google_redis_instance.redis_cache.port)
+      }
 
       startup_probe {
         http_get {
@@ -99,6 +127,10 @@ resource "google_cloud_run_v2_service" "web_service" {
         name  = "NODE_ENV"
         value = "production"
       }
+      env {
+        name  = "API_URL"
+        value = google_cloud_run_v2_service.api_service.uri
+      }
     }
   }
 }
@@ -146,4 +178,28 @@ resource "google_cloud_run_v2_service" "worker_service" {
       }
     }
   }
+}
+
+# --- IAM: Allow unauthenticated public access to Web & API ---
+resource "google_cloud_run_v2_service_iam_member" "api_public" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_service.api_service.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+resource "google_cloud_run_v2_service_iam_member" "web_public" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_service.web_service.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+# --- IAM: Allow Runner Service Account to access Secret Manager ---
+resource "google_project_iam_member" "runner_secret_accessor" {
+  project = var.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${google_service_account.eos_runner.email}"
 }
