@@ -21,11 +21,12 @@ echo "==========================================================================
 echo ""
 
 # Step 1: Pre-flight Verification Gate
-echo "[1/6] Running Local Pre-Flight Verification Gate..."
+echo "[1/6] Building workspace packages & running pre-flight gate..."
 if ! command -v pnpm >/dev/null 2>&1; then
     echo "pnpm not found. Installing pnpm..."
     npm install -g pnpm || corepack enable
 fi
+pnpm build
 pnpm verify:preflight
 echo ">>> Pre-flight verification PASSED."
 echo ""
