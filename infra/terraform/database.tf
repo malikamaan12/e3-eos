@@ -34,7 +34,9 @@ resource "google_sql_database_instance" "postgres_instance" {
     }
   }
 
-  deletion_protection = true
+  deletion_protection = false
+
+  depends_on = [google_service_networking_connection.private_vpc_connection]
 }
 
 resource "google_sql_database" "database" {
@@ -45,9 +47,5 @@ resource "google_sql_database" "database" {
 resource "google_sql_user" "app_user" {
   name     = "eos_app"
   instance = google_sql_database_instance.postgres_instance.name
-  password = data.google_secret_manager_secret_version.db_password_val.secret_data
-}
-
-data "google_secret_manager_secret_version" "db_password_val" {
-  secret = google_secret_manager_secret.db_password.id
+  password = google_secret_manager_secret_version.db_password_version.secret_data
 }

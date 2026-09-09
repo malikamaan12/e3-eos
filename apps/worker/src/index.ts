@@ -30,8 +30,25 @@ export class OutboxProcessor {
   }
 }
 
+import http from 'http';
+
 export async function runWorker() {
   console.log('E3-EOS Dedicated Worker initialized');
   const processor = new OutboxProcessor();
+
+  const port = parseInt(process.env.PORT || '8080', 10);
+  const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'e3-eos-worker' }));
+  });
+  server.listen(port, '0.0.0.0', () => {
+    console.log(`[Worker] Health server listening on 0.0.0.0:${port}`);
+  });
+
   return processor;
 }
+
+runWorker().catch((err) => {
+  console.error('[Worker Fatal Error]:', err);
+  process.exit(1);
+});

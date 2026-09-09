@@ -33,13 +33,13 @@ resource "google_cloud_run_v2_service" "api_service" {
         }
       }
 
+      ports {
+        container_port = 4000
+      }
+
       env {
         name  = "NODE_ENV"
         value = "production"
-      }
-      env {
-        name  = "PORT"
-        value = "4000"
       }
       env {
         name  = "REGION"
@@ -91,13 +91,13 @@ resource "google_cloud_run_v2_service" "web_service" {
         }
       }
 
+      ports {
+        container_port = 3000
+      }
+
       env {
         name  = "NODE_ENV"
         value = "production"
-      }
-      env {
-        name  = "PORT"
-        value = "3000"
       }
     }
   }
@@ -130,6 +130,10 @@ resource "google_cloud_run_v2_service" "worker_service" {
           cpu    = "1"
           memory = "1Gi"
         }
+      }
+
+      ports {
+        container_port = 8080
       }
 
       env {

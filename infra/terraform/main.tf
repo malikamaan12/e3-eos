@@ -69,7 +69,22 @@ resource "google_vpc_access_connector" "serverless_connector" {
   network       = google_compute_network.vpc.name
 }
 
-# --- Secret Manager ---
+# --- Private Services Access for Cloud SQL & Redis ---
+resource "google_compute_global_address" "private_ip_alloc" {
+  name          = "e3-eos-private-ip-${var.environment}"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 16
+  network       = google_compute_network.vpc.id
+}
+
+resource "google_service_networking_connection" "private_vpc_connection" {
+  network                 = google_compute_network.vpc.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.private_ip_alloc.name]
+}
+
+# --- Secret Manager Secrets & Versions ---
 resource "google_secret_manager_secret" "db_password" {
   secret_id = "e3-eos-db-password-${var.environment}"
   replication {
@@ -79,6 +94,16 @@ resource "google_secret_manager_secret" "db_password" {
       }
     }
   }
+}
+
+resource "random_password" "db_password" {
+  length  = 24
+  special = false
+}
+
+resource "google_secret_manager_secret_version" "db_password_version" {
+  secret      = google_secret_manager_secret.db_password.id
+  secret_data = random_password.db_password.result
 }
 
 resource "google_secret_manager_secret" "jwt_secret" {
@@ -92,6 +117,16 @@ resource "google_secret_manager_secret" "jwt_secret" {
   }
 }
 
+resource "random_password" "jwt_secret" {
+  length  = 48
+  special = false
+}
+
+resource "google_secret_manager_secret_version" "jwt_secret_version" {
+  secret      = google_secret_manager_secret.jwt_secret.id
+  secret_data = random_password.jwt_secret.result
+}
+
 resource "google_secret_manager_secret" "webhook_hmac_secret" {
   secret_id = "e3-eos-webhook-hmac-${var.environment}"
   replication {
@@ -101,4 +136,14 @@ resource "google_secret_manager_secret" "webhook_hmac_secret" {
       }
     }
   }
+}
+
+resource "random_password" "webhook_hmac_secret" {
+  length  = 48
+  special = false
+}
+
+resource "google_secret_manager_secret_version" "webhook_hmac_secret_version" {
+  secret      = google_secret_manager_secret.webhook_hmac_secret.id
+  secret_data = random_password.webhook_hmac_secret.result
 }

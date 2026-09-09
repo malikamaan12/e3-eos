@@ -10,6 +10,8 @@ resource "google_redis_instance" "redis_cache" {
   redis_version      = "REDIS_7_0"
 
   transit_encryption_mode = "SERVER_AUTHENTICATION"
+
+  depends_on = [google_service_networking_connection.private_vpc_connection]
 }
 
 # --- Cloud Storage Private Regional Buckets ---
