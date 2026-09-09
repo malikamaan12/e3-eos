@@ -1,7 +1,7 @@
 # Acceptance Test Traceability Matrix (AT-001 to AT-092)
 
 **Release:** v1.0.0  
-**Generated:** 2026-09-09T07:58:11.828Z  
+**Generated:** 2026-09-09T12:00:51.704Z  
 **Compliance Status:** 100% COMPLETE (92/92 Verified)
 
 | ID | Phase | Scenario | Expected Invariant | Verified In | Status |
@@ -92,8 +92,8 @@
 | AT-084 | P06 | External AI disallowed by classification | No request leaves approved boundary; manual workflow remains available. | `apps/api/src/ai/ai.controller.ts`, `apps/api/src/phase06.test.ts`, `apps/web/src/views/LeadershipView.tsx`, `packages/domain/src/ai-assistant.ts`, `packages/domain/src/portfolio-ai.test.ts` | **VERIFIED** |
 | AT-085 | P06 | AI generated requirement without valid source | Marked suggestion, rejected/quarantined until human source verification. | `apps/api/src/ai/ai.controller.ts`, `apps/api/src/phase06.test.ts`, `apps/web/src/views/LeadershipView.tsx`, `packages/domain/src/ai-assistant.ts`, `packages/domain/src/portfolio-ai.test.ts` | **VERIFIED** |
 | AT-086 | P06 | Second country/cell rollout | Jurisdiction rules and data processing reviewed; no implicit global replication or cross-cell double booking. | `apps/api/src/phase06.test.ts`, `apps/api/src/portfolio/portfolio.controller.ts`, `packages/domain/src/country-cell.ts`, `packages/domain/src/portfolio-ai.test.ts` | **VERIFIED** |
-| AT-087 | P07 | Restore database and object manifests in isolated environment | Recovery targets measured; domain balances, approvals and references reconcile. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx`, `packages/domain/src/rollout.test.ts`, `packages/domain/src/rollout.ts` | **VERIFIED** |
-| AT-088 | P07 | Rollback after external PO already sent | No deletion/reset; compensating business action and reconciled delivery state. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx`, `packages/domain/src/rollout.test.ts`, `packages/domain/src/rollout.ts` | **VERIFIED** |
+| AT-087 | P07 | Restore database and object manifests in isolated environment | Recovery targets measured; domain balances, approvals and references reconcile. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx`, `packages/domain/src/rollout.test.ts`, `packages/domain/src/rollout.ts`, `scripts/execute-business-regression.ts` | **VERIFIED** |
+| AT-088 | P07 | Rollback after external PO already sent | No deletion/reset; compensating business action and reconciled delivery state. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx`, `packages/domain/src/rollout.test.ts`, `packages/domain/src/rollout.ts`, `scripts/execute-business-regression.ts` | **VERIFIED** |
 | AT-089 | P07 | Production deployment contains mock data or placeholder connector success | Go-live blocked; only approved source records/configuration activated. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx`, `packages/domain/src/rollout.test.ts`, `packages/domain/src/rollout.ts`, `scripts/demo.ts` | **VERIFIED** |
 | AT-090 | P07 | Large event load and dependency pressure | Agreed p95/queue freshness targets met or launch scope/capacity adjusted with evidence. | `apps/api/src/phase07.test.ts` | **VERIFIED** |
 | AT-091 | P07 | RLS/export/file/portal independent security assessment | No unresolved exploitable critical/high defects in accepted release scope. | `apps/api/src/phase07.test.ts`, `apps/api/src/rollout/rollout.controller.ts`, `apps/web/src/views/AdminStudioView.tsx` | **VERIFIED** |

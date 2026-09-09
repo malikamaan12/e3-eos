@@ -25,13 +25,19 @@ variable "project_id" {
 
 variable "region" {
   type        = string
-  description = "Target primary region (me-central1 Doha, Qatar)"
+  description = "Target primary region (me-central1 Doha, Qatar) for all primary compute, storage, and intra-regional HA"
   default     = "me-central1"
+}
+
+variable "enable_cross_region_dr" {
+  type        = bool
+  description = "Enable optional cross-border secondary DR replication (requires explicit E3 data-residency/client approval)"
+  default     = false
 }
 
 variable "dr_region" {
   type        = string
-  description = "Secondary disaster recovery region (me-central2 Dammam, Saudi Arabia)"
+  description = "Proposed secondary disaster recovery region (me-central2 Dammam, Saudi Arabia) subject to E3 governance decision"
   default     = "me-central2"
 }
 

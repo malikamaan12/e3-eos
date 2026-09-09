@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-09T07:58:11.824Z",
+  "verifiedAt": "2026-09-09T12:00:51.702Z",
   "totalScenarios": 92,
   "verifiedCount": 92,
   "coveragePercentage": "100.0%",
@@ -1089,7 +1089,8 @@
         "apps/api/src/rollout/rollout.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
         "packages/domain/src/rollout.test.ts",
-        "packages/domain/src/rollout.ts"
+        "packages/domain/src/rollout.ts",
+        "scripts/execute-business-regression.ts"
       ],
       "status": "VERIFIED"
     },
@@ -1103,7 +1104,8 @@
         "apps/api/src/rollout/rollout.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
         "packages/domain/src/rollout.test.ts",
-        "packages/domain/src/rollout.ts"
+        "packages/domain/src/rollout.ts",
+        "scripts/execute-business-regression.ts"
       ],
       "status": "VERIFIED"
     },

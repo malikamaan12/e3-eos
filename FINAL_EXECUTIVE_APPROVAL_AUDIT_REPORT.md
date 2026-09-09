@@ -4,13 +4,18 @@
 **Document Reference:** `E3-EOS-AUDIT-v1.0.0-RC1`  
 **Date of Submission:** September 9, 2026  
 **Governing Standard:** `00_MASTER_DEVELOPER_HANDOVER.md` (Modules M01–M18, Phases P00–P07, AT-001–AT-092)  
-**Target Infrastructure:** Google Cloud Platform — Primary: Doha, Qatar (`me-central1`) | Secondary DR: Dammam, Saudi Arabia (`me-central2`)  
+**Target Infrastructure:** Google Cloud Platform — Primary: Doha, Qatar (`me-central1`) | Secondary DR: Optional Dammam, Saudi Arabia (`me-central2`, subject to explicit E3 governance approval)  
+**Database Engine:** Cloud SQL for PostgreSQL 17 *(Google-managed minor maintenance)*  
+**Object Storage Security:** Private regional bucket (`me-central1`) with Google-managed encryption and time-bounded signed URLs *(CMEK positioned on post-launch security roadmap)*  
 **Status:** **🟡 E3-EOS v1.0.0 RC1 — NOT YET PRODUCTION APPROVED**  
-**Audit Breakdown:**
-- Automated Business Regression Suite: `PASS` (`pnpm test:biz-regression`)
-- Local Pre-Cloud Release Gates: `PASS (Local Baseline)`
-- E3 Owner Human UAT: `PENDING HUMAN EXECUTION` (via `docs/E3_OWNER_ACCEPTANCE_AUDIT_WORKBOOK.md`)
-- GCP Staging Cloud Gates: `PENDING CLOUD DEPLOYMENT` (Cloud Run / Cloud SQL in `me-central1`)
+**Audit Breakdown & Frozen Release Sequence:**
+1. **Automated Business Regression Suite:** `PASS` (`pnpm test:biz-regression`)
+2. **Local Pre-Cloud Release Gates:** `PASS (Local Baseline)`
+3. **GCP Staging Deployment:** `PENDING` (Cloud Run / Cloud SQL in `me-central1`)
+4. **Cloud Foundation Validation:** `PENDING CLOUD DEPLOYMENT` (Live HTTPS, RLS session context, Secrets)
+5. **E3 Owner Human UAT on Staging:** `PENDING HUMAN EXECUTION ON STAGING` (via `docs/E3_OWNER_ACCEPTANCE_AUDIT_WORKBOOK.md`)
+6. **Cloud Recovery & Destructive Drills:** `PENDING CLOUD STAGING` (Post-UAT live backup/restore & outage drills)
+7. **Final Executive Sign-Off:** `PENDING ALL GATES`
 **Code Freeze Status:** **RC1 STRICT CODE FREEZE IN EFFECT — ZERO NEW FEATURES**
 
 ---
@@ -24,12 +29,35 @@
 > 1. All 18 core functional modules (M01–M18) and all 8 delivery phases (P00–P07) have been fully engineered and validated.
 > 2. All 92 mandatory acceptance scenarios (`AT-001` through `AT-092`) are backed by automated control tests.
 > 3. The Automated Business Regression Suite (`pnpm test:biz-regression`) proves that coded invariants, financial formulas, and adversarial controls execute predictably.
-> 4. **Human Usability & Operational Acceptance:** Acknowledged as strictly belonging to real E3 personnel via the UAT Workbook. Software cannot score its own usability or forge executive sign-offs.
-> 5. **Cloud Release Gates:** Acknowledged as pending physical verification against Cloud Run and Cloud SQL in GCP Doha (`me-central1`).
-> 3. **RC1 is formally code-frozen.** No further features will be introduced.
-> 4. Release Candidate 1 (RC1) is submitted to the E3 Executive Steering Committee, Operations, Finance, and Security leadership for independent business and User Acceptance Testing (UAT).
+> 4. **RC1 Strict Code Freeze:** Strictly enforced. No further features will be introduced.
+> 5. **Official Staging-First Governance Path:**
+>    ```
+>    RC1 CODE FREEZE
+>          │
+>          ▼
+>    Deploy GCP Staging (me-central1 — Doha)
+>          │
+>          ▼
+>    Cloud Foundation Validation (Cloud Run HTTPS / Cloud SQL 17 / RLS / IAM / Secrets / Redis / Storage)
+>          │
+>          ▼
+>    E3 HUMAN OWNER UAT on actual GCP Staging
+>          ├── P0 found → Fix → regression → re-test
+>          └── No P0
+>          │
+>          ▼
+>    Cloud Recovery & Destructive Drills (live backup/restore / outage simulation / monitoring)
+>          │
+>          ▼
+>    Final Sign-Off (Operations / Finance / Technical-Security / Executive)
+>          │
+>          ▼
+>    🟢 PRODUCTION APPROVED
+>    ```
+> 6. **Human Usability & Operational Acceptance:** Acknowledged as strictly belonging to real E3 personnel via the UAT Workbook on the live GCP Staging environment. Software cannot score its own usability or forge executive sign-offs.
+> 7. Release Candidate 1 (RC1) is submitted to the E3 Executive Steering Committee, Operations, Finance, and Security leadership for independent business and User Acceptance Testing (UAT).
 > 
-> *Production sign-off is exclusively reserved for E3 executive, operational, and commercial leadership upon conclusion of the E3 Owner Acceptance Audit.*
+> *Production sign-off is exclusively reserved for E3 executive, operational, and commercial leadership upon conclusion of the E3 Owner Acceptance Audit on GCP Staging.*
 
 ---
 
@@ -406,20 +434,27 @@ E3 staff participating in the Owner Acceptance Audit will evaluate the system ag
 
 ---
 
-## 10. Mandatory Production Release Gates (Before GCP Doha Cutover)
+## 10. Mandatory Production Release Gates (Phased Staging-First Path)
 
-Before transitioning from `🟡 RC1` to `🟢 Production Approved v1.0.0`, the following 10 release gates must be formally cleared in the live cloud staging environment:
+Before transitioning from `🟡 RC1` to `🟢 Production Approved v1.0.0`, all 10 release gates must be cleared in strict sequence in Google Cloud Doha (`me-central1`):
 
-1. [ ] **Real Google Cloud Doha Deployment:** Deployed to GCP `me-central1` (Cloud Run services live).
-2. [ ] **Real Cloud SQL & Redis Connections:** Production database connection pool and Memorystore active in `me-central1`.
-3. [ ] **Physical Backup & Restore Test:** Real Cloud SQL automated backup created, test database dropped, point-in-time restore executed, and cryptographic parity verified.
-4. [ ] **Role & Permission Penetration Test:** Independent security assessment of 12 RBAC roles under non-superuser app context.
-5. [ ] **Tenant Isolation Verification:** Cross-tenant SQL injection test on live Cloud SQL PostgreSQL 17 instance with physical RLS.
-6. [ ] **MFA & Account Recovery Test:** Multi-factor authentication and emergency break-glass procedure.
-7. [ ] **Production Secrets Verification:** Google Secret Manager key rotation and IAM permission lock.
-8. [ ] **Audit Log Tampering Drill:** Database row alteration test triggering chain invalidation alert.
-9. [ ] **Simulated Integration Outage:** Third-party gateway timeout test confirming `reconciliation_required` state.
-10. [ ] **Final Human UAT Sign-Off:** Unanimous sign-off by E3 Operations, Finance, Management, and System Owner via the UAT Workbook.
+### Phase A: Staging Deployment & Core Cloud Infrastructure Validation
+1. [ ] **GATE-01 (Cloud Staging Deployment):** Deployed to GCP `me-central1` (Cloud Run services live over HTTPS with TLS 1.3).
+2. [ ] **GATE-02 (Database & Cache Infrastructure):** Cloud SQL for PostgreSQL 17 and Memorystore Redis connection pools active in `me-central1`.
+3. [ ] **GATE-03 (Tenant Isolation & RLS):** Physical PostgreSQL 17 RLS verified on Cloud SQL using non-superuser role (`eos_app`) and session context (`SET LOCAL app.current_tenant_id`).
+4. [ ] **GATE-04 (Secrets & Identity Boundary):** Google Secret Manager runtime injection verified; IAM service account permissions locked to least privilege.
+5. [ ] **GATE-05 (Storage & Encryption):** Private regional storage bucket in `me-central1` verified with Google-managed encryption and time-bounded signed URLs.
+
+### Phase B: E3 Human Owner Acceptance Testing (UAT) on Staging
+6. [ ] **GATE-06 (Human UAT Execution):** The 10 designated E3 human testers execute Scenarios 1–4 on the live HTTPS staging environment; all individual scorecards recorded in `docs/E3_OWNER_ACCEPTANCE_AUDIT_WORKBOOK.md` with average score ≥ 8/10 and zero open P0 defects.
+
+### Phase C: Cloud Recovery & Destructive Testing Drills (Post-UAT)
+7. [ ] **GATE-07 (Physical Backup & Restore Drill):** Automated Cloud SQL backup taken, test database dropped, point-in-time recovery executed, cryptographic checksum parity verified.
+8. [ ] **GATE-08 (Tamper Detection & Audit Drill):** Direct database row alteration test triggers cryptographic chain break and raises security alert.
+9. [ ] **GATE-09 (Simulated Integration Outage):** Payment / SMS provider failure injection verifies fail-safe closed behavior and `reconciliation_required` state.
+
+### Phase D: Executive Governance Sign-Off
+10. [ ] **GATE-10 (Four-Role Executive Sign-Off):** Unanimous, named human signatures from Lead Technical Architect, Event Operations, Finance & Commercial, and CISO / Executive Management.
 
 ### Defect Triage Framework:
 - **P0 Blocker:** Critical functional, financial, or security defect $\to$ **Must be resolved before production deployment.**

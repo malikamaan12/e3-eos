@@ -433,7 +433,7 @@ async function runBusinessRegression() {
       standardRef: 'Specs §6.3 / Specs §03 §2',
       localStatus: 'PASSED (Local Baseline)',
       cloudStagingStatus: 'PENDING CLOUD DEPLOYMENT',
-      auditFinding: 'Verified on local PostgreSQL 17.4 with non-superuser role (eos_app); must be rerun on Cloud SQL in me-central1.',
+      auditFinding: 'Verified on local PostgreSQL 17 engine with non-superuser role (eos_app); must be rerun on Cloud SQL for PostgreSQL 17 in me-central1.',
     },
     {
       gateId: 'GATE-04',
@@ -481,7 +481,7 @@ async function runBusinessRegression() {
       standardRef: 'Specs §6.9 / Specs §08',
       localStatus: 'PASSED (Local Baseline)',
       cloudStagingStatus: 'PENDING CLOUD DEPLOYMENT',
-      auditFinding: 'Margin redaction verified in automated tests; formal client sign-off process pending Human UAT.',
+      auditFinding: 'Margin redaction verified; private bucket storage with Google-managed encryption and signed URLs pending staging validation.',
     },
     {
       gateId: 'GATE-10',
@@ -506,12 +506,15 @@ async function runBusinessRegression() {
 **Execution Date:** ${new Date().toISOString()}  
 **Git Commit Baseline:** \`master\`  
 **Governing Standard:** \`specs/10_DECISIONS_RISKS_AND_GO_LIVE.md §6\`  
-**Target Infrastructure:** Google Cloud Platform — Doha Region (\`me-central1\`), Secondary DR Dammam (\`me-central2\`)  
+**Target Infrastructure:** Google Cloud Platform — Primary: Doha Region (\`me-central1\`) | Secondary DR: Optional Dammam (\`me-central2\`, subject to E3 governance approval)  
+**Database Engine:** Cloud SQL for PostgreSQL 17  
+**Storage Encryption:** Google-managed encryption + private buckets + signed URLs (CMEK on security roadmap)  
 **Suite Type:** **Automated Code-Level Invariant Regression Suite**  
 **Classification:**
 * **AUTOMATED BUSINESS REGRESSION SUITE:** \`PASS\`
-* **E3 OWNER HUMAN UAT:** \`PENDING HUMAN EXECUTION\`
 * **LOCAL / PRE-CLOUD RELEASE GATES:** \`PASS (Pre-deployment baseline)\`
+* **GCP STAGING DEPLOYMENT:** \`PENDING\`
+* **E3 OWNER HUMAN UAT:** \`PENDING HUMAN EXECUTION ON STAGING\`
 * **GCP STAGING RELEASE GATES:** \`PENDING CLOUD DEPLOYMENT\`
 * **OVERALL RELEASE STATUS:** \`🟡 E3-EOS v1.0.0 RC1 — NOT YET PRODUCTION APPROVED\`
 
@@ -520,7 +523,7 @@ async function runBusinessRegression() {
 ## 1. Automated Business Invariant Results
 
 | Scenario ID | Name | Steps | Injected Invariants | Verified | Status | Duration |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| :--- | :--- | :---: | :---: | :---: | :---: | :--- |
 ${scenarioResults
   .map(
     (s) =>
@@ -558,12 +561,14 @@ ${releaseGates
 
 ---
 
-## 4. Governance & Next Steps
+## 4. Official Frozen Release Path
 
-1. **Strict Code Freeze:** Feature development is frozen. No further automated tests or changes unless Human UAT reveals a P0.
-2. **Human UAT Execution:** Actual E3 staff must test the 4 scenarios via the Web UI/PWA and record their own usability scores (1-10) and feedback in \`docs/E3_OWNER_ACCEPTANCE_AUDIT_WORKBOOK.md\`.
-3. **GCP Staging Deployment:** Deploy RC1 to Google Cloud Doha (\`me-central1\`) to validate Cloud SQL PostgreSQL 17 RLS, Cloud Storage regional bucket, Memorystore, and execute a live backup/restore drill.
-4. **Final Sign-Off:** Production approval will only be granted upon completion of Human UAT and GCP Staging validation.
+1. **RC1 Code Freeze:** Strictly enforced. No further feature development.
+2. **Deploy GCP Staging (me-central1):** Provision Cloud Run, Cloud SQL for PostgreSQL 17, Memorystore, and private Cloud Storage in Doha.
+3. **Cloud Foundation Validation:** Run automated health probes and RLS tenant verification against the live staging database.
+4. **E3 Human Owner UAT on Staging:** E3 personnel test Scenarios 1–4 on the live HTTPS staging environment and record individual scores in \`docs/E3_OWNER_ACCEPTANCE_AUDIT_WORKBOOK.md\`.
+5. **Cloud Recovery & Failure Drills:** Execute physical Cloud SQL backup/restore drill and simulated service interruptions.
+6. **Final Executive Sign-Off:** All 4 executive roles sign release certificate $\to$ Transition to \`🟢 E3-EOS v1.0.0 — Production Approved\`.
 `;
 
   const outputPath = path.join(evidenceDir, 'automated-business-regression-report.md');

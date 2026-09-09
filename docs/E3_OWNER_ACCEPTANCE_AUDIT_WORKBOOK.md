@@ -2,23 +2,62 @@
 
 **Document Reference:** `E3-EOS-UAT-WORKBOOK-v1.0.0-RC1`  
 **Governing Standard:** `00_MASTER_DEVELOPER_HANDOVER.md` & `specs/10_DECISIONS_RISKS_AND_GO_LIVE.md §6`  
-**Target Infrastructure:** Google Cloud Platform — Primary: **Doha, Qatar (`me-central1`)** | Secondary DR: **Dammam, Saudi Arabia (`me-central2`)**  
+
+### Infrastructure & Data Residency Architecture:
+* **Primary Data Region:** **Google Cloud Doha, Qatar (`me-central1`)**
+* **Primary DR & Continuity:** **Intra-Qatar Regional HA + continuous Point-in-Time Recovery (PITR) + automated daily backups within `me-central1`**
+* **Secondary Cross-Region DR:** **Optional — subject to explicit E3 security and client data-residency approval (Proposed target: `me-central2` Dammam, Saudi Arabia)**
+* **Database Engine:** **Cloud SQL for PostgreSQL 17** *(Google-managed minor updates)*
+* **Object Storage Security:** **Private regional bucket (`me-central1`) with Google-managed encryption and time-bounded signed URLs** *(CMEK positioned on post-launch security roadmap)*
 
 ### Current Release & Audit Status:
-* **Automated Business Regression Suite:** `PASS` (`pnpm test:biz-regression` — 27/27 suites, 246 tests green)
-* **Local Pre-Cloud Release Gates:** `PASS (Local Baseline)` (Typecheck, RLS on localhost:5432, 92/92 Matrix)
-* **E3 Owner Human UAT:** `PENDING HUMAN EXECUTION` (Must be executed by named E3 staff)
-* **GCP Staging Cloud Gates:** `PENDING CLOUD DEPLOYMENT` (Awaiting live Cloud Run / Cloud SQL in `me-central1`)
+* **Automated Engineering Validation:** `COMPLETE` (246/246 tests, 27 suites, 0 TypeScript errors)
+* **Automated Business Regression Suite:** `PASS` (`pnpm test:biz-regression`)
+* **Local Pre-Cloud Release Gates:** `PASS (Local Baseline)`
+* **GCP Staging Deployment:** `PENDING`
+* **E3 Owner Human UAT:** `PENDING HUMAN EXECUTION ON STAGING`
+* **Cloud Recovery / Destructive Gates:** `PENDING CLOUD EXECUTION`
 * **Formal Release Status:** **`🟡 E3-EOS v1.0.0 RC1 — NOT YET PRODUCTION APPROVED`**
 
-### Live System Access for Testing:
-- **Web UI & Field PWA:** `http://localhost:3000` (Bridge: `http://localhost:3001`)  
-- **Backend API:** `http://localhost:4000/api/v1/health`  
-- **Interactive OpenAPI Documentation:** `http://localhost:4000/api/v1/docs`  
+### Acceptance Venues & System Access:
+* **Official UAT Environment (Mandatory for Acceptance):** **Google Cloud Staging (`me-central1`)**  
+  *Evaluates realistic Cloud SQL latency, HTTPS secure cookies, IAM boundaries, mobile PWA cellular behavior, signed URLs, and Memorystore queues.*
+* **Localhost Environment (`http://localhost:3000` / Port 4000):**  
+  *Reserved strictly for preliminary walkthroughs, training dry-runs, and developer reproducibility. Does NOT constitute formal acceptance.*
 
 ---
 
-## 1. Audit Principles & Rules of Engagement
+## 1. Official Release Governance Flow
+
+The sequence of progression to Production Approval is formally frozen:
+
+```
+RC1 CODE FREEZE
+      │
+      ▼
+Provision GCP Staging (me-central1 — Doha)
+      │
+      ▼
+Cloud Foundation Validation (Cloud Run / SQL / RLS / IAM / Secrets / Redis / Storage)
+      │
+      ▼
+E3 HUMAN OWNER UAT on actual GCP Staging
+      ├── P0 found → Fix → regression → re-test
+      └── No P0
+      │
+      ▼
+Cloud Recovery & Failure Drills (live backup/restore / outage simulation / monitoring)
+      │
+      ▼
+Final Sign-Off (Operations / Finance / Technical-Security / Executive)
+      │
+      ▼
+🟢 PRODUCTION APPROVED
+```
+
+---
+
+## 2. Audit Principles & Rules of Engagement
 
 1. **RC1 Strict Code Freeze:** Feature development is frozen. Developers will NOT assist or prompt testers during scenario execution. The software must stand on its own usability.
 2. **Automated Regression vs Human UAT Distinction:**  
@@ -33,9 +72,9 @@
 
 ---
 
-## 2. Participant Testing Roster & Responsibilities
+## 3. Participant Testing Roster & Responsibilities
 
-Each tester must execute their assigned scenario(s) independently without engineering assistance:
+Each tester must execute their assigned scenario(s) independently on the **GCP Staging environment**:
 
 | Role | Target Participant | Primary Audit Focus | Assigned Scenarios |
 | :--- | :--- | :--- | :---: |
@@ -52,7 +91,7 @@ Each tester must execute their assigned scenario(s) independently without engine
 
 ---
 
-## 3. Scenario 1: Qatar Tourism Tender (ATV Project)
+## 4. Scenario 1: Qatar Tourism Tender (ATV Project)
 
 ### Purpose:
 Verify whether EOS is intuitive, fast, and transparent for commercial estimators and tender managers bidding on high-stakes institutional events.
@@ -79,7 +118,7 @@ Verify whether EOS is intuitive, fast, and transparent for commercial estimators
 
 ---
 
-## 4. Scenario 2: Oryx University Graduation
+## 5. Scenario 2: Oryx University Graduation
 
 ### Purpose:
 Test the end-to-end event-delivery engine connecting:  
@@ -107,7 +146,7 @@ Test the end-to-end event-delivery engine connecting:
 
 ---
 
-## 5. Scenario 3: E3-Owned Event (InflataCity Festival)
+## 6. Scenario 3: E3-Owned Event (InflataCity Festival)
 
 ### Purpose:
 Prove that EOS functions seamlessly for self-promoted, internal investment events that lack an external client contract.
@@ -130,7 +169,7 @@ Prove that EOS functions seamlessly for self-promoted, internal investment event
 
 ---
 
-## 6. Scenario 4: The Chaos Drill 🧨
+## 7. Scenario 4: The Chaos Drill 🧨
 
 ### Purpose:
 Intentionally create operational chaos to verify that EOS adapts to real-world live event disruption without data corruption, silent overrides, or systemic lockup.
@@ -150,16 +189,16 @@ Intentionally create operational chaos to verify that EOS adapts to real-world l
 
 ---
 
-## 7. Individual Human Usability Scorecards
+## 8. Individual Human Usability Scorecards
 
 > [!NOTE]
-> Every tester must fill out their own scorecard. Software cannot evaluate its own usability.
+> Every tester must fill out their own scorecard on the GCP Staging system. Software cannot evaluate its own usability.
 
 ### Scorecard Template (1 Form per Participant)
 
 **Tester Name:** ________________________________________  
 **Department / Role:** ________________________________________  
-**Scenario(s) Tested:** `[ ] Scenario 1` `[ ] Scenario 2` `[ ] Scenario 3` `[ ] Scenario 4`  
+**Scenario(s) Tested on Staging:** `[ ] Scenario 1` `[ ] Scenario 2` `[ ] Scenario 3` `[ ] Scenario 4`  
 **Test Date:** _____ / _____ / 2026  
 
 | Dimension | Usability Question | Target | Your Score (1–10) | Specific Notes / Friction Points / Confusion |
@@ -198,46 +237,46 @@ Intentionally create operational chaos to verify that EOS adapts to real-world l
 
 ---
 
-## 8. Master Sign-Off Tracking Register (All Roles Required)
+## 9. Master Sign-Off Tracking Register (All Roles Required)
 
-| Role | Named Participant | Scorecard Submitted | Avg Usability Score | Litmus Result | Open P0s | Formal Sign-Off Signature |
-| :--- | :--- | :---: | :---: | :---: | :---: | :--- |
-| **Project Manager** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
-| **Operations** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
-| **Finance** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
-| **Procurement** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
-| **Design / Production** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
-| **Logistics & Fleet** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
-| **Marketing** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
-| **Management / MD** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
-| **System / Tech Owner** | | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
-| **Field Tech / Supervisor**| | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| Role | Named Participant | Staging Tested | Scorecard Submitted | Avg Usability Score | Litmus Result | Open P0s | Formal Sign-Off Signature |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Project Manager** | | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Operations** | | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Finance** | | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Procurement** | | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Design / Production** | | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Logistics & Fleet** | | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Marketing** | | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Management / MD** | | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **System / Tech Owner** | | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
+| **Field Tech / Supervisor**| | `[ ] Yes` | `[ ] Yes  [ ] No` | ___ / 10 | | ___ | _____________________ |
 
 ---
 
-## 9. GCP Staging Deployment & Cloud Gate Validation Plan
+## 10. GCP Staging Deployment & Cloud Gate Validation Plan
 
 Before production approval, RC1 must be deployed to Google Cloud Doha (`me-central1`) and the 10 release gates re-executed in cloud staging:
 
 | Gate | Name | Staging Validation Test on GCP me-central1 | Responsible Owner | Result |
 | :---: | :--- | :--- | :--- | :---: |
-| **G01** | Scope & Features | Cloud Run API (`api.staging.e3-eos.com`) and Web Frontend verified. | Tech Lead | `PENDING` |
-| **G02** | Authority & RBAC | Four-eyes approval tested across authenticated staging sessions. | Security Lead | `PENDING` |
-| **G03** | Physical RLS on Cloud SQL | Physical PostgreSQL 17 Cloud SQL instance tested under `eos_app` role. | Tech Lead | `PENDING` |
-| **G04** | Cloud Security & Secrets | Secret Manager verified; zero credentials in containers or environment. | DevOps Lead | `PENDING` |
-| **G05** | Stock & Commitments | Multi-worker concurrency on Cloud Run with Memorystore Redis. | QA Lead | `PENDING` |
-| **G06** | External Adapters | Real outbound network egress to external APIs or mock fallbacks verified. | Integrations Lead | `PENDING` |
-| **G07** | Live Backup & Restore | **Real Cloud SQL automated export created, test table dropped, database restored, parity verified.** | DevOps Lead | `PENDING` |
-| **G08** | Offline Field Storage | Field PWA tested on real mobile devices under airplane mode against staging. | Field Lead | `PENDING` |
-| **G09** | Cloud Storage & Redaction | Cloud Storage bucket (`me-central1`) verified with private signed URLs. | Data Owner | `PENDING` |
-| **G10** | Cloud Logging & Alerts | Cloud Monitoring dashboards, error reporting, and alert policies active. | Operations Lead | `PENDING` |
+| **G01** | **Cloud Run Services** | Cloud Run API (`api.staging.e3-eos.com`) and Web Frontend verified on HTTPS. | Tech Lead | `PENDING` |
+| **G02** | **Authority & RBAC** | Four-eyes approval tested across authenticated staging sessions. | Security Lead | `PENDING` |
+| **G03** | **Physical RLS on Cloud SQL** | Cloud SQL for PostgreSQL 17 tested with physical RLS under `eos_app` role. | Tech Lead | `PENDING` |
+| **G04** | **Cloud Security & Secrets** | Secret Manager verified; zero credentials in container images or environment. | DevOps Lead | `PENDING` |
+| **G05** | **Memorystore Redis** | Multi-worker concurrency on Cloud Run with Memorystore Redis 7.2. | QA Lead | `PENDING` |
+| **G06** | **External Adapters** | Real outbound network egress to external APIs or mock fallbacks verified. | Integrations Lead | `PENDING` |
+| **G07** | **Live Backup & Restore** | **Real Cloud SQL automated export created, test table dropped, database restored, parity verified.** | DevOps Lead | `PENDING` |
+| **G08** | **Offline Mobile Field Test** | Field PWA tested on real mobile devices under airplane mode against staging. | Field Lead | `PENDING` |
+| **G09** | **Private Storage & Signed URLs**| Private Cloud Storage bucket (`me-central1`) with Google-managed encryption and signed URLs. | Data Owner | `PENDING` |
+| **G10** | **Cloud Logging & Alerts** | Cloud Monitoring dashboards, error reporting, and alert policies active. | Operations Lead | `PENDING` |
 
 ---
 
-## 10. Final Release Certificate (Template for Production Sign-Off)
+## 11. Final Release Certificate (Template for Production Sign-Off)
 
 > [!CAUTION]
-> This certificate CANNOT be executed until both Human UAT and GCP Staging Cloud Gates are 100% complete.
+> This certificate CANNOT be executed until both Human UAT on Staging and GCP Cloud Recovery Gates are 100% complete.
 
 ```
 ================================================================================
@@ -247,15 +286,16 @@ Before production approval, RC1 must be deployed to Google Cloud Doha (`me-centr
 Release Status:          🟡 RC1 — NOT YET PRODUCTION APPROVED
 Git Commit Baseline:     master [COMMIT_SHA]
 Primary Deployment:      Google Cloud Platform — Doha Region (me-central1)
-Disaster Recovery (DR):  Google Cloud Platform — Dammam Region (me-central2)
-Database Engine:         Cloud SQL PostgreSQL 17.4 (me-central1)
+Primary DR & Resilience: Intra-Qatar Regional HA + PITR + Backups (me-central1)
+Secondary Cross-Region:  Optional me-central2 Dammam (Subject to E3 Data Residency Approval)
+Database Engine:         Cloud SQL for PostgreSQL 17 (me-central1)
 Cache & Queue Engine:    Memorystore Redis 7.2 (me-central1)
-Primary Object Storage:  Google Cloud Storage (me-central1)
+Primary Object Storage:  Google Cloud Storage (me-central1) — Private + Signed URLs
 
 Audit Prerequisites:
 [ ] Automated Business Regression: PASS (pnpm test:biz-regression)
 [ ] Local Pre-Cloud Gates:         PASS (Verification Matrix 92/92, 0 TypeScript Errors)
-[ ] E3 Human Owner UAT:            PENDING HUMAN COMPLETION (Target: All Scores >= 8/10)
+[ ] E3 Human Owner UAT:            PENDING HUMAN COMPLETION ON STAGING (Target: All Scores >= 8/10)
 [ ] GCP Staging Cloud Gates:       PENDING (Cloud SQL RLS, Real Backup Restore in me-central1)
 
 Mandatory Defect Ceilings:
