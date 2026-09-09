@@ -41,6 +41,7 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "ERROR: docker is required. Abor
 echo "[3/6] Configuring Google Cloud Project & Enabling APIs..."
 gcloud config set project "${PROJECT_ID}"
 gcloud services enable \
+    cloudresourcemanager.googleapis.com \
     run.googleapis.com \
     sqladmin.googleapis.com \
     redis.googleapis.com \

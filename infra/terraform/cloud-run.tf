@@ -14,8 +14,8 @@ resource "google_cloud_run_v2_service" "api_service" {
     service_account = google_service_account.eos_runner.email
 
     scaling {
-      min_instance_count = 2 # High availability guarantee
-      max_instance_count = 20
+      min_instance_count = 1
+      max_instance_count = 5
     }
 
     vpc_access {
@@ -105,8 +105,8 @@ resource "google_cloud_run_v2_service" "web_service" {
     service_account = google_service_account.eos_runner.email
 
     scaling {
-      min_instance_count = 2
-      max_instance_count = 10
+      min_instance_count = 1
+      max_instance_count = 5
     }
 
     containers {
@@ -146,7 +146,7 @@ resource "google_cloud_run_v2_service" "worker_service" {
 
     scaling {
       min_instance_count = 1
-      max_instance_count = 5
+      max_instance_count = 3
     }
 
     vpc_access {
