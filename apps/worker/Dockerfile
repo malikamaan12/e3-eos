@@ -25,7 +25,7 @@ COPY packages/ ./packages/
 COPY apps/worker/ ./apps/worker/
 
 # Build shared packages and apps/worker
-RUN pnpm -r run build
+RUN pnpm --filter @e3-eos/worker... build
 
 # --- Stage 2: Production Runner ---
 FROM node:22-alpine AS runner

@@ -25,7 +25,7 @@ COPY packages/ ./packages/
 COPY apps/api/ ./apps/api/
 
 # Build shared packages and apps/api
-RUN pnpm -r run build
+RUN pnpm --filter @e3-eos/api... build
 
 # --- Stage 2: Production Runner ---
 FROM node:22-alpine AS runner

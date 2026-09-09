@@ -25,7 +25,7 @@ COPY packages/ ./packages/
 COPY apps/web/ ./apps/web/
 
 # Build shared packages and apps/web
-RUN pnpm -r run build
+RUN pnpm --filter @e3-eos/web... build
 
 # --- Stage 2: Production Runner ---
 FROM node:22-alpine AS runner
