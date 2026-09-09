@@ -9,7 +9,7 @@
 
 - **Core API**: NestJS 11 running on Node.js 22 LTS with container scaling on Google Cloud Run v2 (Doha `me-central1`).
 - **Database**: Cloud SQL PostgreSQL 17 Regional HA (High Availability across Doha zones in `me-central1`) with automated backups and continuous point-in-time recovery (PITR).
-- **Object Storage**: Google Cloud Storage buckets for CAD drawings, site photos, and report manifests with CMEK encryption.
+- **Object Storage**: Google Cloud Storage regional buckets (Doha `me-central1`) for CAD drawings, site photos, and report manifests with Google-managed encryption and time-bounded signed URLs (CMEK on security roadmap).
 - **Worker & Queue**: Dedicated background worker (`apps/worker`) running in private VPC reading BullMQ/Postgres outbox events with idempotent message processing.
 - **Frontend & PWA**: React 19 + Vite 6 + Tailwind CSS with Service Worker offline caching (`sw.js v1.0.0`).
 
