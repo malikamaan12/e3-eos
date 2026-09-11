@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Button, Badge, Card, AlertBanner } from '../components/DesignSystem.js';
+import { FastTrackProjectModal } from './FastTrackProjectModal.js';
 
 interface ConfigurableStage {
   id: number;
@@ -9,6 +10,29 @@ interface ConfigurableStage {
   isOptional: boolean;
   ownerRole: string;
 }
+
+const GATE_EXPLANATIONS: Record<number, { title: string; rationale: string; authority: string }> = {
+  3: {
+    title: 'Stage 03: Four-Eyes Executive Gate Sign-off',
+    rationale: 'Protected governance gate: Requires two-person sign-off by Executive Partner Nasser Al-Attiyah and commercial margin validation before client contract issuance.',
+    authority: 'Executive Partner (Nasser Al-Attiyah)',
+  },
+  9: {
+    title: 'Stage 09: Civil Defence & HSE Zone Safety Clearance',
+    rationale: 'Protected statutory gate: Enforced by Qatar Civil Defence statutory regulations. Structural rigging safety and flame-retardant certification must be verified before site possession.',
+    authority: 'HSE & Compliance Director (Dr. Sarah Ibrahim)',
+  },
+  10: {
+    title: 'Stage 10: Technical Readiness & Rehearsals',
+    rationale: 'Protected operational lock: Run-through lock invariant. Live show cue sheets, audio-visual failover, and comms check must be signed off by Operations Director.',
+    authority: 'Operations Director (Salem Al-Marri)',
+  },
+  13: {
+    title: 'Stage 13: Financial Closeout, EAC Finalization & Debrief',
+    rationale: 'Protected commercial gate: Final actual cost reconciliation, client retention sign-off, and subcontractor settlement.',
+    authority: 'Financial Controller (Rashid Al-Hajri)',
+  },
+};
 
 const DEFAULT_STAGES: ConfigurableStage[] = [
   { id: 1, name: 'Stage 01: Strategic Intake & Feasibility Assessment', isMandatoryGate: false, isOptional: false, ownerRole: 'project_manager' },
@@ -31,6 +55,8 @@ export const NewProjectWizardView: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFastTrackOpen, setIsFastTrackOpen] = useState<boolean>(false);
+  const [activeGateExplanation, setActiveGateExplanation] = useState<number | null>(null);
 
   // Form State
   const [originRoute, setOriginRoute] = useState<string>('TENDER');
@@ -214,6 +240,64 @@ export const NewProjectWizardView: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Fast-Track Intake Choice Callout */}
+      <div
+        style={{
+          backgroundColor: '#fffbeb',
+          border: '1px solid #fde68a',
+          borderRadius: '8px',
+          padding: '14px 18px',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#92400e' }}>
+              ⚡ {currentLanguage === 'ar' ? 'هل تحتاج إلى تسجيل فرصة سريعة؟' : 'In a rush? Fast-Track Opportunity Intake Available'}
+            </span>
+            <Badge variant="warning" size="sm">Capture Now, Complete Later</Badge>
+          </div>
+          <div style={{ fontSize: '12px', color: '#b45309', marginTop: '3px' }}>
+            {currentLanguage === 'ar'
+              ? 'سجّل البيانات الأساسية والقيمة المتوقعة في خطوتين سريعتين، واستكمل إعدادات الحوكمة لاحقاً.'
+              : 'Record basic opportunity info and expected commercials in 2 quick steps. Full governance can be completed later.'}
+          </div>
+        </div>
+
+        <button
+          id="btn-open-fast-track"
+          type="button"
+          onClick={() => setIsFastTrackOpen(true)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            backgroundColor: '#d97706',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '8px 14px',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(217, 119, 6, 0.3)',
+          }}
+        >
+          ⚡ {currentLanguage === 'ar' ? 'بدء التسجيل السريع (خطوتان)' : 'Launch Fast-Track Intake (2 Steps)'}
+        </button>
+      </div>
+
+      <FastTrackProjectModal
+        isOpen={isFastTrackOpen}
+        onClose={() => setIsFastTrackOpen(false)}
+      />
 
       {/* Step Indicator Bar with Completed / Active / Pending state */}
       <div
@@ -839,61 +923,101 @@ export const NewProjectWizardView: React.FC = () => {
                 <div
                   key={stage.id}
                   style={{
-                    padding: '10px 14px',
                     borderBottom: '1px solid #f1f5f9',
-                    fontSize: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
                     backgroundColor: stage.isMandatoryGate ? '#fffbeb' : stage.isOptional ? '#f8fafc' : '#ffffff',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <button
-                        type="button"
-                        onClick={() => handleStageMove(idx, 'up')}
-                        disabled={idx === 0}
-                        style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', fontSize: '9px', color: '#94a3b8' }}
-                      >
-                        ▲
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleStageMove(idx, 'down')}
-                        disabled={idx === stages.length - 1}
-                        style={{ border: 'none', background: 'none', cursor: idx === stages.length - 1 ? 'default' : 'pointer', fontSize: '9px', color: '#94a3b8' }}
-                      >
-                        ▼
-                      </button>
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      fontSize: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleStageMove(idx, 'up')}
+                          disabled={idx === 0}
+                          style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', fontSize: '9px', color: '#94a3b8' }}
+                        >
+                          ▲
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleStageMove(idx, 'down')}
+                          disabled={idx === stages.length - 1}
+                          style={{ border: 'none', background: 'none', cursor: idx === stages.length - 1 ? 'default' : 'pointer', fontSize: '9px', color: '#94a3b8' }}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                      <span style={{ fontWeight: 600, color: stage.isOptional ? '#94a3b8' : '#1e293b' }}>
+                        {stage.name}
+                      </span>
                     </div>
-                    <span style={{ fontWeight: 600, color: stage.isOptional ? '#94a3b8' : '#1e293b' }}>
-                      {stage.name}
-                    </span>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {stage.isMandatoryGate ? (
+                        <button
+                          type="button"
+                          id={`gate-badge-${stage.id}`}
+                          onClick={() => setActiveGateExplanation(activeGateExplanation === stage.id ? null : stage.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            cursor: 'pointer',
+                          }}
+                          title="Click to view governance lock explanation"
+                        >
+                          <Badge variant="warning" size="sm">🔒 Mandatory Gate ℹ️</Badge>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStageOptional(idx)}
+                          style={{
+                            background: 'none',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '4px',
+                            padding: '2px 8px',
+                            fontSize: '11px',
+                            color: stage.isOptional ? '#94a3b8' : '#2563eb',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {stage.isOptional ? 'Mark Mandatory' : 'Mark Optional'}
+                        </button>
+                      )}
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>Role: {stage.ownerRole}</span>
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {stage.isMandatoryGate ? (
-                      <Badge variant="warning" size="sm">🔒 Mandatory Gate</Badge>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleToggleStageOptional(idx)}
-                        style={{
-                          background: 'none',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '4px',
-                          padding: '2px 8px',
-                          fontSize: '11px',
-                          color: stage.isOptional ? '#94a3b8' : '#2563eb',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {stage.isOptional ? 'Mark Mandatory' : 'Mark Optional'}
-                      </button>
-                    )}
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>Role: {stage.ownerRole}</span>
-                  </div>
+                  {/* Expandable Governance Gate Lock Explanation */}
+                  {stage.isMandatoryGate && activeGateExplanation === stage.id && GATE_EXPLANATIONS[stage.id] && (
+                    <div
+                      id={`gate-explanation-${stage.id}`}
+                      style={{
+                        padding: '10px 14px',
+                        backgroundColor: '#fef3c7',
+                        borderTop: '1px dashed #f59e0b',
+                        fontSize: '11px',
+                        color: '#92400e',
+                      }}
+                    >
+                      <div style={{ fontWeight: 700, marginBottom: '3px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>🔒 Governance Lock Rationale</span>
+                        <span style={{ color: '#b45309' }}>Authority: {GATE_EXPLANATIONS[stage.id].authority}</span>
+                      </div>
+                      <p style={{ margin: 0, lineHeight: 1.4 }}>
+                        {GATE_EXPLANATIONS[stage.id].rationale}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

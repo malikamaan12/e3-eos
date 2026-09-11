@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { MetricCard, Card, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { resolveRequiredApprover } from '@e3-eos/policy';
 
 export const ProjectCockpitView: React.FC = () => {
   const {
@@ -31,8 +32,12 @@ export const ProjectCockpitView: React.FC = () => {
 
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState<boolean>(false);
   const [approvalReason, setApprovalReason] = useState<string>('Qatar Tourism Tender Clarifications & Pricing Sign-off');
-  const [approvalRole, setApprovalRole] = useState<string>('executive');
+  const [approvalAmountQar, setApprovalAmountQar] = useState<number>(320000);
   const [isSubmittingApproval, setIsSubmittingApproval] = useState<boolean>(false);
+
+  // Workstream filter state
+  const [workstreamFilter, setWorkstreamFilter] = useState<'needs_attention' | 'on_track' | 'all'>('needs_attention');
+  const [selectedAuditDetail, setSelectedAuditDetail] = useState<any | null>(null);
 
   // Decision Modal
   const [decidingApproval, setDecidingApproval] = useState<any | null>(null);
@@ -97,15 +102,18 @@ export const ProjectCockpitView: React.FC = () => {
     }
   };
 
+  const cockpitThreshold = resolveRequiredApprover(approvalAmountQar);
+
   const handleRequestApproval = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingApproval(true);
     try {
       await apiClient.requestApproval(projectId, {
-        targetType: 'task',
+        targetType: 'purchase_order',
         targetId: tasks[0]?.id || 'clarification-01',
         reason: approvalReason,
-        requiredRole: approvalRole,
+        requiredRole: cockpitThreshold.requiredRole,
+        amount: approvalAmountQar,
       });
       setIsApprovalModalOpen(false);
       triggerRefresh();
@@ -159,6 +167,31 @@ export const ProjectCockpitView: React.FC = () => {
   const daysRemaining = cockpitData?.daysRemaining ?? 66;
   const isDraft = cockpitData?.maturity === 'draft';
 
+  // Fast-track incomplete detection
+  const isIncomplete = cockpitData?.isOnboardingComplete === false || cockpitData?.isFastTrack;
+  const onboardingPct = cockpitData?.onboardingCompletionPct || 38;
+  const missingSectionsList: string[] = cockpitData?.missingSections || [
+    'Client Approver & Signatory',
+    'Confirmed Venue & Zone Specifications',
+    'Detailed Bump-In / Bump-Out Milestones',
+    'Cost Baseline & Margin Breakdown',
+    'Key Delivery Stakeholders (Tech Director, HSE Lead)',
+  ];
+
+  // Rejection detection
+  const rejectedApproval = approvals.find((a) => a.status === 'rejected');
+
+  // Strict EAC Accounting: EAC = Actual Cost + Forecast to Complete
+  const baselineCost = isDraft ? null : (cockpitData?.financials?.baselineBudget || 1968750);
+  const committedCost = isDraft ? null : (cockpitData?.financials?.committedCost || 1420000);
+  const actualCost = isDraft ? null : (cockpitData?.financials?.postedActuals || 580000);
+  const forecastToComplete = isDraft ? null : (cockpitData?.financials?.forecastToComplete || 1288750);
+  const eac = (actualCost !== null && forecastToComplete !== null) ? (actualCost + forecastToComplete) : null;
+  const costVariance = (baselineCost !== null && eac !== null) ? (baselineCost - eac) : null;
+  const isSaving = costVariance !== null && costVariance >= 0;
+  const varianceAmount = costVariance !== null ? Math.abs(costVariance) : 0;
+  const variancePct = (baselineCost && varianceAmount) ? ((varianceAmount / baselineCost) * 100).toFixed(2) : '0.00';
+
   return (
     <div style={{ paddingBottom: '40px', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
       {/* Cockpit Top Header */}
@@ -182,6 +215,23 @@ export const ProjectCockpitView: React.FC = () => {
                 {projectCode}
               </span>
               <Badge variant={isDraft ? 'neutral' : 'success'}>{isDraft ? 'Draft Plan' : '🟢 Operational'}</Badge>
+              {isIncomplete && (
+                <span
+                  id="cockpit-incomplete-badge"
+                  style={{
+                    backgroundColor: '#fffbeb',
+                    color: '#b45309',
+                    border: '1px solid #fde68a',
+                    fontWeight: 800,
+                    fontSize: '11px',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  ⚠️ Onboarding Incomplete ({onboardingPct}%)
+                </span>
+              )}
               <Badge variant="info">{cockpitData?.maturity || 'delivery'}</Badge>
               <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700 }}>
                 ● Doha Cell (me-central1)
@@ -230,8 +280,123 @@ export const ProjectCockpitView: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Ribbon */}
+      {/* Prominent Onboarding Incomplete Warning Banner */}
+      {isIncomplete && (
+        <div
+          id="cockpit-incomplete-banner"
+          style={{
+            backgroundColor: '#fffbeb',
+            border: '1.5px solid #fde68a',
+            borderRadius: '8px',
+            padding: '14px 20px',
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+            boxShadow: '0 2px 4px rgba(217, 119, 6, 0.08)',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400e', textTransform: 'uppercase' }}>
+                ⚠️ FAST-TRACK INTAKE: ONBOARDING INCOMPLETE ({onboardingPct}% Complete)
+              </span>
+              <Badge variant="warning" size="sm">Action Required</Badge>
+            </div>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#b45309' }}>
+              Pending completion: {missingSectionsList.join(' • ')}. Advance to full onboarding to unlock final statutory gates.
+            </p>
+          </div>
+          <Button
+            id="btn-cockpit-resume-onboarding"
+            variant="primary"
+            size="sm"
+            onClick={() => navigate(`/projects/new?resume=${projectId}`)}
+            style={{ backgroundColor: '#d97706', borderColor: '#b45309' }}
+          >
+            Resume Onboarding Wizard ➔
+          </Button>
+        </div>
+      )}
+
+      {/* Prominent Rejection & Rework Banner */}
+      {rejectedApproval && (
+        <div
+          id="cockpit-rejection-banner"
+          style={{
+            backgroundColor: '#fef2f2',
+            border: '1.5px solid #f87171',
+            borderRadius: '8px',
+            padding: '16px 20px',
+            marginBottom: '20px',
+            boxShadow: '0 4px 14px rgba(239, 68, 68, 0.15)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
+            <div style={{ flex: 1, minWidth: '280px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#991b1b', textTransform: 'uppercase' }}>
+                  🚨 APPROVAL REJECTED — REWORK REQUIRED
+                </span>
+                <Badge variant="danger" size="sm">{rejectedApproval.requiredRole?.toUpperCase() || 'EXECUTIVE'}</Badge>
+              </div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#7f1d1d' }}>
+                Decider rejected: "{rejectedApproval.reason || rejectedApproval.targetType}"
+              </div>
+              {rejectedApproval.comment && (
+                <div
+                  id="rejection-banner-comment"
+                  style={{
+                    marginTop: '8px',
+                    fontSize: '12px',
+                    color: '#991b1b',
+                    backgroundColor: '#fee2e2',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #fca5a5',
+                  }}
+                >
+                  <strong>Reviewer Feedback:</strong> "{rejectedApproval.comment}"
+                </div>
+              )}
+              <div style={{ fontSize: '11px', color: '#b91c1c', marginTop: '6px' }}>
+                🔒 Governance invariant POL-GOV-02: Workstream advancement blocked until revisions are resubmitted.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <Button
+                id="btn-rejection-open-details"
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const el = document.getElementById(`approval-item-${rejectedApproval.id}`);
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Open Approval Details
+              </Button>
+              <Button
+                id="btn-rejection-resubmit"
+                variant="danger"
+                size="sm"
+                onClick={() => {
+                  setApprovalReason(`[REVISION 2] ${rejectedApproval.reason || 'Revised Scope & Pricing'}`);
+                  setIsApprovalModalOpen(true);
+                }}
+              >
+                ✍️ Resubmit with Revisions
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Financial KPI Ribbon with Explicit EAC Accounting Terminology */}
       <div
+        id="financial-kpi-ribbon"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
@@ -240,36 +405,125 @@ export const ProjectCockpitView: React.FC = () => {
         }}
       >
         <MetricCard
-          title="Revenue"
-          value={isDraft ? 'To Be Confirmed' : '3,500,000 QAR'}
-          subtitle={isDraft ? 'TBC during discovery' : 'Approved Client Quote'}
+          title="Baseline Cost"
+          value={baselineCost !== null ? `${baselineCost.toLocaleString()} QAR` : 'To Be Confirmed'}
+          subtitle="Approved Budget Baseline"
           accentColor="#2563eb"
         />
         <MetricCard
-          title="Baseline Budget"
-          value={isDraft ? 'To Be Confirmed' : '1,968,750 QAR'}
-          subtitle="Internal Target Cost"
+          title="Committed Cost"
+          value={committedCost !== null ? `${committedCost.toLocaleString()} QAR` : 'To Be Confirmed'}
+          subtitle="Contracted POs & Orders"
           accentColor="#64748b"
         />
         <MetricCard
-          title="Estimate at Completion"
-          value="90,000 QAR"
-          subtitle="EAC Invariant Validated"
-          accentColor="#059669"
+          title="Actual Cost"
+          value={actualCost !== null ? `${actualCost.toLocaleString()} QAR` : '0 QAR'}
+          subtitle="Invoiced / Spent to Date"
+          accentColor="#0f172a"
         />
         <MetricCard
-          title="Forecast Margin"
-          value="43.75%"
-          subtitle="Above Margin Floor (35%)"
-          badge={{ label: 'Healthy', variant: 'success' }}
-          accentColor="#059669"
+          title="Forecast to Complete"
+          value={forecastToComplete !== null ? `${forecastToComplete.toLocaleString()} QAR` : 'To Be Confirmed'}
+          subtitle="Estimated Remaining Scope"
+          accentColor="#d97706"
         />
         <MetricCard
-          title="Pending Approvals"
-          value={approvals.filter(a => a.status === 'pending').length}
-          subtitle="Four-Eyes Governance"
-          accentColor="#f59e0b"
+          title="EAC — Projected Final Cost"
+          value={eac !== null ? `${eac.toLocaleString()} QAR` : 'To Be Confirmed'}
+          subtitle="EAC = Actual + Forecast to Complete"
+          badge={
+            costVariance !== null
+              ? {
+                  label: isSaving
+                    ? `Forecast Saving: QAR ${varianceAmount.toLocaleString()}`
+                    : `Forecast Overrun: QAR ${varianceAmount.toLocaleString()}`,
+                  variant: isSaving ? 'success' : 'danger',
+                }
+              : undefined
+          }
+          accentColor={isSaving ? '#059669' : '#dc2626'}
         />
+      </div>
+
+      {/* Compact Reserved Cash Position Card */}
+      <div
+        id="cockpit-cash-position-card"
+        style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0',
+          padding: '16px 20px',
+          marginBottom: '20px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+              💵 CASH POSITION & LIQUIDITY
+            </span>
+            <Badge variant="neutral" size="sm">Treasury & Working Capital</Badge>
+          </div>
+          <span style={{ fontSize: '11px', color: '#64748b' }}>
+            Live currency: <strong>QAR</strong> • Scoped to project account
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+            gap: '12px',
+            backgroundColor: '#f8fafc',
+            padding: '12px 16px',
+            borderRadius: '6px',
+            border: '1px solid #e2e8f0',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Contract Value</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+              {isDraft ? 'Not yet available' : '3,500,000 QAR'}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Invoiced to Client</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb', marginTop: '2px' }}>
+              {isDraft ? 'Not yet available' : '1,050,000 QAR'}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Collected (Cash In)</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#16a34a', marginTop: '2px' }}>
+              {isDraft ? 'Not yet available' : '1,050,000 QAR'}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Outstanding Receivables</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+              {isDraft ? 'Not yet available' : '0 QAR'}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Supplier Committed</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#d97706', marginTop: '2px' }}>
+              {isDraft ? 'Not yet available' : '1,420,000 QAR'}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Supplier Paid</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', marginTop: '2px' }}>
+              {isDraft ? 'Not yet available' : '580,000 QAR'}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Net Cash Exposure</div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#16a34a', marginTop: '2px' }}>
+              {isDraft ? 'Not yet available' : '+470,000 QAR'}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Needs Attention Engine */}
@@ -347,17 +601,87 @@ export const ProjectCockpitView: React.FC = () => {
         </div>
       </div>
 
-      {/* 9-Workstream Health Grid */}
+      {/* 9-Workstream Health Grid with Mobile Filter */}
       <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-            📊 Workstream Health & Progress Matrix
-          </h3>
-          <span style={{ fontSize: '12px', color: '#64748b' }}>9 core event operational functions</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+              📊 Workstream Health & Progress Matrix
+            </h3>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>9 core event operational functions</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
+            <button
+              id="ws-filter-needs-attention"
+              type="button"
+              onClick={() => setWorkstreamFilter('needs_attention')}
+              style={{
+                padding: '4px 10px',
+                fontSize: '11px',
+                fontWeight: 700,
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                backgroundColor: workstreamFilter === 'needs_attention' ? '#ffffff' : 'transparent',
+                color: workstreamFilter === 'needs_attention' ? '#b45309' : '#64748b',
+                boxShadow: workstreamFilter === 'needs_attention' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+              }}
+            >
+              ⚠️ Needs Attention ({workstreams.filter(w => w.blockers > 0 || w.status === 'warning' || w.openTasks > 0).length})
+            </button>
+            <button
+              id="ws-filter-on-track"
+              type="button"
+              onClick={() => setWorkstreamFilter('on_track')}
+              style={{
+                padding: '4px 10px',
+                fontSize: '11px',
+                fontWeight: 700,
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                backgroundColor: workstreamFilter === 'on_track' ? '#ffffff' : 'transparent',
+                color: workstreamFilter === 'on_track' ? '#15803d' : '#64748b',
+                boxShadow: workstreamFilter === 'on_track' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+              }}
+            >
+              🟢 On Track ({workstreams.filter(w => w.status === 'healthy' || w.status === 'on_track').length})
+            </button>
+            <button
+              id="ws-filter-all"
+              type="button"
+              onClick={() => setWorkstreamFilter('all')}
+              style={{
+                padding: '4px 10px',
+                fontSize: '11px',
+                fontWeight: 700,
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                backgroundColor: workstreamFilter === 'all' ? '#ffffff' : 'transparent',
+                color: workstreamFilter === 'all' ? '#0f172a' : '#64748b',
+                boxShadow: workstreamFilter === 'all' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+              }}
+            >
+              All ({workstreams.length})
+            </button>
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
-          {workstreams.map((ws, i) => (
+          {workstreams
+            .filter((ws) => {
+              if (workstreamFilter === 'all') return true;
+              if (workstreamFilter === 'needs_attention') {
+                return ws.blockers > 0 || ws.status === 'warning' || ws.openTasks > 0;
+              }
+              if (workstreamFilter === 'on_track') {
+                return ws.status === 'healthy' || ws.status === 'on_track';
+              }
+              return true;
+            })
+            .map((ws, i) => (
             <div
               key={i}
               style={{
@@ -722,17 +1046,61 @@ export const ProjectCockpitView: React.FC = () => {
             onChange={(e) => setApprovalReason(e.target.value)}
             required
           />
-          <Select
-            id="approval-role-select"
-            label="Required Decider Role"
-            value={approvalRole}
-            onChange={(e) => setApprovalRole(e.target.value)}
-            options={[
-              { value: 'executive', label: 'Executive Partner (Nasser Al-Attiyah)' },
-              { value: 'project_director', label: 'Project Director (Fatima Al-Sulaiti)' },
-              { value: 'finance', label: 'Financial Controller (Rashid Al-Hajri)' },
-            ]}
-          />
+
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              Transaction Monetary Value (QAR) *
+            </label>
+            <input
+              id="cockpit-approval-amount-input"
+              type="number"
+              min="0"
+              step="1000"
+              value={approvalAmountQar}
+              onChange={(e) => setApprovalAmountQar(Number(e.target.value) || 0)}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+            />
+            <span style={{ fontSize: '11px', color: '#64748b' }}>
+              Evaluated under <code>@e3-eos/policy</code> threshold matrix.
+            </span>
+          </div>
+
+          {/* Dynamic Policy Resolver Card */}
+          <div
+            id="cockpit-policy-resolution-card"
+            style={{
+              padding: '12px 14px',
+              backgroundColor: '#fffbeb',
+              border: '1px solid #fde68a',
+              borderRadius: '6px',
+              marginBottom: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#92400e' }}>
+                Required Approver: <strong>{cockpitThreshold.roleTitle}</strong>
+              </span>
+              <span
+                style={{
+                  backgroundColor: '#fef3c7',
+                  color: '#b45309',
+                  border: '1px solid #fcd34d',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                }}
+              >
+                {cockpitThreshold.governanceRule}
+              </span>
+            </div>
+            <div style={{ fontSize: '11px', color: '#78350f', lineHeight: 1.4 }}>
+              <strong>Reason:</strong> {cockpitThreshold.reason}
+            </div>
+            <div style={{ fontSize: '11px', color: '#b45309', marginTop: '6px', fontStyle: 'italic' }}>
+              🔒 <strong>Non-Bypassable:</strong> System policy enforces that this transaction cannot be authorized by a lower role.
+            </div>
+          </div>
         </form>
       </Modal>
 

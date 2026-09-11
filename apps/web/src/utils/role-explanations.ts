@@ -1,21 +1,14 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  HttpException,
-  HttpStatus,
-  UseFilters,
-  Optional,
-} from '@nestjs/common';
-import { ProblemDetailsFilter } from '../common/problem.filter.js';
-import { DbService } from '../common/db.service.js';
-import { EmailDispatcherService } from '../common/email.service.js';
-import crypto from 'crypto';
+export interface RoleExplanation {
+  role: string;
+  title: string;
+  description: string;
+  permissions: string[];
+  can: string[];
+  cannot: string[];
+}
 
-export const CANONICAL_ROLES_CATALOG = [
-  {
+export const CANONICAL_ROLE_EXPLANATIONS: Record<string, RoleExplanation> = {
+  super_admin: {
     role: 'super_admin',
     title: 'Super Admin',
     description: 'Unrestricted system-wide configuration, tenant management, and root governance.',
@@ -30,7 +23,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Act as sole approver on commercial transactions where four-eyes principle is enforced',
     ],
   },
-  {
+  executive: {
     role: 'executive',
     title: 'Executive Partner',
     description: 'Executive oversight, commercial portfolio sign-offs, four-eyes gate approvals.',
@@ -45,7 +38,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Modify database schema or tenant authentication settings',
     ],
   },
-  {
+  project_director: {
     role: 'project_director',
     title: 'Project Director',
     description: 'Multi-project direction, stage progression authorisation, major budget variations.',
@@ -60,7 +53,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Modify system security or tenant configuration',
     ],
   },
-  {
+  project_manager: {
     role: 'project_manager',
     title: 'Project Manager (Lead PM)',
     description: 'Full 13-stage lifecycle delivery, task assignment, daily blockers, and vendor call-offs.',
@@ -75,7 +68,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Approve commercial commitments exceeding 50,000 QAR without Finance / Exec escalation',
     ],
   },
-  {
+  finance: {
     role: 'finance',
     title: 'Financial Controller',
     description: 'BOQ pricing, PO commitment validation, contractor rates, invoice reconciliation.',
@@ -90,7 +83,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Direct site operations or sign off on safety / structural clearance permits',
     ],
   },
-  {
+  procurement: {
     role: 'procurement',
     title: 'Procurement Manager',
     description: 'RFQ packages, vendor quote comparisons, framework call-offs, PO generation.',
@@ -105,7 +98,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Advance project stage gates or modify project scope',
     ],
   },
-  {
+  design_production: {
     role: 'design_production',
     title: 'Design / Production Director',
     description: 'CAD drawings, moodboards, fabrication orders, technical safety specifications.',
@@ -120,7 +113,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Progress commercial or financial stage gates',
     ],
   },
-  {
+  operations: {
     role: 'operations',
     title: 'Head of Event Operations',
     description: 'Site layout, venue clearance, zone safety permits, operational runbooks.',
@@ -135,7 +128,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Delete audit logs or override financial controls',
     ],
   },
-  {
+  logistics: {
     role: 'logistics',
     title: 'Logistics & Fleet Manager',
     description: 'Asset dispatch, serialized warehouse tracking, inventory collision resolution.',
@@ -150,7 +143,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Authorize procurement purchase orders or approve vendor invoices',
     ],
   },
-  {
+  hse_quality: {
     role: 'hse_quality',
     title: 'HSE / Quality Inspector',
     description: 'Civil Defence approvals, risk assessments, structural checks, snag lists.',
@@ -165,7 +158,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Authorize financial disbursements or modify commercial contracts',
     ],
   },
-  {
+  marketing_commercial: {
     role: 'marketing_commercial',
     title: 'Marketing & Commercial Lead',
     description: 'Sponsorship tiers, client proposals, public event briefings, turnstile footfall.',
@@ -180,7 +173,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Access confidential internal supplier cost margins without authorization',
     ],
   },
-  {
+  field_supervisor: {
     role: 'field_supervisor',
     title: 'Field Supervisor',
     description: 'On-site mobile PWA task execution, photo snag uploads, offline sync queue.',
@@ -195,7 +188,7 @@ export const CANONICAL_ROLES_CATALOG = [
       'Access executive portfolio financials or sensitive vendor pricing',
     ],
   },
-  {
+  client_user: {
     role: 'client_user',
     title: 'Client Stakeholder',
     description: 'Client collaboration portal, design sign-offs, milestone tracking (margins redacted).',
@@ -210,181 +203,8 @@ export const CANONICAL_ROLES_CATALOG = [
       'Access administrative settings, user management, or internal procurement details',
     ],
   },
-];
+};
 
-@Controller('admin')
-@UseFilters(ProblemDetailsFilter)
-export class AdminController {
-  private dbService: DbService;
-  constructor(@Optional() dbService?: DbService) {
-    this.dbService = dbService || new DbService();
-  }
-
-  @Get('users')
-  async listUsers() {
-    const pool = this.dbService.getPool();
-    const res = await pool.query(`
-      SELECT u.id, u.email, u.name, u.is_super_admin, u.created_at,
-             m.role, m.audience, o.name as org_name, o.id as org_id
-      FROM users u
-      LEFT JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
-      LEFT JOIN organisations o ON o.id = m.organisation_id
-      ORDER BY u.created_at ASC;
-    `);
-
-    return {
-      users: res.rows.map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        email: r.email,
-        isSuperAdmin: r.is_super_admin,
-        role: r.role || 'unassigned',
-        audience: r.audience || 'internal',
-        organisationName: r.org_name || 'E3 Events',
-        organisationId: r.org_id,
-        createdAt: r.created_at,
-      })),
-    };
-  }
-
-  @Get('roles')
-  getRoles() {
-    return {
-      roles: CANONICAL_ROLES_CATALOG,
-    };
-  }
-
-  @Get('project-access')
-  async getProjectAccess() {
-    const pool = this.dbService.getPool();
-    const res = await pool.query(`
-      SELECT p.id as project_id, p.project_code, p.title as project_title,
-             u.id as user_id, u.name as user_name, u.email as user_email,
-             m.role
-      FROM projects p
-      JOIN users u ON u.id = p.owner_id
-      LEFT JOIN memberships m ON m.user_id = u.id
-      LIMIT 50;
-    `);
-
-    return {
-      grants: res.rows.map((r: any) => ({
-        projectId: r.project_id,
-        projectCode: r.project_code,
-        projectTitle: r.project_title,
-        userId: r.user_id,
-        userName: r.user_name,
-        userEmail: r.user_email,
-        role: r.role || 'project_manager',
-      })),
-    };
-  }
-
-  @Post('users')
-  async inviteUser(@Body() body: { name: string; email: string; role?: string; organisationId?: string; department?: string }) {
-    const pool = this.dbService.getPool();
-    const email = body.email?.trim().toLowerCase();
-    const name = body.name?.trim() || 'Invited User';
-    const role = body.role || 'project_manager';
-    const orgId = body.organisationId || '11111111-1111-4111-8111-111111111111';
-
-    if (!email) {
-      throw new HttpException({ title: 'Validation Error', detail: 'Email is required' }, HttpStatus.BAD_REQUEST);
-    }
-
-    const userRes = await pool.query(`
-      INSERT INTO users (id, email, name, email_verified, is_super_admin, created_at, updated_at)
-      VALUES (gen_random_uuid(), $1, $2, true, false, NOW(), NOW())
-      ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, updated_at = NOW()
-      RETURNING id, email, name, is_super_admin, created_at;
-    `, [email, name]);
-
-    const user = userRes.rows[0];
-
-    await pool.query(`
-      INSERT INTO memberships (id, organisation_id, user_id, role, audience, is_revoked)
-      VALUES (gen_random_uuid(), $1, $2, $3, 'internal', false)
-      ON CONFLICT DO NOTHING;
-    `, [orgId, user.id, role]);
-
-    const rawToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000); // 7 days
-
-    await pool.query(`
-      INSERT INTO user_invitations (id, organisation_id, email, name, role, department, token, token_hash, expires_at, created_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NULL, $6, $7, NOW());
-    `, [orgId, email, name, role, body.department || null, tokenHash, expiresAt]);
-
-    const inviteUrl = `${process.env.APP_BASE_URL || 'https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app'}/accept-invite?token=${rawToken}`;
-    const emailDispatcher = new EmailDispatcherService(this.dbService);
-    const dispatchRes = await emailDispatcher.dispatchEmail({
-      to: email,
-      subject: 'Invitation to join E3 Event Operating System (EOS)',
-      template: 'user_invitation',
-      link: inviteUrl,
-      recipientName: name,
-      metadata: { organisationId: orgId },
-    });
-
-    // Invariant: Never return tokens in staging or production environments.
-    const isLocalTestOnly = process.env.NODE_ENV === 'test' && !process.env.ENVIRONMENT;
-    return {
-      success: true,
-      message: `User ${name} successfully invited with role ${role}.`,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role,
-        organisationId: orgId,
-        createdAt: user.created_at,
-      },
-      messageId: dispatchRes.messageId,
-      deliveryStatus: dispatchRes.status,
-      ...(isLocalTestOnly ? { inviteToken: rawToken, inviteUrl } : {}),
-    };
-  }
-
-  @Post('project-access')
-  async assignProjectAccess(@Body() body: { projectId: string; userId: string; role?: string }) {
-    const pool = this.dbService.getPool();
-    const { projectId, userId, role } = body;
-    if (!projectId || !userId) {
-      throw new HttpException({ title: 'Validation Error', detail: 'projectId and userId are required' }, HttpStatus.BAD_REQUEST);
-    }
-
-    await pool.query(`
-      UPDATE projects SET owner_id = $1, updated_at = NOW() WHERE id = $2;
-    `, [userId, projectId]).catch(() => {});
-
-    return {
-      success: true,
-      message: 'Project access granted successfully.',
-      grant: { projectId, userId, role: role || 'project_manager' },
-    };
-  }
-
-  @Post('users/:id/role')
-  async updateUserRole(@Param('id') userId: string, @Body() body: { role: string }) {
-    const pool = this.dbService.getPool();
-    const { role } = body;
-    if (!role) {
-      throw new HttpException({ title: 'Validation Error', detail: 'Role is required' }, HttpStatus.BAD_REQUEST);
-    }
-    await pool.query(`
-      UPDATE memberships SET role = $1, updated_at = NOW() WHERE user_id = $2;
-    `, [role, userId]);
-    return { success: true, message: `User role updated to ${role}.` };
-  }
-
-  @Post('users/:id/status')
-  async updateUserStatus(@Param('id') userId: string, @Body() body: { isRevoked: boolean }) {
-    const pool = this.dbService.getPool();
-    const { isRevoked } = body;
-    await pool.query(`
-      UPDATE memberships SET is_revoked = $1, updated_at = NOW() WHERE user_id = $2;
-    `, [isRevoked, userId]);
-    return { success: true, message: isRevoked ? 'User access revoked.' : 'User access restored.' };
-  }
+export function getRoleExplanation(roleKey: string): RoleExplanation | undefined {
+  return CANONICAL_ROLE_EXPLANATIONS[roleKey];
 }

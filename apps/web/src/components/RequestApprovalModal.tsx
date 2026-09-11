@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { useEosApi } from '../hooks/useEosApi.js';
 import { Button } from './DesignSystem.js';
+import { resolveRequiredApprover } from '@e3-eos/policy';
 
 interface RequestApprovalModalProps {
   isOpen: boolean;
@@ -19,12 +20,14 @@ export const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
   const { currentLanguage, triggerRefresh } = useEosContext();
   const { client } = useEosApi();
 
-  const [targetType, setTargetType] = useState<string>('task');
+  const [targetType, setTargetType] = useState<string>('purchase_order');
   const [targetId, setTargetId] = useState<string>('d1111111-1111-4111-8111-111111111111');
-  const [reason, setReason] = useState<string>('Sign-off on Rigging Calculations & Structural Certification');
-  const [requiredRole, setRequiredRole] = useState<string>('executive');
+  const [reason, setReason] = useState<string>('Rigging & Kinetic Truss Supplier Commitment');
+  const [amountQar, setAmountQar] = useState<number>(320000);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const threshold = resolveRequiredApprover(amountQar);
 
   if (!isOpen) return null;
 
@@ -37,7 +40,8 @@ export const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
         targetType,
         targetId,
         reason,
-        requiredRole,
+        requiredRole: threshold.requiredRole,
+        amount: amountQar,
       });
       onApprovalRequested(res.data);
       triggerRefresh();
@@ -147,23 +151,63 @@ export const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
             />
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
+          <div style={{ marginBottom: '14px' }}>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-              {currentLanguage === 'ar' ? 'الدور المطلوب للتوقيع (Decider Role)' : 'Required Decider Role'}
+              {currentLanguage === 'ar' ? 'القيمة المالية للمعاملة (QAR)' : 'Transaction Monetary Value (QAR)'}
             </label>
-            <select
-              value={requiredRole}
-              onChange={(e) => setRequiredRole(e.target.value)}
+            <input
+              id="approval-amount-input"
+              type="number"
+              min="0"
+              step="1000"
+              value={amountQar}
+              onChange={(e) => setAmountQar(Number(e.target.value) || 0)}
               style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
-            >
-              <option value="executive">Executive Partner (Nasser Al-Attiyah)</option>
-              <option value="project_director">Project Director (Fatima Al-Sulaiti)</option>
-              <option value="finance">Financial Controller (Rashid Al-Hajri)</option>
-            </select>
+            />
+            <span style={{ fontSize: '11px', color: '#64748b' }}>
+              Approval tier evaluated under <code>@e3-eos/policy</code> Delegation of Authority.
+            </span>
+          </div>
+
+          {/* Dynamic Policy Resolver Card */}
+          <div
+            id="policy-approver-resolution-card"
+            style={{
+              padding: '12px 14px',
+              backgroundColor: '#fffbeb',
+              border: '1px solid #fde68a',
+              borderRadius: '6px',
+              marginBottom: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#92400e' }}>
+                Required Approver: <strong>{threshold.roleTitle}</strong>
+              </span>
+              <span
+                style={{
+                  backgroundColor: '#fef3c7',
+                  color: '#b45309',
+                  border: '1px solid #fcd34d',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                }}
+              >
+                {threshold.governanceRule}
+              </span>
+            </div>
+            <div style={{ fontSize: '11px', color: '#78350f', lineHeight: 1.4 }}>
+              <strong>Reason:</strong> {threshold.reason}
+            </div>
+            <div style={{ fontSize: '11px', color: '#b45309', marginTop: '6px', fontStyle: 'italic' }}>
+              🔒 <strong>Non-Bypassable:</strong> System policy enforces that this transaction cannot be authorized by a lower role.
+            </div>
           </div>
 
           <div style={{ padding: '10px 12px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '11px', color: '#166534', marginBottom: '16px' }}>
-            🔒 <strong>Adversarial Invariant:</strong> The approval request creates a cryptographically hashed pending decision in PostgreSQL <code>approval_requests</code>. Self-approval is blocked by policy POL-GOV-01.
+            🔒 <strong>Adversarial Invariant:</strong> Creates a cryptographically hashed pending decision in PostgreSQL <code>approval_requests</code>. Self-approval is blocked by policy POL-GOV-01.
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>

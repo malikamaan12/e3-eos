@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Button, Badge, Card, EmptyState, Input } from '../components/DesignSystem.js';
+import { FastTrackProjectModal } from './FastTrackProjectModal.js';
 
 export const ProjectListView: React.FC = () => {
   const { currentLanguage, apiClient, navigate, refreshTrigger, setSelectedProjectId } = useEosContext();
@@ -9,6 +10,7 @@ export const ProjectListView: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [filter, setFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
+  const [isFastTrackOpen, setIsFastTrackOpen] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -66,15 +68,29 @@ export const ProjectListView: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <Button
-            id="new-project-btn"
+            id="fast-track-intake-btn"
             variant="primary"
+            size="md"
+            onClick={() => setIsFastTrackOpen(true)}
+            style={{ backgroundColor: '#d97706', borderColor: '#b45309' }}
+          >
+            ⚡ {currentLanguage === 'ar' ? 'تسجيل فرصة سريعة' : '+ Fast-Track Intake'}
+          </Button>
+          <Button
+            id="new-project-btn"
+            variant="secondary"
             size="md"
             onClick={() => navigate('/projects/new')}
           >
-            + {currentLanguage === 'ar' ? 'مشروع جديد (9 خطوات)' : 'New Project'}
+            + {currentLanguage === 'ar' ? 'مشروع جديد (9 خطوات)' : 'New Project (9 Steps)'}
           </Button>
         </div>
       </div>
+
+      <FastTrackProjectModal
+        isOpen={isFastTrackOpen}
+        onClose={() => setIsFastTrackOpen(false)}
+      />
 
       {/* Filter and Search Bar */}
       <div
@@ -229,9 +245,50 @@ export const ProjectListView: React.FC = () => {
                     <Badge variant="neutral">{p.originCode || 'DIRECT_AWARD'}</Badge>
                   </div>
                   <div>
-                    <Badge variant={p.maturity === 'delivery' ? 'success' : 'info'}>
-                      {p.maturity || 'onboarding'}
-                    </Badge>
+                    {p.isOnboardingComplete === false || p.isFastTrack ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <span
+                          id={`incomplete-badge-${p.id}`}
+                          style={{
+                            backgroundColor: '#fffbeb',
+                            color: '#b45309',
+                            border: '1px solid #fde68a',
+                            fontWeight: 800,
+                            fontSize: '10px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          ⚠️ INCOMPLETE ({p.onboardingCompletionPct || 38}%)
+                        </span>
+                        <button
+                          id={`resume-onboarding-btn-${p.id}`}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/projects/new?resume=${p.id}`);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#d97706',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            padding: 0,
+                            textAlign: 'left',
+                            textDecoration: 'underline',
+                          }}
+                        >
+                          Resume Onboarding
+                        </button>
+                      </div>
+                    ) : (
+                      <Badge variant={p.maturity === 'delivery' ? 'success' : 'info'}>
+                        {p.maturity || 'onboarding'}
+                      </Badge>
+                    )}
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleOpenProject(p.id); }}>
@@ -245,31 +302,50 @@ export const ProjectListView: React.FC = () => {
         </Card>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-          {filteredProjects.map((p) => (
-            <Card
-              key={p.id}
-              style={{ cursor: 'pointer', transition: 'transform 0.15s ease' }}
-            >
-              <div onClick={() => handleOpenProject(p.id)}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#2563eb', fontWeight: 700 }}>
-                    {p.projectCode || p.code}
-                  </span>
-                  <Badge variant={p.maturity === 'delivery' ? 'success' : 'info'}>
-                    {p.maturity || 'onboarding'}
-                  </Badge>
+          {filteredProjects.map((p) => {
+            const isIncomplete = p.isOnboardingComplete === false || p.isFastTrack;
+            return (
+              <Card
+                key={p.id}
+                style={{ cursor: 'pointer', transition: 'transform 0.15s ease' }}
+              >
+                <div onClick={() => handleOpenProject(p.id)}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#2563eb', fontWeight: 700 }}>
+                      {p.projectCode || p.code}
+                    </span>
+                    {isIncomplete ? (
+                      <span
+                        style={{
+                          backgroundColor: '#fffbeb',
+                          color: '#b45309',
+                          border: '1px solid #fde68a',
+                          fontWeight: 800,
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        ⚠️ INCOMPLETE ({p.onboardingCompletionPct || 38}%)
+                      </span>
+                    ) : (
+                      <Badge variant={p.maturity === 'delivery' ? 'success' : 'info'}>
+                        {p.maturity || 'onboarding'}
+                      </Badge>
+                    )}
+                  </div>
+                  <h4 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{p.title}</h4>
+                  <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                    {p.description || 'Enterprise event project under active management.'}
+                  </p>
+                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b' }}>
+                    <span>{p.clientName || 'Qatar Tourism Authority'}</span>
+                    <span style={{ color: '#2563eb', fontWeight: 600 }}>Open Cockpit ➔</span>
+                  </div>
                 </div>
-                <h4 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{p.title}</h4>
-                <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
-                  {p.description || 'Enterprise event project under active management.'}
-                </p>
-                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b' }}>
-                  <span>{p.clientName || 'Qatar Tourism Authority'}</span>
-                  <span style={{ color: '#2563eb', fontWeight: 600 }}>Open Cockpit ➔</span>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Tabs, Card, Badge, Button, EmptyState, Modal, Textarea } from '../components/DesignSystem.js';
+import { RequestApprovalModal } from '../components/RequestApprovalModal.js';
 
 export const MyWorkView: React.FC = () => {
   const { currentUser, currentLanguage, apiClient, selectedProjectId, navigate, refreshTrigger, triggerRefresh } = useEosContext();
@@ -16,6 +17,11 @@ export const MyWorkView: React.FC = () => {
   const [decisionOutcome, setDecisionOutcome] = useState<'approved' | 'rejected'>('approved');
   const [decisionComment, setDecisionComment] = useState<string>('');
   const [isSubmittingDecision, setIsSubmittingDecision] = useState<boolean>(false);
+
+  // Rejection Detail & Resubmit Modals
+  const [selectedDetailApproval, setSelectedDetailApproval] = useState<any | null>(null);
+  const [isResubmitOpen, setIsResubmitOpen] = useState<boolean>(false);
+  const [resubmitApproval, setResubmitApproval] = useState<any | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -90,7 +96,7 @@ export const MyWorkView: React.FC = () => {
     {
       id: 'action',
       label: currentLanguage === 'ar' ? 'يتطلب إجراءً' : 'Needs Action',
-      badge: pendingApprovals.length + (activeTasks.length > 0 ? activeTasks.length : 0),
+      badge: pendingApprovals.length + (activeTasks.length > 0 ? activeTasks.length : 0) + rejectedApprovals.length,
     },
     {
       id: 'assigned',
@@ -147,11 +153,112 @@ export const MyWorkView: React.FC = () => {
       {/* Tab 1: Needs Action */}
       {activeTab === 'action' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {pendingApprovals.length === 0 && activeTasks.length === 0 ? (
+          {/* Prominent Rejected Approvals Section */}
+          {rejectedApprovals.length > 0 && (
+            <div
+              id="mywork-rejection-alert"
+              style={{
+                padding: '16px 20px',
+                backgroundColor: '#fff1f2',
+                border: '2px solid #fda4af',
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(225, 29, 72, 0.08)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '20px' }}>⛔</span>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#9f1239' }}>
+                      {currentLanguage === 'ar'
+                        ? `إجراء مطلوب: ${rejectedApprovals.length} موافقة مرفوضة بحاجة إلى مراجعة وتعديل`
+                        : `Action Required: ${rejectedApprovals.length} Approval(s) Rejected — Revision Needed`}
+                    </h3>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#be123c' }}>
+                      {currentLanguage === 'ar'
+                        ? 'قام صاحب الصلاحية برفض هذه الطلبات. يرجى الاطلاع على الملاحظات وإعادة الإرسال.'
+                        : 'Governance controllers or executives rejected these submissions. Review the rejection comments and resubmit with corrections.'}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="danger">{rejectedApprovals.length} REWORK REQUIRED</Badge>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {rejectedApprovals.map((appr) => (
+                  <div
+                    key={appr.id}
+                    id={`mywork-rejected-card-${appr.id}`}
+                    style={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #fecdd3',
+                      borderRadius: '6px',
+                      padding: '14px 16px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: '260px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <Badge variant="danger">REJECTED</Badge>
+                        <span style={{ fontSize: '12px', fontFamily: 'monospace', color: '#64748b' }}>{appr.id}</span>
+                        <span style={{ fontSize: '12px', color: '#64748b' }}>
+                          • Decider: <strong>{appr.decider || appr.decidedBy || appr.requiredRole || 'Executive Approver'}</strong>
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                        {appr.reason || `Approval Request for ${appr.targetType}`}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: '6px',
+                          padding: '8px 12px',
+                          backgroundColor: '#fff1f2',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          color: '#9f1239',
+                          borderLeft: '3px solid #e11d48',
+                        }}
+                      >
+                        <strong>Governance Reason:</strong> "{appr.comment || 'Revision requested prior to sign-off.'}"
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <Button
+                        id={`open-details-btn-${appr.id}`}
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setSelectedDetailApproval(appr)}
+                      >
+                        Open Approval Details
+                      </Button>
+                      <Button
+                        id={`resubmit-revisions-btn-${appr.id}`}
+                        size="sm"
+                        variant="primary"
+                        style={{ backgroundColor: '#e11d48', borderColor: '#be123c' }}
+                        onClick={() => {
+                          setResubmitApproval(appr);
+                          setIsResubmitOpen(true);
+                        }}
+                      >
+                        Resubmit with Revisions
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {pendingApprovals.length === 0 && activeTasks.length === 0 && rejectedApprovals.length === 0 ? (
             <EmptyState
               icon="✅"
               title="All caught up!"
-              description="No immediate approvals or blocked decisions waiting for your action."
+              description="No immediate approvals, active tasks, or rejected decisions waiting for your action."
             />
           ) : (
             <>
@@ -523,11 +630,14 @@ export const MyWorkView: React.FC = () => {
 
               {rejectedApprovals.map((item) => (
                 <Card key={item.id} style={{ borderLeft: '4px solid #ef4444' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ flex: 1, minWidth: '260px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                         <Badge variant="danger">REJECTED / BLOCKED</Badge>
                         <span style={{ fontSize: '12px', fontFamily: 'monospace', color: '#64748b' }}>{item.id}</span>
+                        <span style={{ fontSize: '12px', color: '#64748b' }}>
+                          • Decider: <strong>{item.decider || item.decidedBy || item.requiredRole || 'Executive Approver'}</strong>
+                        </span>
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
                         {item.reason}
@@ -546,13 +656,26 @@ export const MyWorkView: React.FC = () => {
                         <strong>Governance Reason:</strong> "{item.comment || 'Revision requested prior to sign-off.'}"
                       </div>
                     </div>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => navigate(`/projects/${selectedProjectId}`)}
-                    >
-                      Rework in Cockpit
-                    </Button>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setSelectedDetailApproval(item)}
+                      >
+                        Open Approval Details
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        style={{ backgroundColor: '#e11d48', borderColor: '#be123c' }}
+                        onClick={() => {
+                          setResubmitApproval(item);
+                          setIsResubmitOpen(true);
+                        }}
+                      >
+                        Resubmit with Revisions
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -663,6 +786,92 @@ export const MyWorkView: React.FC = () => {
           />
         </form>
       </Modal>
+
+      {/* Approval Details Modal */}
+      <Modal
+        isOpen={selectedDetailApproval !== null}
+        onClose={() => setSelectedDetailApproval(null)}
+        title="Approval Request Governance Details"
+        footer={
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <Button variant="secondary" onClick={() => setSelectedDetailApproval(null)}>
+              Close
+            </Button>
+            {selectedDetailApproval?.status === 'rejected' && (
+              <Button
+                variant="primary"
+                style={{ backgroundColor: '#e11d48', borderColor: '#be123c' }}
+                onClick={() => {
+                  const target = selectedDetailApproval;
+                  setSelectedDetailApproval(null);
+                  setResubmitApproval(target);
+                  setIsResubmitOpen(true);
+                }}
+              >
+                Resubmit with Revisions
+              </Button>
+            )}
+          </div>
+        }
+      >
+        {selectedDetailApproval && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <div><strong style={{ color: '#64748b' }}>Request ID:</strong> <span style={{ fontFamily: 'monospace' }}>{selectedDetailApproval.id}</span></div>
+              <div><strong style={{ color: '#64748b' }}>Status:</strong> <Badge variant={selectedDetailApproval.status === 'rejected' ? 'danger' : selectedDetailApproval.status === 'approved' ? 'success' : 'warning'}>{selectedDetailApproval.status?.toUpperCase()}</Badge></div>
+              <div><strong style={{ color: '#64748b' }}>Target Type:</strong> {selectedDetailApproval.targetType}</div>
+              <div><strong style={{ color: '#64748b' }}>Target ID:</strong> <span style={{ fontFamily: 'monospace' }}>{selectedDetailApproval.targetId}</span></div>
+              <div><strong style={{ color: '#64748b' }}>Required Authority:</strong> <Badge variant="neutral">{selectedDetailApproval.requiredRole || 'Executive'}</Badge></div>
+              <div><strong style={{ color: '#64748b' }}>Decider:</strong> {selectedDetailApproval.decider || selectedDetailApproval.decidedBy || selectedDetailApproval.requiredRole || 'Executive'}</div>
+            </div>
+
+            <div>
+              <strong style={{ color: '#0f172a' }}>Description / Reason:</strong>
+              <div style={{ marginTop: '4px', padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '4px', color: '#1e293b' }}>
+                {selectedDetailApproval.reason || 'No description provided'}
+              </div>
+            </div>
+
+            {selectedDetailApproval.comment && (
+              <div>
+                <strong style={{ color: selectedDetailApproval.status === 'rejected' ? '#991b1b' : '#15803d' }}>
+                  {selectedDetailApproval.status === 'rejected' ? 'Rejection Feedback & Rework Instructions:' : 'Decision Comments:'}
+                </strong>
+                <div style={{
+                  marginTop: '4px',
+                  padding: '10px 12px',
+                  backgroundColor: selectedDetailApproval.status === 'rejected' ? '#fff1f2' : '#f0fdf4',
+                  border: `1px solid ${selectedDetailApproval.status === 'rejected' ? '#fecdd3' : '#bbf7d0'}`,
+                  borderRadius: '4px',
+                  color: selectedDetailApproval.status === 'rejected' ? '#9f1239' : '#166534',
+                  fontWeight: 500,
+                }}>
+                  "{selectedDetailApproval.comment}"
+                </div>
+              </div>
+            )}
+
+            <div style={{ padding: '10px 12px', backgroundColor: '#eff6ff', borderRadius: '6px', border: '1px solid #bfdbfe', fontSize: '12px', color: '#1e40af' }}>
+              <strong>Governance Rule:</strong> Approvals are recorded on the immutable audit log with cryptographic hash verification and timestamping.
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Request / Resubmit Approval Modal */}
+      {isResubmitOpen && (
+        <RequestApprovalModal
+          isOpen={isResubmitOpen}
+          onClose={() => {
+            setIsResubmitOpen(false);
+            setResubmitApproval(null);
+          }}
+          onApprovalRequested={() => {
+            triggerRefresh();
+          }}
+          projectId={selectedProjectId}
+        />
+      )}
     </div>
   );
 };

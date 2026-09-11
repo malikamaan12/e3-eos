@@ -1,4 +1,12 @@
-import { ExpressionNode, PolicyRule, PolicySnapshot, PolicyEvaluationReport, RuleEvaluationResult, TriState } from './types.js';
+import {
+  ExpressionNode,
+  PolicyRule,
+  PolicySnapshot,
+  PolicyEvaluationReport,
+  RuleEvaluationResult,
+  TriState,
+  ApprovalThresholdResolution,
+} from './types.js';
 
 export interface EvaluationContext {
   facts: Record<string, any>;
@@ -225,4 +233,84 @@ export class PolicyEvaluator {
       evaluations,
     };
   }
+}
+
+export const E3_APPROVAL_THRESHOLDS = [
+  {
+    tier: 'operational_pm',
+    requiredRole: 'project_manager' as const,
+    roleTitle: 'Lead Project Manager',
+    canonicalApprover: 'Zaid Mansour (Lead PM)',
+    minAmount: 0,
+    maxAmount: 50000,
+    governanceRule: 'POL-COMM-01',
+    description: 'Standard operational expenditure and deliverable sign-offs up to QAR 50,000.',
+  },
+  {
+    tier: 'commercial_finance',
+    requiredRole: 'finance' as const,
+    roleTitle: 'Financial Controller',
+    canonicalApprover: 'Rashid Al-Hajri (Financial Controller)',
+    minAmount: 50000,
+    maxAmount: 250000,
+    governanceRule: 'POL-COMM-02',
+    description: 'Commercial PO commitments and contract variations between QAR 50,000 and QAR 250,000.',
+  },
+  {
+    tier: 'executive_partner',
+    requiredRole: 'executive' as const,
+    roleTitle: 'Executive Partner',
+    canonicalApprover: 'Nasser Al-Attiyah (Executive Partner)',
+    minAmount: 250000,
+    maxAmount: undefined,
+    governanceRule: 'POL-COMM-03',
+    description: 'Major enterprise commitments and four-eyes executive gates exceeding QAR 250,000.',
+  },
+] as const;
+
+/**
+ * Dynamically resolves the required approver role and non-bypassable policy rule
+ * based on the monetary value in Qatari Riyals (QAR).
+ */
+export function resolveRequiredApprover(amountQar: number): ApprovalThresholdResolution {
+  const numericAmount = Math.max(0, Number(amountQar) || 0);
+
+  if (numericAmount >= 250000) {
+    return {
+      requiredRole: 'executive',
+      roleTitle: 'Executive Partner',
+      canonicalApprover: 'Nasser Al-Attiyah (Executive Partner)',
+      minimumAmount: 250000,
+      reason: `Transaction of QAR ${numericAmount.toLocaleString()} exceeds QAR 250,000 threshold requiring Executive Partner sign-off (Rule POL-COMM-03)`,
+      governanceRule: 'POL-COMM-03',
+      ruleId: 'POL-COMM-03',
+      isDowngradeAllowed: false,
+    };
+  }
+
+  if (numericAmount >= 50000) {
+    return {
+      requiredRole: 'finance',
+      roleTitle: 'Financial Controller',
+      canonicalApprover: 'Rashid Al-Hajri (Financial Controller)',
+      minimumAmount: 50000,
+      maximumAmount: 250000,
+      reason: `Transaction of QAR ${numericAmount.toLocaleString()} falls in QAR 50,000–250,000 range requiring Financial Controller sign-off (Rule POL-COMM-02)`,
+      governanceRule: 'POL-COMM-02',
+      ruleId: 'POL-COMM-02',
+      isDowngradeAllowed: false,
+    };
+  }
+
+  return {
+    requiredRole: 'project_manager',
+    roleTitle: 'Lead Project Manager',
+    canonicalApprover: 'Zaid Mansour (Lead PM)',
+    minimumAmount: 0,
+    maximumAmount: 50000,
+    reason: `Transaction of QAR ${numericAmount.toLocaleString()} is within operational delegation limit (< QAR 50,000) (Rule POL-COMM-01)`,
+    governanceRule: 'POL-COMM-01',
+    ruleId: 'POL-COMM-01',
+    isDowngradeAllowed: false,
+  };
 }

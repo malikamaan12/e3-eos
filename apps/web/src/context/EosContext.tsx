@@ -341,6 +341,13 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const projects = Object.values(SYNTHETIC_PROJECTS);
 
+  React.useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.dir = direction;
+      document.documentElement.lang = currentLanguage;
+    }
+  }, [direction, currentLanguage]);
+
   return (
     <EosContext.Provider
       value={{

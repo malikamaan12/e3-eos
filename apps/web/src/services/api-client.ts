@@ -518,6 +518,8 @@ export class EosApiClient {
     title: string;
     description: string;
     permissions: string[];
+    can?: string[];
+    cannot?: string[];
   }>> {
     const res = await fetch(`${this.baseUrl}/admin/roles`, {
       headers: this.getHeaders(),

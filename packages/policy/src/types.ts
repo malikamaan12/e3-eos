@@ -63,3 +63,15 @@ export interface PolicyEvaluationReport {
   overallOutcome: 'passed' | 'failed' | 'requires_exception' | 'requires_verification';
   evaluations: RuleEvaluationResult[];
 }
+
+export interface ApprovalThresholdResolution {
+  requiredRole: 'project_manager' | 'finance' | 'executive';
+  roleTitle: string;
+  canonicalApprover: string;
+  minimumAmount: number;
+  maximumAmount?: number;
+  reason: string;
+  governanceRule: string;
+  ruleId: string;
+  isDowngradeAllowed: boolean;
+}

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Select } from '../components/DesignSystem.js';
+import { CANONICAL_ROLE_EXPLANATIONS, getRoleExplanation } from '../utils/role-explanations.js';
 
 export const AdminUsersView: React.FC = () => {
   const { currentLanguage, apiClient, navigate, refreshTrigger, triggerRefresh, switchPersona, currentUser } = useEosContext();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Role Inspector Modal
+  const [inspectingRole, setInspectingRole] = useState<string | null>(null);
 
   // Invite Modal
   const [isInviteOpen, setIsInviteOpen] = useState<boolean>(false);
@@ -154,10 +158,28 @@ export const AdminUsersView: React.FC = () => {
                 <div style={{ fontSize: '13px', color: '#475569', fontFamily: 'monospace' }}>
                   {u.email}
                 </div>
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Badge variant={u.role === 'super_admin' ? 'purple' : u.role === 'client_user' ? 'warning' : 'info'}>
                     {u.role}
                   </Badge>
+                  {CANONICAL_ROLE_EXPLANATIONS[u.role] && (
+                    <button
+                      type="button"
+                      id={`inspect-role-btn-${u.id}`}
+                      title="View plain-English capabilities and governance boundaries"
+                      onClick={() => setInspectingRole(u.role)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        color: '#64748b',
+                        padding: '2px',
+                      }}
+                    >
+                      ℹ️
+                    </button>
+                  )}
                 </div>
                 <div>
                   <Badge variant={u.audience === 'internal' ? 'neutral' : 'warning'}>
@@ -235,12 +257,58 @@ export const AdminUsersView: React.FC = () => {
               { value: 'executive', label: 'Executive Partner' },
               { value: 'finance', label: 'Financial Controller' },
               { value: 'procurement', label: 'Procurement Manager' },
-              { value: 'design_production', label: 'Design / Technical Director' },
-              { value: 'operations', label: 'Head of Live Ops' },
-              { value: 'hse_quality', label: 'HSE / Safety Inspector' },
+              { value: 'design_production', label: 'Design / Production Director' },
+              { value: 'operations', label: 'Head of Event Operations' },
+              { value: 'logistics', label: 'Logistics & Fleet Manager' },
+              { value: 'hse_quality', label: 'HSE / Quality Inspector' },
+              { value: 'marketing_commercial', label: 'Marketing & Commercial Lead' },
+              { value: 'field_supervisor', label: 'Field Supervisor' },
               { value: 'client_user', label: 'Client Stakeholder' },
+              { value: 'super_admin', label: 'Super Admin (Tenant Root)' },
             ]}
           />
+
+          {/* Live Role Explanation Preview Card */}
+          {(() => {
+            const exp = getRoleExplanation(inviteRole);
+            if (!exp) return null;
+            return (
+              <div
+                id="invite-role-explanation"
+                style={{
+                  marginTop: '12px',
+                  padding: '12px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                }}
+              >
+                <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>
+                  {exp.title} — Scope & Boundaries
+                </div>
+                <div style={{ color: '#64748b', marginBottom: '8px' }}>{exp.description}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div style={{ padding: '8px', backgroundColor: '#f0fdf4', borderRadius: '4px', border: '1px solid #bbf7d0' }}>
+                    <div style={{ fontWeight: 700, color: '#166534', fontSize: '11px', marginBottom: '4px' }}>✓ CAN:</div>
+                    <ul style={{ margin: 0, paddingLeft: '14px', color: '#15803d', lineHeight: 1.4 }}>
+                      {exp.can.map((c, i) => (
+                        <li key={i}>{c}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div style={{ padding: '8px', backgroundColor: '#fff7ed', borderRadius: '4px', border: '1px solid #fed7aa' }}>
+                    <div style={{ fontWeight: 700, color: '#9a3412', fontSize: '11px', marginBottom: '4px' }}>✕ CANNOT BY DEFAULT:</div>
+                    <ul style={{ margin: 0, paddingLeft: '14px', color: '#c2410c', lineHeight: 1.4 }}>
+                      {exp.cannot.map((c, i) => (
+                        <li key={i}>{c}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </form>
       </Modal>
 
@@ -274,6 +342,60 @@ export const AdminUsersView: React.FC = () => {
             options={users.map((u) => ({ value: u.id, label: `${u.name} (${u.email})` }))}
           />
         </form>
+      </Modal>
+
+      {/* Modal: Role Governance Details */}
+      <Modal
+        isOpen={inspectingRole !== null}
+        onClose={() => setInspectingRole(null)}
+        title={inspectingRole ? `${getRoleExplanation(inspectingRole)?.title || inspectingRole} — Capabilities & Governance` : 'Role Details'}
+        footer={
+          <Button variant="secondary" onClick={() => setInspectingRole(null)}>
+            Close
+          </Button>
+        }
+      >
+        {inspectingRole && (() => {
+          const exp = getRoleExplanation(inspectingRole);
+          if (!exp) return <div>No details available for role: {inspectingRole}</div>;
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>{exp.title}</span>
+                  <code style={{ fontSize: '12px', padding: '2px 8px', backgroundColor: '#f1f5f9', borderRadius: '4px', color: '#475569' }}>{exp.role}</code>
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#475569' }}>{exp.description}</p>
+              </div>
+
+              <div style={{ padding: '12px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  ✓ Can (Authorized Capabilities)
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#15803d', lineHeight: 1.5 }}>
+                  {exp.can.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div style={{ padding: '12px', backgroundColor: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#9a3412', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  ✕ Cannot by Default (Governance Boundaries)
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#c2410c', lineHeight: 1.5 }}>
+                  {exp.cannot.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic' }}>
+                * Role boundaries are enforced server-side by NestJS guards and PostgreSQL Row-Level Security policies.
+              </div>
+            </div>
+          );
+        })()}
       </Modal>
     </div>
   );
