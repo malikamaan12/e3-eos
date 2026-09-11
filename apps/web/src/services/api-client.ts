@@ -676,20 +676,6 @@ export class EosApiClient {
     return await res.json();
   }
 
-  /**
-   * Fetches clarifications / RFIs for a project.
-   */
-  async getClarifications(projectId: string): Promise<{ data: any[]; meta?: any }> {
-    try {
-      const res = await fetch(`${this.baseUrl}/projects/${projectId}/clarifications`, {
-        headers: this.getHeaders(),
-      });
-      if (!res.ok) return { data: [] };
-      return await res.json();
-    } catch {
-      return { data: [] };
-    }
-  }
 
   /**
    * Creates a new clarification / RFI.

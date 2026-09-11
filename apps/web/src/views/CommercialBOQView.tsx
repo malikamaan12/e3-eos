@@ -248,12 +248,14 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
             <thead>
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Line Code</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked Scope Requirement</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Hierarchy (Section &gt; Discipline)</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Description</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked Scope</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked Design</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Qty</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>UOM</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Buy Rate (QAR)</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Sell Rate (QAR)</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Unit</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Supplier Cost (QAR)</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Sell Price (QAR)</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Margin %</th>
               </tr>
             </thead>
@@ -269,6 +271,14 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                       {l.lineCode}
                     </td>
                     <td style={{ padding: '12px' }}>
+                      <span style={{ fontSize: '11px', color: '#475569', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                        {l.section || 'Main Stage'} &gt; {l.discipline || 'AV & Staging'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>
+                      {l.description}
+                    </td>
+                    <td style={{ padding: '12px' }}>
                       {l.linkedRequirementCode ? (
                         <Badge variant="success" size="sm">
                           {l.linkedRequirementCode}
@@ -277,8 +287,10 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                         <span style={{ color: '#dc2626', fontSize: '11px', fontWeight: 700 }}>⚠️ Unlinked</span>
                       )}
                     </td>
-                    <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>
-                      {l.description}
+                    <td style={{ padding: '12px' }}>
+                      <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: 600 }}>
+                        {l.linkedDesignId || 'DES-QND-001 (Rev B)'}
+                      </span>
                     </td>
                     <td style={{ padding: '12px' }}>{l.quantity}</td>
                     <td style={{ padding: '12px', textTransform: 'uppercase', color: '#64748b' }}>{l.uom}</td>
@@ -296,6 +308,15 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                   </tr>
                 );
               })}
+              {lines.length === 0 && (
+                <tr>
+                  <td colSpan={10} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📊</div>
+                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No BOQ lines found for this estimate</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Click "+ Add Priced BOQ Line" to add line items connected to scope requirements.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -10,27 +10,33 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
 
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [matrixData, setMatrixData] = useState<any>(null);
-  const [clarificationsData, setClarificationsData] = useState<{ data: any[]; meta: any }>({ data: [], meta: {} });
-  
-  // Filters
-  const [gapFilter, setGapFilter] = useState<'all' | 'gaps_only' | 'traceable_only'>('all');
+  const [clarificationsData, setClarificationsData] = useState<{ data: any[]; meta?: any }>({ data: [], meta: {} });
+
+  // Filter state
+  const [activeFilter, setActiveFilter] = useState<'all' | 'missing_owner' | 'missing_boq' | 'missing_design' | 'high_risk' | 'unapproved'>('all');
 
   // Modals
   const [isAddReqModalOpen, setIsAddReqModalOpen] = useState<boolean>(false);
   const [reqCode, setReqCode] = useState<string>('');
   const [reqTitle, setReqTitle] = useState<string>('');
   const [reqDesc, setReqDesc] = useState<string>('');
+  const [reqOriginalWording, setReqOriginalWording] = useState<string>('');
+  const [reqInterpretation, setReqInterpretation] = useState<string>('');
+  const [reqSourceType, setReqSourceType] = useState<string>('Client RFP');
+  const [reqSourceRef, setReqSourceRef] = useState<string>('RFP Section 4.2.1');
+  const [reqPriority, setReqPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('high');
   const [reqCategory, setReqCategory] = useState<string>('staging_technical');
-  const [reqSource, setReqSource] = useState<string>('RFP Section 5.1');
-  const [reqDueDate, setReqDueDate] = useState<string>('2026-11-25');
-  const [reqTargetCost, setReqTargetCost] = useState<number>(150000);
+  const [reqOwnerName, setReqOwnerName] = useState<string>('Tariq Mansoor (Technical Director)');
+  const [reqDueDate, setReqDueDate] = useState<string>('2026-11-20');
+  const [reqTargetCost, setReqTargetCost] = useState<number>(250000);
   const [isSubmittingReq, setIsSubmittingReq] = useState<boolean>(false);
 
   const [isRfiModalOpen, setIsRfiModalOpen] = useState<boolean>(false);
   const [rfiQuestion, setRfiQuestion] = useState<string>('');
   const [rfiCategory, setRfiCategory] = useState<string>('technical');
-  const [rfiSection, setRfiSection] = useState<string>('RFP Section 4.2');
+  const [rfiSection, setRfiSection] = useState<string>('RFP Section 4.2.1');
   const [rfiDueAt, setRfiDueAt] = useState<string>('2026-11-10T18:00:00Z');
   const [isSubmittingRfi, setIsSubmittingRfi] = useState<boolean>(false);
 
@@ -38,17 +44,23 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
     let isMounted = true;
     async function loadData() {
       setLoading(true);
+      setError(null);
       try {
         const [matrix, clars] = await Promise.all([
-          apiClient.getRequirementsTraceability(projectId).catch(() => null),
+          apiClient.getRequirementsTraceability(projectId).catch((err: any) => {
+            console.warn('Failed to load traceability matrix:', err);
+            return null;
+          }),
           apiClient.getClarifications(projectId).catch(() => ({ data: [], meta: {} })),
         ]);
         if (isMounted) {
           setMatrixData(matrix);
-          setClarificationsData(clars);
+          setClarificationsData(clars || { data: [], meta: {} });
         }
-      } catch (err) {
-        console.error('Failed to load requirements matrix:', err);
+      } catch (err: any) {
+        if (isMounted) {
+          setError(err.message || 'Failed to load requirements matrix. Please retry.');
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -66,17 +78,24 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         code: reqCode || undefined,
         title: reqTitle,
         description: reqDesc,
+        originalWording: reqOriginalWording || undefined,
+        interpretation: reqInterpretation || undefined,
+        sourceType: reqSourceType,
+        sourceReference: reqSourceRef,
+        priority: reqPriority,
         category: reqCategory,
-        sourceReference: reqSource,
+        ownerName: reqOwnerName,
         dueDate: reqDueDate,
         targetCostQar: Number(reqTargetCost),
       });
       setIsAddReqModalOpen(false);
       setReqTitle('');
       setReqDesc('');
+      setReqOriginalWording('');
+      setReqInterpretation('');
       triggerRefresh();
     } catch (err: any) {
-      alert(err.message || 'Failed to create requirement');
+      alert(err.message || 'Failed to register requirement');
     } finally {
       setIsSubmittingReq(false);
     }
@@ -116,15 +135,50 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   };
 
   if (loading && !matrixData) {
-    return <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading 7-point traceability matrix...</div>;
+    return (
+      <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <div style={{ marginTop: '16px', fontSize: '15px', fontWeight: 600, color: '#1e293b' }}>
+          Loading 7-Point Traceability Matrix...
+        </div>
+        <div style={{ marginTop: '4px', fontSize: '13px', color: '#64748b' }}>
+          Evaluating cross-module connections across CAD, BOQ, Documents, and Production Gates.
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '24px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <strong style={{ fontSize: '15px' }}>⚠️ Unable to Load Requirements Matrix</strong>
+            <p style={{ margin: '6px 0 0', fontSize: '13px' }}>{error}</p>
+          </div>
+          <Button variant="danger" onClick={triggerRefresh}>Retry</Button>
+        </div>
+      </div>
+    );
   }
 
   const evaluations = matrixData?.evaluations || [];
+
   const filteredEvaluations = evaluations.filter((ev: any) => {
-    if (gapFilter === 'gaps_only' && ev.isFullyTraceable) return false;
-    if (gapFilter === 'traceable_only' && !ev.isFullyTraceable) return false;
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'missing_owner') return !ev.hasOwner;
+    if (activeFilter === 'missing_boq') return !ev.hasBoqCost;
+    if (activeFilter === 'missing_design') return !ev.hasDesignVersion;
+    if (activeFilter === 'high_risk') return ev.riskRating === 'high' || ev.riskRating === 'critical';
+    if (activeFilter === 'unapproved') return !ev.hasApprovalSignoff && !ev.isApproved;
     return true;
   });
+
+  const missingOwnerCount = evaluations.filter((ev: any) => !ev.hasOwner).length;
+  const missingBoqCount = evaluations.filter((ev: any) => !ev.hasBoqCost).length;
+  const missingDesignCount = evaluations.filter((ev: any) => !ev.hasDesignVersion).length;
+  const highRiskCount = evaluations.filter((ev: any) => ev.riskRating === 'high' || ev.riskRating === 'critical').length;
+  const unapprovedCount = evaluations.filter((ev: any) => !ev.hasApprovalSignoff && !ev.isApproved).length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -213,7 +267,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         <Card style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Unassigned / Gaps</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>
-            {matrixData?.unassignedRequirements || 0}
+            {matrixData?.unassignedRequirements || missingOwnerCount || 0}
           </div>
           <div style={{ fontSize: '11px', color: '#d97706' }}>Actionable gaps required now</div>
         </Card>
@@ -222,18 +276,18 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       {/* Filter and Table Toolbar */}
       <Card style={{ padding: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>Filter Gaps:</span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>Filter Requirements:</span>
             <button
               id="btn-filter-all"
-              onClick={() => setGapFilter('all')}
+              onClick={() => setActiveFilter('all')}
               style={{
-                padding: '4px 12px',
+                padding: '6px 12px',
                 borderRadius: '4px',
                 fontSize: '12px',
                 fontWeight: 600,
-                backgroundColor: gapFilter === 'all' ? '#2563eb' : '#f1f5f9',
-                color: gapFilter === 'all' ? '#ffffff' : '#334155',
+                backgroundColor: activeFilter === 'all' ? '#2563eb' : '#f1f5f9',
+                color: activeFilter === 'all' ? '#ffffff' : '#334155',
                 border: 'none',
                 cursor: 'pointer',
               }}
@@ -241,189 +295,271 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               All ({evaluations.length})
             </button>
             <button
-              id="btn-filter-gaps"
-              onClick={() => setGapFilter('gaps_only')}
+              id="btn-filter-missing-owner"
+              onClick={() => setActiveFilter('missing_owner')}
               style={{
-                padding: '4px 12px',
+                padding: '6px 12px',
                 borderRadius: '4px',
                 fontSize: '12px',
                 fontWeight: 600,
-                backgroundColor: gapFilter === 'gaps_only' ? '#ef4444' : '#f1f5f9',
-                color: gapFilter === 'gaps_only' ? '#ffffff' : '#334155',
+                backgroundColor: activeFilter === 'missing_owner' ? '#ef4444' : '#f1f5f9',
+                color: activeFilter === 'missing_owner' ? '#ffffff' : '#334155',
                 border: 'none',
                 cursor: 'pointer',
               }}
             >
-              Has Missing Links
+              Missing Owner ({missingOwnerCount})
             </button>
             <button
-              id="btn-filter-traceable"
-              onClick={() => setGapFilter('traceable_only')}
+              id="btn-filter-missing-boq"
+              onClick={() => setActiveFilter('missing_boq')}
               style={{
-                padding: '4px 12px',
+                padding: '6px 12px',
                 borderRadius: '4px',
                 fontSize: '12px',
                 fontWeight: 600,
-                backgroundColor: gapFilter === 'traceable_only' ? '#16a34a' : '#f1f5f9',
-                color: gapFilter === 'traceable_only' ? '#ffffff' : '#334155',
+                backgroundColor: activeFilter === 'missing_boq' ? '#f59e0b' : '#f1f5f9',
+                color: activeFilter === 'missing_boq' ? '#ffffff' : '#334155',
                 border: 'none',
                 cursor: 'pointer',
               }}
             >
-              Fully Traceable (7/7)
+              Missing BOQ ({missingBoqCount})
+            </button>
+            <button
+              id="btn-filter-missing-design"
+              onClick={() => setActiveFilter('missing_design')}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: 600,
+                backgroundColor: activeFilter === 'missing_design' ? '#8b5cf6' : '#f1f5f9',
+                color: activeFilter === 'missing_design' ? '#ffffff' : '#334155',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Missing Design ({missingDesignCount})
+            </button>
+            <button
+              id="btn-filter-high-risk"
+              onClick={() => setActiveFilter('high_risk')}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: 600,
+                backgroundColor: activeFilter === 'high_risk' ? '#dc2626' : '#f1f5f9',
+                color: activeFilter === 'high_risk' ? '#ffffff' : '#334155',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              High Risk ({highRiskCount})
+            </button>
+            <button
+              id="btn-filter-unapproved"
+              onClick={() => setActiveFilter('unapproved')}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: 600,
+                backgroundColor: activeFilter === 'unapproved' ? '#d97706' : '#f1f5f9',
+                color: activeFilter === 'unapproved' ? '#ffffff' : '#334155',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Unapproved ({unapprovedCount})
             </button>
           </div>
 
           <div style={{ fontSize: '12px', color: '#64748b' }}>
-            Showing <strong>{filteredEvaluations.length}</strong> requirements
+            Showing <strong>{filteredEvaluations.length}</strong> of {evaluations.length} requirements
           </div>
         </div>
 
-        {/* 7-Point Matrix Table */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Code</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Owner (1)</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Date (2)</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Controlled Doc (3)</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>CAD / Design (4)</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>BOQ Line (5)</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Approval (6)</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700 }}>Site Evidence (7)</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Score</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Risk</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEvaluations.map((ev: any) => (
-                <tr key={ev.requirementId} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: ev.isFullyTraceable ? '#f0fdf4' : '#ffffff' }}>
-                  <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#2563eb' }}>
-                    {ev.code}
-                  </td>
-                  
-                  {/* Point 1: Owner */}
-                  <td style={{ padding: '12px' }}>
-                    {ev.hasOwner ? (
-                      <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Assigned</span>
-                    ) : (
-                      <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
-                        ⚠️ Missing
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Point 2: Date */}
-                  <td style={{ padding: '12px' }}>
-                    {ev.hasTargetDate ? (
-                      <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Set</span>
-                    ) : (
-                      <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
-                        ⚠️ Missing
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Point 3: Controlled Document */}
-                  <td style={{ padding: '12px' }}>
-                    {ev.hasControlledDocument ? (
-                      <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Controlled</span>
-                    ) : (
-                      <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
-                        ⚠️ Unlinked
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Point 4: Design Version */}
-                  <td style={{ padding: '12px' }}>
-                    {ev.hasDesignVersion ? (
-                      <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ CAD Linked</span>
-                    ) : (
-                      <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
-                        ⚠️ No CAD
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Point 5: BOQ Cost */}
-                  <td style={{ padding: '12px' }}>
-                    {ev.hasBoqCost ? (
-                      <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Priced</span>
-                    ) : (ev.dimensions?.find((d: any) => d.key === 'boqCost')?.status === 'Required Later') ? (
-                      <span style={{ color: '#0284c7', fontSize: '11px', backgroundColor: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                        ⏳ Req Later (Stg 5)
-                      </span>
-                    ) : (
-                      <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
-                        ⚠️ Uncosted
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Point 6: Approval */}
-                  <td style={{ padding: '12px' }}>
-                    {ev.hasApprovalSignoff ? (
-                      <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Approved</span>
-                    ) : (ev.dimensions?.find((d: any) => d.key === 'approvalSignoff')?.status === 'Required Later') ? (
-                      <span style={{ color: '#0284c7', fontSize: '11px', backgroundColor: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                        ⏳ Req Later (Stg 6)
-                      </span>
-                    ) : (
-                      <span style={{ color: '#d97706', fontWeight: 700, backgroundColor: '#fef3c7', padding: '2px 6px', borderRadius: '4px' }}>
-                        ⏳ Pending
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Point 7: Delivery Evidence */}
-                  <td style={{ padding: '12px' }}>
-                    {ev.hasDeliveryEvidence ? (
-                      <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Verified</span>
-                    ) : (ev.dimensions?.find((d: any) => d.key === 'deliveryEvidence')?.status === 'Required Later') ? (
-                      <span style={{ color: '#64748b', fontSize: '11px', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                        ⏳ Req Later (Stg 9)
-                      </span>
-                    ) : (
-                      <span style={{ color: '#64748b', fontSize: '11px' }}>
-                        Pending Site Build
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Score */}
-                  <td style={{ padding: '12px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                      <div style={{ fontWeight: 800, color: ev.isStageMaturitySatisfied ? '#059669' : '#2563eb', fontSize: '12px' }}>
-                        Stage: {ev.currentStageMaturityPct ?? 100}%
-                      </div>
-                      <div style={{ fontSize: '10px', color: '#64748b' }}>
-                        Overall: {ev.completedPoints}/7 ({ev.overallTraceabilityPct || ev.traceabilityScorePct}%)
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Risk Badge */}
-                  <td style={{ padding: '12px', textAlign: 'center' }}>
-                    <Badge
-                      variant={
-                        ev.riskRating === 'low'
-                          ? 'success'
-                          : ev.riskRating === 'medium'
-                          ? 'warning'
-                          : 'danger'
-                      }
-                      size="sm"
-                    >
-                      {ev.riskRating.toUpperCase()}
-                    </Badge>
-                  </td>
+        {/* 7-Point Matrix Table with Exact Specified Columns */}
+        {filteredEvaluations.length === 0 ? (
+          <div style={{ padding: '36px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px dashed #cbd5e1' }}>
+            <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>No requirements match the active filter</div>
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+              Switch to "All" or register a new scope requirement to populate the matrix.
+            </div>
+            <Button variant="secondary" size="sm" onClick={() => setActiveFilter('all')} style={{ marginTop: '12px' }}>
+              Show All Requirements
+            </Button>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                  <th style={{ padding: '10px 12px', fontWeight: 700, whiteSpace: 'nowrap' }}>Requirement ID</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Description</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Source</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Owner</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700, whiteSpace: 'nowrap' }}>Due Date</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Status</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap' }}>Coverage %</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked Design</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked BOQ</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked Document</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Risk</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredEvaluations.map((ev: any) => {
+                  const coveragePct = ev.currentStageMaturityPct ?? ev.overallTraceabilityPct ?? ev.traceabilityScorePct ?? 0;
+                  const reqStatus = ev.status || (ev.isApproved ? 'approved' : 'active');
+
+                  return (
+                    <tr key={ev.requirementId} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: ev.isFullyTraceable ? '#f0fdf4' : '#ffffff' }}>
+                      {/* Column 1: Requirement ID */}
+                      <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#2563eb', whiteSpace: 'nowrap' }}>
+                        {ev.code || ev.requirementId}
+                      </td>
+
+                      {/* Column 2: Description */}
+                      <td style={{ padding: '12px', maxWidth: '280px' }}>
+                        <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '2px' }}>
+                          {ev.title || 'Scope Deliverable'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.4 }}>
+                          {ev.description}
+                        </div>
+                        {ev.originalWording && (
+                          <div style={{ fontSize: '10px', color: '#475569', fontStyle: 'italic', marginTop: '2px' }}>
+                            Original: "{ev.originalWording}"
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Column 3: Source */}
+                      <td style={{ padding: '12px', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontWeight: 600, color: '#334155' }}>
+                          {ev.sourceType || 'Client RFP'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          {ev.sourceReference || 'Tender Spec'}
+                        </div>
+                      </td>
+
+                      {/* Column 4: Owner */}
+                      <td style={{ padding: '12px' }}>
+                        {ev.hasOwner ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span>
+                            <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '11px' }}>
+                              {ev.ownerName || 'Assigned Lead'}
+                            </span>
+                          </div>
+                        ) : (
+                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
+                            ⚠️ Missing Owner
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Column 5: Due Date */}
+                      <td style={{ padding: '12px', whiteSpace: 'nowrap', color: ev.dueDate ? '#0f172a' : '#64748b' }}>
+                        {ev.dueDate ? new Date(ev.dueDate).toLocaleDateString() : '—'}
+                      </td>
+
+                      {/* Column 6: Status */}
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <Badge
+                          variant={
+                            reqStatus === 'approved' || reqStatus === 'delivered'
+                              ? 'success'
+                              : reqStatus === 'active' || reqStatus === 'in_design'
+                              ? 'info'
+                              : reqStatus === 'under_review' || reqStatus === 'draft'
+                              ? 'warning'
+                              : 'neutral'
+                          }
+                          size="sm"
+                        >
+                          {String(reqStatus).toUpperCase().replace('_', ' ')}
+                        </Badge>
+                      </td>
+
+                      {/* Column 7: Coverage % */}
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                          <div style={{ fontWeight: 800, color: coveragePct >= 80 ? '#059669' : coveragePct >= 50 ? '#d97706' : '#dc2626', fontSize: '13px' }}>
+                            {coveragePct}%
+                          </div>
+                          <div style={{ fontSize: '10px', color: '#64748b' }}>
+                            {ev.completedPoints || 0}/7 points
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Column 8: Linked Design */}
+                      <td style={{ padding: '12px' }}>
+                        {ev.hasDesignVersion ? (
+                          <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>
+                            ✓ {ev.linkedDesignVersion || 'CAD Linked'}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>
+                            ⚠️ No CAD
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Column 9: Linked BOQ */}
+                      <td style={{ padding: '12px' }}>
+                        {ev.hasBoqCost ? (
+                          <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>
+                            ✓ {ev.linkedBoqLineCode || 'Priced'}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>
+                            ⚠️ Uncosted
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Column 10: Linked Document */}
+                      <td style={{ padding: '12px' }}>
+                        {ev.hasControlledDocument ? (
+                          <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>
+                            ✓ {ev.linkedDocumentNumber || 'Controlled'}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>
+                            ⚠️ Unlinked
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Column 11: Risk */}
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <Badge
+                          variant={
+                            ev.riskRating === 'low'
+                              ? 'success'
+                              : ev.riskRating === 'medium'
+                              ? 'warning'
+                              : 'danger'
+                          }
+                          size="sm"
+                        >
+                          {ev.riskRating?.toUpperCase() || 'LOW'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       {/* Clarifications / RFIs & Impact Assessment Section */}
@@ -437,7 +573,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               Tracks bidder inquiries, client addenda, and evaluates automatic contractual/commercial variation order impact.
             </p>
           </div>
-          {clarificationsData.meta?.urgentCount > 0 && (
+          {clarificationsData?.meta?.urgentCount > 0 && (
             <span
               style={{
                 backgroundColor: '#fef2f2',
@@ -458,7 +594,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {clarificationsData.data?.map((clar: any) => (
+          {(clarificationsData?.data || []).map((clar: any) => (
             <div
               key={clar.id}
               style={{
@@ -526,26 +662,28 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         isOpen={isAddReqModalOpen}
         onClose={() => setIsAddReqModalOpen(false)}
         title="Register Controlled Scope Requirement"
-        size="md"
+        size="lg"
       >
         <form onSubmit={handleCreateRequirement} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Requirement Code (Optional)</label>
-            <Input
-              value={reqCode}
-              onChange={(e) => setReqCode(e.target.value)}
-              placeholder="e.g. REQ-QND-005"
-            />
-          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Requirement Code</label>
+              <Input
+                value={reqCode}
+                onChange={(e) => setReqCode(e.target.value)}
+                placeholder="e.g. REQ-QND-005"
+              />
+            </div>
 
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Requirement Title *</label>
-            <Input
-              value={reqTitle}
-              onChange={(e) => setReqTitle(e.target.value)}
-              placeholder="e.g. Amiri Protocol Shaded Holding Majlis"
-              required
-            />
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Requirement Title *</label>
+              <Input
+                value={reqTitle}
+                onChange={(e) => setReqTitle(e.target.value)}
+                placeholder="e.g. Amiri Protocol Shaded Holding Majlis"
+                required
+              />
+            </div>
           </div>
 
           <div>
@@ -553,22 +691,90 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             <Textarea
               value={reqDesc}
               onChange={(e) => setReqDesc(e.target.value)}
-              placeholder="Detailed technical deliverables, wind ratings, safety standards..."
-              rows={3}
+              placeholder="Detailed technical deliverables, dimensions, materials, wind ratings..."
+              rows={2}
               required
             />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Engineering Trade / Category</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Original Client / RFP Wording</label>
+              <Textarea
+                value={reqOriginalWording}
+                onChange={(e) => setReqOriginalWording(e.target.value)}
+                placeholder="Exact quote from client tender document or RFP..."
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>E3 Engineering Interpretation</label>
+              <Textarea
+                value={reqInterpretation}
+                onChange={(e) => setReqInterpretation(e.target.value)}
+                placeholder="E3 engineering interpretation, structural limits, execution caveats..."
+                rows={2}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Source Type (9 Types)</label>
+              <Select value={reqSourceType} onChange={(e) => setReqSourceType(e.target.value)}>
+                <option value="Client RFP">Client RFP</option>
+                <option value="Tender document">Tender document</option>
+                <option value="Contract">Contract</option>
+                <option value="Addendum">Addendum</option>
+                <option value="Meeting minutes">Meeting minutes</option>
+                <option value="Email confirmation">Email confirmation</option>
+                <option value="Venue requirement">Venue requirement</option>
+                <option value="Authority requirement">Authority requirement</option>
+                <option value="Internal E3 decision">Internal E3 decision</option>
+              </Select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Source Reference</label>
+              <Input
+                value={reqSourceRef}
+                onChange={(e) => setReqSourceRef(e.target.value)}
+                placeholder="e.g. RFP Section 4.2.1"
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Priority Level</label>
+              <Select value={reqPriority} onChange={(e) => setReqPriority(e.target.value as any)}>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </Select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Engineering Trade / Discipline</label>
               <Select value={reqCategory} onChange={(e) => setReqCategory(e.target.value)}>
                 <option value="staging_technical">Staging Technical & Rigging</option>
                 <option value="creative_visual">Creative Visual & LED</option>
                 <option value="health_safety">Health, Safety & QCDD</option>
                 <option value="protocol_ceremony">Protocol & Ceremonial</option>
                 <option value="operational_logistics">Site Operational Logistics</option>
+                <option value="commercial_contract">Commercial & Contract</option>
               </Select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Assigned Owner</label>
+              <Input
+                value={reqOwnerName}
+                onChange={(e) => setReqOwnerName(e.target.value)}
+                placeholder="e.g. Tariq Mansoor (Technical Director)"
+              />
             </div>
 
             <div>
@@ -581,12 +787,21 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
           </div>
 
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Due Date</label>
+            <Input
+              type="date"
+              value={reqDueDate}
+              onChange={(e) => setReqDueDate(e.target.value)}
+            />
+          </div>
+
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
             <Button variant="secondary" onClick={() => setIsAddReqModalOpen(false)}>
               Cancel
             </Button>
             <Button variant="primary" type="submit" disabled={isSubmittingReq}>
-              {isSubmittingReq ? 'Registering...' : 'Register Requirement'}
+              {isSubmittingReq ? 'Registering...' : 'Register Scope Requirement'}
             </Button>
           </div>
         </form>
@@ -617,8 +832,11 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               <Select value={rfiCategory} onChange={(e) => setRfiCategory(e.target.value)}>
                 <option value="technical">Technical Engineering</option>
                 <option value="commercial">Commercial Pricing</option>
-                <option value="schedule">Timeline / Access</option>
+                <option value="venue">Venue & Rigging</option>
+                <option value="operations">Operations & Access</option>
                 <option value="protocol">Protocol / Amiri Diwan</option>
+                <option value="safety">Safety & QCDD</option>
+                <option value="design">Design & Creative</option>
               </Select>
             </div>
 

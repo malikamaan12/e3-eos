@@ -163,7 +163,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                 }}
               >
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '12px', color: t.isCritical ? '#ef4444' : '#2563eb' }}>
                       {t.code}
                     </span>
@@ -179,13 +179,31 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                           textTransform: 'uppercase',
                         }}
                       >
-                        CRITICAL
+                        CRITICAL (0h FLOAT)
                       </span>
                     )}
+                    <span
+                      style={{
+                        backgroundColor: '#f1f5f9',
+                        color: '#475569',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        borderRadius: '3px',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {t.phase || (t.durationHours >= 24 ? 'installation' : t.code?.includes('01') ? 'bump-in' : t.code?.includes('04') ? 'rehearsals' : 'installation')}
+                    </span>
                   </div>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
                     {t.title}
                   </div>
+                  {t.predecessorIds && t.predecessorIds.length > 0 && (
+                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                      Deps: {t.predecessorIds.map((p: any) => typeof p === 'string' ? `${p} (FS)` : `${p.id} (${p.type || 'FS'})`).join(', ')}
+                    </div>
+                  )}
                 </div>
 
                 {/* Timeline Bar Track */}
@@ -214,11 +232,66 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
 
                 <div style={{ textAlign: 'right', fontSize: '11px', color: '#64748b' }}>
                   Float: <strong style={{ color: t.isCritical ? '#ef4444' : '#16a34a' }}>{t.totalFloatHours}h</strong>
+                  {t.isCritical && (
+                    <div style={{ fontSize: '10px', color: '#dc2626', fontWeight: 700 }}>
+                      ⚠️ Slippage Risk
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })}
+          {tasks.length === 0 && (
+            <div style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏱️</div>
+              <div style={{ fontWeight: 700, color: '#334155' }}>No CPM schedule tasks available</div>
+              <div style={{ fontSize: '12px', marginTop: '4px' }}>Assign tasks to calculate the early/late start timeline.</div>
+            </div>
+          )}
         </div>
+
+        {/* Selected Task CPM Diagnostics Inspector */}
+        {selectedTask && (
+          <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '14px', color: selectedTask.isCritical ? '#ef4444' : '#2563eb' }}>
+                  {selectedTask.code}
+                </span>
+                <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                  {selectedTask.title}
+                </span>
+                {selectedTask.isCritical && (
+                  <Badge variant="danger" size="sm">CRITICAL PATH</Badge>
+                )}
+              </div>
+              <span style={{ fontSize: '11px', color: '#64748b' }}>
+                Duration: <strong>{selectedTask.durationHours}h</strong>
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', fontSize: '11px' }}>
+              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                <span style={{ color: '#64748b' }}>Early Start (ES):</span> <strong>Hour {selectedTask.earlyStartHours ?? 0}</strong>
+              </div>
+              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                <span style={{ color: '#64748b' }}>Early Finish (EF):</span> <strong>Hour {selectedTask.earlyFinishHours ?? selectedTask.durationHours}</strong>
+              </div>
+              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                <span style={{ color: '#64748b' }}>Late Start (LS):</span> <strong>Hour {selectedTask.lateStartHours ?? selectedTask.earlyStartHours ?? 0}</strong>
+              </div>
+              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                <span style={{ color: '#64748b' }}>Late Finish (LF):</span> <strong>Hour {selectedTask.lateFinishHours ?? selectedTask.earlyFinishHours ?? selectedTask.durationHours}</strong>
+              </div>
+              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                <span style={{ color: '#64748b' }}>Total Float:</span> <strong style={{ color: selectedTask.isCritical ? '#dc2626' : '#16a34a' }}>{selectedTask.totalFloatHours ?? 0}h</strong>
+              </div>
+              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                <span style={{ color: '#64748b' }}>Free Float:</span> <strong>{selectedTask.freeFloatHours ?? selectedTask.totalFloatHours ?? 0}h</strong>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* 24/7 Site Bump-in Shift Log & Noise Curfews */}

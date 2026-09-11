@@ -379,9 +379,11 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
               <option value="all">All Categories</option>
               <option value="technical">Technical</option>
               <option value="commercial">Commercial</option>
-              <option value="venue_operations">Venue Operations</option>
+              <option value="venue">Venue</option>
+              <option value="operations">Operations</option>
               <option value="protocol">Protocol</option>
-              <option value="schedule">Schedule</option>
+              <option value="safety">Safety</option>
+              <option value="design">Design</option>
             </select>
           </div>
         </div>
@@ -547,6 +549,15 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
                   </tr>
                 );
               })}
+              {filteredItems.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
+                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No clarifications found matching active filter</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Try switching the status or category filter, or raise a new clarification.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -680,9 +691,11 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
                 options={[
                   { value: 'technical', label: 'Technical' },
                   { value: 'commercial', label: 'Commercial' },
-                  { value: 'venue_operations', label: 'Venue Operations' },
+                  { value: 'venue', label: 'Venue' },
+                  { value: 'operations', label: 'Operations' },
                   { value: 'protocol', label: 'Protocol' },
-                  { value: 'schedule', label: 'Schedule' },
+                  { value: 'safety', label: 'Safety' },
+                  { value: 'design', label: 'Design' },
                 ]}
               />
               <Input

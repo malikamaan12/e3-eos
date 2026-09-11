@@ -577,23 +577,27 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
 
           {/* Add Reply / Status Actions */}
           <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px', marginTop: '12px' }}>
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-              {activePin?.status !== 'resolved' ? (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={() => handleTogglePinStatus(activePin.id, 'resolved')}
-                >
-                  ✓ Mark Resolved
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => handleTogglePinStatus(activePin.id, 'open')}
-                >
-                  ↺ Re-open Pin
-                </Button>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>Pin Status:</span>
+              <select
+                value={activePin?.status || 'open'}
+                onChange={(e) => handleTogglePinStatus(activePin.id, e.target.value as any)}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  backgroundColor: '#ffffff',
+                }}
+              >
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="rejected_reopened">Reopened</option>
+              </select>
+              {activePin?.status === 'resolved' && (
+                <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 600 }}>✓ Resolved</span>
               )}
             </div>
 

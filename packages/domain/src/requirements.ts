@@ -14,6 +14,38 @@ export type RequirementCategory =
   | 'commercial_contract'
   | 'operational_logistics';
 
+export type RequirementSourceType =
+  | 'Client RFP'
+  | 'Tender document'
+  | 'Contract'
+  | 'Addendum'
+  | 'Meeting minutes'
+  | 'Email confirmation'
+  | 'Venue requirement'
+  | 'Authority requirement'
+  | 'Internal E3 decision'
+  | 'client_rfp'
+  | 'tender_document'
+  | 'contract'
+  | 'addendum'
+  | 'meeting_minutes'
+  | 'email_confirmation'
+  | 'venue_requirement'
+  | 'authority_requirement'
+  | 'internal_e3_decision';
+
+export type RequirementPriority = 'low' | 'medium' | 'high' | 'critical';
+
+export type ScopeRequirementStatus =
+  | 'draft'
+  | 'active'
+  | 'under_review'
+  | 'negotiated_out'
+  | 'transferred'
+  | 'approved'
+  | 'delivered'
+  | 'closed';
+
 export type ScopeRequirementDisposition =
   | 'applicable'
   | 'negotiated_out'
@@ -41,11 +73,16 @@ export interface ScopeRequirement {
   code?: string; // e.g. "REQ-QND-001"
   title: string;
   description: string;
-  category?: RequirementCategory;
+  originalWording?: string;
+  interpretation?: string;
+  sourceType?: RequirementSourceType;
   sourceReference?: string; // e.g. "RFP Section 4.2.1 - Main Stage LED Arch"
+  category?: RequirementCategory;
   ownerId?: string;
   ownerName?: string;
   dueDate?: string; // ISO 8601 Date
+  priority?: RequirementPriority;
+  status?: ScopeRequirementStatus;
   disposition: ScopeRequirementDisposition;
   deliverablePackageId?: string;
   linkedDocumentId?: string;
@@ -88,6 +125,23 @@ export interface TraceabilityDimensionDetail {
 export interface TraceabilityEvaluation {
   requirementId: string;
   code: string;
+  title?: string;
+  description?: string;
+  originalWording?: string;
+  interpretation?: string;
+  sourceType?: RequirementSourceType | string;
+  sourceReference?: string;
+  ownerName?: string;
+  ownerId?: string;
+  dueDate?: string;
+  priority?: RequirementPriority;
+  status?: ScopeRequirementStatus | string;
+  linkedDesignId?: string;
+  linkedDesignVersion?: string;
+  linkedBoqLineCode?: string;
+  linkedDocumentId?: string;
+  linkedDocumentNumber?: string;
+  isApproved?: boolean;
   hasOwner: boolean;
   hasTargetDate: boolean;
   hasControlledDocument: boolean;
@@ -213,6 +267,23 @@ export function evaluateRequirementTraceability(
   return {
     requirementId: req.id,
     code: req.code || req.id,
+    title: req.title,
+    description: req.description,
+    originalWording: req.originalWording,
+    interpretation: req.interpretation,
+    sourceType: req.sourceType || 'Client RFP',
+    sourceReference: req.sourceReference || 'Client RFP',
+    ownerName: req.ownerName || (req.ownerId ? 'Assigned Owner' : undefined),
+    ownerId: req.ownerId,
+    dueDate: req.dueDate,
+    priority: req.priority || 'medium',
+    status: req.status || (req.isApproved ? 'approved' : 'active'),
+    linkedDesignId: req.linkedDesignId,
+    linkedDesignVersion: req.linkedDesignVersion,
+    linkedBoqLineCode: req.linkedBoqLineCode,
+    linkedDocumentId: req.linkedDocumentId,
+    linkedDocumentNumber: req.linkedDocumentNumber,
+    isApproved: req.isApproved,
     hasOwner,
     hasTargetDate,
     hasControlledDocument,

@@ -6,10 +6,14 @@
  */
 
 export type ClarificationCategory =
-  | 'commercial'
   | 'technical'
-  | 'venue_operations'
+  | 'commercial'
+  | 'venue'
+  | 'operations'
   | 'protocol'
+  | 'safety'
+  | 'design'
+  | 'venue_operations'
   | 'schedule';
 
 export type ClarificationSource =

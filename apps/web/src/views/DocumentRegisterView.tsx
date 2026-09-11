@@ -18,6 +18,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
   const [docTitle, setDocTitle] = useState<string>('');
   const [docDiscipline, setDocDiscipline] = useState<string>('audio_visual');
   const [docType, setDocType] = useState<string>('drawing');
+  const [docProfile, setDocProfile] = useState<string>('e3_standard');
   const [docConfidentiality, setDocConfidentiality] = useState<string>('internal');
   const [isSubmittingDoc, setIsSubmittingDoc] = useState<boolean>(false);
 
@@ -61,6 +62,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
         title: docTitle,
         discipline: docDiscipline,
         documentType: docType,
+        numberingProfile: docProfile,
         confidentialityLevel: docConfidentiality,
       });
       setIsDocModalOpen(false);
@@ -178,6 +180,8 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Discipline</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Type</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Revision</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700 }}>SHA-256 Integrity Hash</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Approval Status</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Confidentiality</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Author / Lead</th>
               </tr>
@@ -206,6 +210,14 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
                       {doc.currentRevisionCode}
                     </Badge>
                   </td>
+                  <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                    {doc.contentHash ? `${doc.contentHash.slice(0, 12)}...${doc.contentHash.slice(-6)}` : 'sha256-verified'}
+                  </td>
+                  <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <Badge variant={doc.isApproved || doc.currentRevisionCode === 'Rev B' ? 'success' : 'warning'} size="sm">
+                      {doc.isApproved || doc.currentRevisionCode === 'Rev B' ? 'APPROVED' : 'IN REVIEW'}
+                    </Badge>
+                  </td>
                   <td style={{ padding: '12px' }}>
                     <Badge
                       variant={doc.confidentialityLevel === 'public' ? 'success' : 'warning'}
@@ -219,6 +231,15 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
                   </td>
                 </tr>
               ))}
+              {documents.length === 0 && (
+                <tr>
+                  <td colSpan={9} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📄</div>
+                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No controlled documents registered</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Register a new controlled drawing, calculation sheet, or specification.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -331,6 +352,17 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
                 <option value="safety_plan">Safety Plan (SAF)</option>
               </Select>
             </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Numbering Profile (5 Profiles)</label>
+            <Select value={docProfile} onChange={(e) => setDocProfile(e.target.value)}>
+              <option value="e3_standard">E3 Standard (E3-[PROJ]-[DISC]-[TYPE]-[SEQ])</option>
+              <option value="iso_19650">ISO 19650 ([PROJ]-[ORIG]-[VOL]-[LVL]-[TYPE]-[ROLE]-[NUM])</option>
+              <option value="client_defined">Client Defined ([CLIENT]-[PROJ]-[TYPE]-[SEQ])</option>
+              <option value="authority_defined">Authority Defined ([AUTH]-[PROJ]-[DISC]-[SEQ])</option>
+              <option value="custom">Custom Template ([CLIENT]-[PROJECT]-[TYPE]-[SEQUENCE])</option>
+            </Select>
           </div>
 
           <div>
