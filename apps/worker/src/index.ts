@@ -44,8 +44,8 @@ export async function runWorker() {
         status: 'ok',
         service: 'e3-eos-worker',
         environment: process.env.ENVIRONMENT || 'staging',
-        gitCommit: process.env.GIT_COMMIT || process.env.BUILD_SHA || '8e53361',
-        buildSha: process.env.BUILD_SHA || process.env.GIT_COMMIT || '8e53361',
+        gitCommit: process.env.GIT_COMMIT || process.env.BUILD_SHA || 'be15f5a',
+        buildSha: process.env.BUILD_SHA || process.env.GIT_COMMIT || 'be15f5a',
       })
     );
   });
