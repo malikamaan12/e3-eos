@@ -12,7 +12,7 @@ function getEnvironment(): string {
   return env || 'staging';
 }
 
-const GIT_COMMIT = process.env.GIT_COMMIT || process.env.BUILD_SHA || 'e273e05';
+const GIT_COMMIT = process.env.GIT_COMMIT || process.env.BUILD_SHA || '8e53361';
 
 @Controller('health')
 export class HealthController {

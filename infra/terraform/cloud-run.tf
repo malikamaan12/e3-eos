@@ -70,6 +70,10 @@ resource "google_cloud_run_v2_service" "api_service" {
         value = google_secret_manager_secret_version.db_password_version.secret_data
       }
       env {
+        name  = "DB_SSL"
+        value = "true"
+      }
+      env {
         name  = "REDIS_HOST"
         value = google_redis_instance.redis_cache.host
       }

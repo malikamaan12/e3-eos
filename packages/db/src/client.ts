@@ -56,7 +56,7 @@ export function getDbPool(): pg.Pool {
       max: Number(process.env.DB_POOL_MAX) || 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+      ssl: process.env.DB_SSL === 'false' ? false : (process.env.DB_SSL === 'true' || (process.env.DB_HOST && !['localhost', '127.0.0.1'].includes(process.env.DB_HOST))) ? { rejectUnauthorized: false } : false,
     });
 
     poolInstance.on('error', (err) => {
