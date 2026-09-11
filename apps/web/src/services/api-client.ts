@@ -1480,6 +1480,129 @@ export class EosApiClient {
       },
     ];
   }
+
+  /**
+   * Fetches operational constraints for a project with provenance metadata.
+   */
+  async getConstraints(projectId: string): Promise<{ data: any[]; meta: any }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/constraints`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {}
+    return { data: [], meta: { total: 0, verifiedCount: 0, unverifiedCount: 0 } };
+  }
+
+  /**
+   * Creates an operational constraint in Draft status.
+   */
+  async createConstraint(projectId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/constraints`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || 'Failed to create constraint');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Attaches a controlled source document revision with system-calculated hash.
+   */
+  async attachSourceToConstraint(
+    projectId: string,
+    constraintId: string,
+    payload: { controlledDocumentId: string; documentRevisionId: string; pageClauseSection?: string }
+  ): Promise<any> {
+    const res = await fetch(
+      `${this.baseUrl}/projects/${projectId}/constraints/${constraintId}/attach-source`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload),
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || 'Failed to attach source to constraint');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Submits a constraint with attached source for formal review.
+   */
+  async submitConstraintForReview(projectId: string, constraintId: string): Promise<any> {
+    const res = await fetch(
+      `${this.baseUrl}/projects/${projectId}/constraints/${constraintId}/submit-review`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || 'Failed to submit constraint for review');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Executes authoritative verification review by an authorized reviewer.
+   */
+  async verifyConstraint(
+    projectId: string,
+    constraintId: string,
+    payload: {
+      pageClauseSection: string;
+      extractedRuleValue: string;
+      applicabilityStatement: string;
+      reviewerComment: string;
+    }
+  ): Promise<any> {
+    const res = await fetch(
+      `${this.baseUrl}/projects/${projectId}/constraints/${constraintId}/verify`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload),
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || 'Failed to verify constraint');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Marks an active constraint as superseded.
+   */
+  async supersedeConstraint(
+    projectId: string,
+    constraintId: string,
+    payload: { reason?: string }
+  ): Promise<any> {
+    const res = await fetch(
+      `${this.baseUrl}/projects/${projectId}/constraints/${constraintId}/supersede`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload),
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || 'Failed to supersede constraint');
+    }
+    return await res.json();
+  }
 }
 
 

@@ -54,11 +54,14 @@ export interface DocumentRevisionRecord {
   documentId: string;
   revisionCode: string; // "Rev A", "Rev B", "Rev 01", etc.
   contentHash: string; // SHA-256 hex
+  calculatedSha256?: string; // System-calculated SHA-256 hex from actual file bytes
+  originalFilename?: string; // Original filename of uploaded document
   storageKey: string;
   fileSizeBytes: number;
   purpose: TransmittalPurpose;
   status: 'draft' | 'in_review' | 'approved' | 'superseded';
   uploadedBy: string;
+  uploadedAt?: string;
   approvedBy?: string;
   approvedAt?: string;
   createdAt: string;
@@ -189,10 +192,17 @@ export function generateDocumentNumber(params: DocumentNumberingOptions): string
 }
 
 /**
+ * Computes canonical SHA-256 hash hex string from raw file bytes/buffer.
+ */
+export function calculateFileSha256(content: Buffer | Uint8Array | string): string {
+  return createHash('sha256').update(content).digest('hex');
+}
+
+/**
  * Validates document content integrity using SHA-256 canonical hashing.
  */
 export function verifyDocumentIntegrity(contentBuffer: Buffer | string, expectedHash: string): boolean {
-  const actualHash = createHash('sha256').update(contentBuffer).digest('hex');
+  const actualHash = calculateFileSha256(contentBuffer);
   return actualHash.toLowerCase() === expectedHash.toLowerCase();
 }
 

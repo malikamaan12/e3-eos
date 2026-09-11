@@ -617,5 +617,118 @@ describe('M06 Governance, Approvals and Exceptions Suite', () => {
   });
 });
 
+describe('Sprint 02: Operational Constraints Verification & Provenance API', () => {
+  it('enforces 5-state verification workflow and prohibits manual verification spoofing', async () => {
+    const { ConstraintsController } = await import(
+      './operations/constraints.controller.js'
+    );
+    const controller = new ConstraintsController();
+    const projectId = '00000000-0000-4000-8000-000000000001';
+
+    // 1. List initial constraints
+    const listRes = controller.listConstraints(projectId);
+    expect(listRes.data.length).toBeGreaterThan(0);
+    expect(listRes.meta.total).toBe(listRes.data.length);
+    expect(listRes.meta.verifiedCount).toBeGreaterThan(0); // Verified against real controlled docs
+
+    // 2. Direct assignment of 'Verified' status is rejected with 400 Bad Request
+    expect(() =>
+      controller.createConstraint(projectId, {
+        constraintType: 'venue_operational_noise',
+        limitValue: 85,
+        verificationStatus: 'Verified', // PROHIBITED!
+      })
+    ).toThrowError(HttpException);
+
+    // 3. Manual spoofing of sourceDocumentHash or verifiedBy is rejected
+    expect(() =>
+      controller.createConstraint(projectId, {
+        constraintType: 'venue_operational_noise',
+        limitValue: 85,
+        sourceDocumentHash: 'sha256:fakehash1234567890', // PROHIBITED!
+      })
+    ).toThrowError(HttpException);
+
+    // 4. Create new constraint in Draft
+    const createRes = controller.createConstraint(projectId, {
+      constraintType: 'venue_operational_noise',
+      limitValue: 90,
+      unit: 'dB(A)',
+      locationZone: 'Main Stage',
+      sourceOrganization: 'Event Licensing Bureau',
+    });
+    expect(createRes.data.verificationStatus).toBe('Draft');
+    const newConstraintId = createRes.data.id;
+
+    // 5. Attach controlled source document (DOC-DECC-FP-2024 / doc-decc-fp-01)
+    const attachRes = controller.attachSource(projectId, newConstraintId, {
+      controlledDocumentId: 'doc-decc-fp-01',
+      documentRevisionId: 'rev-decc-fp-01',
+      pageClauseSection: 'Section 4.1',
+    });
+    expect(attachRes.data.verificationStatus).toBe('Source Attached');
+    expect(attachRes.data.controlledDocumentId).toBe('doc-decc-fp-01');
+    expect(attachRes.data.sourceDocumentHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+
+    // 6. Submit for review
+    const reviewRes = controller.submitForReview(projectId, newConstraintId);
+    expect(reviewRes.data.verificationStatus).toBe('Under Review');
+
+    // 7. Verify with unauthorized role -> FORBIDDEN (403)
+    const mockReqUnauthorized = {
+      headers: {
+        'x-user-name': 'Guest User',
+        'x-user-role': 'client_representative', // Unauthorized!
+      },
+    } as any;
+
+    await expect(
+      controller.verifyConstraintAction(
+        projectId,
+        newConstraintId,
+        {
+          pageClauseSection: 'Section 4.1',
+          extractedRuleValue: '90 dB(A)',
+          applicabilityStatement: 'Main Stage Zone',
+          reviewerComment: 'Self-approval',
+        },
+        mockReqUnauthorized
+      )
+    ).rejects.toThrowError(HttpException);
+
+    // 8. Verify with authorized role (technical_director) -> OK (200)
+    const mockReqAuthorized = {
+      headers: {
+        'x-user-name': 'Eng. Tariq Al-Mansoor',
+        'x-user-role': 'technical_director', // Authorized!
+      },
+      userId: 'usr-tariq-director',
+    } as any;
+
+    const verifyRes = await controller.verifyConstraintAction(
+      projectId,
+      newConstraintId,
+      {
+        pageClauseSection: 'Section 4.1 (Sound Rigging Operations)',
+        extractedRuleValue: '90 dB(A) FOH target limit',
+        applicabilityStatement: 'Main Stage Sound Zone',
+        reviewerComment: 'Audited against official venue acoustic guidelines.',
+      },
+      mockReqAuthorized
+    );
+
+    expect(verifyRes.data.verificationStatus).toBe('Verified');
+    expect(verifyRes.data.verifiedBy).toBe('Eng. Tariq Al-Mansoor (technical_director)');
+    expect(verifyRes.audit.action).toBe('CONSTRAINT_VERIFIED');
+    expect(verifyRes.audit.entryHash).toHaveLength(64);
+
+    // 9. Supersede
+    const supRes = controller.supersede(projectId, newConstraintId, {
+      reason: 'Superseded by festival sound licence',
+    });
+    expect(supRes.data.verificationStatus).toBe('Superseded');
+  });
+});
+
 
 

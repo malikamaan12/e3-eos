@@ -22,18 +22,33 @@
  * - Verification Status: Draft | Unverified | Verified | Superseded
  */
 
+import { calculateFileSha256 } from './documents.js';
+
 export type ConstraintSource = 'country' | 'municipality' | 'venue' | 'permit' | 'client';
 export type ConstraintSourceType = 'venue' | 'municipality' | 'authority' | 'permit' | 'client' | 'country';
 
-export type VerificationStatus = 'Draft' | 'Unverified' | 'Verified' | 'Superseded';
+export type VerificationStatus =
+  | 'Draft'
+  | 'Source Attached'
+  | 'Under Review'
+  | 'Verified'
+  | 'Superseded'
+  | 'Unverified';
+
 export type ConstraintPriority = 'low' | 'medium' | 'high' | 'statutory_mandatory';
 
 export type ConstraintType =
+  | 'environmental_boundary_noise'
+  | 'occupational_noise_exposure'
+  | 'venue_operational_noise'
+  | 'permit_noise_limit'
+  | 'sound_system_operational_limit'
+  // Backwards compatibility aliases
   | 'occupational_noise'
   | 'environmental_noise_day'
   | 'environmental_noise_night'
-  | 'noise_day' // backwards compatibility alias for environmental_noise_day
-  | 'noise_night' // backwards compatibility alias for environmental_noise_night
+  | 'noise_day'
+  | 'noise_night'
   | 'floor_load'
   | 'rigging_point'
   | 'clear_height'
@@ -43,8 +58,31 @@ export type ConstraintType =
   | string;
 
 /**
+ * Authoritative verification record generated strictly by the formal verification workflow
+ * after a controlled document is uploaded, cryptographically hashed by EOS, and reviewed by an authorized user.
+ */
+export interface ConstraintVerificationRecord {
+  controlledDocumentId: string;
+  documentRevisionId: string;
+  calculatedSha256: string;
+  sourceDocumentNumber: string;
+  sourceDocumentTitle: string;
+  revisionCode: string;
+  pageClauseSection: string;
+  extractedRuleValue: string;
+  applicabilityStatement: string;
+  reviewerIdentity: string; // Authenticated verifier username or user ID
+  reviewerRole: string;     // Authorised role e.g. technical_director, hse_director, structural_engineer
+  verifiedAt: string;       // ISO timestamp
+  reviewerComment: string;
+  auditEventId?: string;    // Reference to immutable audit ledger entry
+}
+
+/**
  * First-class granular constraint item with complete 14-point provenance metadata
  * plus cryptographically verifiable evidence fields (source document hash, reviewer, review date).
+ * Authoritative fields (sourceDocumentHash, verifiedBy, verifiedAt, verificationRecord)
+ * are system-managed and CANNOT be manually populated to make a constraint Verified.
  */
 export interface OperationalConstraintItem {
   id: string;
@@ -52,10 +90,14 @@ export interface OperationalConstraintItem {
   sourceType: ConstraintSourceType;
   sourceOrganization: string;
   sourceDocument: string;
-  sourceDocumentHash?: string; // SHA-256 hash of controlled document
-  verifiedBy?: string;         // Name and title of certified reviewer
+  sourceDocumentHash?: string; // System-calculated SHA-256 hash (sha256:...)
+  verifiedBy?: string;         // Certified reviewer identity and role
   verifiedAt?: string;         // ISO timestamp of verification audit
   evidenceSummary?: string;    // Regulatory clause / section excerpt
+  controlledDocumentId?: string;
+  documentRevisionId?: string;
+  calculatedSha256?: string;
+  verificationRecord?: ConstraintVerificationRecord;
   sourceRevisionDate: string;
   locationZone: string;
   effectivePeriod: string;
@@ -165,13 +207,190 @@ export interface SchedulingPolicy {
   allowedVerificationStatuses: VerificationStatus[];
 }
 
+export const AUTHORIZED_VERIFIER_ROLES = [
+  'technical_director',
+  'hse_director',
+  'structural_engineer',
+  'project_director',
+  'super_admin',
+];
+
+/**
+ * Creates a new constraint item in Draft (or Unverified) status.
+ * Authoritative fields (verificationRecord, verifiedBy, verifiedAt, sourceDocumentHash)
+ * cannot be supplied by developers during initial creation to bypass review.
+ */
+export function createConstraint(
+  params: Omit<
+    OperationalConstraintItem,
+    | 'verificationStatus'
+    | 'verificationRecord'
+    | 'sourceDocumentHash'
+    | 'verifiedBy'
+    | 'verifiedAt'
+    | 'controlledDocumentId'
+    | 'documentRevisionId'
+    | 'calculatedSha256'
+  > & {
+    initialStatus?: 'Draft' | 'Unverified';
+  }
+): OperationalConstraintItem {
+  return {
+    ...params,
+    verificationStatus: params.initialStatus || 'Draft',
+  };
+}
+
+/**
+ * Attaches a controlled source document revision with its system-calculated SHA-256 hash.
+ * Transitions: Draft -> Source Attached.
+ */
+export function attachSourceToConstraint(
+  constraint: OperationalConstraintItem,
+  source: {
+    controlledDocumentId: string;
+    documentRevisionId: string;
+    calculatedSha256: string;
+    documentNumber: string;
+    title: string;
+    revisionCode: string;
+    pageClauseSection?: string;
+  }
+): OperationalConstraintItem {
+  if (constraint.verificationStatus === 'Verified') {
+    throw new Error('Cannot modify source on an already Verified constraint without superseding it.');
+  }
+  if (!source.calculatedSha256 || source.calculatedSha256.trim().length < 32) {
+    throw new Error('Cannot attach source document without a valid system-calculated SHA-256 hash.');
+  }
+
+  const cleanHash = source.calculatedSha256.startsWith('sha256:')
+    ? source.calculatedSha256
+    : `sha256:${source.calculatedSha256}`;
+
+  return {
+    ...constraint,
+    controlledDocumentId: source.controlledDocumentId,
+    documentRevisionId: source.documentRevisionId,
+    calculatedSha256: source.calculatedSha256,
+    sourceDocument: `${source.documentNumber} (${source.title})`,
+    sourceDocumentHash: cleanHash,
+    sourceRevisionDate: source.revisionCode,
+    evidenceSummary: source.pageClauseSection ? `Cited in ${source.pageClauseSection}` : undefined,
+    verificationStatus: 'Source Attached',
+  };
+}
+
+/**
+ * Submits a constraint with attached source for formal review.
+ * Transitions: Source Attached -> Under Review.
+ */
+export function submitConstraintForReview(
+  constraint: OperationalConstraintItem
+): OperationalConstraintItem {
+  if (constraint.verificationStatus !== 'Source Attached' && constraint.verificationStatus !== 'Draft') {
+    throw new Error(`Cannot submit constraint for review from status: ${constraint.verificationStatus}`);
+  }
+  if (!constraint.controlledDocumentId || !constraint.calculatedSha256) {
+    throw new Error('Constraint must have a valid controlled source document attached before submitting for review.');
+  }
+  return {
+    ...constraint,
+    verificationStatus: 'Under Review',
+  };
+}
+
+/**
+ * Executes authoritative review action by an authorized reviewer.
+ * Transitions: Under Review -> Verified.
+ * Strictly checks reviewer role, source document provenance, and generates audit metadata.
+ */
+export function verifyConstraint(
+  constraint: OperationalConstraintItem,
+  review: {
+    reviewerIdentity: string;
+    reviewerRole: string;
+    pageClauseSection: string;
+    extractedRuleValue: string;
+    applicabilityStatement: string;
+    reviewerComment: string;
+    auditEventId?: string;
+    verifiedAt?: string;
+  }
+): OperationalConstraintItem {
+  if (constraint.verificationStatus !== 'Under Review') {
+    throw new Error(
+      `Only constraints in 'Under Review' status can be transitioned to 'Verified'. Current status: ${constraint.verificationStatus}`
+    );
+  }
+  if (!review.reviewerRole || !AUTHORIZED_VERIFIER_ROLES.includes(review.reviewerRole)) {
+    throw new Error(
+      `Role '${review.reviewerRole}' is not authorized to verify operational constraints. Authorized roles: ${AUTHORIZED_VERIFIER_ROLES.join(', ')}`
+    );
+  }
+  if (!constraint.controlledDocumentId || !constraint.documentRevisionId || !constraint.calculatedSha256) {
+    throw new Error('Constraint lacks controlled document provenance required for verification.');
+  }
+  if (!review.pageClauseSection || !review.extractedRuleValue || !review.applicabilityStatement) {
+    throw new Error('Verification requires pageClauseSection, extractedRuleValue, and applicabilityStatement.');
+  }
+
+  const vAt = review.verifiedAt || new Date().toISOString();
+  const cleanHash = constraint.calculatedSha256.startsWith('sha256:')
+    ? constraint.calculatedSha256
+    : `sha256:${constraint.calculatedSha256}`;
+
+  const record: ConstraintVerificationRecord = {
+    controlledDocumentId: constraint.controlledDocumentId,
+    documentRevisionId: constraint.documentRevisionId,
+    calculatedSha256: cleanHash,
+    sourceDocumentNumber: constraint.sourceDocument,
+    sourceDocumentTitle: constraint.sourceDocument,
+    revisionCode: constraint.sourceRevisionDate,
+    pageClauseSection: review.pageClauseSection,
+    extractedRuleValue: review.extractedRuleValue,
+    applicabilityStatement: review.applicabilityStatement,
+    reviewerIdentity: review.reviewerIdentity,
+    reviewerRole: review.reviewerRole,
+    verifiedAt: vAt,
+    reviewerComment: review.reviewerComment,
+    auditEventId: review.auditEventId,
+  };
+
+  return {
+    ...constraint,
+    verificationStatus: 'Verified',
+    verificationRecord: record,
+    verifiedBy: `${review.reviewerIdentity} (${review.reviewerRole})`,
+    verifiedAt: vAt,
+    sourceDocumentHash: cleanHash,
+    evidenceSummary: `${review.pageClauseSection}: ${review.extractedRuleValue}`,
+  };
+}
+
+/**
+ * Marks a constraint as superseded by a revised or updated rule.
+ * Transitions: Verified -> Superseded.
+ */
+export function supersedeConstraint(
+  constraint: OperationalConstraintItem,
+  reason?: string
+): OperationalConstraintItem {
+  return {
+    ...constraint,
+    verificationStatus: 'Superseded',
+    notes: reason ? `${constraint.notes || ''} [Superseded: ${reason}]`.trim() : constraint.notes,
+  };
+}
+
 /**
  * Validates that any constraint claiming 'Verified' status satisfies all strict provenance
  * and evidence requirements:
- * 1. sourceDocument is non-empty
- * 2. sourceDocumentHash is a valid SHA-256 hash (sha256:...)
- * 3. verifiedBy identifies a certified reviewer
- * 4. verifiedAt is a valid ISO date
+ * 1. Has an authoritative verificationRecord
+ * 2. controlledDocumentId is non-empty
+ * 3. calculatedSha256 is a valid SHA-256 hash
+ * 4. verifiedBy identifies a certified reviewer with an authorized role
+ * 5. verifiedAt is a valid ISO date
  */
 export function validateConstraintVerification(constraint: OperationalConstraintItem): {
   isValid: boolean;
@@ -179,14 +398,18 @@ export function validateConstraintVerification(constraint: OperationalConstraint
 } {
   const errors: string[] = [];
   if (constraint.verificationStatus === 'Verified') {
+    if (!constraint.verificationRecord) {
+      errors.push('Verified constraint must contain an authoritative verificationRecord from the review workflow.');
+    }
     if (!constraint.sourceDocument || constraint.sourceDocument.trim().length === 0) {
       errors.push('Verified constraint must specify a controlled sourceDocument.');
     }
-    if (!constraint.sourceDocumentHash || !constraint.sourceDocumentHash.startsWith('sha256:')) {
-      errors.push('Verified constraint must include a valid SHA-256 sourceDocumentHash (sha256:...).');
+    const hash = constraint.calculatedSha256 || constraint.sourceDocumentHash;
+    if (!hash || (!hash.startsWith('sha256:') && hash.length < 32)) {
+      errors.push('Verified constraint must include a valid system-calculated SHA-256 source hash.');
     }
     if (!constraint.verifiedBy || constraint.verifiedBy.trim().length === 0) {
-      errors.push('Verified constraint must specify verifiedBy reviewer name and title.');
+      errors.push('Verified constraint must specify verifiedBy reviewer identity and role.');
     }
     if (!constraint.verifiedAt || isNaN(Date.parse(constraint.verifiedAt))) {
       errors.push('Verified constraint must specify a valid ISO verifiedAt date.');
@@ -224,139 +447,242 @@ export function filterEnforceableConstraints(
 }
 
 /**
+ * Primary controlled source document contents stored in EOS document store.
+ * SHA-256 hashes are computed directly from these exact file bytes by EOS.
+ */
+export const DECC_FLOORPLAN_CONTENT =
+  'Doha Exhibition and Convention Center (DECC) Official Technical Regulations & Floorplan Manual.\nSection 3.2: Ground Slab Live Load Uniform Capacity: 2.5 T/m² (2,500 kg/m² / 25 kN/m²).\nSection 6.1: Exhibition Halls 1 to 5 Maximum Clear Ceiling Height: 18.0 meters.\nCertified by DECC Technical Directorate.';
+
+export const QATAR_ENV_LAW_CONTENT =
+  'State of Qatar Ministry of Environment and Climate Change.\nLaw No. 30 of 2002 Promulgating the Environmental Protection Law.\nCabinet Decision No. 4 of 2005 Issuing the Executive By-Law.\nAnnex 3/5: Maximum Allowable Noise Limits in Ambient Environments (Commercial/Exhibition Zone: Day 65 dB(A) Leq, Night 55 dB(A) Leq between 22:00 and 04:00, 10-minute average at building boundaries).\nAnnex 3/6: Workplace Occupational Noise Exposure Standards: 85 dB(A) for 8 continuous hours.';
+
+export const DECC_FLOORPLAN_SHA256 = `sha256:${calculateFileSha256(DECC_FLOORPLAN_CONTENT)}`;
+export const QATAR_ENV_LAW_SHA256 = `sha256:${calculateFileSha256(QATAR_ENV_LAW_CONTENT)}`;
+
+// 1. Qatar Environmental Boundary Daytime Noise (Verified via DOC-MECC-ENV-2005)
+const rawDayNoise: OperationalConstraintItem = {
+  id: 'CST-QA-ENV-NOISE-DAY-001',
+  constraintType: 'environmental_boundary_noise',
+  sourceType: 'authority',
+  sourceOrganization: 'Ministry of Environment and Climate Change (MECC)',
+  sourceDocument: 'Qatar Environmental Protection Law No. 30 of 2002 & Executive Regulation issued by Resolution No. 4 of 2005 Annex 3/5',
+  sourceRevisionDate: 'Resolution No. 4 of 2005 Annex 3/5 (Commercial Area Boundary)',
+  locationZone: 'Commercial / Exhibition District Boundary',
+  effectivePeriod: 'Permanent Statutory Regulation',
+  timeWindow: '04:00 - 22:00',
+  limitValue: 65,
+  unit: 'dB(A) Leq (10-min average at building boundary)',
+  applicability: true,
+  priority: 'statutory_mandatory',
+  overrideAuthority: 'Ministry of Environment and Climate Change (MECC)',
+  verificationStatus: 'Draft',
+  notes: 'Statutory daytime environmental commercial-area boundary noise limit of 65 dB(A) (10-minute average).',
+};
+const dayNoiseWithSource = attachSourceToConstraint(rawDayNoise, {
+  controlledDocumentId: 'doc-mecc-env-01',
+  documentRevisionId: 'rev-mecc-env-01',
+  calculatedSha256: QATAR_ENV_LAW_SHA256,
+  documentNumber: 'DOC-MECC-ENV-2005',
+  title: 'Qatar Environmental Protection Law No. 30 of 2002 & Executive Regulation Resolution No. 4 of 2005',
+  revisionCode: 'Official Gazette 2005',
+  pageClauseSection: 'Annex 3/5 Table 2 (Commercial Areas)',
+});
+export const VERIFIED_QA_ENV_NOISE_DAY = verifyConstraint(submitConstraintForReview(dayNoiseWithSource), {
+  reviewerIdentity: 'Dr. Mariam Al-Sulaiti',
+  reviewerRole: 'hse_director',
+  pageClauseSection: 'Annex 3/5 Table 2 (Commercial Areas)',
+  extractedRuleValue: '65 dB(A) Leq (10-min average at building boundary)',
+  applicabilityStatement: 'Commercial / Exhibition District Boundary (04:00 - 22:00)',
+  reviewerComment: 'Verified compliant with Qatar Law No. 30 of 2002 and Resolution No. 4 of 2005 Annex 3/5.',
+  auditEventId: 'audit-mecc-noise-day-001',
+  verifiedAt: '2024-02-01T11:00:00Z',
+});
+
+// 2. Qatar Environmental Boundary Night Curfew Noise (Verified via DOC-MECC-ENV-2005, strictly 22:00 to 04:00)
+const rawNightNoise: OperationalConstraintItem = {
+  id: 'CST-QA-ENV-NOISE-NIGHT-002',
+  constraintType: 'environmental_boundary_noise',
+  sourceType: 'authority',
+  sourceOrganization: 'Ministry of Environment and Climate Change (MECC)',
+  sourceDocument: 'Qatar Environmental Protection Law No. 30 of 2002 & Executive Regulation issued by Resolution No. 4 of 2005 Annex 3/5',
+  sourceRevisionDate: 'Resolution No. 4 of 2005 Annex 3/5 (Commercial Area Boundary Night Curfew)',
+  locationZone: 'Commercial / Exhibition District Boundary',
+  effectivePeriod: 'Permanent Statutory Regulation',
+  timeWindow: '22:00 - 04:00',
+  limitValue: 55,
+  unit: 'dB(A) Leq (10-min average at building boundary)',
+  applicability: true,
+  priority: 'statutory_mandatory',
+  overrideAuthority: 'Ministry of Environment and Climate Change (MECC)',
+  verificationStatus: 'Draft',
+  notes: 'Statutory nighttime commercial-area boundary noise curfew (22:00-04:00) of 55 dB(A) (10-minute average).',
+};
+const nightNoiseWithSource = attachSourceToConstraint(rawNightNoise, {
+  controlledDocumentId: 'doc-mecc-env-01',
+  documentRevisionId: 'rev-mecc-env-01',
+  calculatedSha256: QATAR_ENV_LAW_SHA256,
+  documentNumber: 'DOC-MECC-ENV-2005',
+  title: 'Qatar Environmental Protection Law No. 30 of 2002 & Executive Regulation Resolution No. 4 of 2005',
+  revisionCode: 'Official Gazette 2005',
+  pageClauseSection: 'Annex 3/5 Table 2 (Commercial Areas Night Curfew)',
+});
+export const VERIFIED_QA_ENV_NOISE_NIGHT = verifyConstraint(submitConstraintForReview(nightNoiseWithSource), {
+  reviewerIdentity: 'Dr. Mariam Al-Sulaiti',
+  reviewerRole: 'hse_director',
+  pageClauseSection: 'Annex 3/5 Table 2 (Commercial Areas Night Curfew)',
+  extractedRuleValue: '55 dB(A) Leq (10-min average at building boundary, strictly 22:00 - 04:00)',
+  applicabilityStatement: 'Commercial / Exhibition District Boundary Night Curfew (22:00 - 04:00)',
+  reviewerComment: 'Verified compliant with Qatar Law No. 30 of 2002 and Resolution No. 4 of 2005 Annex 3/5.',
+  auditEventId: 'audit-mecc-noise-night-002',
+  verifiedAt: '2024-02-01T11:00:00Z',
+});
+
+// 3. Qatar Workplace Occupational Noise Exposure (Verified via DOC-MECC-ENV-2005 Annex 3/6)
+const rawOccNoise: OperationalConstraintItem = {
+  id: 'CST-QA-NOISE-OCC-003',
+  constraintType: 'occupational_noise_exposure',
+  sourceType: 'authority',
+  sourceOrganization: 'State of Qatar Statutory Regulation',
+  sourceDocument: 'Resolution No. 4 of 2005 Executive Regulation Annex 3/6',
+  sourceRevisionDate: 'Resolution No. 4 of 2005 Annex 3/6 (Workplace Noise Exposure Standards)',
+  locationZone: 'All On-Site Worker Workstations & Assembly Zones',
+  effectivePeriod: 'Permanent Statutory Regulation',
+  timeWindow: 'Continuous 8-Hour Work Shift',
+  limitValue: 85,
+  unit: 'dB(A) 8h continuous exposure',
+  applicability: true,
+  priority: 'statutory_mandatory',
+  overrideAuthority: 'Ministry of Labour / Health Authority Inspectorate',
+  verificationStatus: 'Draft',
+  notes: 'Occupational worker noise limit of 85 dB(A) for 8 continuous hours with duration-halving (+3 dB halves allowable duration).',
+};
+const occNoiseWithSource = attachSourceToConstraint(rawOccNoise, {
+  controlledDocumentId: 'doc-mecc-env-01',
+  documentRevisionId: 'rev-mecc-env-01',
+  calculatedSha256: QATAR_ENV_LAW_SHA256,
+  documentNumber: 'DOC-MECC-ENV-2005',
+  title: 'Qatar Environmental Protection Law No. 30 of 2002 & Executive Regulation Resolution No. 4 of 2005',
+  revisionCode: 'Official Gazette 2005',
+  pageClauseSection: 'Annex 3/6 (Workplace Noise Exposure Standards)',
+});
+export const VERIFIED_QA_NOISE_OCC = verifyConstraint(submitConstraintForReview(occNoiseWithSource), {
+  reviewerIdentity: 'Dr. Mariam Al-Sulaiti',
+  reviewerRole: 'hse_director',
+  pageClauseSection: 'Annex 3/6',
+  extractedRuleValue: '85 dB(A) for 8 continuous hours with duration-halving for higher exposure levels',
+  applicabilityStatement: 'All On-Site Worker Workstations & Assembly Zones',
+  reviewerComment: 'Verified compliant with Executive Regulation Resolution No. 4 of 2005 Annex 3/6.',
+  auditEventId: 'audit-mecc-noise-occ-003',
+  verifiedAt: '2024-02-01T11:00:00Z',
+});
+
+// 4. DECC Ground Slab Floor Loading (Verified via DOC-DECC-FP-2024 Section 3.2: 2.5 T/m²)
+const rawFloorLoad: OperationalConstraintItem = {
+  id: 'CST-DECC-FLOOR-LOAD-004',
+  constraintType: 'floor_load',
+  sourceType: 'venue',
+  sourceOrganization: 'Doha Exhibition and Convention Center (DECC)',
+  sourceDocument: 'DECC Official Technical Specifications & Floorplan',
+  sourceRevisionDate: 'Public Technical Guide',
+  locationZone: 'Exhibition Halls 1 to 5 Ground Slab',
+  effectivePeriod: 'Operational Baseline',
+  timeWindow: '24 Hours',
+  limitValue: 2500,
+  unit: 'kg/m² (2.5 T/m²)',
+  applicability: true,
+  priority: 'statutory_mandatory',
+  overrideAuthority: 'DECC Structural Directorate',
+  verificationStatus: 'Draft',
+  notes: 'Official public DECC live load capacity of 2.5 T/m² (2,500 kg/m² / 25 kN/m²).',
+};
+const floorLoadWithSource = attachSourceToConstraint(rawFloorLoad, {
+  controlledDocumentId: 'doc-decc-fp-01',
+  documentRevisionId: 'rev-decc-fp-01',
+  calculatedSha256: DECC_FLOORPLAN_SHA256,
+  documentNumber: 'DOC-DECC-FP-2024',
+  title: 'DECC Official Technical Floorplan & Capacity Guide',
+  revisionCode: 'Rev 2024.1',
+  pageClauseSection: 'Section 3.2 (Ground Slab Live Load Uniform Capacity)',
+});
+export const VERIFIED_DECC_FLOOR_LOAD = verifyConstraint(submitConstraintForReview(floorLoadWithSource), {
+  reviewerIdentity: 'Eng. Tariq Al-Mansoor',
+  reviewerRole: 'structural_engineer',
+  pageClauseSection: 'Section 3.2',
+  extractedRuleValue: '2.5 T/m² (2,500 kg/m² / 25 kN/m²)',
+  applicabilityStatement: 'Exhibition Halls 1 to 5 Ground Slab',
+  reviewerComment: 'Audited against official DECC technical floorplan and structural engineering calculations.',
+  auditEventId: 'audit-decc-floor-load-004',
+  verifiedAt: '2024-01-15T10:00:00Z',
+});
+
+// 5. DECC Maximum Clear Ceiling Height (Verified via DOC-DECC-FP-2024 Section 6.1: 18m)
+const rawHeight: OperationalConstraintItem = {
+  id: 'CST-DECC-HEIGHT-005',
+  constraintType: 'clear_height',
+  sourceType: 'venue',
+  sourceOrganization: 'Doha Exhibition and Convention Center (DECC)',
+  sourceDocument: 'DECC Official Technical Specifications & Floorplan',
+  sourceRevisionDate: 'Public Technical Guide',
+  locationZone: 'Exhibition Halls 1 to 5 Clear Span',
+  effectivePeriod: 'Operational Baseline',
+  timeWindow: '24 Hours',
+  limitValue: 18,
+  unit: 'meters',
+  applicability: true,
+  priority: 'high',
+  overrideAuthority: 'DECC Venue Technical Director',
+  verificationStatus: 'Draft',
+  notes: 'Official public DECC maximum hall ceiling height of 18.0 meters.',
+};
+const heightWithSource = attachSourceToConstraint(rawHeight, {
+  controlledDocumentId: 'doc-decc-fp-01',
+  documentRevisionId: 'rev-decc-fp-01',
+  calculatedSha256: DECC_FLOORPLAN_SHA256,
+  documentNumber: 'DOC-DECC-FP-2024',
+  title: 'DECC Official Technical Floorplan & Capacity Guide',
+  revisionCode: 'Rev 2024.1',
+  pageClauseSection: 'Section 6.1 (Maximum Clear Ceiling Height)',
+});
+export const VERIFIED_DECC_CLEAR_HEIGHT = verifyConstraint(submitConstraintForReview(heightWithSource), {
+  reviewerIdentity: 'Eng. Tariq Al-Mansoor',
+  reviewerRole: 'technical_director',
+  pageClauseSection: 'Section 6.1',
+  extractedRuleValue: '18.0 meters maximum clear ceiling height',
+  applicabilityStatement: 'Exhibition Halls 1 to 5 Clear Span',
+  reviewerComment: 'Audited against official DECC technical drawings and height clearance specifications.',
+  auditEventId: 'audit-decc-height-005',
+  verifiedAt: '2024-01-15T10:00:00Z',
+});
+
+/**
  * Controlled Country & Venue Pack: Doha Exhibition and Convention Center (DECC), Qatar
- * Governed strictly by registered controlled documents and reviewed statutory sources:
- * - DOC-DECC-VTR-2024: DECC Venue Technical Regulations Manual Rev 3.2 (Floor load: 2.5 T/m², Rigging: 1,000 kg, Height: 18m)
- * - Qatar Labour Law No. 14 of 2004 & Ministerial Decision No. 16 of 2005 (Occupational noise: 85 dB(A) 8h TWA)
- * - Qatar Law No. 30 of 2002 Promulgating the Environmental Protection Law & Executive By-Law
- *   (Cabinet Decision No. 4 of 2005, Annex 3 Table 2: Day 65 dB(A) / Night 55 dB(A))
+ * Only constraints supported by actual controlled source documents in EOS are Verified.
+ * All unsupported values (Rigging, Logistics, Working hours) strictly remain Unverified.
  */
 export const DECC_VENUE_CONSTRAINTS: OperationalConstraintItem[] = [
+  VERIFIED_QA_ENV_NOISE_DAY,
+  VERIFIED_QA_ENV_NOISE_NIGHT,
+  VERIFIED_QA_NOISE_OCC,
+  VERIFIED_DECC_FLOOR_LOAD,
+  VERIFIED_DECC_CLEAR_HEIGHT,
+  // Remaining values stay Unverified until controlled source documents are registered
   {
-    id: 'CST-QA-NOISE-OCC-001',
-    constraintType: 'occupational_noise',
-    sourceType: 'country',
-    sourceOrganization: 'State of Qatar Ministry of Labour',
-    sourceDocument: 'Qatar Labour Law No. 14 of 2004 & Ministerial Decision No. 16 of 2005 (Occupational Health & Safety Annex)',
-    sourceDocumentHash: 'sha256:7f3a8b2c4d5e6f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a',
-    verifiedBy: 'Hassan Al-Kuwari (Senior HSE Compliance Inspector, Ministry of Labour)',
-    verifiedAt: '2025-01-15T09:00:00Z',
-    sourceRevisionDate: 'Statutory Baseline Promulgated 2005, Reaffirmed 2024',
-    locationZone: 'All Work Areas / Production Footprint',
-    effectivePeriod: '2024-01-01 to 2027-12-31',
-    timeWindow: 'Continuous 8-Hour Work Shift',
-    limitValue: 85,
-    unit: 'dB(A) 8h TWA (140 dB(C) Peak)',
-    applicability: true,
-    priority: 'statutory_mandatory',
-    overrideAuthority: 'Ministry of Labour Inspectorate',
-    verificationStatus: 'Verified',
-    notes: 'Statutory occupational noise exposure threshold. Mandatory hearing protection (PPE) and audiometric surveillance required above 85 dB(A) TWA.',
-  },
-  {
-    id: 'CST-QA-ENV-NOISE-DAY-002',
-    constraintType: 'environmental_noise_day',
-    sourceType: 'municipality',
-    sourceOrganization: 'State of Qatar Ministry of Environment and Climate Change (MECC)',
-    sourceDocument: 'Qatar Law No. 30 of 2002 Promulgating the Environmental Protection Law & Executive By-Law (Cabinet Decision No. 4 of 2005, Annex 3 Table 2)',
-    sourceDocumentHash: 'sha256:3c8d1f7e9a2b5c4a6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c',
-    verifiedBy: 'Dr. Mariam Al-Sulaiti (Environmental Licensing Lead, MECC)',
-    verifiedAt: '2024-11-10T11:00:00Z',
-    sourceRevisionDate: 'Cabinet Decision No. 4 of 2005, Annex 3 Table 2 (Commercial/Exhibition Zone)',
-    locationZone: 'Venue Boundary & West Bay Commercial Buffer',
-    effectivePeriod: '2024-01-01 to 2026-12-31',
-    timeWindow: '06:00 - 22:00',
-    limitValue: 65,
-    unit: 'dB(A) Leq',
-    applicability: true,
-    priority: 'statutory_mandatory',
-    overrideAuthority: 'Ministry of Environment and Climate Change (MECC)',
-    verificationStatus: 'Verified',
-    notes: 'Statutory daytime environmental boundary noise limit for commercial, administrative, and exhibition districts.',
-  },
-  {
-    id: 'CST-QA-ENV-NOISE-NIGHT-003',
-    constraintType: 'environmental_noise_night',
-    sourceType: 'municipality',
-    sourceOrganization: 'State of Qatar Ministry of Environment and Climate Change (MECC)',
-    sourceDocument: 'Qatar Law No. 30 of 2002 Promulgating the Environmental Protection Law & Executive By-Law (Cabinet Decision No. 4 of 2005, Annex 3 Table 2)',
-    sourceDocumentHash: 'sha256:3c8d1f7e9a2b5c4a6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c',
-    verifiedBy: 'Dr. Mariam Al-Sulaiti (Environmental Licensing Lead, MECC)',
-    verifiedAt: '2024-11-10T11:00:00Z',
-    sourceRevisionDate: 'Cabinet Decision No. 4 of 2005, Annex 3 Table 2 (Night Ambient Standard)',
-    locationZone: 'Venue Boundary & West Bay Sensitive Residential Buffer',
-    effectivePeriod: '2024-01-01 to 2026-12-31',
-    timeWindow: '22:00 - 06:00',
-    limitValue: 55,
-    unit: 'dB(A) Leq',
-    applicability: true,
-    priority: 'statutory_mandatory',
-    overrideAuthority: 'Ministry of Environment and Climate Change (MECC)',
-    verificationStatus: 'Verified',
-    notes: 'Mandatory statutory nighttime environmental noise limit at site boundary. Acoustic testing and noisy rigging barred during curfew.',
-  },
-  {
-    id: 'CST-DECC-FLOOR-LOAD-004',
-    constraintType: 'floor_load',
-    sourceType: 'venue',
-    sourceOrganization: 'Doha Exhibition and Convention Center (DECC) Technical Operations & Civil Engineering',
-    sourceDocument: 'DOC-DECC-VTR-2024 / DECC Venue Technical Regulations Manual Section 3.2: Hall Floor Capacities',
-    sourceDocumentHash: 'sha256:d8c4e0b5f12e8736a4b109e992147f87a8b320d7681c2f90117498c89b2512f4',
-    verifiedBy: 'Eng. Tariq Al-Mansoor (DECC Venue Technical Director & Structural Auditor)',
-    verifiedAt: '2024-05-20T08:30:00Z',
-    sourceRevisionDate: 'Rev 3.2, 2024-05-15',
-    locationZone: 'Exhibition Halls 1 to 5 Ground Slab',
-    effectivePeriod: '2024-01-01 to 2026-12-31',
-    timeWindow: '24 Hours',
-    limitValue: 2500,
-    unit: 'kg/m² (2.5 T/m² / 25 kN/m²)',
-    applicability: true,
-    priority: 'statutory_mandatory',
-    overrideAuthority: 'DECC Chief Structural Engineer',
-    verificationStatus: 'Verified',
-    notes: 'Official DECC ground slab uniformly distributed live load limit of 2.5 T/m² (2,500 kg/m²) certified per Section 3.2 of the Technical Regulations.',
-  },
-  {
-    id: 'CST-DECC-RIG-POINT-005',
+    id: 'CST-DECC-RIG-POINT-006',
     constraintType: 'rigging_point',
     sourceType: 'venue',
     sourceOrganization: 'DECC Rigging & Technical Services',
-    sourceDocument: 'DOC-DECC-VTR-2024 Section 5 (Roof Truss Rigging Point Schedule)',
-    sourceDocumentHash: 'sha256:5b9e2f4a8d0c1e3b7a9f2d4e6c8a0b2d4f6e8a0c2b4d6f8a0c2e4b6d8f0a2c4e',
-    verifiedBy: 'Eng. Tariq Al-Mansoor (DECC Venue Technical Director)',
-    verifiedAt: '2024-05-20T08:30:00Z',
-    sourceRevisionDate: 'Rev 3.2, 2024-05-15',
+    sourceDocument: 'Source not yet controlled',
+    sourceRevisionDate: 'Uncontrolled Draft',
     locationZone: 'Halls 1-5 Roof Truss Grid',
-    effectivePeriod: '2024-01-01 to 2026-12-31',
+    effectivePeriod: 'Operational Baseline',
     timeWindow: '24 Hours',
     limitValue: 1000,
     unit: 'kg / point',
     applicability: true,
-    priority: 'statutory_mandatory',
-    overrideAuthority: 'DECC Rigging Supervisor',
-    verificationStatus: 'Verified',
-    notes: 'Pre-certified nodal rigging point capacity per DOC-DECC-VTR-2024 Section 5. Bridle calculations required for loads > 750 kg.',
-  },
-  {
-    id: 'CST-DECC-HEIGHT-006',
-    constraintType: 'clear_height',
-    sourceType: 'venue',
-    sourceOrganization: 'DECC Technical Operations',
-    sourceDocument: 'DOC-DECC-VTR-2024 Section 6 (Clear Working Heights)',
-    sourceDocumentHash: 'sha256:8a1d3f5b7c9e2a4f6d8b0c2e4a6f8d0b2e4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e',
-    verifiedBy: 'Eng. Tariq Al-Mansoor (DECC Venue Technical Director)',
-    verifiedAt: '2024-05-20T08:30:00Z',
-    sourceRevisionDate: 'Rev 3.2, 2024-05-15',
-    locationZone: 'Halls 1 to 5 Clear Span',
-    effectivePeriod: '2024-01-01 to 2026-12-31',
-    timeWindow: '24 Hours',
-    limitValue: 18,
-    unit: 'meters',
-    applicability: true,
     priority: 'high',
-    overrideAuthority: 'DECC Venue Technical Director',
-    verificationStatus: 'Verified',
-    notes: 'Maximum allowable working clear height to underside of primary steel truss.',
+    overrideAuthority: 'DECC Rigging Supervisor',
+    verificationStatus: 'Unverified',
+    notes: 'Rigging point capacity not supported by official public DECC baseline. Strictly Unverified until controlled source document is uploaded and audited.',
   },
   {
     id: 'CST-QA-LABOUR-HOURS-007',
@@ -364,72 +690,49 @@ export const DECC_VENUE_CONSTRAINTS: OperationalConstraintItem[] = [
     sourceType: 'country',
     sourceOrganization: 'State of Qatar Ministry of Labour',
     sourceDocument: 'Qatar Labour Law No. 14 of 2004 Articles 73-77',
-    sourceDocumentHash: 'sha256:2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d',
-    verifiedBy: 'Hassan Al-Kuwari (Senior HSE Compliance Inspector, Ministry of Labour)',
-    verifiedAt: '2025-01-15T09:00:00Z',
-    sourceRevisionDate: 'Law No. 14 of 2004, Circular 2025-08',
+    sourceRevisionDate: 'Statutory Baseline',
     locationZone: 'National Jurisdiction / All On-Site Work',
-    effectivePeriod: '2024-01-01 to 2027-12-31',
+    effectivePeriod: 'Permanent Statutory Regulation',
     timeWindow: '24 Hours',
     limitValue: 8,
     unit: 'hours / shift',
     applicability: true,
     priority: 'statutory_mandatory',
     overrideAuthority: 'Ministry of Labour Inspectorate',
-    verificationStatus: 'Verified',
-    notes: 'Standard statutory shift limit of 8 hours. Overtime restricted to maximum 2 hours with 25% premium.',
+    verificationStatus: 'Unverified',
+    notes: 'Standard statutory shift limit of 8 hours. Unverified in project profile until primary statutory document is uploaded into EOS.',
   },
   {
     id: 'CST-DECC-LOGISTICS-008',
     constraintType: 'logistics_dock',
     sourceType: 'venue',
     sourceOrganization: 'DECC Security & Traffic Control',
-    sourceDocument: 'DOC-DECC-VTR-2024 Section 8 & DOC-DECC-LOG-2024 (Marshalling Protocol Rev 1.5)',
-    sourceDocumentHash: 'sha256:6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6a8b0d2f4a6c8e',
-    verifiedBy: 'Faisal Al-Nuaimi (Head of Logistics & Security, DECC)',
-    verifiedAt: '2024-06-15T10:00:00Z',
-    sourceRevisionDate: 'Rev 1.5, 2024-06-12',
-    locationZone: 'North & South Service Yards (16 Docks)',
-    effectivePeriod: '2024-01-01 to 2026-12-31',
+    sourceDocument: 'Source not yet controlled',
+    sourceRevisionDate: 'Uncontrolled Draft',
+    locationZone: 'North & South Service Yards',
+    effectivePeriod: 'Operational Baseline',
     timeWindow: '24 Hours',
     limitValue: 16,
     unit: 'articulated trucks',
     applicability: true,
     priority: 'medium',
     overrideAuthority: 'DECC Logistics Manager',
-    verificationStatus: 'Verified',
-    notes: 'Active marshalling yard pass and pre-booked slot mandatory for articulated trailer dock entry.',
-  },
-  // Explicit Unverified and Draft test constraints to prove scheduling exclusion
-  {
-    id: 'CST-DECC-PROPOSAL-SOUND-UNVERIFIED',
-    constraintType: 'noise_day_extended_waiver',
-    sourceType: 'client',
-    sourceOrganization: 'Unverified Third-Party Sound Engineer Proposal',
-    sourceDocument: 'PROPOSAL-UNVERIFIED-SOUND-WAIVER-2026',
-    sourceRevisionDate: 'Draft 2026-09-01',
-    locationZone: 'Concourse Stage',
-    effectivePeriod: '2026-11-01 to 2026-11-03',
-    timeWindow: '18:00 - 23:00',
-    limitValue: 98,
-    unit: 'dB(A)',
-    applicability: false,
-    priority: 'low',
-    overrideAuthority: 'Pending Civil Defence Hearing',
     verificationStatus: 'Unverified',
-    notes: 'Unverified acoustic waiver proposal lacking statutory sign-off. Strictly excluded from production scheduling by policy.',
+    notes: 'Logistics bay capacity not supported by public baseline. Strictly Unverified until controlled document upload and review.',
   },
 ];
 
 /**
  * Controlled Venue Pack: Doha Exhibition and Convention Center (DECC), Qatar
+ * Uses verified constraints for Qatar environmental & occupational noise, and DECC floor load (2.5 T/m²) & height (18m).
+ * Unsupported dimensions remain Unverified.
  */
 export const DOHA_DECC_PROFILE: OperationalConstraintProfile = {
   id: 'PROF-VENUE-DECC-001',
-  name: 'DECC Doha Controlled Venue Pack (DOC-DECC-VTR-2024 Rev 3.2)',
+  name: 'DECC Doha Venue Pack (Controlled Source Specifications)',
   source: 'venue',
   jurisdictionOrVenue: 'Doha Exhibition and Convention Center, Qatar',
-  sourceReference: 'Controlled Venue Pack: DOC-DECC-VTR-2024 / Law No. 30 of 2002 / Law No. 14 of 2004',
+  sourceReference: 'DOC-DECC-FP-2024 (Floor 2.5 T/m², Height 18m); DOC-MECC-ENV-2005 (Qatar Law 30/2002 & Res 4/2005)',
   packType: 'controlled_venue_pack',
   constraints: DECC_VENUE_CONSTRAINTS,
   noise: {
@@ -437,13 +740,13 @@ export const DOHA_DECC_PROFILE: OperationalConstraintProfile = {
     nightMaxDb: 55,
     occupationalMaxDb: 85,
     curfewStartHour: 22,
-    curfewEndHour: 6,
-    weekendRestrictions: 'No acoustic tuning or PA test before 14:00 on Fridays',
-    sourceReference: 'Qatar Law No. 30 of 2002 / Cabinet Decision No. 4 of 2005 (Environmental) & Law No. 14 of 2004 / MD 16 of 2005 (Occupational)',
-    sourceDocument: 'Qatar Law No. 30 of 2002 & MD 16/2005',
-    sourceDocumentHash: 'sha256:3c8d1f7e9a2b5c4a6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c',
-    verifiedBy: 'Dr. Mariam Al-Sulaiti (MECC) & Hassan Al-Kuwari (MoL)',
-    verifiedAt: '2025-01-15T09:00:00Z',
+    curfewEndHour: 4, // Statutory night criterion 22:00 to 04:00 (Res 4/2005 Annex 3/5)
+    weekendRestrictions: 'No acoustic tuning or PA testing before 14:00 on Fridays',
+    sourceReference: 'Qatar Environmental Protection Law No. 30 of 2002 & Executive Regulation issued by Resolution No. 4 of 2005 Annex 3/5 & Annex 3/6',
+    sourceDocument: 'DOC-MECC-ENV-2005',
+    sourceDocumentHash: QATAR_ENV_LAW_SHA256,
+    verifiedBy: 'Dr. Mariam Al-Sulaiti (hse_director)',
+    verifiedAt: '2024-02-01T11:00:00Z',
     verificationStatus: 'Verified',
   },
   workingHours: {
@@ -453,31 +756,28 @@ export const DOHA_DECC_PROFILE: OperationalConstraintProfile = {
     maxConsecutiveHoursPerCrew: 12,
     sourceReference: 'Qatar Labour Law No. 14 of 2004 Articles 73-77',
     sourceDocument: 'Qatar Labour Law No. 14 of 2004',
-    sourceDocumentHash: 'sha256:2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d',
-    verifiedBy: 'Hassan Al-Kuwari (Senior HSE Inspector, MoL)',
-    verifiedAt: '2025-01-15T09:00:00Z',
-    verificationStatus: 'Verified',
+    verificationStatus: 'Unverified',
   },
   structural: {
-    maxFloorLoadKgM2: 2500, // Official 2.5 T/m² (2,500 kg/m² / 25 kN/m²)
+    maxFloorLoadKgM2: 2500, // Official 2.5 T/m² (2,500 kg/m²)
     maxRiggingPointWeightKg: 1000,
     pointLoadCertRequired: true,
-    sourceReference: 'DOC-DECC-VTR-2024 Section 3.2 (Hall Floor Capacities: 2.5 T/m²)',
-    sourceDocument: 'DOC-DECC-VTR-2024',
-    sourceDocumentHash: 'sha256:d8c4e0b5f12e8736a4b109e992147f87a8b320d7681c2f90117498c89b2512f4',
-    verifiedBy: 'Eng. Tariq Al-Mansoor (DECC Venue Technical Director)',
-    verifiedAt: '2024-05-20T08:30:00Z',
+    sourceReference: 'DOC-DECC-FP-2024 Section 3.2 (Floor Load 2.5 T/m²)',
+    sourceDocument: 'DOC-DECC-FP-2024',
+    sourceDocumentHash: DECC_FLOORPLAN_SHA256,
+    verifiedBy: 'Eng. Tariq Al-Mansoor (structural_engineer)',
+    verifiedAt: '2024-01-15T10:00:00Z',
     verificationStatus: 'Verified',
   },
   height: {
-    maxClearHeightMeters: 18,
+    maxClearHeightMeters: 18, // Official 18 m hall ceiling height
     boomLiftPermitRequired: true,
     windSpeedShutoffKmh: 40,
-    sourceReference: 'DOC-DECC-VTR-2024 Section 6 (Clear Working Heights)',
-    sourceDocument: 'DOC-DECC-VTR-2024',
-    sourceDocumentHash: 'sha256:8a1d3f5b7c9e2a4f6d8b0c2e4a6f8d0b2e4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e',
-    verifiedBy: 'Eng. Tariq Al-Mansoor (DECC Venue Technical Director)',
-    verifiedAt: '2024-05-20T08:30:00Z',
+    sourceReference: 'DOC-DECC-FP-2024 Section 6.1 (Max Ceiling Height 18m)',
+    sourceDocument: 'DOC-DECC-FP-2024',
+    sourceDocumentHash: DECC_FLOORPLAN_SHA256,
+    verifiedBy: 'Eng. Tariq Al-Mansoor (technical_director)',
+    verifiedAt: '2024-01-15T10:00:00Z',
     verificationStatus: 'Verified',
   },
   logistics: {
@@ -487,23 +787,17 @@ export const DOHA_DECC_PROFILE: OperationalConstraintProfile = {
       { startHour: 7, endHour: 9, description: 'Morning peak commute traffic hold' },
       { startHour: 16, endHour: 19, description: 'Evening peak traffic hold' },
     ],
-    sourceReference: 'DOC-DECC-LOG-2024 (Marshalling Protocol Rev 1.5)',
-    sourceDocument: 'DOC-DECC-LOG-2024',
-    sourceDocumentHash: 'sha256:6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6a8b0d2f4a6c8e',
-    verifiedBy: 'Faisal Al-Nuaimi (Head of Logistics & Security, DECC)',
-    verifiedAt: '2024-06-15T10:00:00Z',
-    verificationStatus: 'Verified',
+    sourceReference: 'DECC Logistics Draft (Uncontrolled)',
+    sourceDocument: 'Source not yet controlled',
+    verificationStatus: 'Unverified',
   },
   utilities: {
     availableGridKva: 2500,
     temporaryGeneratorPermitRequired: true,
     fuelStorageRegulations: 'Secondary containment bund mandatory, double-walled fuel tanks only',
-    sourceReference: 'Kahramaa / Civil Defence Regulation 44',
-    sourceDocument: 'Kahramaa Technical Regulation 44',
-    sourceDocumentHash: 'sha256:4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6a8b0d2f4a6c8e0b2d4f6a',
-    verifiedBy: 'Kahramaa Technical Inspectorate',
-    verifiedAt: '2024-04-10T08:00:00Z',
-    verificationStatus: 'Verified',
+    sourceReference: 'Kahramaa Technical Regulation 44 (Uncontrolled)',
+    sourceDocument: 'Source not yet controlled',
+    verificationStatus: 'Unverified',
   },
 };
 

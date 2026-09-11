@@ -47,6 +47,7 @@ export interface CpmScheduleResult {
 
 import {
   isConstraintVerifiedWithEvidence,
+  OperationalConstraintItem,
   OperationalConstraintProfile,
   resolveOperationalConstraints,
   SchedulingPolicy,
@@ -210,8 +211,8 @@ export function generateBumpInShifts(
     profile = constraintProfileOrCurfewStart;
   } else {
     // Compatibility if called with numeric (totalWindowHours, curfewStart, curfewEnd)
-    const cStart = typeof constraintProfileOrCurfewStart === 'number' ? constraintProfileOrCurfewStart : 23;
-    const cEnd = typeof curfewEndHour === 'number' ? curfewEndHour : 6;
+    const cStart = typeof constraintProfileOrCurfewStart === 'number' ? constraintProfileOrCurfewStart : 22;
+    const cEnd = typeof curfewEndHour === 'number' ? curfewEndHour : 4;
     profile = resolveOperationalConstraints({
       overrides: {
         noise: {
@@ -220,32 +221,49 @@ export function generateBumpInShifts(
           occupationalMaxDb: 85,
           curfewStartHour: cStart,
           curfewEndHour: cEnd,
-          sourceReference: 'Configured Project Baseline',
-          verificationStatus: 'Verified',
+          sourceReference: 'Qatar Environmental Law No. 30 of 2002 & Res No. 4 of 2005 Annex 3/5',
+          verificationStatus: 'Unverified',
         },
       },
     });
   }
 
-  // Scheduling policy enforcement:
-  // Only constraints marked as applicable and appropriately verified with real evidence according to policy are enforceable.
+  const isNightNoiseConstraint = (c: OperationalConstraintItem) =>
+    c.constraintType === 'environmental_noise_night' ||
+    c.constraintType === 'noise_night' ||
+    c.id.toLowerCase().includes('night') ||
+    (c.timeWindow && (c.timeWindow.startsWith('22:00') || c.timeWindow.startsWith('23:00') || c.timeWindow.startsWith('24:00')));
+
+  const isDayNoiseConstraint = (c: OperationalConstraintItem) =>
+    (c.constraintType === 'environmental_noise_day' ||
+     c.constraintType === 'noise_day' ||
+     c.id.toLowerCase().includes('day') ||
+     (c.timeWindow && (c.timeWindow.startsWith('04:00') || c.timeWindow.startsWith('06:00') || c.timeWindow.startsWith('07:00') || c.timeWindow.startsWith('08:00')))) &&
+    !isNightNoiseConstraint(c);
+
   const verifiedEnvNoiseDay = profile.constraints?.find(
     (c) =>
-      (c.constraintType === 'environmental_noise_day' || c.constraintType === 'noise_day') &&
+      (c.constraintType === 'environmental_boundary_noise' ||
+       c.constraintType === 'environmental_noise_day' ||
+       c.constraintType === 'noise_day') &&
       c.applicability &&
+      isDayNoiseConstraint(c) &&
       policy.allowedVerificationStatuses.includes(c.verificationStatus) &&
       isConstraintVerifiedWithEvidence(c)
   );
   const verifiedEnvNoiseNight = profile.constraints?.find(
     (c) =>
-      (c.constraintType === 'environmental_noise_night' || c.constraintType === 'noise_night') &&
+      (c.constraintType === 'environmental_boundary_noise' ||
+       c.constraintType === 'environmental_noise_night' ||
+       c.constraintType === 'noise_night') &&
       c.applicability &&
+      isNightNoiseConstraint(c) &&
       policy.allowedVerificationStatuses.includes(c.verificationStatus) &&
       isConstraintVerifiedWithEvidence(c)
   );
   const verifiedOccupationalNoise = profile.constraints?.find(
     (c) =>
-      c.constraintType === 'occupational_noise' &&
+      (c.constraintType === 'occupational_noise_exposure' || c.constraintType === 'occupational_noise') &&
       c.applicability &&
       policy.allowedVerificationStatuses.includes(c.verificationStatus) &&
       isConstraintVerifiedWithEvidence(c)
@@ -258,31 +276,25 @@ export function generateBumpInShifts(
       isConstraintVerifiedWithEvidence(c)
   );
 
-  const hasConstraints = profile.constraints && profile.constraints.length > 0;
+  const isProfileNoiseVerified = verifiedEnvNoiseDay !== undefined && verifiedEnvNoiseNight !== undefined;
+  const isProfileStructuralVerified = verifiedFloorLoad !== undefined;
 
-  const isProfileNoiseVerified = profile.noise.verificationStatus
-    ? policy.allowedVerificationStatuses.includes(profile.noise.verificationStatus)
-    : (verifiedEnvNoiseDay !== undefined || !hasConstraints);
+  const dayNoiseLimit = verifiedEnvNoiseDay
+    ? Number(verifiedEnvNoiseDay.limitValue)
+    : 65; // Safe statutory fallback (Law No. 30 of 2002)
 
-  const isProfileStructuralVerified = profile.structural.verificationStatus
-    ? policy.allowedVerificationStatuses.includes(profile.structural.verificationStatus)
-    : (verifiedFloorLoad !== undefined || !hasConstraints);
-
-  const dayNoiseLimit = isProfileNoiseVerified
-    ? (verifiedEnvNoiseDay ? Number(verifiedEnvNoiseDay.limitValue) : profile.noise.dayMaxDb)
-    : 65; // Statutory baseline fallback for unverified noise (Law No. 30 of 2002)
-
-  const nightNoiseLimit = isProfileNoiseVerified
-    ? (verifiedEnvNoiseNight ? Number(verifiedEnvNoiseNight.limitValue) : profile.noise.nightMaxDb)
-    : 55; // Statutory baseline fallback for unverified noise (Cabinet Decision No. 4 of 2005)
+  const nightNoiseLimit = verifiedEnvNoiseNight
+    ? Number(verifiedEnvNoiseNight.limitValue)
+    : 55; // Safe statutory fallback (Res No. 4 of 2005 Annex 3/5)
 
   const occupationalNoiseLimit = verifiedOccupationalNoise
     ? Number(verifiedOccupationalNoise.limitValue)
-    : (profile.noise.occupationalMaxDb || 85); // Qatar Labour Law No. 14 of 2004 & MD 16 of 2005
+    : (profile.noise.occupationalMaxDb || 85); // Res No. 4 of 2005 Annex 3/6
 
+  // Unverified floor load limits (e.g. unverified 2500 kg/m² or draft 5000 kg/m²) MUST NOT dictate scheduling
   const floorLoadLimit = isProfileStructuralVerified
-    ? (verifiedFloorLoad ? Number(verifiedFloorLoad.limitValue) : profile.structural.maxFloorLoadKgM2)
-    : 1500; // Statutory baseline fallback for unverified floor load
+    ? Number(verifiedFloorLoad.limitValue)
+    : 1500; // Safe statutory fallback for unverified floor load
 
   const activeVerificationStatus: VerificationStatus =
     (isProfileNoiseVerified && isProfileStructuralVerified) ? 'Verified' : 'Unverified';

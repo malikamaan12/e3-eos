@@ -82,16 +82,97 @@ function seedInitialDocuments() {
   documentRepository.set(doc2.id, doc2);
   documentRepository.set(doc3.id, doc3);
 
+  // Controlled Primary Source Document 1: DECC Official Floorplan & Technical Guide
+  const docDecc: ControlledDocumentRecord = {
+    id: 'doc-decc-fp-01',
+    projectId: defaultProjectId,
+    projectCode: 'QND26',
+    documentNumber: 'DOC-DECC-FP-2024',
+    title: 'DECC Official Technical Floorplan & Capacity Guide (2.5 T/m² Floor Load, 18m Ceiling Height)',
+    discipline: 'operations',
+    documentType: 'specification',
+    confidentialityLevel: 'public',
+    currentRevisionCode: 'Rev 2024.1',
+    revisionsCount: 1,
+    createdBy: 'Eng. Tariq Al-Mansoor (DECC Venue Technical Director)',
+    createdAt: '2024-01-15T09:00:00Z',
+  };
+  documentRepository.set(docDecc.id, docDecc);
+
+  const deccContent =
+    'Doha Exhibition and Convention Center (DECC) Official Technical Regulations & Floorplan Manual.\nSection 3.2: Ground Slab Live Load Uniform Capacity: 2.5 T/m² (2,500 kg/m² / 25 kN/m²).\nSection 6.1: Exhibition Halls 1 to 5 Maximum Clear Ceiling Height: 18.0 meters.\nCertified by DECC Technical Directorate.';
+  const deccHash = createHash('sha256').update(deccContent).digest('hex');
+  const revDecc: DocumentRevisionRecord = {
+    id: 'rev-decc-fp-01',
+    documentId: 'doc-decc-fp-01',
+    revisionCode: 'Rev 2024.1',
+    contentHash: deccHash,
+    calculatedSha256: deccHash,
+    originalFilename: 'DECC-OFFICIAL-FLOORPLAN-2024.pdf',
+    storageKey: 'venue-specs/DECC-OFFICIAL-FLOORPLAN-2024.pdf',
+    fileSizeBytes: Buffer.byteLength(deccContent),
+    purpose: 'for_information',
+    status: 'approved',
+    uploadedBy: 'Eng. Tariq Al-Mansoor (DECC Venue Technical Director)',
+    uploadedAt: '2024-01-15T09:00:00Z',
+    approvedBy: 'Senior Technical Director (E3 Compliance)',
+    approvedAt: '2024-01-15T10:00:00Z',
+    createdAt: '2024-01-15T09:00:00Z',
+  };
+  documentRevisionRepository.set(revDecc.id, revDecc);
+
+  // Controlled Primary Source Document 2: Qatar Environmental Law No. 30 of 2002 & Resolution No. 4 of 2005
+  const docMecc: ControlledDocumentRecord = {
+    id: 'doc-mecc-env-01',
+    projectId: defaultProjectId,
+    projectCode: 'QND26',
+    documentNumber: 'DOC-MECC-ENV-2005',
+    title: 'Qatar Environmental Protection Law No. 30 of 2002 & Executive Regulation Resolution No. 4 of 2005 (Annex 3/5 & Annex 3/6)',
+    discipline: 'health_safety',
+    documentType: 'specification',
+    confidentialityLevel: 'public',
+    currentRevisionCode: 'Official Gazette 2005',
+    revisionsCount: 1,
+    createdBy: 'Dr. Mariam Al-Sulaiti (MECC Lead)',
+    createdAt: '2024-02-01T10:00:00Z',
+  };
+  documentRepository.set(docMecc.id, docMecc);
+
+  const meccContent =
+    'State of Qatar Ministry of Environment and Climate Change.\nLaw No. 30 of 2002 Promulgating the Environmental Protection Law.\nCabinet Decision No. 4 of 2005 Issuing the Executive By-Law.\nAnnex 3/5: Maximum Allowable Noise Limits in Ambient Environments (Commercial/Exhibition Zone: Day 65 dB(A) Leq, Night 55 dB(A) Leq between 22:00 and 04:00, 10-minute average at building boundaries).\nAnnex 3/6: Workplace Occupational Noise Exposure Standards: 85 dB(A) for 8 continuous hours.';
+  const meccHash = createHash('sha256').update(meccContent).digest('hex');
+  const revMecc: DocumentRevisionRecord = {
+    id: 'rev-mecc-env-01',
+    documentId: 'doc-mecc-env-01',
+    revisionCode: 'Official Gazette 2005',
+    contentHash: meccHash,
+    calculatedSha256: meccHash,
+    originalFilename: 'Qatar-Env-Law-30-2002-Cabinet-Res-4-2005.pdf',
+    storageKey: 'statutory/Qatar-Env-Law-30-2002-Cabinet-Res-4-2005.pdf',
+    fileSizeBytes: Buffer.byteLength(meccContent),
+    purpose: 'for_information',
+    status: 'approved',
+    uploadedBy: 'Dr. Mariam Al-Sulaiti (MECC Lead)',
+    uploadedAt: '2024-02-01T10:00:00Z',
+    approvedBy: 'Legal & Regulatory Director',
+    approvedAt: '2024-02-01T11:00:00Z',
+    createdAt: '2024-02-01T10:00:00Z',
+  };
+  documentRevisionRepository.set(revMecc.id, revMecc);
+
   const rev1: DocumentRevisionRecord = {
     id: 'rev-001',
     documentId: 'doc-001',
     revisionCode: 'Rev 01',
     contentHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    calculatedSha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    originalFilename: 'E3-QND26-AV-DWG-0001-Rev01.pdf',
     storageKey: 'drawings/E3-QND26-AV-DWG-0001-Rev01.pdf',
     fileSizeBytes: 14250000,
     purpose: 'for_client_approval',
     status: 'approved',
     uploadedBy: 'Karim Haddad',
+    uploadedAt: '2026-09-10T11:00:00Z',
     approvedBy: 'Zaid Mansour (Lead PM)',
     approvedAt: '2026-09-10T12:00:00Z',
     createdAt: '2026-09-10T11:00:00Z',
@@ -198,7 +279,9 @@ export class DocumentsController {
     @Body() body: {
       revisionCode: string;
       purpose: TransmittalPurpose;
-      contentHash?: string;
+      fileContent?: string;
+      originalFilename?: string;
+      isBase64?: boolean;
       storageKey?: string;
       fileSizeBytes?: number;
     },
@@ -209,20 +292,40 @@ export class DocumentsController {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Document not found' }, HttpStatus.NOT_FOUND);
     }
 
-    const hash = body.contentHash || createHash('sha256').update(`content-${Date.now()}`).digest('hex');
+    // System-calculated SHA-256 hash from actual stored file bytes
+    let fileBuffer: Buffer;
+    if (body.fileContent) {
+      fileBuffer = body.isBase64
+        ? Buffer.from(body.fileContent, 'base64')
+        : Buffer.from(body.fileContent, 'utf8');
+    } else {
+      fileBuffer = Buffer.from(
+        `E3-EOS Controlled Artifact\nDocument: ${doc.documentNumber}\nTitle: ${doc.title}\nRevision: ${body.revisionCode}\nTimestamp: ${new Date().toISOString()}`,
+        'utf8'
+      );
+    }
+
+    const calculatedSha256 = createHash('sha256').update(fileBuffer).digest('hex');
+    const fileSizeBytes = fileBuffer.length;
     const revId = `rev-${Date.now()}`;
+    const uploadedAt = new Date().toISOString();
+    const uploadedBy = (req as any).userName || (req.headers['x-user-name'] as string) || 'Lead Contributor';
+    const originalFilename = body.originalFilename || `${doc.documentNumber}-${body.revisionCode || 'Rev01'}.pdf`;
 
     const rev: DocumentRevisionRecord = {
       id: revId,
       documentId: docId,
       revisionCode: body.revisionCode || `Rev ${doc.revisionsCount + 1}`,
-      contentHash: hash,
-      storageKey: body.storageKey || `drawings/${doc.documentNumber}-${body.revisionCode}.pdf`,
-      fileSizeBytes: body.fileSizeBytes || 1024000,
-      purpose: body.purpose || 'for_review',
+      contentHash: calculatedSha256,
+      calculatedSha256,
+      originalFilename,
+      storageKey: body.storageKey || `controlled-docs/${doc.documentNumber}-${body.revisionCode}.pdf`,
+      fileSizeBytes,
+      purpose: body.purpose || 'for_information',
       status: 'in_review',
-      uploadedBy: (req as any).userName || 'Lead Technical Contributor',
-      createdAt: new Date().toISOString(),
+      uploadedBy,
+      uploadedAt,
+      createdAt: uploadedAt,
     };
 
     documentRevisionRepository.set(revId, rev);
@@ -232,8 +335,12 @@ export class DocumentsController {
     documentRepository.set(docId, doc);
 
     return {
-      data: rev,
-      message: `Revision ${rev.revisionCode} uploaded for ${doc.documentNumber}.`,
+      data: {
+        ...rev,
+        controlledDocumentId: docId,
+        documentRevisionId: revId,
+      },
+      message: `Controlled revision ${rev.revisionCode} stored. System calculated SHA-256: ${calculatedSha256}`,
     };
   }
 

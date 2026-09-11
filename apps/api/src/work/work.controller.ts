@@ -39,6 +39,7 @@ import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { DbService } from '../common/db.service.js';
+import { getProjectConstraints } from '../operations/constraints.controller.js';
 
 export interface StoredWorkPackage {
   id: string;
@@ -204,10 +205,15 @@ export class WorkController {
   getGanttSchedule(@Param('projectId') projectId: string) {
     const tasks = Array.from(ganttTaskRepository.values()).filter((t) => t.projectId === projectId);
     const schedule = calculateCpmSchedule(tasks);
-    const constraintProfile = resolveOperationalConstraints({
+    const baseProfile = resolveOperationalConstraints({
       venueName: 'DECC',
       countryCode: 'QA',
     });
+    const projectConstraints = getProjectConstraints(projectId);
+    const constraintProfile = {
+      ...baseProfile,
+      constraints: projectConstraints,
+    };
     const shifts = generateBumpInShifts(72, constraintProfile);
     return {
       data: {
