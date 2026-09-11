@@ -149,7 +149,8 @@ export async function runSeed(): Promise<SeedDataManifest> {
         name TEXT NOT NULL,
         role TEXT NOT NULL,
         department TEXT,
-        token TEXT NOT NULL UNIQUE,
+        token TEXT,
+        token_hash TEXT UNIQUE,
         expires_at TIMESTAMPTZ NOT NULL,
         accepted_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -158,11 +159,20 @@ export async function runSeed(): Promise<SeedDataManifest> {
       CREATE TABLE IF NOT EXISTS password_resets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        token TEXT NOT NULL UNIQUE,
+        token TEXT,
+        token_hash TEXT UNIQUE,
         expires_at TIMESTAMPTZ NOT NULL,
         used_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      ALTER TABLE user_invitations ADD COLUMN IF NOT EXISTS token_hash TEXT;
+      ALTER TABLE user_invitations ALTER COLUMN token DROP NOT NULL;
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_user_invitations_token_hash ON user_invitations(token_hash);
+
+      ALTER TABLE password_resets ADD COLUMN IF NOT EXISTS token_hash TEXT;
+      ALTER TABLE password_resets ALTER COLUMN token DROP NOT NULL;
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_password_resets_token_hash ON password_resets(token_hash);
 
       CREATE TABLE IF NOT EXISTS user_mfa (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

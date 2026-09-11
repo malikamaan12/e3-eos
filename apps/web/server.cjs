@@ -26,6 +26,20 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
+  // Liveness health endpoint
+  if (req.url === '/health' || req.url === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(
+      JSON.stringify({
+        status: 'ok',
+        service: 'e3-eos-web',
+        environment: process.env.ENVIRONMENT || 'staging',
+        gitCommit: process.env.GIT_COMMIT || process.env.BUILD_SHA || 'e273e05',
+        buildSha: process.env.BUILD_SHA || process.env.GIT_COMMIT || 'e273e05',
+      })
+    );
+  }
+
   // Reverse proxy /api requests to backend Cloud Run if API_URL is set
   if (API_URL && req.url && (req.url.startsWith('/api/') || req.url === '/api')) {
     const targetUrl = new URL(req.url, API_URL);

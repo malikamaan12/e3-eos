@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-09T14:48:22.005Z",
+  "verifiedAt": "2026-09-11T05:39:25.335Z",
   "totalScenarios": 92,
   "verifiedCount": 92,
   "coveragePercentage": "100.0%",
@@ -106,6 +106,7 @@
       "expectedResult": "Exactly one business effect through durable idempotency, not an exactly-once delivery assumption.",
       "verifiedFiles": [
         "apps/api/src/api.test.ts",
+        "apps/api/src/common/email.service.ts",
         "apps/worker/src/index.ts",
         "apps/worker/src/worker.test.ts"
       ],

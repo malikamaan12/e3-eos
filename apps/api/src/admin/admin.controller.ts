@@ -190,25 +190,28 @@ export class AdminController {
       ON CONFLICT DO NOTHING;
     `, [orgId, user.id, role]);
 
-    const inviteToken = crypto.randomBytes(24).toString('hex');
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000); // 7 days
 
     await pool.query(`
-      INSERT INTO user_invitations (id, organisation_id, email, name, role, department, token, expires_at, created_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, NOW());
-    `, [orgId, email, name, role, body.department || null, inviteToken, expiresAt]);
+      INSERT INTO user_invitations (id, organisation_id, email, name, role, department, token, token_hash, expires_at, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NULL, $6, $7, NOW());
+    `, [orgId, email, name, role, body.department || null, tokenHash, expiresAt]);
 
-    const inviteUrl = `${process.env.APP_BASE_URL || 'https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app'}/accept-invite?token=${inviteToken}`;
+    const inviteUrl = `${process.env.APP_BASE_URL || 'https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app'}/accept-invite?token=${rawToken}`;
     const emailDispatcher = new EmailDispatcherService(this.dbService);
-    await emailDispatcher.dispatchEmail({
+    const dispatchRes = await emailDispatcher.dispatchEmail({
       to: email,
       subject: 'Invitation to join E3 Event Operating System (EOS)',
       template: 'user_invitation',
       link: inviteUrl,
       recipientName: name,
+      metadata: { organisationId: orgId },
     });
 
-    const isTestEnv = process.env.NODE_ENV === 'test';
+    // Invariant: Never return tokens in staging or production environments.
+    const isLocalTestOnly = process.env.NODE_ENV === 'test' && !process.env.ENVIRONMENT;
     return {
       success: true,
       message: `User ${name} successfully invited with role ${role}.`,
@@ -220,7 +223,9 @@ export class AdminController {
         organisationId: orgId,
         createdAt: user.created_at,
       },
-      ...(isTestEnv ? { inviteToken, inviteUrl } : {}),
+      messageId: dispatchRes.messageId,
+      deliveryStatus: dispatchRes.status,
+      ...(isLocalTestOnly ? { inviteToken: rawToken, inviteUrl } : {}),
     };
   }
 

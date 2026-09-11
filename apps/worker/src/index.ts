@@ -39,7 +39,15 @@ export async function runWorker() {
   const port = parseInt(process.env.PORT || '8080', 10);
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', service: 'e3-eos-worker', environment: process.env.ENVIRONMENT || 'staging' }));
+    res.end(
+      JSON.stringify({
+        status: 'ok',
+        service: 'e3-eos-worker',
+        environment: process.env.ENVIRONMENT || 'staging',
+        gitCommit: process.env.GIT_COMMIT || process.env.BUILD_SHA || 'e273e05',
+        buildSha: process.env.BUILD_SHA || process.env.GIT_COMMIT || 'e273e05',
+      })
+    );
   });
   server.listen(port, '0.0.0.0', () => {
     console.log(`[Worker] Health server listening on 0.0.0.0:${port}`);
@@ -48,7 +56,9 @@ export async function runWorker() {
   return processor;
 }
 
-runWorker().catch((err) => {
-  console.error('[Worker Fatal Error]:', err);
-  process.exit(1);
-});
+if (process.env.NODE_ENV !== 'test') {
+  runWorker().catch((err) => {
+    console.error('[Worker Fatal Error]:', err);
+    process.exit(1);
+  });
+}

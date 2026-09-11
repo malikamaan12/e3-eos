@@ -206,4 +206,94 @@ describe('Sprint 01 Authentication & Authorization Verification Suite', () => {
       process.env.NODE_ENV = prevEnv;
     }
   });
+
+  it('14. Cryptographic Storage: Verifies user_invitations stores SHA-256 hash and raw token is NULL', async () => {
+    const pool = dbService.getPool();
+    const rows = await pool.query(
+      `SELECT token, token_hash FROM user_invitations WHERE email = $1 ORDER BY created_at DESC LIMIT 1;`,
+      [testEmail]
+    );
+    expect(rows.rows.length).toBe(1);
+    const row = rows.rows[0];
+    // Raw token must NOT be stored
+    expect(row.token).toBeNull();
+    // Token hash must be a 64-character hex string (SHA-256)
+    expect(row.token_hash).toBeDefined();
+    expect(row.token_hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('15. Anti-Replay Protection: Replaying an already accepted invitation token is rejected with 400', async () => {
+    await expect(
+      authController.acceptInvite({
+        token: inviteToken,
+        password: 'AttemptReplayPassword1!',
+      })
+    ).rejects.toThrow();
+  });
+
+  it('16. Cryptographic Storage: Verifies password_resets stores SHA-256 hash and raw token is NULL', async () => {
+    const pool = dbService.getPool();
+    const rows = await pool.query(
+      `SELECT pr.token, pr.token_hash, pr.used_at FROM password_resets pr
+       JOIN users u ON u.id = pr.user_id
+       WHERE u.email = $1 ORDER BY pr.created_at DESC LIMIT 1;`,
+      [testEmail]
+    );
+    expect(rows.rows.length).toBe(1);
+    const row = rows.rows[0];
+    expect(row.token).toBeNull();
+    expect(row.token_hash).toBeDefined();
+    expect(row.token_hash).toMatch(/^[a-f0-9]{64}$/);
+    expect(row.used_at).not.toBeNull();
+  });
+
+  it('17. Anti-Replay Protection: Replaying a consumed password reset token is rejected with 400', async () => {
+    await expect(
+      authController.resetPassword({
+        token: 'any-consumed-or-invalid-token',
+        newPassword: 'AttemptReplayPassword1!',
+      })
+    ).rejects.toThrow();
+  });
+
+  it('18. Zero Notification Leak: Notifications table contains zero raw tokens and zero reset links', async () => {
+    const pool = dbService.getPool();
+    const notifs = await pool.query(
+      `SELECT title, message, link FROM notifications WHERE user_id = $1;`,
+      [userId]
+    );
+    for (const notif of notifs.rows) {
+      // Must not contain raw token or query params
+      expect(notif.message).not.toContain('token=');
+      expect(notif.message).not.toContain(initialPassword);
+      expect(notif.message).not.toContain(updatedPassword);
+      if (notif.link) {
+        expect(notif.link).not.toContain('token=');
+        expect(notif.link).not.toContain('?');
+      }
+    }
+  });
+
+  it('19. Staging Environment Redaction: Strict token omission in staging environment', async () => {
+    const prevEnv = process.env.ENVIRONMENT;
+    process.env.ENVIRONMENT = 'staging';
+    try {
+      const stagingForgot = await authController.forgotPassword({ email: testEmail });
+      expect((stagingForgot as any).resetToken).toBeUndefined();
+      expect((stagingForgot as any).resetUrl).toBeUndefined();
+      expect(stagingForgot.message).toBeDefined();
+      expect(stagingForgot.deliveryStatus).toBeDefined();
+
+      const stagingInvite = await adminController.inviteUser({
+        name: 'Staging Redaction Test',
+        email: `staging.redact.${Date.now()}@e3.qa`,
+        role: 'operations',
+      });
+      expect((stagingInvite as any).inviteToken).toBeUndefined();
+      expect((stagingInvite as any).inviteUrl).toBeUndefined();
+      expect(stagingInvite.deliveryStatus).toBeDefined();
+    } finally {
+      process.env.ENVIRONMENT = prevEnv;
+    }
+  });
 });

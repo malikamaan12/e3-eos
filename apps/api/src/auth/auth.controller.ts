@@ -309,17 +309,18 @@ export class AuthController {
     }
 
     const user = userRes.rows[0];
-    const resetToken = crypto.randomBytes(24).toString('hex');
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date(Date.now() + 3600 * 1000); // 1 hour
 
     await pool.query(`
-      INSERT INTO password_resets (id, user_id, token, expires_at, created_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, NOW());
-    `, [user.id, resetToken, expiresAt]);
+      INSERT INTO password_resets (id, user_id, token, token_hash, expires_at, created_at)
+      VALUES (gen_random_uuid(), $1, NULL, $2, $3, NOW());
+    `, [user.id, tokenHash, expiresAt]);
 
-    const resetUrl = `${process.env.APP_BASE_URL || 'https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app'}/forgot-password?token=${resetToken}`;
+    const resetUrl = `${process.env.APP_BASE_URL || 'https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app'}/forgot-password?token=${rawToken}`;
     const emailDispatcher = new EmailDispatcherService(this.dbService);
-    await emailDispatcher.dispatchEmail({
+    const dispatchRes = await emailDispatcher.dispatchEmail({
       to: cleanEmail,
       subject: 'Reset your E3-EOS password',
       template: 'password_reset',
@@ -327,11 +328,13 @@ export class AuthController {
       recipientName: user.name,
     });
 
-    const isTestEnv = process.env.NODE_ENV === 'test';
+    const isLocalTestOnly = process.env.NODE_ENV === 'test' && !process.env.ENVIRONMENT;
     return {
       success: true,
       message: 'If an account exists with this email, password reset instructions have been sent.',
-      ...(isTestEnv ? { resetToken, resetUrl } : {}),
+      messageId: dispatchRes.messageId,
+      deliveryStatus: dispatchRes.status,
+      ...(isLocalTestOnly ? { resetToken: rawToken, resetUrl } : {}),
     };
   }
 
@@ -408,17 +411,22 @@ export class AuthController {
       throw new HttpException({ title: 'Validation Error', detail: 'Password must be at least 8 characters' }, HttpStatus.BAD_REQUEST);
     }
 
+    const rawToken = body.token.trim();
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
     const pool = this.dbService.getPool();
     const tokenRes = await pool.query(`
       SELECT pr.id, pr.user_id, pr.expires_at, pr.used_at, u.email
       FROM password_resets pr
       JOIN users u ON u.id = pr.user_id
-      WHERE pr.token = $1 AND pr.expires_at > NOW() AND pr.used_at IS NULL
+      WHERE (pr.token_hash = $1 OR pr.token = $2)
+        AND pr.expires_at > NOW()
+        AND pr.used_at IS NULL
       LIMIT 1;
-    `, [body.token.trim()]);
+    `, [tokenHash, rawToken]);
 
     if (tokenRes.rows.length === 0) {
-      throw new HttpException({ title: 'Bad Request', detail: 'Invalid or expired password reset link' }, HttpStatus.BAD_REQUEST);
+      throw new HttpException({ title: 'Bad Request', detail: 'Invalid, expired, or already used password reset link' }, HttpStatus.BAD_REQUEST);
     }
 
     const resetRow = tokenRes.rows[0];
@@ -452,16 +460,21 @@ export class AuthController {
       throw new HttpException({ title: 'Validation Error', detail: 'Token and password are required' }, HttpStatus.BAD_REQUEST);
     }
 
+    const rawToken = body.token.trim();
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
     const pool = this.dbService.getPool();
     const invRes = await pool.query(`
       SELECT id, email, name, role, organisation_id, expires_at, accepted_at
       FROM user_invitations
-      WHERE token = $1 AND expires_at > NOW() AND accepted_at IS NULL
+      WHERE (token_hash = $1 OR token = $2)
+        AND expires_at > NOW()
+        AND accepted_at IS NULL
       LIMIT 1;
-    `, [body.token.trim()]);
+    `, [tokenHash, rawToken]);
 
     if (invRes.rows.length === 0) {
-      throw new HttpException({ title: 'Bad Request', detail: 'Invalid or expired invitation token' }, HttpStatus.BAD_REQUEST);
+      throw new HttpException({ title: 'Bad Request', detail: 'Invalid, expired, or already accepted invitation token' }, HttpStatus.BAD_REQUEST);
     }
 
     const inv = invRes.rows[0];

@@ -1,7 +1,7 @@
 # Acceptance Test Traceability Matrix (AT-001 to AT-092)
 
 **Release:** v1.0.0  
-**Generated:** 2026-09-09T14:48:22.008Z  
+**Generated:** 2026-09-11T05:39:25.336Z  
 **Compliance Status:** 100% COMPLETE (92/92 Verified)
 
 | ID | Phase | Scenario | Expected Invariant | Verified In | Status |
@@ -14,7 +14,7 @@
 | AT-006 | P00 | Bootstrap/recovery account used | No demo backdoor; witnessed setup/recovery evidence, expiry, MFA and immediate audit alert. | `tests/infrastructure.test.ts` | **VERIFIED** |
 | AT-007 | P00 | Pooled database connection changes organisation | Transaction-local scope cannot leak into next request; app DB role cannot bypass RLS. | `tests/infrastructure.test.ts`, `packages/db/src/rls.ts` | **VERIFIED** |
 | AT-008 | P00 | Invalid/oversized/malicious upload | Quarantined; never publicly readable, executed or accepted as evidence. | `apps/api/src/api.test.ts`, `apps/api/src/common/upload.service.ts`, `apps/api/src/governance/governance.controller.ts` | **VERIFIED** |
-| AT-009 | P00 | Queue job retried after process crash | Exactly one business effect through durable idempotency, not an exactly-once delivery assumption. | `apps/api/src/api.test.ts`, `apps/worker/src/index.ts`, `apps/worker/src/worker.test.ts` | **VERIFIED** |
+| AT-009 | P00 | Queue job retried after process crash | Exactly one business effect through durable idempotency, not an exactly-once delivery assumption. | `apps/api/src/api.test.ts`, `apps/api/src/common/email.service.ts`, `apps/worker/src/index.ts`, `apps/worker/src/worker.test.ts` | **VERIFIED** |
 | AT-010 | P00 | Session CSRF/origin/header manipulation | Forged browser command blocked; raw webhook body remains correctly verifiable. | `tests/infrastructure.test.ts` | **VERIFIED** |
 | AT-011 | P00 | Node/Nest/Better Auth/Drizzle integration spike | Exact stable version lock successfully runs auth, MFA, migration, RLS, transaction and queue tests. | `apps/web/src/views/AdminStudioView.tsx` | **VERIFIED** |
 | AT-012 | P00 | Audit store privileged tamper simulation | Application edits denied; controlled privileged change detectable against external manifest; no untamperability claim. | `tests/infrastructure.test.ts`, `apps/api/src/governance/governance.controller.ts` | **VERIFIED** |

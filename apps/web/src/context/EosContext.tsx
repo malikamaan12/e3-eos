@@ -125,6 +125,9 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
+  const [sessionToken, setSessionToken] = useState<string | null>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('eos_session_token') : null;
+  });
   const [isImpersonating, setIsImpersonating] = useState<boolean>(false);
   const [impersonatedBy, setImpersonatedBy] = useState<string | null>(null);
 
@@ -252,14 +255,13 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsImpersonating(true);
       setImpersonatedBy(data.impersonatedBy);
       if (data.user) {
-        setCurrentUser({
+        setCurrentUserState({
           id: data.user.id,
           name: data.user.name,
           email: data.user.email,
           role: data.activeMembership?.role || 'project_manager',
-          department: 'Live Production',
           permissions: [],
-        });
+        } as any);
       }
       triggerRefresh();
     } catch (e: any) {
@@ -358,6 +360,14 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isAuditDrawerOpen,
         refreshTrigger,
         apiClient,
+        isImpersonating,
+        impersonatedBy,
+        notifications,
+        unreadNotificationCount,
+        refreshNotifications,
+        markNotificationRead,
+        markAllNotificationsRead,
+        exitImpersonation,
         triggerRefresh,
         navigate,
         login,

@@ -4,6 +4,8 @@
     "outDir": "./dist",
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "paths": {
       "@e3-eos/domain": ["../../packages/domain/src/index.ts"],
       "@e3-eos/policy": ["../../packages/policy/src/index.ts"],
