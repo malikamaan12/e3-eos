@@ -81,6 +81,9 @@ importers:
       '@e3-eos/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@e3-eos/policy':
+        specifier: workspace:*
+        version: link:../../packages/policy
       '@e3-eos/test-fixtures':
         specifier: workspace:*
         version: link:../../packages/test-fixtures

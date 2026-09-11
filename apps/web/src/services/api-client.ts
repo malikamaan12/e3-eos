@@ -615,6 +615,7 @@ export class EosApiClient {
     targetId: string;
     reason: string;
     requiredRole?: string;
+    amount?: number;
   }): Promise<any> {
     const res = await fetch(`${this.baseUrl}/projects/${projectId}/approval-requests`, {
       method: 'POST',

@@ -12,6 +12,7 @@
   "dependencies": {
     "@e3-eos/contracts": "workspace:*",
     "@e3-eos/domain": "workspace:*",
+    "@e3-eos/policy": "workspace:*",
     "@e3-eos/test-fixtures": "workspace:*",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
