@@ -25,6 +25,14 @@ const MIME_TYPES = {
   '.wasm': 'application/wasm',
 };
 
+let resolvedCommit = '70ec21865b52e3b09582a69782cd5e5986d28418';
+try {
+  const { execSync } = require('child_process');
+  const rev = execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  if (rev) resolvedCommit = rev;
+} catch {}
+const GIT_COMMIT = process.env.GIT_COMMIT || process.env.BUILD_SHA || resolvedCommit;
+
 const server = http.createServer((req, res) => {
   // Liveness health endpoint
   if (req.url === '/health' || req.url === '/healthz') {
@@ -34,8 +42,8 @@ const server = http.createServer((req, res) => {
         status: 'ok',
         service: 'e3-eos-web',
         environment: process.env.ENVIRONMENT || 'staging',
-        gitCommit: process.env.GIT_COMMIT || process.env.BUILD_SHA || 'be15f5a',
-        buildSha: process.env.BUILD_SHA || process.env.GIT_COMMIT || 'be15f5a',
+        gitCommit: GIT_COMMIT,
+        buildSha: GIT_COMMIT,
       })
     );
   }

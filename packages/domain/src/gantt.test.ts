@@ -53,5 +53,48 @@ describe('Master Timeline & Operational Gantt Engine', () => {
     expect(qcdShifts.length).toBe(6);
     expect(qcdShifts[0].appliedConstraintProfileId).toBe('PROF-PERMIT-QCD-2026');
   });
+
+  it('enforces only verified constraints according to policy, rejecting unverified/draft constraints', async () => {
+    // Import UNVERIFIED_DRAFT_VENUE_PROFILE and filterEnforceableConstraints
+    const { UNVERIFIED_DRAFT_VENUE_PROFILE, filterEnforceableConstraints } = await import('./constraints.js');
+
+    // Check all 14 mandatory fields on DECC constraints
+    for (const c of DOHA_DECC_PROFILE.constraints) {
+      expect(c.id).toBeDefined();
+      expect(c.constraintType).toBeDefined();
+      expect(c.sourceType).toBeDefined();
+      expect(c.sourceOrganization).toBeDefined();
+      expect(c.sourceDocument).toBeDefined();
+      expect(c.sourceRevisionDate).toBeDefined();
+      expect(c.locationZone).toBeDefined();
+      expect(c.effectivePeriod).toBeDefined();
+      expect(c.timeWindow).toBeDefined();
+      expect(c.limitValue).toBeDefined();
+      expect(c.unit).toBeDefined();
+      expect(typeof c.applicability).toBe('boolean');
+      expect(c.priority).toBeDefined();
+      expect(c.overrideAuthority).toBeDefined();
+      expect(['Draft', 'Unverified', 'Verified', 'Superseded']).toContain(c.verificationStatus);
+    }
+
+    // Filter enforceable constraints for DECC: all verified constraints returned
+    const verifiedDecc = filterEnforceableConstraints(DOHA_DECC_PROFILE, { allowedVerificationStatuses: ['Verified'] });
+    expect(verifiedDecc.length).toBeGreaterThan(0);
+    expect(verifiedDecc.every((c) => c.verificationStatus === 'Verified')).toBe(true);
+
+    // Filter enforceable constraints for draft profile: unverified/draft constraints excluded
+    const enforceableDraft = filterEnforceableConstraints(UNVERIFIED_DRAFT_VENUE_PROFILE, { allowedVerificationStatuses: ['Verified'] });
+    expect(enforceableDraft).toHaveLength(0);
+
+    // Scheduling engine fallback: When given UNVERIFIED_DRAFT_VENUE_PROFILE (unverified 99 dB / draft 5000 kg/m2),
+    // the scheduling engine REFUSES to enforce unverified limits and falls back to statutory limits (85 dB / 1500 kg/m2)
+    const fallbackShifts = generateBumpInShifts(24, UNVERIFIED_DRAFT_VENUE_PROFILE);
+    expect(fallbackShifts[0].verificationStatus).toBe('Unverified');
+    const dayShift = fallbackShifts.find((s) => !s.isCurfewActive);
+    const nightShift = fallbackShifts.find((s) => s.isCurfewActive);
+    expect(dayShift?.allowedNoiseDb).toBe(85); // Day fallback: 85 dB, NOT 99 dB unverified!
+    expect(nightShift?.allowedNoiseDb).toBe(60); // Night fallback: 60 dB, NOT 70 dB unverified!
+    expect(fallbackShifts[0].maxFloorLoadKgM2).toBe(1500); // Structural fallback: 1500 kg/m2, NOT 5000 kg/m2!
+  });
 });
 

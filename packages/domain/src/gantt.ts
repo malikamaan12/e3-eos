@@ -45,7 +45,12 @@ export interface CpmScheduleResult {
   criticalTasksCount: number;
 }
 
-import { OperationalConstraintProfile, resolveOperationalConstraints } from './constraints.js';
+import {
+  OperationalConstraintProfile,
+  resolveOperationalConstraints,
+  SchedulingPolicy,
+  VerificationStatus,
+} from './constraints.js';
 
 export interface OperationalShiftSlot {
   shiftNumber: number;
@@ -58,6 +63,9 @@ export interface OperationalShiftSlot {
   maxFloorLoadKgM2?: number;
   appliedConstraintProfileId?: string;
   appliedConstraintSource?: string;
+  verificationStatus?: VerificationStatus;
+  sourceDocument?: string;
+  sourceOrganization?: string;
 }
 
 /**
@@ -191,7 +199,8 @@ export function calculateCpmSchedule(tasks: GanttTaskInput[]): CpmScheduleResult
 export function generateBumpInShifts(
   totalWindowHours: number = 72,
   constraintProfileOrCurfewStart?: OperationalConstraintProfile | number,
-  curfewEndHour?: number
+  curfewEndHour?: number,
+  policy: SchedulingPolicy = { allowedVerificationStatuses: ['Verified'] }
 ): OperationalShiftSlot[] {
   let profile: OperationalConstraintProfile;
 
@@ -209,10 +218,49 @@ export function generateBumpInShifts(
           curfewStartHour: cStart,
           curfewEndHour: cEnd,
           sourceReference: 'Configured Project Baseline',
+          verificationStatus: 'Verified',
         },
       },
     });
   }
+
+  // Scheduling policy enforcement:
+  // Only constraints marked as applicable and appropriately verified according to policy are enforceable.
+  const verifiedNoiseDay = profile.constraints?.find(
+    (c) => c.constraintType === 'noise_day' && c.applicability && policy.allowedVerificationStatuses.includes(c.verificationStatus)
+  );
+  const verifiedNoiseNight = profile.constraints?.find(
+    (c) => c.constraintType === 'noise_night' && c.applicability && policy.allowedVerificationStatuses.includes(c.verificationStatus)
+  );
+  const verifiedFloorLoad = profile.constraints?.find(
+    (c) => c.constraintType === 'floor_load' && c.applicability && policy.allowedVerificationStatuses.includes(c.verificationStatus)
+  );
+
+  const hasConstraints = profile.constraints && profile.constraints.length > 0;
+
+  const isProfileNoiseVerified = profile.noise.verificationStatus
+    ? policy.allowedVerificationStatuses.includes(profile.noise.verificationStatus)
+    : (verifiedNoiseDay !== undefined || !hasConstraints);
+
+  const isProfileStructuralVerified = profile.structural.verificationStatus
+    ? policy.allowedVerificationStatuses.includes(profile.structural.verificationStatus)
+    : (verifiedFloorLoad !== undefined || !hasConstraints);
+
+  const dayNoiseLimit = isProfileNoiseVerified
+    ? (verifiedNoiseDay ? Number(verifiedNoiseDay.limitValue) : profile.noise.dayMaxDb)
+    : 85; // Statutory baseline fallback for unverified noise
+
+  const nightNoiseLimit = isProfileNoiseVerified
+    ? (verifiedNoiseNight ? Number(verifiedNoiseNight.limitValue) : profile.noise.nightMaxDb)
+    : 60; // Statutory baseline fallback for unverified noise
+
+  const floorLoadLimit = isProfileStructuralVerified
+    ? (verifiedFloorLoad ? Number(verifiedFloorLoad.limitValue) : profile.structural.maxFloorLoadKgM2)
+    : 1500; // Statutory baseline fallback for unverified floor load
+
+  const activeVerificationStatus: VerificationStatus = (isProfileNoiseVerified && isProfileStructuralVerified)
+    ? 'Verified'
+    : 'Unverified';
 
   const shifts: OperationalShiftSlot[] = [];
   const shiftLength = profile.workingHours.standardShiftHours || 8;
@@ -230,7 +278,7 @@ export function generateBumpInShifts(
       : (dayHour >= curfewStart && dayHour < curfewEnd);
 
     const shiftType = isNight ? 'overnight_heavy_lift' : 'day_rigging';
-    const maxDb = isNight ? profile.noise.nightMaxDb : profile.noise.dayMaxDb;
+    const maxDb = isNight ? nightNoiseLimit : dayNoiseLimit;
 
     shifts.push({
       shiftNumber: i + 1,
@@ -240,9 +288,12 @@ export function generateBumpInShifts(
       shiftType,
       allowedNoiseDb: maxDb,
       isCurfewActive: isNight,
-      maxFloorLoadKgM2: profile.structural.maxFloorLoadKgM2,
+      maxFloorLoadKgM2: floorLoadLimit,
       appliedConstraintProfileId: profile.id,
       appliedConstraintSource: profile.source,
+      verificationStatus: activeVerificationStatus,
+      sourceDocument: profile.noise.sourceDocument || profile.sourceReference,
+      sourceOrganization: profile.jurisdictionOrVenue,
     });
   }
 

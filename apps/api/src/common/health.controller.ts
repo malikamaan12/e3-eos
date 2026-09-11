@@ -1,10 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { ALL_STAGE_ACTIVITIES } from '@e3-eos/domain';
 
+import { execSync } from 'child_process';
+
 function getEnvironment(): string {
   const kService = (process.env.K_SERVICE || '').toLowerCase();
   if (kService.includes('staging')) return 'staging';
-  const env = (process.env.ENVIRONMENT || '').trim().toLowerCase();
+  const env = (process.env.ENVIRONMENT || process.env.NODE_ENV || '').trim().toLowerCase();
   if (env === 'production' && !kService.includes('production')) {
     // If not explicitly a production Cloud Run service, default to staging
     return 'staging';
@@ -12,7 +14,17 @@ function getEnvironment(): string {
   return env || 'staging';
 }
 
-const GIT_COMMIT = process.env.GIT_COMMIT || process.env.BUILD_SHA || 'be15f5a';
+function resolveGitCommit(): string {
+  if (process.env.GIT_COMMIT) return process.env.GIT_COMMIT;
+  if (process.env.BUILD_SHA) return process.env.BUILD_SHA;
+  try {
+    const rev = execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    if (rev) return rev;
+  } catch {}
+  return '70ec21865b52e3b09582a69782cd5e5986d28418';
+}
+
+const GIT_COMMIT = resolveGitCommit();
 
 @Controller('health')
 export class HealthController {

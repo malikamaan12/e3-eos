@@ -25,7 +25,7 @@ async function runPreflight() {
       durationMs: 0,
     },
     {
-      name: '2. Vitest Automated Suites (245 Tests across 27 Files, incl. RLS & 15 Brutal Invariants)',
+      name: '2. Vitest Automated Suites',
       command: 'pnpm test',
       status: 'PENDING',
       durationMs: 0,
@@ -68,7 +68,15 @@ async function runPreflight() {
     const stepStart = Date.now();
     try {
       if (check.command) {
-        execSync(check.command, { stdio: 'pipe' });
+        const output = execSync(check.command, { stdio: 'pipe' }).toString();
+        if (check.command === 'pnpm test') {
+          const cleanOutput = output.replace(/\u001b\[[0-9;]*[a-zA-Z]/g, '');
+          const filesMatch = cleanOutput.match(/Test Files\s+(\d+)\s+passed/);
+          const testsMatch = cleanOutput.match(/Tests\s+(\d+)\s+passed/);
+          if (filesMatch && testsMatch) {
+            check.name = `2. Vitest Automated Suites (${testsMatch[1]} Tests across ${filesMatch[1]} Files, incl. RLS & Invariants)`;
+          }
+        }
       } else if (check.fn) {
         await check.fn();
       }

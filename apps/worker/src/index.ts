@@ -37,6 +37,14 @@ export async function runWorker() {
   const processor = new OutboxProcessor();
 
   const port = parseInt(process.env.PORT || '8080', 10);
+  let resolvedCommit = '70ec21865b52e3b09582a69782cd5e5986d28418';
+  try {
+    const { execSync } = await import('child_process');
+    const rev = execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    if (rev) resolvedCommit = rev;
+  } catch {}
+  const gitCommit = process.env.GIT_COMMIT || process.env.BUILD_SHA || resolvedCommit;
+
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(
@@ -44,8 +52,8 @@ export async function runWorker() {
         status: 'ok',
         service: 'e3-eos-worker',
         environment: process.env.ENVIRONMENT || 'staging',
-        gitCommit: process.env.GIT_COMMIT || process.env.BUILD_SHA || 'be15f5a',
-        buildSha: process.env.BUILD_SHA || process.env.GIT_COMMIT || 'be15f5a',
+        gitCommit: gitCommit,
+        buildSha: gitCommit,
       })
     );
   });
