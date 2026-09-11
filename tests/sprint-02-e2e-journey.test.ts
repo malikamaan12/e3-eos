@@ -295,18 +295,19 @@ describe('Sprint 02 — End-to-End 12-Step Unbroken Product Journey Test', () =>
     expect(cpmResult.criticalPathTaskIds).toEqual(['tsk-01', 'tsk-02', 'tsk-03', 'tsk-04']);
     expect(cpmResult.criticalTasksCount).toBe(4);
 
-    // Verify operational shifts under DOHA_DECC_PROFILE (85 dB Day / 55 dB Night, 2,000 kg/m2 floor load)
+    // Verify operational shifts under DOHA_DECC_PROFILE (65 dB Day / 55 dB Night, 85 dB Occupational, 2,500 kg/m2 floor load)
     const bumpInShifts = generateBumpInShifts(cpmResult.projectDurationHours, DOHA_DECC_PROFILE);
     expect(bumpInShifts.length).toBe(7); // 56 / 8 = 7 shifts
 
     for (const shift of bumpInShifts) {
-      expect(shift.maxFloorLoadKgM2).toBe(2000); // Respects DECC 2,000 kg/m2 structural constraint
+      expect(shift.maxFloorLoadKgM2).toBe(2500); // Respects DECC 2.5 T/m² (2,500 kg/m²) structural constraint
       expect(shift.appliedConstraintProfileId).toBe('PROF-VENUE-DECC-001');
+      expect(shift.occupationalNoiseLimitDb).toBe(85); // Respects Qatar Labour Law 14/2004 occupational safety
 
       if (shift.isCurfewActive) {
-        expect(shift.allowedNoiseDb).toBe(55); // 55 dB DECC Night curfew
+        expect(shift.allowedNoiseDb).toBe(55); // 55 dB DECC Night environmental curfew (Law 30/2002)
       } else {
-        expect(shift.allowedNoiseDb).toBe(85); // 85 dB DECC Daytime work
+        expect(shift.allowedNoiseDb).toBe(65); // 65 dB DECC Daytime environmental standard (Law 30/2002)
       }
     }
 

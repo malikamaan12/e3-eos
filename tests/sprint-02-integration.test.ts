@@ -317,20 +317,23 @@ describe('Sprint 02 — Event Delivery Machinery & 7-Point Traceability Suite', 
 
       expect(shifts.length).toBe(6); // 48 hours / 8 = 6 shifts
 
-      // Night shift curfew check under DECC profile (55 dB night, 22:00 to 07:00 curfew)
+      // Night shift curfew check under DECC profile (55 dB night, 22:00 to 06:00 curfew)
       const nightShifts = shifts.filter((s) => s.isCurfewActive);
       expect(nightShifts.length).toBeGreaterThan(0);
       for (const ns of nightShifts) {
-        expect(ns.allowedNoiseDb).toBe(55); // Governed by profile, not hardcoded 65!
+        expect(ns.allowedNoiseDb).toBe(55); // Governed by Law No. 30 of 2002 & Cabinet Decision No. 4 of 2005
+        expect(ns.occupationalNoiseLimitDb).toBe(85); // Governed by Qatar Labour Law No. 14 of 2004 & MD 16 of 2005
         expect(ns.shiftType).toBe('overnight_heavy_lift');
-        expect(ns.maxFloorLoadKgM2).toBe(2000);
+        expect(ns.maxFloorLoadKgM2).toBe(2500); // Official DECC 2.5 T/m² (2,500 kg/m²), NOT 2,000!
       }
 
-      // Day shift check under DECC profile (85 dB day)
+      // Day shift check under DECC profile (65 dB day environmental, 85 dB occupational)
       const dayShifts = shifts.filter((s) => !s.isCurfewActive);
       for (const ds of dayShifts) {
-        expect(ds.allowedNoiseDb).toBe(85); // Governed by profile, not hardcoded 95!
+        expect(ds.allowedNoiseDb).toBe(65); // Governed by Law No. 30 of 2002 daytime standard
+        expect(ds.occupationalNoiseLimitDb).toBe(85); // Governed by Qatar Labour Law No. 14 of 2004 & MD 16 of 2005
         expect(ds.shiftType).toBe('day_rigging');
+        expect(ds.maxFloorLoadKgM2).toBe(2500);
       }
     });
   });

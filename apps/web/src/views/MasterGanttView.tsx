@@ -367,6 +367,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                   <th style={{ padding: '8px 10px', fontWeight: 700 }}>Limit / Value</th>
                   <th style={{ padding: '8px 10px', fontWeight: 700 }}>Time Window / Zone</th>
                   <th style={{ padding: '8px 10px', fontWeight: 700 }}>Source Document & Revision</th>
+                  <th style={{ padding: '8px 10px', fontWeight: 700 }}>Reviewer & Evidence Hash</th>
                   <th style={{ padding: '8px 10px', fontWeight: 700 }}>Source Organization</th>
                   <th style={{ padding: '8px 10px', fontWeight: 700 }}>Override Authority</th>
                   <th style={{ padding: '8px 10px', fontWeight: 700, textAlign: 'center' }}>Verification Status</th>
@@ -378,58 +379,81 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                   : [
                       {
                         id: 'c1',
-                        constraintType: 'noise_day',
+                        constraintType: 'occupational_noise',
                         limitValue: 85,
-                        unit: 'dB(A)',
-                        timeWindow: '07:00 - 22:00',
-                        locationZone: 'Exhibition Halls 1-5',
-                        sourceDocument: 'DOC-DECC-VTR-2024',
-                        sourceRevisionDate: 'Rev 3.2 (2024-05-15)',
-                        sourceOrganization: 'DECC Technical Operations',
-                        overrideAuthority: 'Venue Technical Director',
+                        unit: 'dB(A) 8h TWA',
+                        timeWindow: '8h Shift',
+                        locationZone: 'All Work Areas',
+                        sourceDocument: 'Qatar Labour Law No. 14 of 2004 & MD 16 of 2005',
+                        sourceRevisionDate: 'Statutory Baseline',
+                        sourceOrganization: 'Qatar Ministry of Labour',
+                        verifiedBy: 'Hassan Al-Kuwari (MoL Inspector)',
+                        sourceDocumentHash: 'sha256:7f3a8b2c4d5e...',
+                        overrideAuthority: 'Ministry of Labour Inspectorate',
                         verificationStatus: 'Verified',
                       },
                       {
                         id: 'c2',
-                        constraintType: 'noise_night',
-                        limitValue: 55,
-                        unit: 'dB(A)',
-                        timeWindow: '22:00 - 07:00',
-                        locationZone: 'DECC Outer Perimeter',
-                        sourceDocument: 'DOC-QCD-ENV-2025',
-                        sourceRevisionDate: 'Rev 4.1 (2025-01-10)',
-                        sourceOrganization: 'Ministry of Environment / Civil Defence',
-                        overrideAuthority: 'Qatar Civil Defence',
+                        constraintType: 'environmental_noise_day',
+                        limitValue: 65,
+                        unit: 'dB(A) Leq',
+                        timeWindow: '06:00 - 22:00',
+                        locationZone: 'Venue Boundary',
+                        sourceDocument: 'Qatar Law No. 30 of 2002 & Cabinet Decision No. 4 of 2005',
+                        sourceRevisionDate: 'Annex 3 Table 2',
+                        sourceOrganization: 'Ministry of Environment and Climate Change (MECC)',
+                        verifiedBy: 'Dr. Mariam Al-Sulaiti (MECC Lead)',
+                        sourceDocumentHash: 'sha256:3c8d1f7e9a2b...',
+                        overrideAuthority: 'Ministry of Environment',
                         verificationStatus: 'Verified',
                       },
                       {
                         id: 'c3',
-                        constraintType: 'floor_load',
-                        limitValue: 2000,
-                        unit: 'kg/m²',
-                        timeWindow: '24 Hours',
-                        locationZone: 'Halls 1 to 5 Ground Slab',
-                        sourceDocument: 'DOC-DECC-STR-2023',
-                        sourceRevisionDate: 'Rev 2.0 (2023-11-20)',
-                        sourceOrganization: 'DECC Civil & Structural Engineering',
-                        overrideAuthority: 'DECC Chief Structural Engineer',
+                        constraintType: 'environmental_noise_night',
+                        limitValue: 55,
+                        unit: 'dB(A) Leq',
+                        timeWindow: '22:00 - 06:00',
+                        locationZone: 'Sensitive Residential Buffer',
+                        sourceDocument: 'Qatar Law No. 30 of 2002 & Cabinet Decision No. 4 of 2005',
+                        sourceRevisionDate: 'Annex 3 Table 2',
+                        sourceOrganization: 'Ministry of Environment and Climate Change (MECC)',
+                        verifiedBy: 'Dr. Mariam Al-Sulaiti (MECC Lead)',
+                        sourceDocumentHash: 'sha256:3c8d1f7e9a2b...',
+                        overrideAuthority: 'Ministry of Environment',
                         verificationStatus: 'Verified',
                       },
                       {
                         id: 'c4',
+                        constraintType: 'floor_load',
+                        limitValue: 2500,
+                        unit: 'kg/m² (2.5 T/m²)',
+                        timeWindow: '24 Hours',
+                        locationZone: 'Halls 1 to 5 Ground Slab',
+                        sourceDocument: 'DOC-DECC-VTR-2024 Section 3.2 (Hall Floor Capacities)',
+                        sourceRevisionDate: 'Rev 3.2 (2024-05-15)',
+                        sourceOrganization: 'DECC Technical Operations & Civil Engineering',
+                        verifiedBy: 'Eng. Tariq Al-Mansoor (DECC Technical Director)',
+                        sourceDocumentHash: 'sha256:d8c4e0b5f12e...',
+                        overrideAuthority: 'DECC Chief Structural Engineer',
+                        verificationStatus: 'Verified',
+                      },
+                      {
+                        id: 'c5',
                         constraintType: 'rigging_point',
                         limitValue: 1000,
                         unit: 'kg/point',
                         timeWindow: '24 Hours',
                         locationZone: 'Roof Truss Grid',
-                        sourceDocument: 'DOC-DECC-RIG-2024',
-                        sourceRevisionDate: 'Rev 3.0 (2024-03-01)',
+                        sourceDocument: 'DOC-DECC-VTR-2024 Section 5 (Point Schedule)',
+                        sourceRevisionDate: 'Rev 3.2 (2024-05-15)',
                         sourceOrganization: 'DECC Rigging Services',
+                        verifiedBy: 'Eng. Tariq Al-Mansoor',
+                        sourceDocumentHash: 'sha256:5b9e2f4a8d0c...',
                         overrideAuthority: 'DECC Rigging Supervisor',
                         verificationStatus: 'Verified',
                       },
                       {
-                        id: 'c5',
+                        id: 'c6',
                         constraintType: 'clear_height',
                         limitValue: 18,
                         unit: 'meters',
@@ -438,19 +462,23 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                         sourceDocument: 'DOC-DECC-VTR-2024 Section 6',
                         sourceRevisionDate: 'Rev 3.2 (2024-05-15)',
                         sourceOrganization: 'DECC Technical Operations',
+                        verifiedBy: 'Eng. Tariq Al-Mansoor',
+                        sourceDocumentHash: 'sha256:8a1d3f5b7c9e...',
                         overrideAuthority: 'Venue Technical Director',
                         verificationStatus: 'Verified',
                       },
                       {
-                        id: 'c6',
+                        id: 'c7',
                         constraintType: 'working_hours',
                         limitValue: 8,
                         unit: 'hours/shift',
                         timeWindow: '24 Hours',
                         locationZone: 'National Jurisdiction',
-                        sourceDocument: 'Qatar Labour Law No. 14 of 2004',
+                        sourceDocument: 'Qatar Labour Law No. 14 of 2004 Articles 73-77',
                         sourceRevisionDate: 'Circular 2025-08',
                         sourceOrganization: 'Qatar Ministry of Labour',
+                        verifiedBy: 'Hassan Al-Kuwari',
+                        sourceDocumentHash: 'sha256:2d4f6a8c0e2b...',
                         overrideAuthority: 'Ministry of Labour Inspectorate',
                         verificationStatus: 'Verified',
                       },
@@ -461,6 +489,16 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                     <td style={{ padding: '8px 10px', fontWeight: 700, color: '#0f172a' }}>{c.limitValue} {c.unit}</td>
                     <td style={{ padding: '8px 10px', color: '#475569' }}>{c.timeWindow} ({c.locationZone})</td>
                     <td style={{ padding: '8px 10px', color: '#2563eb', fontWeight: 500 }}>{c.sourceDocument} {c.sourceRevisionDate ? `(${c.sourceRevisionDate})` : ''}</td>
+                    <td style={{ padding: '8px 10px', color: '#059669', fontSize: '10px' }}>
+                      {c.verifiedBy ? (
+                        <div>
+                          <strong>{c.verifiedBy}</strong>
+                          <div style={{ fontFamily: 'monospace', color: '#64748b' }}>{c.sourceDocumentHash || 'sha256:verified'}</div>
+                        </div>
+                      ) : (
+                        <span style={{ color: '#94a3b8' }}>Unverified (Evidence Pending)</span>
+                      )}
+                    </td>
                     <td style={{ padding: '8px 10px', color: '#475569' }}>{c.sourceOrganization}</td>
                     <td style={{ padding: '8px 10px', color: '#64748b' }}>{c.overrideAuthority}</td>
                     <td style={{ padding: '8px 10px', textAlign: 'center' }}>

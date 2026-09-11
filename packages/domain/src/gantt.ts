@@ -46,6 +46,7 @@ export interface CpmScheduleResult {
 }
 
 import {
+  isConstraintVerifiedWithEvidence,
   OperationalConstraintProfile,
   resolveOperationalConstraints,
   SchedulingPolicy,
@@ -58,9 +59,10 @@ export interface OperationalShiftSlot {
   startHour: number;
   endHour: number;
   shiftType: 'day_rigging' | 'overnight_heavy_lift' | 'rehearsal_run' | 'live_show';
-  allowedNoiseDb: number;
+  allowedNoiseDb: number;              // Environmental boundary acoustic limit (e.g. 65 dB day / 55 dB night)
+  occupationalNoiseLimitDb?: number;   // Occupational worker safety limit (85 dB(A) 8h TWA)
   isCurfewActive: boolean;
-  maxFloorLoadKgM2?: number;
+  maxFloorLoadKgM2?: number;          // Certified floor load capacity (e.g. 2500 kg/m² = 2.5 T/m² for DECC)
   appliedConstraintProfileId?: string;
   appliedConstraintSource?: string;
   verificationStatus?: VerificationStatus;
@@ -213,8 +215,9 @@ export function generateBumpInShifts(
     profile = resolveOperationalConstraints({
       overrides: {
         noise: {
-          dayMaxDb: 85,
-          nightMaxDb: 60,
+          dayMaxDb: 65,
+          nightMaxDb: 55,
+          occupationalMaxDb: 85,
           curfewStartHour: cStart,
           curfewEndHour: cEnd,
           sourceReference: 'Configured Project Baseline',
@@ -225,42 +228,64 @@ export function generateBumpInShifts(
   }
 
   // Scheduling policy enforcement:
-  // Only constraints marked as applicable and appropriately verified according to policy are enforceable.
-  const verifiedNoiseDay = profile.constraints?.find(
-    (c) => c.constraintType === 'noise_day' && c.applicability && policy.allowedVerificationStatuses.includes(c.verificationStatus)
+  // Only constraints marked as applicable and appropriately verified with real evidence according to policy are enforceable.
+  const verifiedEnvNoiseDay = profile.constraints?.find(
+    (c) =>
+      (c.constraintType === 'environmental_noise_day' || c.constraintType === 'noise_day') &&
+      c.applicability &&
+      policy.allowedVerificationStatuses.includes(c.verificationStatus) &&
+      isConstraintVerifiedWithEvidence(c)
   );
-  const verifiedNoiseNight = profile.constraints?.find(
-    (c) => c.constraintType === 'noise_night' && c.applicability && policy.allowedVerificationStatuses.includes(c.verificationStatus)
+  const verifiedEnvNoiseNight = profile.constraints?.find(
+    (c) =>
+      (c.constraintType === 'environmental_noise_night' || c.constraintType === 'noise_night') &&
+      c.applicability &&
+      policy.allowedVerificationStatuses.includes(c.verificationStatus) &&
+      isConstraintVerifiedWithEvidence(c)
+  );
+  const verifiedOccupationalNoise = profile.constraints?.find(
+    (c) =>
+      c.constraintType === 'occupational_noise' &&
+      c.applicability &&
+      policy.allowedVerificationStatuses.includes(c.verificationStatus) &&
+      isConstraintVerifiedWithEvidence(c)
   );
   const verifiedFloorLoad = profile.constraints?.find(
-    (c) => c.constraintType === 'floor_load' && c.applicability && policy.allowedVerificationStatuses.includes(c.verificationStatus)
+    (c) =>
+      c.constraintType === 'floor_load' &&
+      c.applicability &&
+      policy.allowedVerificationStatuses.includes(c.verificationStatus) &&
+      isConstraintVerifiedWithEvidence(c)
   );
 
   const hasConstraints = profile.constraints && profile.constraints.length > 0;
 
   const isProfileNoiseVerified = profile.noise.verificationStatus
     ? policy.allowedVerificationStatuses.includes(profile.noise.verificationStatus)
-    : (verifiedNoiseDay !== undefined || !hasConstraints);
+    : (verifiedEnvNoiseDay !== undefined || !hasConstraints);
 
   const isProfileStructuralVerified = profile.structural.verificationStatus
     ? policy.allowedVerificationStatuses.includes(profile.structural.verificationStatus)
     : (verifiedFloorLoad !== undefined || !hasConstraints);
 
   const dayNoiseLimit = isProfileNoiseVerified
-    ? (verifiedNoiseDay ? Number(verifiedNoiseDay.limitValue) : profile.noise.dayMaxDb)
-    : 85; // Statutory baseline fallback for unverified noise
+    ? (verifiedEnvNoiseDay ? Number(verifiedEnvNoiseDay.limitValue) : profile.noise.dayMaxDb)
+    : 65; // Statutory baseline fallback for unverified noise (Law No. 30 of 2002)
 
   const nightNoiseLimit = isProfileNoiseVerified
-    ? (verifiedNoiseNight ? Number(verifiedNoiseNight.limitValue) : profile.noise.nightMaxDb)
-    : 60; // Statutory baseline fallback for unverified noise
+    ? (verifiedEnvNoiseNight ? Number(verifiedEnvNoiseNight.limitValue) : profile.noise.nightMaxDb)
+    : 55; // Statutory baseline fallback for unverified noise (Cabinet Decision No. 4 of 2005)
+
+  const occupationalNoiseLimit = verifiedOccupationalNoise
+    ? Number(verifiedOccupationalNoise.limitValue)
+    : (profile.noise.occupationalMaxDb || 85); // Qatar Labour Law No. 14 of 2004 & MD 16 of 2005
 
   const floorLoadLimit = isProfileStructuralVerified
     ? (verifiedFloorLoad ? Number(verifiedFloorLoad.limitValue) : profile.structural.maxFloorLoadKgM2)
     : 1500; // Statutory baseline fallback for unverified floor load
 
-  const activeVerificationStatus: VerificationStatus = (isProfileNoiseVerified && isProfileStructuralVerified)
-    ? 'Verified'
-    : 'Unverified';
+  const activeVerificationStatus: VerificationStatus =
+    (isProfileNoiseVerified && isProfileStructuralVerified) ? 'Verified' : 'Unverified';
 
   const shifts: OperationalShiftSlot[] = [];
   const shiftLength = profile.workingHours.standardShiftHours || 8;
@@ -287,6 +312,7 @@ export function generateBumpInShifts(
       endHour: endH,
       shiftType,
       allowedNoiseDb: maxDb,
+      occupationalNoiseLimitDb: occupationalNoiseLimit,
       isCurfewActive: isNight,
       maxFloorLoadKgM2: floorLoadLimit,
       appliedConstraintProfileId: profile.id,

@@ -30,35 +30,44 @@ describe('Master Timeline & Operational Gantt Engine', () => {
   });
 
   it('generates site bump-in operational shifts driven by configurable Operational Constraint Profiles', () => {
-    // 1. Using DECC Doha Venue Profile (85 dB day / 55 dB night, 22:00 to 07:00 curfew)
+    // 1. Using DECC Doha Venue Profile:
+    // - Environmental noise: 65 dB Day / 55 dB Night (Qatar Law No. 30 of 2002 & Cabinet Decision No. 4 of 2005)
+    // - Occupational worker safety: 85 dB(A) 8h TWA (Qatar Labour Law No. 14 of 2004 & Ministerial Decision No. 16 of 2005)
+    // - Slab live load: 2,500 kg/m² (2.5 T/m² per DOC-DECC-VTR-2024 Section 3.2)
     const deccShifts = generateBumpInShifts(72, DOHA_DECC_PROFILE);
     expect(deccShifts.length).toBe(9); // 72 / 8 = 9 shifts
 
     const nightShifts = deccShifts.filter((s) => s.isCurfewActive);
     expect(nightShifts.length).toBeGreaterThan(0);
     for (const ns of nightShifts) {
-      expect(ns.allowedNoiseDb).toBe(55); // Governed by DECC acoustic code, NOT 65!
+      expect(ns.allowedNoiseDb).toBe(55); // Statutory environmental night limit
+      expect(ns.occupationalNoiseLimitDb).toBe(85); // Statutory occupational exposure threshold
       expect(ns.shiftType).toBe('overnight_heavy_lift');
-      expect(ns.maxFloorLoadKgM2).toBe(2000);
+      expect(ns.maxFloorLoadKgM2).toBe(2500); // Official DECC 2.5 T/m² (2,500 kg/m²), NOT 2,000!
       expect(ns.appliedConstraintProfileId).toBe('PROF-VENUE-DECC-001');
     }
 
     const dayShifts = deccShifts.filter((s) => !s.isCurfewActive);
     for (const ds of dayShifts) {
-      expect(ds.allowedNoiseDb).toBe(85); // Governed by DECC, NOT 95!
+      expect(ds.allowedNoiseDb).toBe(65); // Statutory environmental daytime boundary limit
+      expect(ds.occupationalNoiseLimitDb).toBe(85); // Statutory occupational exposure threshold
+      expect(ds.maxFloorLoadKgM2).toBe(2500); // Official DECC 2.5 T/m²
     }
 
-    // 2. Using Qatar Civil Defence Outdoor Permit Profile (90 dB day / 60 dB night)
+    // 2. Using Qatar Civil Defence Outdoor Permit Profile (Unverified until formal audit)
     const qcdShifts = generateBumpInShifts(48, QATAR_CIVIL_DEFENCE_PERMIT_PROFILE);
     expect(qcdShifts.length).toBe(6);
     expect(qcdShifts[0].appliedConstraintProfileId).toBe('PROF-PERMIT-QCD-2026');
   });
 
   it('enforces only verified constraints according to policy, rejecting unverified/draft constraints', async () => {
-    // Import UNVERIFIED_DRAFT_VENUE_PROFILE and filterEnforceableConstraints
-    const { UNVERIFIED_DRAFT_VENUE_PROFILE, filterEnforceableConstraints } = await import('./constraints.js');
+    const {
+      UNVERIFIED_DRAFT_VENUE_PROFILE,
+      filterEnforceableConstraints,
+      validateConstraintVerification,
+    } = await import('./constraints.js');
 
-    // Check all 14 mandatory fields on DECC constraints
+    // Check all 14 mandatory fields and cryptographic evidence on DECC constraints
     for (const c of DOHA_DECC_PROFILE.constraints) {
       expect(c.id).toBeDefined();
       expect(c.constraintType).toBeDefined();
@@ -75,7 +84,27 @@ describe('Master Timeline & Operational Gantt Engine', () => {
       expect(c.priority).toBeDefined();
       expect(c.overrideAuthority).toBeDefined();
       expect(['Draft', 'Unverified', 'Verified', 'Superseded']).toContain(c.verificationStatus);
+
+      // Strict evidence check: verified constraints MUST have real hash, reviewer, and date
+      if (c.verificationStatus === 'Verified') {
+        const check = validateConstraintVerification(c);
+        expect(check.isValid).toBe(true);
+        expect(check.errors).toHaveLength(0);
+        expect(c.sourceDocumentHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+        expect(c.verifiedBy).toBeTruthy();
+        expect(c.verifiedAt).toBeTruthy();
+      }
     }
+
+    // Attempting to claim Verified status without evidence must be rejected by validator
+    const invalidVerifiedConstraint = {
+      ...DOHA_DECC_PROFILE.constraints[0],
+      sourceDocumentHash: undefined,
+      verifiedBy: undefined,
+    };
+    const invalidCheck = validateConstraintVerification(invalidVerifiedConstraint);
+    expect(invalidCheck.isValid).toBe(false);
+    expect(invalidCheck.errors.length).toBeGreaterThan(0);
 
     // Filter enforceable constraints for DECC: all verified constraints returned
     const verifiedDecc = filterEnforceableConstraints(DOHA_DECC_PROFILE, { allowedVerificationStatuses: ['Verified'] });
@@ -87,13 +116,13 @@ describe('Master Timeline & Operational Gantt Engine', () => {
     expect(enforceableDraft).toHaveLength(0);
 
     // Scheduling engine fallback: When given UNVERIFIED_DRAFT_VENUE_PROFILE (unverified 99 dB / draft 5000 kg/m2),
-    // the scheduling engine REFUSES to enforce unverified limits and falls back to statutory limits (85 dB / 1500 kg/m2)
+    // the scheduling engine REFUSES to enforce unverified limits and falls back to statutory limits (65 dB / 55 dB / 1500 kg/m2)
     const fallbackShifts = generateBumpInShifts(24, UNVERIFIED_DRAFT_VENUE_PROFILE);
     expect(fallbackShifts[0].verificationStatus).toBe('Unverified');
     const dayShift = fallbackShifts.find((s) => !s.isCurfewActive);
     const nightShift = fallbackShifts.find((s) => s.isCurfewActive);
-    expect(dayShift?.allowedNoiseDb).toBe(85); // Day fallback: 85 dB, NOT 99 dB unverified!
-    expect(nightShift?.allowedNoiseDb).toBe(60); // Night fallback: 60 dB, NOT 70 dB unverified!
+    expect(dayShift?.allowedNoiseDb).toBe(65); // Day fallback: 65 dB, NOT 99 dB unverified!
+    expect(nightShift?.allowedNoiseDb).toBe(55); // Night fallback: 55 dB, NOT 70 dB unverified!
     expect(fallbackShifts[0].maxFloorLoadKgM2).toBe(1500); // Structural fallback: 1500 kg/m2, NOT 5000 kg/m2!
   });
 });
