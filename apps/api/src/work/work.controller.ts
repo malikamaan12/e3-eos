@@ -39,7 +39,6 @@ import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { DbService } from '../common/db.service.js';
-import { getProjectConstraints } from '../operations/constraints.controller.js';
 
 export interface StoredWorkPackage {
   id: string;
@@ -202,14 +201,56 @@ export class WorkController {
   }
 
   @Get('gantt')
-  getGanttSchedule(@Param('projectId') projectId: string) {
+  async getGanttSchedule(@Param('projectId') projectId: string) {
     const tasks = Array.from(ganttTaskRepository.values()).filter((t) => t.projectId === projectId);
     const schedule = calculateCpmSchedule(tasks);
     const baseProfile = resolveOperationalConstraints({
       venueName: 'DECC',
       countryCode: 'QA',
     });
-    const projectConstraints = getProjectConstraints(projectId);
+
+    let projectConstraints: any[] = [];
+    if (this.dbService) {
+      try {
+        const pool = this.dbService.getPool();
+        const res = await pool.query(
+          `SELECT c.*, 
+                  l.controlled_document_id, l.document_revision_id, l.calculated_sha256 as link_sha256,
+                  v.verifier_role, v.verified_at as record_verified_at, v.source_hash
+           FROM operational_constraints c
+           LEFT JOIN constraint_source_links l ON l.constraint_id = c.id
+           LEFT JOIN constraint_verifications v ON v.constraint_id = c.id
+           WHERE c.project_id = $1
+           ORDER BY c.created_at ASC;`,
+          [projectId]
+        );
+        projectConstraints = res.rows.map((row) => ({
+          id: row.id,
+          constraintType: row.constraint_type,
+          sourceType: row.source_type,
+          sourceOrganization: row.source_organisation,
+          sourceDocument: row.controlled_document_id || 'Pending controlled document attachment',
+          sourceRevisionDate: row.effective_from ? row.effective_from.toISOString() : 'Operational Horizon',
+          locationZone: row.location_zone,
+          effectivePeriod: 'Operational Horizon',
+          timeWindow: row.time_window,
+          limitValue: Number(row.limit_value),
+          unit: row.unit,
+          applicability: row.applicability,
+          priority: row.priority,
+          overrideAuthority: row.override_authority,
+          verificationStatus: row.verification_status,
+          controlledDocumentId: row.controlled_document_id,
+          documentRevisionId: row.document_revision_id,
+          sourceDocumentHash: row.source_hash || row.link_sha256,
+          verifiedBy: row.verifier_role,
+          verifiedAt: row.record_verified_at ? row.record_verified_at.toISOString() : undefined,
+        }));
+      } catch (err: any) {
+        console.warn('[WorkController] Error fetching project constraints from DB:', err.message);
+      }
+    }
+
     const constraintProfile = {
       ...baseProfile,
       constraints: projectConstraints,

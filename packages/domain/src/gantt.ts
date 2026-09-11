@@ -63,7 +63,9 @@ export interface OperationalShiftSlot {
   allowedNoiseDb: number;              // Environmental boundary acoustic limit (e.g. 65 dB day / 55 dB night)
   occupationalNoiseLimitDb?: number;   // Occupational worker safety limit (85 dB(A) 8h TWA)
   isCurfewActive: boolean;
-  maxFloorLoadKgM2?: number;          // Certified floor load capacity (e.g. 2500 kg/m² = 2.5 T/m² for DECC)
+  maxFloorLoadKgM2?: number | null;          // Certified floor load capacity (e.g. 2500 kg/m² = 2.5 T/m² for DECC) or null if unverified
+  floorLoadStatus: 'VERIFIED' | 'UNKNOWN_VERIFICATION_REQUIRED';
+  structuralSafetyBlocked?: boolean;         // True if safety-critical operations are blocked due to unknown load capacity
   appliedConstraintProfileId?: string;
   appliedConstraintSource?: string;
   verificationStatus?: VerificationStatus;
@@ -291,10 +293,15 @@ export function generateBumpInShifts(
     ? Number(verifiedOccupationalNoise.limitValue)
     : (profile.noise.occupationalMaxDb || 85); // Res No. 4 of 2005 Annex 3/6
 
-  // Unverified floor load limits (e.g. unverified 2500 kg/m² or draft 5000 kg/m²) MUST NOT dictate scheduling
-  const floorLoadLimit = isProfileStructuralVerified
+  // Unverified floor load limits MUST NOT dictate scheduling or substitute invented fallbacks (Item 7)
+  const isFloorLoadVerified = isProfileStructuralVerified && verifiedFloorLoad !== undefined;
+  const floorLoadLimit: number | null = isFloorLoadVerified
     ? Number(verifiedFloorLoad.limitValue)
-    : 1500; // Safe statutory fallback for unverified floor load
+    : null; // UNKNOWN / VERIFICATION REQUIRED (No invented 1500 kg/m² fallback!)
+
+  const floorLoadStatus: 'VERIFIED' | 'UNKNOWN_VERIFICATION_REQUIRED' = isFloorLoadVerified
+    ? 'VERIFIED'
+    : 'UNKNOWN_VERIFICATION_REQUIRED';
 
   const activeVerificationStatus: VerificationStatus =
     (isProfileNoiseVerified && isProfileStructuralVerified) ? 'Verified' : 'Unverified';
@@ -327,11 +334,13 @@ export function generateBumpInShifts(
       occupationalNoiseLimitDb: occupationalNoiseLimit,
       isCurfewActive: isNight,
       maxFloorLoadKgM2: floorLoadLimit,
+      floorLoadStatus,
+      structuralSafetyBlocked: !isFloorLoadVerified,
       appliedConstraintProfileId: profile.id,
       appliedConstraintSource: profile.source,
       verificationStatus: activeVerificationStatus,
-      sourceDocument: profile.noise.sourceDocument || profile.sourceReference,
-      sourceOrganization: profile.jurisdictionOrVenue,
+      sourceDocument: isFloorLoadVerified ? (verifiedFloorLoad?.sourceDocument || profile.sourceReference) : 'Verification Required',
+      sourceOrganization: isFloorLoadVerified ? (verifiedFloorLoad?.sourceOrganization || profile.source) : 'Structural Authority Unverified',
     });
   }
 

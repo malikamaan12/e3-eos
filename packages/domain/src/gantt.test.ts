@@ -115,15 +115,18 @@ describe('Master Timeline & Operational Gantt Engine', () => {
     const enforceableDraft = filterEnforceableConstraints(UNVERIFIED_DRAFT_VENUE_PROFILE, { allowedVerificationStatuses: ['Verified'] });
     expect(enforceableDraft).toHaveLength(0);
 
-    // Scheduling engine fallback: When given UNVERIFIED_DRAFT_VENUE_PROFILE (unverified 99 dB / draft 5000 kg/m2),
-    // the scheduling engine REFUSES to enforce unverified limits and falls back to statutory limits (65 dB / 55 dB / 1500 kg/m2)
+    // Scheduling engine safety policy: When given UNVERIFIED_DRAFT_VENUE_PROFILE (unverified 99 dB / draft 5000 kg/m2),
+    // the scheduling engine REFUSES to enforce unverified limits. For environmental noise it falls back to statutory limits (65 dB / 55 dB).
+    // For structural floor load, IT DOES NOT INVENT A 1500 kg/m² FALLBACK (Item 7); instead it returns UNKNOWN_VERIFICATION_REQUIRED and blocks safety-critical rigging.
     const fallbackShifts = generateBumpInShifts(24, UNVERIFIED_DRAFT_VENUE_PROFILE);
     expect(fallbackShifts[0].verificationStatus).toBe('Unverified');
     const dayShift = fallbackShifts.find((s) => !s.isCurfewActive);
     const nightShift = fallbackShifts.find((s) => s.isCurfewActive);
     expect(dayShift?.allowedNoiseDb).toBe(65); // Day fallback: 65 dB, NOT 99 dB unverified!
     expect(nightShift?.allowedNoiseDb).toBe(55); // Night fallback: 55 dB, NOT 70 dB unverified!
-    expect(fallbackShifts[0].maxFloorLoadKgM2).toBe(1500); // Structural fallback: 1500 kg/m2, NOT 5000 kg/m2!
+    expect(fallbackShifts[0].maxFloorLoadKgM2).toBeNull(); // No invented 1500 kg/m² fallback!
+    expect(fallbackShifts[0].floorLoadStatus).toBe('UNKNOWN_VERIFICATION_REQUIRED');
+    expect(fallbackShifts[0].structuralSafetyBlocked).toBe(true);
   });
 });
 

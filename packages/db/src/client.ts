@@ -20,6 +20,8 @@ import * as reportingSchema from './schema/reporting.js';
 import * as portfolioSchema from './schema/portfolio.js';
 import * as integrationsSchema from './schema/integrations.js';
 import * as infrastructureSchema from './schema/infrastructure.js';
+import * as constraintsSchema from './schema/constraints.js';
+import * as documentsSchema from './schema/documents.js';
 
 export const fullSchema = {
   ...identitySchema,
@@ -38,6 +40,8 @@ export const fullSchema = {
   ...portfolioSchema,
   ...integrationsSchema,
   ...infrastructureSchema,
+  ...constraintsSchema,
+  ...documentsSchema,
 };
 
 export type EosDatabase = NodePgDatabase<typeof fullSchema>;

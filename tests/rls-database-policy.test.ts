@@ -39,6 +39,24 @@ describe('PostgreSQL 17 Row Level Security (RLS) & Physical Tenant Isolation Aud
     }
   });
 
+  it('RLS-01b: Verifies operational constraints and controlled documents enforce ENABLE and FORCE ROW LEVEL SECURITY', () => {
+    const migration0002Path = resolve(process.cwd(), 'packages/db/migrations/0002_operational_constraints_and_documents.sql');
+    const migration0002Sql = readFileSync(migration0002Path, 'utf8');
+    const constraintTables = [
+      'operational_constraints',
+      'constraint_source_links',
+      'constraint_verifications',
+      'controlled_documents',
+      'controlled_document_revisions',
+    ];
+
+    for (const table of constraintTables) {
+      expect(migration0002Sql).toContain(`ALTER TABLE IF EXISTS ${table} ENABLE ROW LEVEL SECURITY;`);
+      expect(migration0002Sql).toContain(`ALTER TABLE IF EXISTS ${table} FORCE ROW LEVEL SECURITY;`);
+      expect(migration0002Sql).toContain(`CREATE POLICY tenant_isolation_${table} ON ${table}`);
+    }
+  });
+
   // 2. DDL Audit: Verification of Tenant Isolation Policies with Session Config
   it('RLS-02: Verifies policies use app.current_org_id safely with fail-safe null handling', () => {
     expect(migrationSql).toContain('CREATE POLICY tenant_isolation_projects ON projects');

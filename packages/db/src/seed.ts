@@ -57,6 +57,9 @@ export const CANONICAL_E3_ROLES_USERS = [
   { id: '10000000-0000-4000-8000-000000000011', name: 'Khalid Al-Thani (Commercial & Marketing)', email: 'commercial@e3.qa', role: 'marketing_commercial', isSuperAdmin: false },
   { id: '10000000-0000-4000-8000-000000000012', name: 'Omar Farooq (Site Field Supervisor)', email: 'field@e3.qa', role: 'field_supervisor', isSuperAdmin: false },
   { id: '20000000-0000-4000-8000-000000000013', name: 'Hessa Al-Nuaimi (Qatar Tourism Authority)', email: 'client@qatartourism.qa', role: 'client_user', isSuperAdmin: false, orgId: '22222222-2222-4222-8222-222222222222' },
+  { id: '10000000-0000-4000-8000-000000000014', name: 'Eng. Tariq Al-Mansoor (Technical Director)', email: 'techdirector@e3.qa', role: 'technical_director', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000015', name: 'Eng. Bilal Qasim (Structural Engineer)', email: 'structural@e3.qa', role: 'structural_engineer', isSuperAdmin: false },
+  { id: '10000000-0000-4000-8000-000000000016', name: 'Dr. Mariam Al-Sulaiti (HSE Director)', email: 'hsedirector@e3.qa', role: 'hse_director', isSuperAdmin: false },
 ];
 
 /**
@@ -242,8 +245,9 @@ export async function runSeed(): Promise<SeedDataManifest> {
       `, [orgId, u.id, u.role, (u as any).orgId ? 'client' : 'internal']);
     }
 
-    // 3. Seed Qatar Tourism Tender Project & 13 Stages
+    // 3. Seed Projects & 13 Stages
     const qatarProjectId = 'f1111111-1111-4111-8111-111111111111';
+    const defaultProjectId = '00000000-0000-4000-8000-000000000001';
     const e3OrgId = '11111111-1111-4111-8111-111111111111';
     const pmUserId = '10000000-0000-4000-8000-000000000004'; // Zaid Mansour
 
@@ -257,6 +261,17 @@ export async function runSeed(): Promise<SeedDataManifest> {
         'TENDER_RFP', $3, '22222222-2222-4222-8222-222222222222', 'developing', 'undetermined', $3, $3, NOW(), NOW()
       ) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title;
     `, [qatarProjectId, e3OrgId, pmUserId]);
+
+    await client.query(`
+      INSERT INTO projects (
+        id, organisation_id, project_code, title, description, origin_code, owner_id,
+        client_organisation_id, maturity, outcome, created_by, updated_by, created_at, updated_at
+      ) VALUES (
+        $1, $2, 'QND26', 'Qatar National Day 2026 Celebrations',
+        'Flagship celebration at Lusail Boulevard with 360-degree kinetic LED arch and cultural pavilion.',
+        'TENDER_RFP', $3, '22222222-2222-4222-8222-222222222222', 'developing', 'undetermined', $3, $3, NOW(), NOW()
+      ) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title;
+    `, [defaultProjectId, e3OrgId, pmUserId]);
 
     // Seed 13 Stages for Qatar Tourism Project
     for (const stage of STANDARD_THIRTEEN_STAGE_TEMPLATE.stages) {
@@ -302,7 +317,212 @@ export async function runSeed(): Promise<SeedDataManifest> {
       ON CONFLICT DO NOTHING;
     `, [pmUserId, qatarProjectId]);
 
-    console.log('[*] ✓ Successfully populated persistent PostgreSQL tables with 13 roles, Qatar Tourism project, stages, and work tasks.');
+    // 4. Seed Controlled Documents & Revisions
+    // Calculated byte hashes for exact text specs
+    const deccCalculatedSha256 = '9aaedaecbd3adaf9fb2547cca03643a4ac70c8697d8a695d94c71b0078798ffa';
+    const meccCalculatedSha256 = '884136ab8abb69eea2b6adf2e73a986846c97b5781c2eb19f0910fb119521827';
+    const avCalculatedSha256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+
+    for (const pid of [qatarProjectId, defaultProjectId]) {
+      const pCode = pid === qatarProjectId ? 'PRJ-2026-QATAR-01' : 'QND26';
+      const suffix = pid === qatarProjectId ? '' : '-def';
+
+      await client.query(`
+        INSERT INTO controlled_documents (
+          id, organisation_id, project_id, project_code, document_number, title,
+          discipline, document_type, confidentiality_level, current_revision_code, revisions_count,
+          created_by, created_at, updated_at
+        ) VALUES 
+          (
+            $1, $3, $4, $5, 'DOC-DECC-FP-2024',
+            'Doha Exhibition and Convention Center Technical Floorplan & Capacity Guide',
+            'staging', 'drawing', 'internal', 'Rev 2024.1', 1,
+            'Eng. Tariq Al-Mansoor', NOW(), NOW()
+          ),
+          (
+            $2, $3, $4, $5, 'DOC-MECC-ENV-2005',
+            'Qatar Environmental Protection Law No. 30 of 2002 & Executive Regulation Resolution No. 4 of 2005',
+            'health_safety', 'specification', 'internal', 'rev-mecc-env-01', 1,
+            'Dr. Mariam Al-Sulaiti', NOW(), NOW()
+          ),
+          (
+            'doc-001' || $6, $3, $4, $5, 'E3-QND26-AV-DWG-0001',
+            'Main Ceremony 360-Degree Kinetic LED Arch — General Elevation',
+            'audio_visual', 'drawing', 'client_confidential', 'Rev 01', 2,
+            'Karim Haddad (Technical Director)', NOW(), NOW()
+          ),
+          (
+            'doc-002' || $6, $3, $4, $5, 'E3-QND26-STG-DWG-0002',
+            'Lusail Boulevard Royal Pavilion Structural Load Calculations & Footings',
+            'staging', 'drawing', 'internal', 'Rev A', 1,
+            'Civil Defence Certified Structural Engineer', NOW(), NOW()
+          ),
+          (
+            'doc-003' || $6, $3, $4, $5, 'E3-QND26-HSE-SPC-0003',
+            'Fire Safety & Flame-Retardant Material Specifications (Law No. 13 Compliance)',
+            'health_safety', 'specification', 'public', 'Rev 02', 3,
+            'HSE & Civil Defence Lead', NOW(), NOW()
+          )
+        ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title;
+      `, [
+        `doc-decc-fp-01${suffix}`,
+        `doc-mecc-env-01${suffix}`,
+        e3OrgId,
+        pid,
+        pCode,
+        suffix,
+      ]);
+
+      await client.query(`
+        INSERT INTO controlled_document_revisions (
+          id, organisation_id, document_id, revision, storage_object_path,
+          original_filename, mime_type, size, calculated_sha256, quarantine_scan_state,
+          approval_state, uploaded_by, uploaded_at
+        ) VALUES
+          (
+            $1, $3, $4, 'Rev 2024.1',
+            'documents/' || $5 || '/DOC-DECC-FP-2024.pdf',
+            'DOC-DECC-FP-2024.pdf', 'application/pdf', 152840,
+            $6, 'passed', 'approved', 'Eng. Tariq Al-Mansoor', NOW()
+          ),
+          (
+            $2, $3, $7, 'rev-mecc-env-01',
+            'documents/' || $5 || '/DOC-MECC-ENV-2005.pdf',
+            'DOC-MECC-ENV-2005.pdf', 'application/pdf', 241900,
+            $8, 'passed', 'approved', 'Dr. Mariam Al-Sulaiti', NOW()
+          ),
+          (
+            'rev-001' || $9, $3, 'doc-001' || $9, 'Rev 01',
+            'drawings/E3-QND26-AV-DWG-0001-Rev01.pdf',
+            'E3-QND26-AV-DWG-0001-Rev01.pdf', 'application/pdf', 14250000,
+            $10, 'passed', 'approved', 'Karim Haddad', NOW()
+          )
+        ON CONFLICT (id) DO UPDATE SET calculated_sha256 = EXCLUDED.calculated_sha256;
+      `, [
+        `rev-decc-fp-01${suffix}`,
+        `rev-mecc-env-01${suffix}`,
+        e3OrgId,
+        `doc-decc-fp-01${suffix}`,
+        pCode,
+        deccCalculatedSha256,
+        `doc-mecc-env-01${suffix}`,
+        meccCalculatedSha256,
+        suffix,
+        avCalculatedSha256,
+      ]);
+    }
+
+    // 5. Seed Production Operational Constraints strictly as UNVERIFIED (per Rule 6)
+    const seedConstraints = [
+      {
+        id: 'CST-QA-ENV-NOISE-DAY-001',
+        type: 'environmental_boundary_noise',
+        srcType: 'statutory',
+        srcOrg: 'Ministry of Environment and Climate Change (MECC)',
+        zone: 'Commercial / Exhibition District Boundary',
+        timeWindow: '04:00 - 22:00',
+        limit: 65,
+        unit: 'dB(A) Leq (10-min average at building boundary)',
+        authority: 'MECC Environmental Inspectorate',
+      },
+      {
+        id: 'CST-QA-ENV-NOISE-NIGHT-002',
+        type: 'environmental_boundary_noise',
+        srcType: 'statutory',
+        srcOrg: 'Ministry of Environment and Climate Change (MECC)',
+        zone: 'Commercial / Exhibition District Boundary',
+        timeWindow: '22:00 - 04:00',
+        limit: 55,
+        unit: 'dB(A) Leq (10-min average at building boundary)',
+        authority: 'MECC Environmental Inspectorate',
+      },
+      {
+        id: 'CST-QA-NOISE-OCC-003',
+        type: 'occupational_noise_exposure',
+        srcType: 'statutory',
+        srcOrg: 'Ministry of Environment and Climate Change (MECC)',
+        zone: 'All On-Site Worker Workstations & Assembly Zones',
+        timeWindow: 'Continuous 8-Hour Work Shift',
+        limit: 85,
+        unit: 'dB(A) 8h continuous exposure',
+        authority: 'Ministry of Labour & MECC Joint Inspectorate',
+      },
+      {
+        id: 'CST-DECC-FLOOR-LOAD-004',
+        type: 'floor_load',
+        srcType: 'venue',
+        srcOrg: 'Doha Exhibition and Convention Center (DECC)',
+        zone: 'Exhibition Halls 1 to 5 Ground Slab',
+        timeWindow: '24 Hours',
+        limit: 2500,
+        unit: 'kg/m²',
+        authority: 'DECC Civil & Structural Engineering Bureau',
+      },
+      {
+        id: 'CST-DECC-HEIGHT-005',
+        type: 'clear_height',
+        srcType: 'venue',
+        srcOrg: 'Doha Exhibition and Convention Center (DECC)',
+        zone: 'Exhibition Halls 1 to 5 Clear Span',
+        timeWindow: '24 Hours',
+        limit: 18,
+        unit: 'meters',
+        authority: 'DECC Technical Operations',
+      },
+      {
+        id: 'CST-DECC-RIG-POINT-006',
+        type: 'rigging_point',
+        srcType: 'venue',
+        srcOrg: 'DECC Rigging & Technical Services',
+        zone: 'Halls 1-5 Roof Truss Grid',
+        timeWindow: '24 Hours',
+        limit: 1000,
+        unit: 'kg / point',
+        authority: 'DECC Rigging Supervisor',
+      },
+      {
+        id: 'CST-QA-LABOUR-HOURS-007',
+        type: 'working_hours',
+        srcType: 'statutory',
+        srcOrg: 'Qatar Ministry of Labour',
+        zone: 'All On-Site Workforces',
+        timeWindow: '24 Hours',
+        limit: 8,
+        unit: 'hours / shift',
+        authority: 'Qatar Ministry of Labour Inspectorate',
+      },
+      {
+        id: 'CST-DECC-LOGISTICS-008',
+        type: 'logistics_dock',
+        srcType: 'venue',
+        srcOrg: 'DECC Logistics & Security',
+        zone: 'Marshaling Yards 1-4 & Loading Bays',
+        timeWindow: '24 Hours',
+        limit: 16,
+        unit: 'trailers simultaneous',
+        authority: 'DECC Traffic & Loading Dock Manager',
+      },
+    ];
+
+    for (const pid of [qatarProjectId, defaultProjectId]) {
+      for (const sc of seedConstraints) {
+        const cstId = pid === qatarProjectId ? sc.id : `${sc.id}-def`;
+        await client.query(`
+          INSERT INTO operational_constraints (
+            id, organisation_id, project_id, constraint_type, source_type, source_organisation,
+            location_zone, time_window, limit_value, unit, applicability, priority,
+            override_authority, verification_status, created_at, updated_at, version
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true, 'medium', $11, 'Unverified', NOW(), NOW(), 1
+          ) ON CONFLICT (id) DO UPDATE SET verification_status = 'Unverified';
+        `, [
+          cstId, e3OrgId, pid, sc.type, sc.srcType, sc.srcOrg,
+          sc.zone, sc.timeWindow, sc.limit, sc.unit, sc.authority
+        ]);
+      }
+    }
+
+    console.log('[*] ✓ Successfully populated persistent PostgreSQL tables with 16 roles, Qatar Tourism project, stages, documents, and unverified constraints.');
     client.release();
   } catch (err: any) {
     console.warn('[*] Database persistent seed notice:', err.message);

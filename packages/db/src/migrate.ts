@@ -30,16 +30,40 @@ async function runMigrations() {
       '0000_flashy_mastermind.sql',
       '0001_dear_genesis.sql',
       '0001_enable_row_level_security.sql',
+      '0002_operational_constraints_and_documents.sql',
     ];
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS _migrations (
+        name TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
 
     for (let i = 0; i < migrationFiles.length; i++) {
       const file = migrationFiles[i];
       const filePath = resolve(migrationsDir, file);
       if (existsSync(filePath)) {
+        const checkRes = await client.query('SELECT 1 FROM _migrations WHERE name = $1', [file]);
+        if (checkRes.rows.length > 0) {
+          console.log(`[${i + 1}/${migrationFiles.length}] ⏩ ${file} already applied, skipping.`);
+          continue;
+        }
+
         console.log(`[${i + 1}/${migrationFiles.length}] Applying Migration from: ${file}`);
         const sql = readFileSync(filePath, 'utf8');
-        await client.query(sql);
-        console.log(`[${i + 1}/${migrationFiles.length}] ✓ ${file} applied successfully.`);
+        try {
+          await client.query(sql);
+          await client.query('INSERT INTO _migrations (name) VALUES ($1) ON CONFLICT DO NOTHING', [file]);
+          console.log(`[${i + 1}/${migrationFiles.length}] ✓ ${file} applied successfully.`);
+        } catch (mErr: any) {
+          if (mErr.code === '42P07' || mErr.message?.includes('already exists')) {
+            console.log(`[${i + 1}/${migrationFiles.length}] ⏩ ${file} objects already exist, marking applied.`);
+            await client.query('INSERT INTO _migrations (name) VALUES ($1) ON CONFLICT DO NOTHING', [file]);
+          } else {
+            throw mErr;
+          }
+        }
       }
     }
 

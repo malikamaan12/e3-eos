@@ -207,6 +207,8 @@ export interface SchedulingPolicy {
   allowedVerificationStatuses: VerificationStatus[];
 }
 
+export const CONSTRAINTS_VERIFY_PERMISSION = 'constraints.verify';
+
 export const AUTHORIZED_VERIFIER_ROLES = [
   'technical_director',
   'hse_director',
@@ -214,6 +216,12 @@ export const AUTHORIZED_VERIFIER_ROLES = [
   'project_director',
   'super_admin',
 ];
+
+export function hasConstraintVerifyPermission(role?: string | null, isSuperAdmin: boolean = false): boolean {
+  if (isSuperAdmin) return true;
+  if (!role) return false;
+  return AUTHORIZED_VERIFIER_ROLES.includes(role);
+}
 
 /**
  * Creates a new constraint item in Draft (or Unverified) status.

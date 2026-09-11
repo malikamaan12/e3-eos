@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   createConstraint,
   attachSourceToConstraint,
@@ -228,7 +228,9 @@ describe('Operational Constraint Verification Engine & Provenance Integrity', ()
 
     const shifts = generateBumpInShifts(24, UNVERIFIED_DRAFT_VENUE_PROFILE);
     expect(shifts[0].verificationStatus).toBe('Unverified');
-    expect(shifts[0].maxFloorLoadKgM2).toBe(1500); // Does NOT enforce unverified 5000 kg/m²! Falls back to 1500!
+    expect(shifts[0].maxFloorLoadKgM2).toBeNull(); // Does NOT enforce unverified 5000 kg/m² and does NOT invent 1500!
+    expect(shifts[0].floorLoadStatus).toBe('UNKNOWN_VERIFICATION_REQUIRED');
+    expect(shifts[0].structuralSafetyBlocked).toBe(true);
     const dayShift = shifts.find((s) => !s.isCurfewActive);
     const nightShift = shifts.find((s) => s.isCurfewActive);
     expect(dayShift?.allowedNoiseDb).toBe(65); // Does NOT enforce unverified 99 dB! Falls back to statutory 65!

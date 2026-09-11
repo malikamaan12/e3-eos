@@ -625,32 +625,32 @@ describe('Sprint 02: Operational Constraints Verification & Provenance API', () 
     const controller = new ConstraintsController();
     const projectId = '00000000-0000-4000-8000-000000000001';
 
-    // 1. List initial constraints
-    const listRes = controller.listConstraints(projectId);
+    // 1. List initial constraints (all initial seeds are strictly Unverified per Rule 6)
+    const listRes = await controller.listConstraints(projectId);
     expect(listRes.data.length).toBeGreaterThan(0);
     expect(listRes.meta.total).toBe(listRes.data.length);
-    expect(listRes.meta.verifiedCount).toBeGreaterThan(0); // Verified against real controlled docs
+    expect(listRes.meta.unverifiedCount).toBeGreaterThan(0);
 
     // 2. Direct assignment of 'Verified' status is rejected with 400 Bad Request
-    expect(() =>
+    await expect(
       controller.createConstraint(projectId, {
         constraintType: 'venue_operational_noise',
         limitValue: 85,
         verificationStatus: 'Verified', // PROHIBITED!
       })
-    ).toThrowError(HttpException);
+    ).rejects.toThrowError(HttpException);
 
     // 3. Manual spoofing of sourceDocumentHash or verifiedBy is rejected
-    expect(() =>
+    await expect(
       controller.createConstraint(projectId, {
         constraintType: 'venue_operational_noise',
         limitValue: 85,
         sourceDocumentHash: 'sha256:fakehash1234567890', // PROHIBITED!
       })
-    ).toThrowError(HttpException);
+    ).rejects.toThrowError(HttpException);
 
     // 4. Create new constraint in Draft
-    const createRes = controller.createConstraint(projectId, {
+    const createRes = await controller.createConstraint(projectId, {
       constraintType: 'venue_operational_noise',
       limitValue: 90,
       unit: 'dB(A)',
@@ -660,30 +660,48 @@ describe('Sprint 02: Operational Constraints Verification & Provenance API', () 
     expect(createRes.data.verificationStatus).toBe('Draft');
     const newConstraintId = createRes.data.id;
 
-    // 5. Attach controlled source document (DOC-DECC-FP-2024 / doc-decc-fp-01)
-    const attachRes = controller.attachSource(projectId, newConstraintId, {
-      controlledDocumentId: 'doc-decc-fp-01',
-      documentRevisionId: 'rev-decc-fp-01',
+    // 5. Attach controlled source document (DOC-DECC-FP-2024 / doc-decc-fp-01-def)
+    const attachRes = await controller.attachSource(projectId, newConstraintId, {
+      controlledDocumentId: 'doc-decc-fp-01-def',
+      documentRevisionId: 'rev-decc-fp-01-def',
       pageClauseSection: 'Section 4.1',
     });
     expect(attachRes.data.verificationStatus).toBe('Source Attached');
-    expect(attachRes.data.controlledDocumentId).toBe('doc-decc-fp-01');
-    expect(attachRes.data.sourceDocumentHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(attachRes.data.controlledDocumentId).toBe('doc-decc-fp-01-def');
+    expect(attachRes.data.sourceDocumentHash).toMatch(/^[a-f0-9]{64}$/);
 
     // 6. Submit for review
-    const reviewRes = controller.submitForReview(projectId, newConstraintId);
+    const reviewRes = await controller.submitForReview(projectId, newConstraintId);
     expect(reviewRes.data.verificationStatus).toBe('Under Review');
 
-    // 7. Verify with unauthorized role -> FORBIDDEN (403)
+    // 7. Verify without authenticated session -> UNAUTHENTICATED (401)
+    const mockReqUnauthenticated = {} as any;
+    await expect(
+      controller.verifyConstraint(
+        projectId,
+        newConstraintId,
+        {
+          pageClauseSection: 'Section 4.1',
+          extractedRuleValue: '90 dB(A)',
+          applicabilityStatement: 'Main Stage Zone',
+          reviewerComment: 'Self-approval',
+        },
+        mockReqUnauthenticated
+      )
+    ).rejects.toThrowError(HttpException);
+
+    // 7b. Verify with unauthorized role -> FORBIDDEN (403)
     const mockReqUnauthorized = {
-      headers: {
-        'x-user-name': 'Guest User',
-        'x-user-role': 'client_representative', // Unauthorized!
+      sessionUser: {
+        userId: '10000000-0000-4000-8000-000000000008',
+        name: 'Guest User',
+        role: 'client_representative', // Unauthorized!
+        isSuperAdmin: false,
       },
     } as any;
 
     await expect(
-      controller.verifyConstraintAction(
+      controller.verifyConstraint(
         projectId,
         newConstraintId,
         {
@@ -698,14 +716,15 @@ describe('Sprint 02: Operational Constraints Verification & Provenance API', () 
 
     // 8. Verify with authorized role (technical_director) -> OK (200)
     const mockReqAuthorized = {
-      headers: {
-        'x-user-name': 'Eng. Tariq Al-Mansoor',
-        'x-user-role': 'technical_director', // Authorized!
+      sessionUser: {
+        userId: '10000000-0000-4000-8000-000000000005',
+        name: 'Karim Haddad',
+        role: 'technical_director', // Authorized!
+        isSuperAdmin: false,
       },
-      userId: 'usr-tariq-director',
     } as any;
 
-    const verifyRes = await controller.verifyConstraintAction(
+    const verifyRes = await controller.verifyConstraint(
       projectId,
       newConstraintId,
       {
@@ -718,12 +737,12 @@ describe('Sprint 02: Operational Constraints Verification & Provenance API', () 
     );
 
     expect(verifyRes.data.verificationStatus).toBe('Verified');
-    expect(verifyRes.data.verifiedBy).toBe('Eng. Tariq Al-Mansoor (technical_director)');
+    expect(verifyRes.data.verifiedBy).toBe('Karim Haddad');
     expect(verifyRes.audit.action).toBe('CONSTRAINT_VERIFIED');
     expect(verifyRes.audit.entryHash).toHaveLength(64);
 
     // 9. Supersede
-    const supRes = controller.supersede(projectId, newConstraintId, {
+    const supRes = await controller.supersede(projectId, newConstraintId, {
       reason: 'Superseded by festival sound licence',
     });
     expect(supRes.data.verificationStatus).toBe('Superseded');
