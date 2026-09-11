@@ -237,14 +237,6 @@ export class DocumentsController {
     };
   }
 
-  @Get('transmittals')
-  listTransmittals(@Param('projectId') projectId: string) {
-    const list = Array.from(transmittalRepository.values()).filter((t) => t.projectId === projectId);
-    return {
-      data: list,
-      meta: { total: list.length },
-    };
-  }
 
   @Post('transmittals')
   @UseGuards(IdempotencyGuard)
@@ -296,6 +288,68 @@ export class DocumentsController {
     return {
       data: tr,
       message: `Controlled transmittal ${trNumber} issued successfully.`,
+    };
+  }
+
+  @Get('transmittals')
+  listTransmittals(
+    @Param('projectId') projectId: string,
+    @Req() req: Request
+  ) {
+    const isClient = (req.headers['x-user-role'] as string) === 'client';
+    const list = Array.from(transmittalRepository.values()).filter((t) => t.projectId === projectId);
+
+    const safeList = isClient
+      ? list.map((t) => redactDocumentForClientDistribution(t))
+      : list;
+
+    return {
+      data: safeList,
+    };
+  }
+
+  @Get('transmittals/:transmittalId')
+  getTransmittal(
+    @Param('projectId') projectId: string,
+    @Param('transmittalId') transmittalId: string,
+    @Req() req: Request
+  ) {
+    const tr = transmittalRepository.get(transmittalId);
+    if (!tr || tr.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Transmittal pack not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const isClient = (req.headers['x-user-role'] as string) === 'client' || tr.isClientFacing;
+    const safeData = isClient ? redactDocumentForClientDistribution(tr) : tr;
+
+    return {
+      data: safeData,
+    };
+  }
+
+  @Get('transmittals/:transmittalId/export')
+  exportTransmittalPack(
+    @Param('projectId') projectId: string,
+    @Param('transmittalId') transmittalId: string
+  ) {
+    const tr = transmittalRepository.get(transmittalId);
+    if (!tr || tr.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Transmittal pack not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    // Always enforce server-side redaction for external distribution / client export
+    const redactedExport = redactDocumentForClientDistribution({
+      ...tr,
+      exportedAt: new Date().toISOString(),
+      disclaimer: 'Official E3 EOS Controlled Transmittal Package. Confidential.',
+    });
+
+    return {
+      data: redactedExport,
+      meta: {
+        serverRedacted: true,
+        zeroCommercialLeakageGuaranteed: true,
+      },
     };
   }
 }

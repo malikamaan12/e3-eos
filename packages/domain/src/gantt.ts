@@ -45,6 +45,8 @@ export interface CpmScheduleResult {
   criticalTasksCount: number;
 }
 
+import { OperationalConstraintProfile, resolveOperationalConstraints } from './constraints.js';
+
 export interface OperationalShiftSlot {
   shiftNumber: number;
   label: string;
@@ -53,6 +55,9 @@ export interface OperationalShiftSlot {
   shiftType: 'day_rigging' | 'overnight_heavy_lift' | 'rehearsal_run' | 'live_show';
   allowedNoiseDb: number;
   isCurfewActive: boolean;
+  maxFloorLoadKgM2?: number;
+  appliedConstraintProfileId?: string;
+  appliedConstraintSource?: string;
 }
 
 /**
@@ -180,25 +185,52 @@ export function calculateCpmSchedule(tasks: GanttTaskInput[]): CpmScheduleResult
 }
 
 /**
- * Builds 24/7 operational shift breakdown for intense venue bump-in windows.
+ * Builds operational shift breakdown for venue bump-in windows,
+ * governed by configurable Operational Constraint Profiles (Venue, Municipality, Permit, Country, Client).
  */
 export function generateBumpInShifts(
   totalWindowHours: number = 72,
-  curfewStartHour: number = 23,
-  curfewEndHour: number = 6
+  constraintProfileOrCurfewStart?: OperationalConstraintProfile | number,
+  curfewEndHour?: number
 ): OperationalShiftSlot[] {
+  let profile: OperationalConstraintProfile;
+
+  if (typeof constraintProfileOrCurfewStart === 'object' && constraintProfileOrCurfewStart !== null) {
+    profile = constraintProfileOrCurfewStart;
+  } else {
+    // Compatibility if called with numeric (totalWindowHours, curfewStart, curfewEnd)
+    const cStart = typeof constraintProfileOrCurfewStart === 'number' ? constraintProfileOrCurfewStart : 23;
+    const cEnd = typeof curfewEndHour === 'number' ? curfewEndHour : 6;
+    profile = resolveOperationalConstraints({
+      overrides: {
+        noise: {
+          dayMaxDb: 85,
+          nightMaxDb: 60,
+          curfewStartHour: cStart,
+          curfewEndHour: cEnd,
+          sourceReference: 'Configured Project Baseline',
+        },
+      },
+    });
+  }
+
   const shifts: OperationalShiftSlot[] = [];
-  const shiftLength = 8; // 3 shifts per 24 hours
+  const shiftLength = profile.workingHours.standardShiftHours || 8;
   const totalShifts = Math.ceil(totalWindowHours / shiftLength);
+  const curfewStart = profile.noise.curfewStartHour;
+  const curfewEnd = profile.noise.curfewEndHour;
 
   for (let i = 0; i < totalShifts; i++) {
     const startH = i * shiftLength;
     const endH = startH + shiftLength;
     const dayHour = startH % 24;
 
-    const isNight = dayHour >= curfewStartHour || dayHour < curfewEndHour;
+    const isNight = curfewStart > curfewEnd
+      ? (dayHour >= curfewStart || dayHour < curfewEnd)
+      : (dayHour >= curfewStart && dayHour < curfewEnd);
+
     const shiftType = isNight ? 'overnight_heavy_lift' : 'day_rigging';
-    const maxDb = isNight ? 65 : 95; // Noise curfew protection
+    const maxDb = isNight ? profile.noise.nightMaxDb : profile.noise.dayMaxDb;
 
     shifts.push({
       shiftNumber: i + 1,
@@ -208,6 +240,9 @@ export function generateBumpInShifts(
       shiftType,
       allowedNoiseDb: maxDb,
       isCurfewActive: isNight,
+      maxFloorLoadKgM2: profile.structural.maxFloorLoadKgM2,
+      appliedConstraintProfileId: profile.id,
+      appliedConstraintSource: profile.source,
     });
   }
 

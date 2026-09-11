@@ -85,17 +85,44 @@ export interface ControlledTransmittalPack {
   acknowledgementStatus: 'pending' | 'acknowledged' | 'rejected';
 }
 
-/**
- * Generates an ISO-standard E3 engineering document identifier.
- * Format: E3-[PROJECT]-[DISCIPLINE]-[TYPE]-[SEQUENCE]
- * Example: E3-QND26-AV-DWG-0001
- */
-export function generateDocumentNumber(params: {
+export type DocumentNumberingProfileType =
+  | 'e3_standard'
+  | 'iso_19650'
+  | 'client_defined'
+  | 'authority_defined'
+  | 'custom';
+
+export interface DocumentNumberingOptions {
+  profile?: DocumentNumberingProfileType;
   projectCode: string;
-  discipline: EngineeringDiscipline;
+  discipline?: EngineeringDiscipline;
   documentType: ControlledDocumentType;
   sequence: number;
-}): string {
+  // ISO 19650 specific fields
+  originator?: string; // e.g. "E3QA"
+  volumeOrSystem?: string; // e.g. "01" or "ZZ"
+  levelOrLocation?: string; // e.g. "00" or "ZZ"
+  role?: string; // e.g. "E", "S", "M"
+  // Client / Authority / Custom fields
+  clientCode?: string; // e.g. "QT"
+  authorityCode?: string; // e.g. "QCD" or "MME"
+  customTemplate?: string; // e.g. "{CLIENT}-{PROJECT}-{TYPE}-{SEQUENCE}"
+}
+
+/**
+ * Generates an engineering document identifier according to the selected numbering profile.
+ * Profiles:
+ * - E3 Standard: E3-[PROJECT]-[DISCIPLINE]-[TYPE]-[SEQUENCE]
+ * - ISO 19650: [PROJECT]-[ORIGINATOR]-[VOLUME]-[LEVEL]-[TYPE]-[ROLE]-[NUMBER]
+ * - Client-Defined: [CLIENT]-[PROJECT]-[TYPE]-[SEQUENCE]
+ * - Authority-Defined: [AUTHORITY]-[PROJECT]-[DISCIPLINE]-[SEQUENCE]
+ * - Custom: Evaluated against provided template tokens
+ *
+ * System IDs (UUID) remain immutable and separate from document numbers.
+ */
+export function generateDocumentNumber(params: DocumentNumberingOptions): string {
+  const profile = params.profile || 'e3_standard';
+
   const disciplineCodes: Record<EngineeringDiscipline, string> = {
     staging: 'STG',
     lighting: 'LGT',
@@ -117,12 +144,48 @@ export function generateDocumentNumber(params: {
     transmittal: 'TR',
   };
 
-  const dCode = disciplineCodes[params.discipline] || 'GEN';
+  const dCode = params.discipline ? (disciplineCodes[params.discipline] || 'GEN') : 'GEN';
   const tCode = typeCodes[params.documentType] || 'DOC';
   const seqStr = String(params.sequence).padStart(4, '0');
   const proj = params.projectCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-  return `E3-${proj}-${dCode}-${tCode}-${seqStr}`;
+  switch (profile) {
+    case 'iso_19650': {
+      const originator = (params.originator || 'E3QA').toUpperCase();
+      const volume = (params.volumeOrSystem || 'ZZ').toUpperCase();
+      const level = (params.levelOrLocation || '00').toUpperCase();
+      const role = (params.role || 'E').toUpperCase();
+      return `${proj}-${originator}-${volume}-${level}-${tCode}-${role}-${seqStr}`;
+    }
+
+    case 'client_defined': {
+      const client = (params.clientCode || 'CLI').toUpperCase();
+      return `${client}-${proj}-${tCode}-${seqStr}`;
+    }
+
+    case 'authority_defined': {
+      const auth = (params.authorityCode || 'QCD').toUpperCase();
+      return `${auth}-${proj}-${dCode}-${seqStr}`;
+    }
+
+    case 'custom': {
+      if (!params.customTemplate) {
+        return `E3-${proj}-${dCode}-${tCode}-${seqStr}`;
+      }
+      return params.customTemplate
+        .replace(/{PROJECT}/g, proj)
+        .replace(/{DISCIPLINE}/g, dCode)
+        .replace(/{TYPE}/g, tCode)
+        .replace(/{SEQUENCE}/g, seqStr)
+        .replace(/{CLIENT}/g, (params.clientCode || 'CLI').toUpperCase())
+        .replace(/{AUTHORITY}/g, (params.authorityCode || 'QCD').toUpperCase())
+        .replace(/{ORIGINATOR}/g, (params.originator || 'E3QA').toUpperCase());
+    }
+
+    case 'e3_standard':
+    default:
+      return `E3-${proj}-${dCode}-${tCode}-${seqStr}`;
+  }
 }
 
 /**
@@ -134,36 +197,78 @@ export function verifyDocumentIntegrity(contentBuffer: Buffer | string, expected
 }
 
 /**
- * Enforces Zero Profit Margin & Supplier Cost Leakage on client transmittals.
- * Strips internal unit costs, margins, and proprietary supplier references.
+ * Enforces Zero Profit Margin & Supplier Cost Leakage on client transmittals and exports.
+ * Deeply scrubs internal buy rates, supplier identities, internal margins, and internal commercial notes.
  */
-export function redactDocumentForClientDistribution<T extends Record<string, any>>(data: T): Partial<T> {
-  const redacted = { ...data };
-  const sensitiveKeys = [
-    'unitCost',
-    'unit_cost',
-    'totalCost',
-    'total_cost',
-    'supplierMargin',
-    'marginPercent',
-    'margin_percent',
-    'internalMargin',
-    'internal_margin',
-    'markupPercent',
-    'internalRate',
-    'buyRate',
-    'buy_rate',
-    'subcontractorCost',
-    'subcontractor_cost',
-    'supplierName',
-    'contractorQuoteRef',
-  ];
+export function redactDocumentForClientDistribution<T>(data: T): T {
+  if (data === null || data === undefined) return data;
 
-  for (const key of sensitiveKeys) {
-    if (key in redacted) {
-      delete (redacted as any)[key];
+  if (Array.isArray(data)) {
+    return data.map((item) => redactDocumentForClientDistribution(item)) as unknown as T;
+  }
+
+  if (typeof data !== 'object') {
+    return data;
+  }
+
+  const sensitiveKeys = new Set([
+    'unitcost',
+    'unit_cost',
+    'totalcost',
+    'total_cost',
+    'costimpact',
+    'cost_impact',
+    'suppliermargin',
+    'supplier_margin',
+    'marginpercent',
+    'margin_percent',
+    'internalmargin',
+    'internal_margin',
+    'internalmarginpercent',
+    'internal_margin_percent',
+    'markuppercent',
+    'markup_percent',
+    'internalrate',
+    'internal_rate',
+    'buyrate',
+    'buy_rate',
+    'unitbuyrate',
+    'unit_buy_rate',
+    'subcontractorcost',
+    'subcontractor_cost',
+    'suppliername',
+    'supplier_name',
+    'supplierid',
+    'supplier_id',
+    'subcontractorname',
+    'subcontractor_name',
+    'contractorquoteref',
+    'contractor_quote_ref',
+    'internalnotes',
+    'internal_notes',
+    'commercialnotes',
+    'commercial_notes',
+    'internalremarks',
+    'internal_remarks',
+    'grossprofit',
+    'gross_profit',
+  ]);
+
+  const result: Record<string, any> = {};
+
+  for (const [key, value] of Object.entries(data as Record<string, any>)) {
+    const normalizedKey = key.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    if (sensitiveKeys.has(normalizedKey) || sensitiveKeys.has(key.toLowerCase())) {
+      // Omit sensitive commercial fields completely from client output
+      continue;
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      result[key] = redactDocumentForClientDistribution(value);
+    } else {
+      result[key] = value;
     }
   }
 
-  return redacted;
+  return result as T;
 }

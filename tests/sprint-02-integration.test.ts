@@ -14,6 +14,7 @@ import {
   Money,
   VariationLedger,
   VariationData,
+  DOHA_DECC_PROFILE,
 } from '@e3-eos/domain';
 
 describe('Sprint 02 — Event Delivery Machinery & 7-Point Traceability Suite', () => {
@@ -206,15 +207,63 @@ describe('Sprint 02 — Event Delivery Machinery & 7-Point Traceability Suite', 
   });
 
   describe('3. Controlled Documents & Client Redaction Invariant', () => {
-    it('generates standard ISO-compliant document numbers', () => {
-      const docNum = generateDocumentNumber({
+    it('generates document numbers across configurable profiles (E3 Standard, ISO 19650, Client, Authority, Custom)', () => {
+      // 1. E3 Standard Document Numbering
+      const e3Std = generateDocumentNumber({
+        profile: 'e3_standard',
         projectCode: 'QND26',
         discipline: 'audio_visual',
         documentType: 'drawing',
         sequence: 1,
       });
+      expect(e3Std).toBe('E3-QND26-AV-DWG-0001');
 
-      expect(docNum).toBe('E3-QND26-AV-DWG-0001');
+      // 2. ISO 19650-style
+      const isoDoc = generateDocumentNumber({
+        profile: 'iso_19650',
+        projectCode: 'QND26',
+        discipline: 'audio_visual',
+        documentType: 'drawing',
+        originator: 'E3QA',
+        volumeOrSystem: '01',
+        levelOrLocation: '00',
+        role: 'E',
+        sequence: 12,
+      });
+      expect(isoDoc).toBe('QND26-E3QA-01-00-DWG-E-0012');
+
+      // 3. Client Defined
+      const clientDoc = generateDocumentNumber({
+        profile: 'client_defined',
+        clientCode: 'QT',
+        projectCode: 'QND26',
+        documentType: 'specification',
+        sequence: 5,
+      });
+      expect(clientDoc).toBe('QT-QND26-SPC-0005');
+
+      // 4. Authority / Municipality Defined
+      const authDoc = generateDocumentNumber({
+        profile: 'authority_defined',
+        authorityCode: 'QCD',
+        projectCode: 'QND26',
+        discipline: 'health_safety',
+        documentType: 'calculation',
+        sequence: 3,
+      });
+      expect(authDoc).toBe('QCD-QND26-HSE-0003');
+
+      // 5. Custom Project Template
+      const customDoc = generateDocumentNumber({
+        profile: 'custom',
+        projectCode: 'QND26',
+        discipline: 'scenic',
+        documentType: 'method_statement',
+        clientCode: 'VIP',
+        sequence: 99,
+        customTemplate: '{CLIENT}-{PROJECT}-{DISCIPLINE}-{TYPE}-{SEQUENCE}',
+      });
+      expect(customDoc).toBe('VIP-QND26-SCN-MS-0099');
     });
 
     it('strictly redacts internal unit buy-rates and margins from client distribution', () => {
@@ -263,23 +312,24 @@ describe('Sprint 02 — Event Delivery Machinery & 7-Point Traceability Suite', 
       expect(t4Output?.isCritical).toBe(false);
     });
 
-    it('generates 24/7 operational bump-in shifts with environmental noise curfew protection', () => {
-      const shifts = generateBumpInShifts(48, 23, 6);
+    it('generates operational bump-in shifts governed by configurable Operational Constraint Profiles', () => {
+      const shifts = generateBumpInShifts(48, DOHA_DECC_PROFILE);
 
       expect(shifts.length).toBe(6); // 48 hours / 8 = 6 shifts
 
-      // Night shift curfew check
+      // Night shift curfew check under DECC profile (55 dB night, 22:00 to 07:00 curfew)
       const nightShifts = shifts.filter((s) => s.isCurfewActive);
       expect(nightShifts.length).toBeGreaterThan(0);
       for (const ns of nightShifts) {
-        expect(ns.allowedNoiseDb).toBe(65);
+        expect(ns.allowedNoiseDb).toBe(55); // Governed by profile, not hardcoded 65!
         expect(ns.shiftType).toBe('overnight_heavy_lift');
+        expect(ns.maxFloorLoadKgM2).toBe(2000);
       }
 
-      // Day shift check
+      // Day shift check under DECC profile (85 dB day)
       const dayShifts = shifts.filter((s) => !s.isCurfewActive);
       for (const ds of dayShifts) {
-        expect(ds.allowedNoiseDb).toBe(95);
+        expect(ds.allowedNoiseDb).toBe(85); // Governed by profile, not hardcoded 95!
         expect(ds.shiftType).toBe('day_rigging');
       }
     });
@@ -318,17 +368,63 @@ describe('Sprint 02 — Event Delivery Machinery & 7-Point Traceability Suite', 
       const financials = VariationLedger.calculateFinancials('QAR', baseRev, baseCost, variations);
 
       // Approved baseline incorporating client-authorized VO-01:
-      // Approved budget = 1,000,000 + 80,000 = 1,080,000
-      expect(financials.approvedCostBudget.amount.toNumber()).toBe(1080000);
+      // Baseline budget = 1,000,000, Approved changes = 80,000 -> Current budget = 1,080,000
+      expect(financials.baselineBudget.amount.toNumber()).toBe(1000000);
+      expect(financials.approvedChanges.amount.toNumber()).toBe(80000);
+      expect(financials.currentBudget.amount.toNumber()).toBe(1080000);
+
       // Approved contract value = 1,400,000 + 120,000 = 1,520,000
       expect(financials.approvedContractValue.amount.toNumber()).toBe(1520000);
 
-      // Pending exposure strictly isolated (VO-02):
+      // Pending exposure strictly isolated (VO-02: 30,000 cost / 45,000 sell):
       expect(financials.pendingExposureCost.amount.toNumber()).toBe(30000);
       expect(financials.pendingExposureSell.amount.toNumber()).toBe(45000);
 
-      // Estimate at Completion (EAC) = Total Forecast Cost = 1,080,000 + 30,000 = 1,110,000
-      expect(financials.totalForecastCost.amount.toNumber()).toBe(1110000);
+      // Official EAC = Actual Cost (0) + Forecast to Complete (1,080,000) = 1,080,000
+      // Pending exposure (30,000) is NOT rolled into official EAC!
+      expect(financials.estimateAtCompletion.amount.toNumber()).toBe(1080000);
+      expect(financials.varianceAtCompletion.amount.toNumber()).toBe(0);
+
+      // Only the explicit unapproved exposure scenario reports 1,110,000
+      expect(financials.unapprovedExposureScenarioEac.amount.toNumber()).toBe(1110000);
+    });
+
+    it('proves zero double-counting across Pending Exposure -> Approved Change -> Committed Cost -> Actual Cost lifecycle', () => {
+      const baseRev = new Money('1500000', 'QAR');
+      const baseCost = new Money('1000000', 'QAR');
+      const costDelta = new Money('50000', 'QAR');
+      const sellDelta = new Money('75000', 'QAR');
+
+      const sim = VariationLedger.simulateCostLifecycle(baseRev, baseCost, costDelta, sellDelta);
+
+      // Step 1: Pending Exposure
+      expect(sim.step1Pending.currentBudget.amount.toNumber()).toBe(1000000);
+      expect(sim.step1Pending.pendingExposureCost.amount.toNumber()).toBe(50000);
+      expect(sim.step1Pending.estimateAtCompletion.amount.toNumber()).toBe(1000000);
+      expect(sim.step1Pending.committedCost.amount.toNumber()).toBe(0);
+      expect(sim.step1Pending.actualCost.amount.toNumber()).toBe(0);
+
+      // Step 2: Approved Change (Moves from Pending to Approved)
+      expect(sim.step2Approved.currentBudget.amount.toNumber()).toBe(1050000); // Increased by 50,000
+      expect(sim.step2Approved.pendingExposureCost.amount.toNumber()).toBe(0); // Cleared from pending
+      expect(sim.step2Approved.estimateAtCompletion.amount.toNumber()).toBe(1050000);
+      expect(sim.step2Approved.committedCost.amount.toNumber()).toBe(0);
+      expect(sim.step2Approved.actualCost.amount.toNumber()).toBe(0);
+
+      // Step 3: Committed Cost (PO placed for 50,000)
+      expect(sim.step3Committed.currentBudget.amount.toNumber()).toBe(1050000);
+      expect(sim.step3Committed.committedCost.amount.toNumber()).toBe(50000);
+      expect(sim.step3Committed.actualCost.amount.toNumber()).toBe(0);
+      // Crucial: EAC does NOT double count! It remains 1,050,000
+      expect(sim.step3Committed.estimateAtCompletion.amount.toNumber()).toBe(1050000);
+
+      // Step 4: Actual Cost (Invoice posted for 50,000)
+      expect(sim.step4Actual.currentBudget.amount.toNumber()).toBe(1050000);
+      expect(sim.step4Actual.committedCost.amount.toNumber()).toBe(0);
+      expect(sim.step4Actual.actualCost.amount.toNumber()).toBe(50000);
+      // Crucial: EAC does NOT double count! It remains 1,050,000
+      expect(sim.step4Actual.estimateAtCompletion.amount.toNumber()).toBe(1050000);
+      expect(sim.step4Actual.varianceAtCompletion.amount.toNumber()).toBe(0);
     });
   });
 });

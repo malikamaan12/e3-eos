@@ -28,4 +28,5 @@ export * from './requirements.js';
 export * from './clarifications.js';
 export * from './documents.js';
 export * from './gantt.js';
+export * from './constraints.js';
 

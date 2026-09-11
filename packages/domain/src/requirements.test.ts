@@ -111,4 +111,47 @@ describe('Requirements & Scope Traceability Engine', () => {
     expect(report.overallTraceabilityPct).toBeGreaterThan(0);
     expect(report.evaluations.length).toBe(3);
   });
+
+  it('evaluates Stage 04 requirement as 100% current-stage maturity even when overall lifecycle coverage is 57%', () => {
+    // Stage 04 requirement: Owner + Target Date + Controlled Document + Design Version complete
+    // BOQ cost, approval, and delivery evidence are downstream (Required Later)
+    const stage04Req: ScopeRequirement = {
+      id: 'req-s04-001',
+      projectId: 'proj-qnd-2026',
+      code: 'REQ-STAGE-04',
+      title: 'Grandstand Canopy Fabric Membrane Specification',
+      description: 'Architectural fabric membrane engineering',
+      category: 'staging_technical',
+      ownerId: 'usr-pm-01',
+      ownerName: 'Zaid Mansour (Lead PM)',
+      dueDate: '2026-11-15',
+      linkedDocumentNumber: 'E3-QND26-STG-DWG-0002',
+      linkedDesignVersion: 'Rev 01',
+      disposition: 'applicable',
+      createdAt: '2026-09-10T10:00:00Z',
+    };
+
+    const evalResult = evaluateRequirementTraceability(stage04Req, { currentStageNumber: 4 });
+
+    // Current-stage points: 4 required now (Owner, Target Date, Document, Design) -> 4 completed = 100%
+    expect(evalResult.currentStageRequiredPoints).toBe(4);
+    expect(evalResult.currentStageCompletedPoints).toBe(4);
+    expect(evalResult.currentStageMaturityPct).toBe(100);
+    expect(evalResult.isStageMaturitySatisfied).toBe(true);
+    expect(evalResult.riskRating).toBe('low'); // NOT false critical!
+
+    // Overall points: 4 / 7 = 57%
+    expect(evalResult.completedPoints).toBe(4);
+    expect(evalResult.totalPoints).toBe(7);
+    expect(evalResult.overallTraceabilityPct).toBe(57);
+    expect(evalResult.isFullyTraceable).toBe(false);
+
+    // Downstream dimensions report 'Required Later'
+    const boqDim = evalResult.dimensions.find((d) => d.key === 'boqCost');
+    expect(boqDim?.status).toBe('Required Later');
+    const apprDim = evalResult.dimensions.find((d) => d.key === 'approvalSignoff');
+    expect(apprDim?.status).toBe('Required Later');
+    const delivDim = evalResult.dimensions.find((d) => d.key === 'deliveryEvidence');
+    expect(delivDim?.status).toBe('Required Later');
+  });
 });

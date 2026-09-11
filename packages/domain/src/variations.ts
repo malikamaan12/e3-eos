@@ -30,11 +30,23 @@ export interface VariationData {
 export interface BaselineFinancials {
   projectId: string;
   currency: CurrencyCode;
-  approvedContractValue: Money; // Approved baseline revenue from client
-  approvedCostBudget: Money; // Approved baseline internal cost budget
-  pendingExposureCost: Money; // Unapproved/pending variation costs (AT-040)
-  pendingExposureSell: Money; // Unapproved/pending variation client sells (AT-040)
-  totalForecastCost: Money; // approvedCostBudget + pendingExposureCost
+  baselineBudget: Money; // Original authorised cost baseline
+  approvedChanges: Money; // Net authorised changes/variations
+  currentBudget: Money; // Current Budget = Baseline Budget + Approved Changes
+  committedCost: Money; // Approved commitments such as POs/subcontracts
+  actualCost: Money; // Cost actually incurred/posted
+  forecastToComplete: Money; // Expected remaining project cost (ETC)
+  estimateAtCompletion: Money; // EAC = Actual Cost + Forecast to Complete
+  varianceAtCompletion: Money; // VAC = Current Budget - EAC
+  pendingExposureCost: Money; // Potential unapproved cost exposure (strictly isolated)
+  pendingExposureSell: Money; // Potential unapproved sell exposure (strictly isolated)
+  approvedContractValue: Money; // Current revenue basis = Baseline Revenue + Approved Changes Sell
+  baselineContractValue: Money; // Original authorised client revenue baseline
+  approvedChangesSell: Money; // Net authorised changes to client revenue
+  unapprovedExposureScenarioEac: Money; // Explicitly labelled unapproved exposure scenario: EAC + pendingExposureCost
+  // Compatibility aliases
+  approvedCostBudget: Money; // Alias for currentBudget
+  totalForecastCost: Money; // Alias for estimateAtCompletion
   totalForecastSell: Money; // approvedContractValue + pendingExposureSell
 }
 
@@ -57,13 +69,19 @@ export class VariationLedger {
   }
 
   /**
-   * Calculates baseline financials maintaining strict separation of pending exposure from approved baseline (AT-040).
+   * Calculates baseline financials maintaining strict separation of pending exposure from approved baseline (AT-040)
+   * and enforcing EAC = Actual Cost + Forecast to Complete (never Budget + Pending Exposure).
    */
   static calculateFinancials(
     currency: CurrencyCode,
-    approvedContract: Money,
-    approvedBudget: Money,
-    variations: VariationData[]
+    baselineContract: Money,
+    baselineBudget: Money,
+    variations: VariationData[],
+    actuals?: {
+      committedCost?: Money;
+      actualCost?: Money;
+      forecastToComplete?: Money;
+    }
   ): BaselineFinancials {
     let pendingCost = new Decimal(0);
     let pendingSell = new Decimal(0);
@@ -88,24 +106,126 @@ export class VariationLedger {
       // 'rejected' and 'withdrawn' variations do not impact either
     }
 
-    const currentApprovedContract = approvedContract.plus(new Money(approvedVarSell, currency));
-    const currentApprovedBudget = approvedBudget.plus(new Money(approvedVarCost, currency));
+    const approvedChangesCostMoney = new Money(approvedVarCost, currency);
+    const approvedChangesSellMoney = new Money(approvedVarSell, currency);
     const pendingExposureCostMoney = new Money(pendingCost, currency);
     const pendingExposureSellMoney = new Money(pendingSell, currency);
 
-    const totalForecastCost = currentApprovedBudget.plus(pendingExposureCostMoney);
-    const totalForecastSell = currentApprovedContract.plus(pendingExposureSellMoney);
+    // Current Budget = Baseline Budget + Approved Changes
+    const currentBudget = baselineBudget.plus(approvedChangesCostMoney);
+    // Approved Contract Value = Baseline Contract + Approved Changes Sell
+    const approvedContractValue = baselineContract.plus(approvedChangesSellMoney);
+
+    // Actuals & Commitments
+    const committedCost = actuals?.committedCost || new Money(0, currency);
+    const actualCost = actuals?.actualCost || new Money(0, currency);
+
+    // Forecast to Complete (ETC): If supplied, use it; otherwise default to expected remaining budget (currentBudget - actualCost), clamped >= 0
+    let forecastToComplete = actuals?.forecastToComplete;
+    if (!forecastToComplete) {
+      const remainingBudgetDecimal = currentBudget.amount.minus(actualCost.amount);
+      forecastToComplete = new Money(
+        remainingBudgetDecimal.isNegative() ? new Decimal(0) : remainingBudgetDecimal,
+        currency
+      );
+    }
+
+    // EAC = Actual Cost + Forecast to Complete
+    const estimateAtCompletion = actualCost.plus(forecastToComplete);
+
+    // VAC = Current Budget - EAC
+    const varianceAtCompletion = currentBudget.minus(estimateAtCompletion);
+
+    // Unapproved exposure scenario (strictly segregated from official EAC)
+    const unapprovedExposureScenarioEac = estimateAtCompletion.plus(pendingExposureCostMoney);
+    const totalForecastSell = approvedContractValue.plus(pendingExposureSellMoney);
 
     return {
       projectId: variations[0]?.projectId || 'unknown',
       currency,
-      approvedContractValue: currentApprovedContract,
-      approvedCostBudget: currentApprovedBudget,
+      baselineBudget,
+      approvedChanges: approvedChangesCostMoney,
+      currentBudget,
+      committedCost,
+      actualCost,
+      forecastToComplete,
+      estimateAtCompletion,
+      varianceAtCompletion,
       pendingExposureCost: pendingExposureCostMoney,
       pendingExposureSell: pendingExposureSellMoney,
-      totalForecastCost,
+      baselineContractValue: baselineContract,
+      approvedChangesSell: approvedChangesSellMoney,
+      approvedContractValue,
+      unapprovedExposureScenarioEac,
+      // Compatibility aliases
+      approvedCostBudget: currentBudget,
+      totalForecastCost: estimateAtCompletion,
       totalForecastSell,
     };
+  }
+
+  /**
+   * Demonstrates that moving an unapproved exposure across the commercial lifecycle:
+   * Pending Exposure -> Approved Change -> Committed Cost -> Actual Cost
+   * never causes double-counting in any financial summary metric.
+   */
+  static simulateCostLifecycle(
+    baselineContract: Money,
+    baselineBudget: Money,
+    costDelta: Money,
+    sellDelta: Money
+  ): {
+    step1Pending: BaselineFinancials;
+    step2Approved: BaselineFinancials;
+    step3Committed: BaselineFinancials;
+    step4Actual: BaselineFinancials;
+  } {
+    const currency = baselineBudget.currency;
+
+    // Step 1: Pending Exposure (VO drafted/submitted to client)
+    const vo1: VariationData = {
+      id: 'vo-lifecycle-1',
+      projectId: 'sim-prj',
+      variationCode: 'VO-SIM-01',
+      title: 'Additional Arena LED Displays',
+      scopeDescription: 'LED displays',
+      costImpact: costDelta,
+      sellImpact: sellDelta,
+      timeImpactDays: 0,
+      status: 'submitted_to_client',
+    };
+    const step1Pending = this.calculateFinancials(currency, baselineContract, baselineBudget, [vo1], {
+      committedCost: new Money(0, currency),
+      actualCost: new Money(0, currency),
+      forecastToComplete: baselineBudget,
+    });
+
+    // Step 2: Approved Change (Client formally approves VO)
+    // Moves from pending exposure to approved changes. Current Budget increases.
+    const vo2: VariationData = { ...vo1, status: 'client_approved' };
+    const step2Approved = this.calculateFinancials(currency, baselineContract, baselineBudget, [vo2], {
+      committedCost: new Money(0, currency),
+      actualCost: new Money(0, currency),
+      forecastToComplete: baselineBudget.plus(costDelta),
+    });
+
+    // Step 3: Committed Cost (PO issued to supplier for approved work)
+    // Budget remains unchanged; Committed cost rises by costDelta; ETC includes committed portion; EAC remains identical!
+    const step3Committed = this.calculateFinancials(currency, baselineContract, baselineBudget, [vo2], {
+      committedCost: costDelta,
+      actualCost: new Money(0, currency),
+      forecastToComplete: baselineBudget.plus(costDelta),
+    });
+
+    // Step 4: Actual Cost (Supplier invoice posted & verified)
+    // Actual cost rises by costDelta; ETC decreases by costDelta; Committed cost decreases; EAC remains identical!
+    const step4Actual = this.calculateFinancials(currency, baselineContract, baselineBudget, [vo2], {
+      committedCost: new Money(0, currency),
+      actualCost: costDelta,
+      forecastToComplete: baselineBudget,
+    });
+
+    return { step1Pending, step2Approved, step3Committed, step4Actual };
   }
 
   /**

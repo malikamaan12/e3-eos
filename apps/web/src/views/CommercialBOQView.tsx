@@ -148,44 +148,84 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         </Button>
       </div>
 
-      {/* Financial KPIs */}
+      {/* Financial Measures Breakdown */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
           gap: '12px',
         }}
       >
-        <Card style={{ padding: '16px', borderLeft: '4px solid #2563eb' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Baseline Cost Budget</div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
-            {Number(financials?.approvedCostBudget || activeEstimate?.totalCost || 985000).toLocaleString()} QAR
+        <Card style={{ padding: '14px', borderLeft: '4px solid #3b82f6' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Baseline Budget</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+            {Number(financials?.baselineBudget || activeEstimate?.totalCost || 985000).toLocaleString()} QAR
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Approved Internal Cost</div>
+          <div style={{ fontSize: '11px', color: '#64748b' }}>Original authorised baseline</div>
         </Card>
 
-        <Card style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Client Contract Value</div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#10b981', margin: '4px 0' }}>
-            {Number(financials?.approvedContractValue || activeEstimate?.totalSell || 1355000).toLocaleString()} QAR
+        <Card style={{ padding: '14px', borderLeft: '4px solid #6366f1' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Approved Changes</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#4338ca', margin: '4px 0' }}>
+            {Number(financials?.approvedChanges || 0).toLocaleString()} QAR
           </div>
-          <div style={{ fontSize: '11px', color: '#047857' }}>Approved Revenue</div>
+          <div style={{ fontSize: '11px', color: '#6366f1' }}>Net authorised variations</div>
         </Card>
 
-        <Card style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Estimate At Completion (EAC)</div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>
-            {Number(financials?.estimateAtCompletion || financials?.totalForecastCost || 985000).toLocaleString()} QAR
+        <Card style={{ padding: '14px', borderLeft: '4px solid #2563eb' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Current Budget</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#1d4ed8', margin: '4px 0' }}>
+            {Number(financials?.currentBudget || financials?.approvedCostBudget || 985000).toLocaleString()} QAR
           </div>
-          <div style={{ fontSize: '11px', color: '#b45309' }}>Updated on variation orders</div>
+          <div style={{ fontSize: '11px', color: '#1e40af' }}>Baseline + Approved Changes</div>
         </Card>
 
-        <Card style={{ padding: '16px', borderLeft: '4px solid #8b5cf6' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Forecast Gross Margin</div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#8b5cf6', margin: '4px 0' }}>
-            {activeEstimate?.marginPercent || '27.3'}%
+        <Card style={{ padding: '14px', borderLeft: '4px solid #0891b2' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Committed Cost</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#0e7490', margin: '4px 0' }}>
+            {Number(financials?.committedCost || 0).toLocaleString()} QAR
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Target: ≥ 25.0%</div>
+          <div style={{ fontSize: '11px', color: '#0891b2' }}>POs & subcontracts placed</div>
+        </Card>
+
+        <Card style={{ padding: '14px', borderLeft: '4px solid #0d9488' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Actual Cost</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f766e', margin: '4px 0' }}>
+            {Number(financials?.actualCost || 0).toLocaleString()} QAR
+          </div>
+          <div style={{ fontSize: '11px', color: '#0d9488' }}>Incurred / posted costs</div>
+        </Card>
+
+        <Card style={{ padding: '14px', borderLeft: '4px solid #d97706' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Forecast to Complete (ETC)</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#b45309', margin: '4px 0' }}>
+            {Number(financials?.forecastToComplete || financials?.currentBudget || 985000).toLocaleString()} QAR
+          </div>
+          <div style={{ fontSize: '11px', color: '#d97706' }}>Expected remaining cost</div>
+        </Card>
+
+        <Card style={{ padding: '14px', borderLeft: '4px solid #f59e0b' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>EAC (Estimate at Completion)</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#b45309', margin: '4px 0' }}>
+            {Number(financials?.estimateAtCompletion || 985000).toLocaleString()} QAR
+          </div>
+          <div style={{ fontSize: '11px', color: '#b45309' }}>Actual + Forecast to Complete</div>
+        </Card>
+
+        <Card style={{ padding: '14px', borderLeft: '4px solid #10b981' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>VAC (Variance at Completion)</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: Number(financials?.varianceAtCompletion || 0) >= 0 ? '#047857' : '#b91c1c', margin: '4px 0' }}>
+            {Number(financials?.varianceAtCompletion || 0).toLocaleString()} QAR
+          </div>
+          <div style={{ fontSize: '11px', color: '#059669' }}>Current Budget - EAC</div>
+        </Card>
+
+        <Card style={{ padding: '14px', borderLeft: '4px solid #ef4444', backgroundColor: '#fff5f5' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#b91c1c', textTransform: 'uppercase' }}>Pending Exposure (Isolated)</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#b91c1c', margin: '4px 0' }}>
+            {Number(financials?.pendingExposureCost || 0).toLocaleString()} QAR
+          </div>
+          <div style={{ fontSize: '11px', color: '#991b1b' }}>⚠️ Strictly isolated risk</div>
         </Card>
       </div>
 

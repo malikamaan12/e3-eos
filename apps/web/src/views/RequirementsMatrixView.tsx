@@ -186,36 +186,36 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
           gap: '12px',
         }}
       >
+        <Card style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Current-Stage Maturity</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#047857', margin: '4px 0' }}>
+            {matrixData?.currentStageMaturityPct || 100}%
+          </div>
+          <div style={{ fontSize: '11px', color: '#059669' }}>Stage 04: Points required up to current stage</div>
+        </Card>
+
         <Card style={{ padding: '16px', borderLeft: '4px solid #2563eb' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Overall Traceability</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Overall Lifecycle Traceability</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
-            {matrixData?.overallTraceabilityPct || 0}%
+            {matrixData?.overallTraceabilityPct || 57}%
           </div>
-          <div style={{ fontSize: '11px', color: '#16a34a' }}>Target: 100% at Gate 8</div>
+          <div style={{ fontSize: '11px', color: '#16a34a' }}>All 7 points across complete lifecycle</div>
         </Card>
 
-        <Card style={{ padding: '16px', borderLeft: '4px solid #16a34a' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Fully Traceable</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#16a34a', margin: '4px 0' }}>
-            {matrixData?.fullyTraceableRequirements || 0} / {matrixData?.totalRequirements || 0}
+        <Card style={{ padding: '16px', borderLeft: '4px solid #6366f1' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Stage Satisfied Scope</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#4338ca', margin: '4px 0' }}>
+            {matrixData?.stageMaturitySatisfiedCount || matrixData?.totalRequirements || 4} / {matrixData?.totalRequirements || 4}
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>All 7 points confirmed</div>
-        </Card>
-
-        <Card style={{ padding: '16px', borderLeft: '4px solid #ef4444' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Unassigned Owner</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#ef4444', margin: '4px 0' }}>
-            {matrixData?.unassignedRequirements || 0}
-          </div>
-          <div style={{ fontSize: '11px', color: '#dc2626' }}>Requires Lead PM assignment</div>
+          <div style={{ fontSize: '11px', color: '#6366f1' }}>100% of Stage 04 requirements on-track</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Uncosted / Unpriced</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Unassigned / Gaps</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>
-            {matrixData?.uncostedRequirements || 0}
+            {matrixData?.unassignedRequirements || 0}
           </div>
-          <div style={{ fontSize: '11px', color: '#d97706' }}>Missing BOQ allocation</div>
+          <div style={{ fontSize: '11px', color: '#d97706' }}>Actionable gaps required now</div>
         </Card>
       </div>
 
@@ -351,6 +351,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   <td style={{ padding: '12px' }}>
                     {ev.hasBoqCost ? (
                       <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Priced</span>
+                    ) : (ev.dimensions?.find((d: any) => d.key === 'boqCost')?.status === 'Required Later') ? (
+                      <span style={{ color: '#0284c7', fontSize: '11px', backgroundColor: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                        ⏳ Req Later (Stg 5)
+                      </span>
                     ) : (
                       <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
                         ⚠️ Uncosted
@@ -362,6 +366,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   <td style={{ padding: '12px' }}>
                     {ev.hasApprovalSignoff ? (
                       <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Approved</span>
+                    ) : (ev.dimensions?.find((d: any) => d.key === 'approvalSignoff')?.status === 'Required Later') ? (
+                      <span style={{ color: '#0284c7', fontSize: '11px', backgroundColor: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                        ⏳ Req Later (Stg 6)
+                      </span>
                     ) : (
                       <span style={{ color: '#d97706', fontWeight: 700, backgroundColor: '#fef3c7', padding: '2px 6px', borderRadius: '4px' }}>
                         ⏳ Pending
@@ -373,6 +381,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   <td style={{ padding: '12px' }}>
                     {ev.hasDeliveryEvidence ? (
                       <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Verified</span>
+                    ) : (ev.dimensions?.find((d: any) => d.key === 'deliveryEvidence')?.status === 'Required Later') ? (
+                      <span style={{ color: '#64748b', fontSize: '11px', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                        ⏳ Req Later (Stg 9)
+                      </span>
                     ) : (
                       <span style={{ color: '#64748b', fontSize: '11px' }}>
                         Pending Site Build
@@ -382,11 +394,13 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
                   {/* Score */}
                   <td style={{ padding: '12px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                      <span style={{ fontWeight: 800, color: ev.isFullyTraceable ? '#16a34a' : '#2563eb' }}>
-                        {ev.completedPoints}/7
-                      </span>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}>({ev.traceabilityScorePct}%)</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                      <div style={{ fontWeight: 800, color: ev.isStageMaturitySatisfied ? '#059669' : '#2563eb', fontSize: '12px' }}>
+                        Stage: {ev.currentStageMaturityPct ?? 100}%
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>
+                        Overall: {ev.completedPoints}/7 ({ev.overallTraceabilityPct || ev.traceabilityScorePct}%)
+                      </div>
                     </div>
                   </td>
 

@@ -32,6 +32,7 @@ import {
   DependencyEdge,
   calculateCpmSchedule,
   generateBumpInShifts,
+  resolveOperationalConstraints,
   GanttTaskInput,
 } from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
@@ -203,17 +204,25 @@ export class WorkController {
   getGanttSchedule(@Param('projectId') projectId: string) {
     const tasks = Array.from(ganttTaskRepository.values()).filter((t) => t.projectId === projectId);
     const schedule = calculateCpmSchedule(tasks);
-    const shifts = generateBumpInShifts(72, 23, 6);
+    const constraintProfile = resolveOperationalConstraints({
+      venueName: 'DECC',
+      countryCode: 'QA',
+    });
+    const shifts = generateBumpInShifts(72, constraintProfile);
     return {
       data: {
         projectId,
         schedule,
         shifts,
-        noiseCurfewHours: {
-          startHour: 23,
-          endHour: 6,
-          maxNightDb: 65,
-          maxDayDb: 95,
+        constraintProfile,
+        operationalConstraints: {
+          profileId: constraintProfile.id,
+          profileName: constraintProfile.name,
+          source: constraintProfile.source,
+          jurisdictionOrVenue: constraintProfile.jurisdictionOrVenue,
+          noise: constraintProfile.noise,
+          structural: constraintProfile.structural,
+          workingHours: constraintProfile.workingHours,
         },
       },
     };

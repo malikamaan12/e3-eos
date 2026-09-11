@@ -2,6 +2,129 @@ import { safeSha256 } from './crypto-util.js';
 
 export type ReleasePurpose = 'for_review' | 'for_client_approval' | 'for_fabrication';
 
+export type DesignReleaseStatus =
+  | 'draft_concept'
+  | 'internal_review'
+  | 'client_review'
+  | 'approved_concept' // strictly NOT approved for fabrication
+  | 'approved_for_production' // structural / safety sign-off required (POL-DES-01)
+  | 'superseded';
+
+export type AnnotationStatus = 'open' | 'in_progress' | 'resolved' | 'rejected_reopened';
+export type AnnotationPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type DesignPackageType = 'elevations' | 'floor_plans' | '3d_renders' | 'technical_details';
+
+export interface DesignPinThreadComment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  discipline: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface DesignAnnotationPin {
+  id: string;
+  pinNumber: number;
+  revisionCode: string; // e.g. "Rev A", "Rev B"
+  xPercent: number; // 0 - 100
+  yPercent: number; // 0 - 100
+  title: string;
+  discipline: string;
+  priority: AnnotationPriority;
+  status: AnnotationStatus;
+  assigneeName?: string;
+  comments: DesignPinThreadComment[];
+  createdAt: string;
+  resolvedAt?: string;
+}
+
+export interface DesignRevisionRecord {
+  revisionCode: string; // "Rev A", "Rev B", etc.
+  versionNumber: number;
+  contentHash: string;
+  storageUrl: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  notes?: string;
+  releaseStatus: DesignReleaseStatus;
+  structuralEngineerSignoff?: {
+    certified: boolean;
+    certifiedBy: string;
+    certifiedAt: string;
+    licenseNumber: string;
+  };
+  hseSignoff?: {
+    certified: boolean;
+    certifiedBy: string;
+    certifiedAt: string;
+  };
+}
+
+export interface DesignPackageItem {
+  id: string; // e.g. "DES-QND-001"
+  projectId: string;
+  packageType: DesignPackageType;
+  title: string;
+  discipline: string;
+  currentRevisionCode: string;
+  currentReleaseStatus: DesignReleaseStatus;
+  revisions: DesignRevisionRecord[];
+  pins: DesignAnnotationPin[];
+  linkedRequirementId?: string;
+  createdAt: string;
+}
+
+export class ProductionReleaseGate {
+  /**
+   * Evaluates policy POL-DES-01: fabrication release cannot occur without structural engineering / HSE sign-off.
+   * "Approved Concept" explicitly does NOT permit fabrication release.
+   */
+  static evaluateProductionRelease(
+    revision: DesignRevisionRecord,
+    targetStatus: DesignReleaseStatus
+  ): {
+    allowed: boolean;
+    reason: string;
+    missingSignoffs?: string[];
+  } {
+    if (targetStatus === 'approved_concept') {
+      return {
+        allowed: true,
+        reason: 'Approved Concept granted. Note: Concept approval explicitly does NOT permit fabrication or production release.',
+      };
+    }
+
+    if (targetStatus === 'approved_for_production') {
+      const missing: string[] = [];
+      if (!revision.structuralEngineerSignoff?.certified) {
+        missing.push('Certified Structural Engineer Sign-off (Civil Defence License)');
+      }
+      if (!revision.hseSignoff?.certified) {
+        missing.push('HSE & Fire Safety Compliance Sign-off (Flame Retardant / Egress)');
+      }
+
+      if (missing.length > 0) {
+        return {
+          allowed: false,
+          reason: `POL-DES-01 VIOLATION: Fabrication release denied. Structural / Safety sign-off required: ${missing.join(', ')}.`,
+          missingSignoffs: missing,
+        };
+      }
+
+      return {
+        allowed: true,
+        reason: 'POL-DES-01 SATISFIED: Structural and HSE sign-offs certified. Authorized for fabrication and production release.',
+      };
+    }
+
+    return {
+      allowed: true,
+      reason: `Status transition to ${targetStatus} permitted under standard workflow.`,
+    };
+  }
+}
+
 export interface DesignVersion {
   versionId: string;
   designId: string;

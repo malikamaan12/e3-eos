@@ -99,7 +99,7 @@ export const Button: React.FC<ButtonProps> = ({
 };
 
 export interface BadgeProps {
-  variant?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'purple';
+  variant?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'purple' | 'secondary' | 'primary';
   children: React.ReactNode;
   size?: 'sm' | 'md';
   style?: React.CSSProperties;
@@ -108,6 +108,8 @@ export interface BadgeProps {
 export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', children, style: customStyle }) => {
   const variantStyles: Record<string, { bg: string; text: string; border: string }> = {
     neutral: { bg: '#f1f5f9', text: '#334155', border: '#e2e8f0' },
+    secondary: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
+    primary: { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
     info: { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
     success: { bg: '#ecfdf5', text: '#047857', border: '#a7f3d0' },
     warning: { bg: '#fffbeb', text: '#b45309', border: '#fde68a' },
@@ -115,7 +117,7 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', 
     purple: { bg: '#faf5ff', text: '#6b21a8', border: '#e9d5ff' },
   };
 
-  const style = variantStyles[variant];
+  const style = variantStyles[variant] || variantStyles.neutral;
 
   return (
     <span

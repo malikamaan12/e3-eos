@@ -250,9 +250,10 @@ describe('AT-040: Proposed Change Not Client Authorised', () => {
     expect(financials.pendingExposureSell.toString()).toBe('45000.000000');
     expect(financials.pendingExposureCost.toString()).toBe('30000.000000');
 
-    // Total forecast includes both approved and pending exposure
+    // Official EAC is based on approved budget/ETC (150,000), pending exposure is isolated (30,000)
+    expect(financials.estimateAtCompletion.toString()).toBe('150000.000000');
+    expect(financials.unapprovedExposureScenarioEac.toString()).toBe('180000.000000');
     expect(financials.totalForecastSell.toString()).toBe('260000.000000');
-    expect(financials.totalForecastCost.toString()).toBe('180000.000000');
   });
 });
 

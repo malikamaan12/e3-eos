@@ -226,11 +226,16 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
             <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
-              24/7 Venue Bump-In Operational Shifts
+              24/7 Venue Bump-In Operational Shifts & Constraint Profile
             </h3>
             <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-              Continuous 8-hour shift rotation strictly enforcing Qatar Environmental Noise Law No. 30.
+              Shifts dynamically evaluated against active Operational Constraint Profile (Venue, Municipality, Permit, Country & Client).
             </p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontSize: '11px', color: '#2563eb', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+              📋 Profile: DECC Venue Regulations 2026 (Floor: 2,000 kg/m² | Max H: 18m)
+            </span>
           </div>
         </div>
 

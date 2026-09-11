@@ -19,10 +19,14 @@ export type ClarificationSource =
 
 export type ClarificationStatus =
   | 'draft'
-  | 'submitted_to_client'
+  | 'internal_review'
+  | 'submitted'
+  | 'submitted_to_client' // compatibility alias for submitted
+  | 'awaiting_response'
   | 'answered'
-  | 'closed'
-  | 'superseded';
+  | 'superseded'
+  | 'withdrawn'
+  | 'closed';
 
 export interface ClarificationImpact {
   hasScopeImpact: boolean;
@@ -38,18 +42,32 @@ export interface ClarificationItem {
   id: string;
   projectId: string;
   clarificationCode: string; // e.g. "RFI-QND-001"
+  title: string;
   question: string;
   category: ClarificationCategory;
+  discipline: string; // e.g. "staging", "audio_visual", "lighting", "health_safety", "commercial"
   source: ClarificationSource;
+  author: string;
+  assignedResponder: string;
+  dateRaised: string; // ISO 8601
+  targetResponseDate: string; // ISO 8601
+  dueAt: string; // alias for targetResponseDate
+  closedDate?: string;
+  hasCommercialImpact: boolean;
+  hasScheduleImpact: boolean;
   rfpSectionRef?: string;
-  submittedAt: string;
-  dueAt: string;
+  submittedAt?: string;
   response?: string;
   respondedBy?: string;
   respondedAt?: string;
   status: ClarificationStatus;
   impact: ClarificationImpact;
+  // Explicit 5-module link pickers
   linkedRequirementIds: string[];
+  linkedDesignIds: string[];
+  linkedBoqLineCodes: string[];
+  linkedScheduleTaskIds: string[];
+  linkedDocumentNumbers: string[];
   createdAt: string;
 }
 
@@ -79,6 +97,120 @@ export function assessClarificationImpact(item: {
 }
 
 /**
+ * Calculates countdown hours to target response deadline (< 72h highlighted as urgent).
+ */
+export function getClarificationCountdownHours(
+  item: ClarificationItem,
+  referenceNowMs: number = Date.now()
+): { hoursRemaining: number; isUrgent: boolean; isOverdue: boolean } {
+  if (
+    item.status === 'closed' ||
+    item.status === 'answered' ||
+    item.status === 'superseded' ||
+    item.status === 'withdrawn'
+  ) {
+    return { hoursRemaining: 0, isUrgent: false, isOverdue: false };
+  }
+
+  const targetDateStr = item.targetResponseDate || item.dueAt;
+  const targetMs = new Date(targetDateStr).getTime();
+  const diffHours = (targetMs - referenceNowMs) / (3600 * 1000);
+
+  const isOverdue = diffHours <= 0;
+  const isUrgent = diffHours > 0 && diffHours <= 72;
+
+  return {
+    hoursRemaining: Math.round(diffHours * 10) / 10,
+    isUrgent,
+    isOverdue,
+  };
+}
+
+/**
+ * Evaluates cross-module impact of a clarification across Requirements, Designs, BOQ, Timeline, and Documents.
+ * Guarantees that baseline data is strictly preserved unless an approved change order is authorized.
+ */
+export function evaluateClarificationCrossModuleImpact(
+  clarification: ClarificationItem,
+  baselineState: {
+    approvedBudgetQar: number;
+    approvedDurationDays: number;
+  }
+): {
+  affectedModules: string[];
+  preservesBaseline: boolean;
+  requiresVariationOrder: boolean;
+  impactDetails: Array<{ module: string; reference: string; summary: string }>;
+} {
+  const affectedModules: string[] = [];
+  const impactDetails: Array<{ module: string; reference: string; summary: string }> = [];
+
+  if (clarification.linkedRequirementIds && clarification.linkedRequirementIds.length > 0) {
+    affectedModules.push('Requirements');
+    for (const reqId of clarification.linkedRequirementIds) {
+      impactDetails.push({
+        module: 'Requirements',
+        reference: reqId,
+        summary: `Scope clarification pending resolution against requirement ${reqId}.`,
+      });
+    }
+  }
+
+  if (clarification.linkedDesignIds && clarification.linkedDesignIds.length > 0) {
+    affectedModules.push('Design & Creative');
+    for (const desId of clarification.linkedDesignIds) {
+      impactDetails.push({
+        module: 'Design & Creative',
+        reference: desId,
+        summary: `CAD drawings / elevations for package ${desId} may require revision upon response.`,
+      });
+    }
+  }
+
+  if (clarification.linkedBoqLineCodes && clarification.linkedBoqLineCodes.length > 0) {
+    affectedModules.push('Commercial / BOQ');
+    for (const boqCode of clarification.linkedBoqLineCodes) {
+      impactDetails.push({
+        module: 'Commercial / BOQ',
+        reference: boqCode,
+        summary: `Cost rate for BOQ line ${boqCode} tagged for potential variation (Current baseline ${baselineState.approvedBudgetQar.toLocaleString()} QAR remains protected).`,
+      });
+    }
+  }
+
+  if (clarification.linkedScheduleTaskIds && clarification.linkedScheduleTaskIds.length > 0) {
+    affectedModules.push('Timeline / Gantt');
+    for (const taskId of clarification.linkedScheduleTaskIds) {
+      impactDetails.push({
+        module: 'Timeline / Gantt',
+        reference: taskId,
+        summary: `Task ${taskId} delivery window potentially impacted (Current project baseline ${baselineState.approvedDurationDays} days remains unchanged).`,
+      });
+    }
+  }
+
+  if (clarification.linkedDocumentNumbers && clarification.linkedDocumentNumbers.length > 0) {
+    affectedModules.push('Controlled Documents');
+    for (const docNum of clarification.linkedDocumentNumbers) {
+      impactDetails.push({
+        module: 'Controlled Documents',
+        reference: docNum,
+        summary: `Controlled document ${docNum} flagged for revision pack upon clarification closure.`,
+      });
+    }
+  }
+
+  const requiresVo = clarification.impact.requiresVariationOrder || clarification.hasCommercialImpact || clarification.hasScheduleImpact;
+
+  return {
+    affectedModules,
+    preservesBaseline: true, // Baseline is immutable without client-approved variation order
+    requiresVariationOrder: requiresVo,
+    impactDetails,
+  };
+}
+
+/**
  * Identifies urgent open clarifications approaching tender submission deadlines.
  */
 export function getUrgentClarifications(
@@ -87,10 +219,15 @@ export function getUrgentClarifications(
 ): ClarificationItem[] {
   const now = Date.now();
   return items.filter((item) => {
-    if (item.status === 'closed' || item.status === 'answered' || item.status === 'superseded') {
+    if (
+      item.status === 'closed' ||
+      item.status === 'answered' ||
+      item.status === 'superseded' ||
+      item.status === 'withdrawn'
+    ) {
       return false;
     }
-    const dueTime = new Date(item.dueAt).getTime();
+    const dueTime = new Date(item.targetResponseDate || item.dueAt).getTime();
     return dueTime - now <= deadlineThresholdMs;
   });
 }

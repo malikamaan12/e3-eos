@@ -677,6 +677,57 @@ export class EosApiClient {
   }
 
   /**
+   * Fetches clarifications / RFIs for a project.
+   */
+  async getClarifications(projectId: string): Promise<{ data: any[]; meta?: any }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/clarifications`, {
+        headers: this.getHeaders(),
+      });
+      if (!res.ok) return { data: [] };
+      return await res.json();
+    } catch {
+      return { data: [] };
+    }
+  }
+
+  /**
+   * Creates a new clarification / RFI.
+   */
+  async createClarification(projectId: string, data: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/clarifications`, {
+      method: 'POST',
+      headers: this.getHeaders({
+        'idempotency-key': `idem-clar-${Date.now()}`,
+      }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Clarification creation failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  /**
+   * Responds to an RFI / clarification.
+   */
+  async respondClarification(projectId: string, clarId: string, data: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/clarifications/${clarId}/respond`, {
+      method: 'POST',
+      headers: this.getHeaders({
+        'idempotency-key': `idem-clar-resp-${Date.now()}`,
+      }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `Clarification response failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  /**
    * Fetches the SHA-256 hashed audit events chain from PostgreSQL.
    */
   async getAuditHistory(projectId: string): Promise<any[]> {

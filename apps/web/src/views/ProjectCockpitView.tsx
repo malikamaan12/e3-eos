@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { MetricCard, Card, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
 import { RequirementsMatrixView } from './RequirementsMatrixView.js';
+import { ClarificationsView } from './ClarificationsView.js';
 import { DocumentRegisterView } from './DocumentRegisterView.js';
 import { MasterGanttView } from './MasterGanttView.js';
+import { DesignReviewView } from './DesignReviewView.js';
 import { CommercialBOQView } from './CommercialBOQView.js';
 
 export const ProjectCockpitView: React.FC = () => {
@@ -41,7 +43,16 @@ export const ProjectCockpitView: React.FC = () => {
   // Workstream filter state
   const [workstreamFilter, setWorkstreamFilter] = useState<'needs_attention' | 'on_track' | 'all'>('needs_attention');
   const [selectedAuditDetail, setSelectedAuditDetail] = useState<any | null>(null);
-  const [cockpitModuleTab, setCockpitModuleTab] = useState<'overview' | 'requirements' | 'documents' | 'timeline' | 'commercial'>('overview');
+  const [cockpitModuleTab, setCockpitModuleTab] = useState<'overview' | 'requirements' | 'clarifications' | 'documents' | 'timeline' | 'design' | 'commercial'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam && ['overview', 'requirements', 'clarifications', 'documents', 'timeline', 'design', 'commercial'].includes(tabParam)) {
+        return tabParam as any;
+      }
+    }
+    return 'overview';
+  });
 
   // Decision Modal
   const [decidingApproval, setDecidingApproval] = useState<any | null>(null);
@@ -322,7 +333,7 @@ export const ProjectCockpitView: React.FC = () => {
         </div>
       </div>
 
-      {/* Sprint 02 Module Navigation Tabs */}
+      {/* Sprint 02 Module Navigation Tabs (7 Core Modules) */}
       <div
         id="cockpit-module-tabs"
         style={{
@@ -338,7 +349,7 @@ export const ProjectCockpitView: React.FC = () => {
           id="tab-cockpit-overview"
           onClick={() => setCockpitModuleTab('overview')}
           style={{
-            padding: '10px 18px',
+            padding: '10px 16px',
             borderRadius: '6px 6px 0 0',
             fontSize: '13px',
             fontWeight: 700,
@@ -359,7 +370,7 @@ export const ProjectCockpitView: React.FC = () => {
           id="tab-cockpit-requirements"
           onClick={() => setCockpitModuleTab('requirements')}
           style={{
-            padding: '10px 18px',
+            padding: '10px 16px',
             borderRadius: '6px 6px 0 0',
             fontSize: '13px',
             fontWeight: 700,
@@ -373,14 +384,41 @@ export const ProjectCockpitView: React.FC = () => {
             gap: '6px',
           }}
         >
-          <span>🎯</span> 7-Point Scope & Traceability
+          <span>🎯</span> Requirements
+          <span style={{ fontSize: '11px', backgroundColor: '#dbeafe', color: '#1e40af', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            4
+          </span>
+        </button>
+
+        <button
+          id="tab-cockpit-clarifications"
+          onClick={() => setCockpitModuleTab('clarifications')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'clarifications' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'clarifications' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'clarifications' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>❓</span> Clarifications / RFI
+          <span style={{ fontSize: '11px', backgroundColor: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            2 open
+          </span>
         </button>
 
         <button
           id="tab-cockpit-documents"
           onClick={() => setCockpitModuleTab('documents')}
           style={{
-            padding: '10px 18px',
+            padding: '10px 16px',
             borderRadius: '6px 6px 0 0',
             fontSize: '13px',
             fontWeight: 700,
@@ -395,13 +433,16 @@ export const ProjectCockpitView: React.FC = () => {
           }}
         >
           <span>📑</span> Controlled Documents
+          <span style={{ fontSize: '11px', backgroundColor: '#e2e8f0', color: '#334155', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            3
+          </span>
         </button>
 
         <button
           id="tab-cockpit-timeline"
           onClick={() => setCockpitModuleTab('timeline')}
           style={{
-            padding: '10px 18px',
+            padding: '10px 16px',
             borderRadius: '6px 6px 0 0',
             fontSize: '13px',
             fontWeight: 700,
@@ -415,14 +456,41 @@ export const ProjectCockpitView: React.FC = () => {
             gap: '6px',
           }}
         >
-          <span>⏱️</span> Master Timeline (CPM)
+          <span>⏱️</span> Timeline / Gantt
+          <span style={{ fontSize: '11px', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            72h CPM
+          </span>
+        </button>
+
+        <button
+          id="tab-cockpit-design"
+          onClick={() => setCockpitModuleTab('design')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'design' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'design' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'design' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>🎨</span> Design & Creative
+          <span style={{ fontSize: '11px', backgroundColor: '#fce7f3', color: '#be185d', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            4 pkgs
+          </span>
         </button>
 
         <button
           id="tab-cockpit-commercial"
           onClick={() => setCockpitModuleTab('commercial')}
           style={{
-            padding: '10px 18px',
+            padding: '10px 16px',
             borderRadius: '6px 6px 0 0',
             fontSize: '13px',
             fontWeight: 700,
@@ -436,13 +504,18 @@ export const ProjectCockpitView: React.FC = () => {
             gap: '6px',
           }}
         >
-          <span>💰</span> Commercial & BOQ
+          <span>💰</span> Commercial / BOQ
+          <span style={{ fontSize: '11px', backgroundColor: '#dcfce7', color: '#15803d', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            QAR 1.52M
+          </span>
         </button>
       </div>
 
       {cockpitModuleTab === 'requirements' && <RequirementsMatrixView projectId={projectId} />}
+      {cockpitModuleTab === 'clarifications' && <ClarificationsView projectId={projectId} />}
       {cockpitModuleTab === 'documents' && <DocumentRegisterView projectId={projectId} />}
       {cockpitModuleTab === 'timeline' && <MasterGanttView projectId={projectId} />}
+      {cockpitModuleTab === 'design' && <DesignReviewView projectId={projectId} />}
       {cockpitModuleTab === 'commercial' && <CommercialBOQView projectId={projectId} />}
 
       {cockpitModuleTab === 'overview' && (
