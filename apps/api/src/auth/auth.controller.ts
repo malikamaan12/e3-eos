@@ -45,11 +45,11 @@ export class AuthController {
     const pool = this.dbService.getPool();
     const sessionRes = await pool.query(`
       SELECT s.token, s.expires_at, u.id, u.email, u.name, u.is_super_admin,
-             m.role, m.audience, m.organisation_id, o.name as org_name,
+             m.role, m.audience, m.organisation_id, m.is_revoked as membership_revoked, o.name as org_name,
              mfa.is_enabled as mfa_enabled
       FROM sessions s
       JOIN users u ON u.id = s.user_id
-      LEFT JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
+      LEFT JOIN memberships m ON m.user_id = u.id
       LEFT JOIN organisations o ON o.id = m.organisation_id
       LEFT JOIN user_mfa mfa ON mfa.user_id = u.id
       WHERE s.token = $1 AND s.expires_at > NOW()
@@ -57,7 +57,11 @@ export class AuthController {
     `, [token]);
 
     if (sessionRes.rows.length === 0) return null;
-    return sessionRes.rows[0];
+    const sessionUser = sessionRes.rows[0];
+    if (sessionUser.membership_revoked && !sessionUser.is_super_admin) {
+      return null;
+    }
+    return sessionUser;
   }
 
   @Post('login')
@@ -70,11 +74,11 @@ export class AuthController {
     const cleanEmail = body.email.trim().toLowerCase();
 
     const userRes = await pool.query(`
-      SELECT u.id, u.email, u.name, u.is_super_admin, m.role, m.audience, m.organisation_id, o.name as org_name,
+      SELECT u.id, u.email, u.name, u.is_super_admin, m.role, m.audience, m.organisation_id, m.is_revoked as membership_revoked, o.name as org_name,
              a.password as stored_password,
              mfa.is_enabled as mfa_enabled, mfa.secret as mfa_secret
       FROM users u
-      LEFT JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
+      LEFT JOIN memberships m ON m.user_id = u.id
       LEFT JOIN organisations o ON o.id = m.organisation_id
       LEFT JOIN accounts a ON a.user_id = u.id AND a.provider_id = 'credential'
       LEFT JOIN user_mfa mfa ON mfa.user_id = u.id
@@ -88,15 +92,21 @@ export class AuthController {
 
     const user = userRes.rows[0];
 
-    // Verify Password if provided or stored
-    if (user.stored_password) {
-      if (!body.password) {
-        throw new HttpException({ title: 'Validation Error', detail: 'Password is required' }, HttpStatus.BAD_REQUEST);
-      }
-      const isValid = verifyPassword(body.password, user.stored_password);
-      if (!isValid) {
-        throw new HttpException({ title: 'Unauthorized', detail: 'Invalid email or password' }, HttpStatus.UNAUTHORIZED);
-      }
+    // Verify Password
+    if (!user.stored_password) {
+      throw new HttpException({ title: 'Unauthorized', detail: 'Account has not been activated. Please complete invitation or password setup.' }, HttpStatus.UNAUTHORIZED);
+    }
+    if (!body.password) {
+      throw new HttpException({ title: 'Validation Error', detail: 'Password is required' }, HttpStatus.BAD_REQUEST);
+    }
+    const isValid = verifyPassword(body.password, user.stored_password);
+    if (!isValid) {
+      throw new HttpException({ title: 'Unauthorized', detail: 'Invalid email or password' }, HttpStatus.UNAUTHORIZED);
+    }
+
+    // Check if account / membership is revoked
+    if (user.membership_revoked && !user.is_super_admin) {
+      throw new HttpException({ title: 'Forbidden', detail: 'This account has been disabled or access has been revoked.' }, HttpStatus.FORBIDDEN);
     }
 
     // Check MFA requirement

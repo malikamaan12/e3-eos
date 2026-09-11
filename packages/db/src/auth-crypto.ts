@@ -1,4 +1,4 @@
-﻿import crypto from 'crypto';
+import crypto from 'crypto';
 
 export function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString('hex');
@@ -57,6 +57,11 @@ export function verifyTotpToken(token: string, secret: string): boolean {
     if (cleanToken === expected) return true;
   }
   return false;
+}
+
+export function generateTotpCode(secret: string, counterOffset: number = 0): string {
+  const timeStep = Math.floor(Date.now() / 1000 / 30);
+  return computeTotp(secret, timeStep + counterOffset);
 }
 
 function computeTotp(secret: string, counter: number): string {

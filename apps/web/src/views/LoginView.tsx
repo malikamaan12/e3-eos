@@ -87,6 +87,9 @@ export const LoginView: React.FC = () => {
     setMfaRequired(false);
   };
 
+  const isProduction = typeof window !== 'undefined' && !window.location.hostname.includes('staging') && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
+  const isUatAuditEnabled = !isProduction && typeof window !== 'undefined' && (window.location.search.includes('uat=true') || window.location.search.includes('test=true'));
+
   return (
     <div
       style={{
@@ -344,61 +347,58 @@ export const LoginView: React.FC = () => {
             </form>
           )}
 
-          {/* Evaluator Credentials Drawer (Discrete toggle for staging audits) */}
+          {/* Corporate RBAC Notice & Restricted UAT Directory */}
           <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #334155' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <button
-                type="button"
-                onClick={() => setShowEvaluatorTools(!showEvaluatorTools)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#64748b',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                  padding: 0,
-                  textDecoration: 'underline',
-                }}
-              >
-                {showEvaluatorTools ? '▲ Hide Role Directory' : '▼ Staging Role Directory'}
-              </button>
-              <span style={{ fontSize: '10px', color: '#64748b' }}>
-                Corporate SSO & RBAC
+              <span style={{ fontSize: '11px', color: '#64748b' }}>
+                Corporate SSO & RBAC Enforced
+              </span>
+              <span style={{ fontSize: '10px', color: '#475569' }}>
+                E3-EOS Identity
               </span>
             </div>
 
-            {showEvaluatorTools && (
+            {isUatAuditEnabled && (
               <div style={{ marginTop: '12px' }}>
-                <p style={{ fontSize: '11px', color: '#94a3b8', margin: '0 0 8px' }}>
-                  Select an account email below to test role-based access:
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  {keyPersonas.map((p) => {
-                    const isSelected = email === p.email;
-                    return (
-                      <button
-                        key={p.email}
-                        type="button"
-                        onClick={() => selectPersona(p.email)}
-                        style={{
-                          textAlign: 'left',
-                          padding: '8px 10px',
-                          borderRadius: '6px',
-                          backgroundColor: isSelected ? '#1e3a8a' : '#0f172a',
-                          border: isSelected ? '1px solid #3b82f6' : '1px solid #334155',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? '#93c5fd' : '#f8fafc' }}>
-                          {p.title}
-                        </div>
-                        <div style={{ fontSize: '10px', color: '#94a3b8', margin: '1px 0' }}>{p.name}</div>
-                        <div style={{ fontSize: '9px', color: '#64748b', fontFamily: 'monospace' }}>{p.email}</div>
-                      </button>
-                    );
-                  })}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>UAT Role Directory (Audit Mode):</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowEvaluatorTools(!showEvaluatorTools)}
+                    style={{ background: 'none', border: 'none', color: '#38bdf8', fontSize: '11px', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                  >
+                    {showEvaluatorTools ? '▲ Hide' : '▼ Show'}
+                  </button>
                 </div>
+                {showEvaluatorTools && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    {keyPersonas.map((p) => {
+                      const isSelected = email === p.email;
+                      return (
+                        <button
+                          key={p.email}
+                          type="button"
+                          onClick={() => selectPersona(p.email)}
+                          style={{
+                            textAlign: 'left',
+                            padding: '8px 10px',
+                            borderRadius: '6px',
+                            backgroundColor: isSelected ? '#1e3a8a' : '#0f172a',
+                            border: isSelected ? '1px solid #3b82f6' : '1px solid #334155',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? '#93c5fd' : '#f8fafc' }}>
+                            {p.title}
+                          </div>
+                          <div style={{ fontSize: '10px', color: '#94a3b8', margin: '1px 0' }}>{p.name}</div>
+                          <div style={{ fontSize: '9px', color: '#64748b', fontFamily: 'monospace' }}>{p.email}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>

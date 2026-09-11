@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Body,
+  Param,
   HttpException,
   HttpStatus,
   UseFilters,
@@ -229,5 +230,28 @@ export class AdminController {
       message: 'Project access granted successfully.',
       grant: { projectId, userId, role: role || 'project_manager' },
     };
+  }
+
+  @Post('users/:id/role')
+  async updateUserRole(@Param('id') userId: string, @Body() body: { role: string }) {
+    const pool = this.dbService.getPool();
+    const { role } = body;
+    if (!role) {
+      throw new HttpException({ title: 'Validation Error', detail: 'Role is required' }, HttpStatus.BAD_REQUEST);
+    }
+    await pool.query(`
+      UPDATE memberships SET role = $1, updated_at = NOW() WHERE user_id = $2;
+    `, [role, userId]);
+    return { success: true, message: `User role updated to ${role}.` };
+  }
+
+  @Post('users/:id/status')
+  async updateUserStatus(@Param('id') userId: string, @Body() body: { isRevoked: boolean }) {
+    const pool = this.dbService.getPool();
+    const { isRevoked } = body;
+    await pool.query(`
+      UPDATE memberships SET is_revoked = $1, updated_at = NOW() WHERE user_id = $2;
+    `, [isRevoked, userId]);
+    return { success: true, message: isRevoked ? 'User access revoked.' : 'User access restored.' };
   }
 }
