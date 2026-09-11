@@ -8,6 +8,7 @@ import {
   DailySiteReportEngine,
   InstallationTracker,
   ComprehensiveReadinessEvaluator,
+  OpeningAuthorizationEngine,
   Money,
   ProcurementRequirement,
   RFQ,
@@ -361,8 +362,23 @@ describe('Sprint 03 — End-to-End Physical Delivery Acceptance Journey', () => 
 
     expect(readinessReport.overallStatus).toBe('READY');
     expect(readinessReport.overallScorePercent).toBe(100);
-    expect(readinessReport.canOpen).toBe(true);
+    expect(readinessReport.eligibleForOpeningReview).toBe(true);
+    expect(readinessReport.canOpen).toBe(false); // Invariant: decoupled from automatic opening
     expect(readinessReport.criticalBlockers).toHaveLength(0);
     expect(readinessReport.exceptions).toHaveLength(0);
+
+    // Governed show opening authorization
+    const authResult = OpeningAuthorizationEngine.authorize(
+      readinessReport,
+      'Elena Rostova',
+      'executive_producer',
+      {
+        justification: 'Full physical delivery verified. Civil Defence and DECC walkthrough complete.',
+      }
+    );
+    expect(authResult.error).toBeUndefined();
+    expect(authResult.authorization).toBeDefined();
+    expect(authResult.authorization!.auditHash).toBeDefined();
+    expect(authResult.authorization!.readinessStatus).toBe('READY');
   });
 });

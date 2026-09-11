@@ -73,7 +73,9 @@ export const warehouseMovements = pgTable('warehouse_movements', {
   evidenceUris: jsonb('evidence_uris').$type<string[]>().default([]).notNull(),
   userId: uuid('user_id').references(() => users.id).notNull(),
   timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow().notNull(),
+  notes: text('notes'),
 });
+
 
 export const resources = pgTable('resources', {
   id: uuid('id').primaryKey().defaultRandom(),

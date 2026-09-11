@@ -60,6 +60,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     { path: '/', labelEn: 'Home Dashboard', labelAr: 'الرئيسية', icon: '🏠', id: 'nav-home' },
     { path: '/my-work', labelEn: 'My Work', labelAr: 'مهامي الشخصية', icon: '📋', id: 'nav-my-work' },
     { path: '/projects', labelEn: 'Projects Directory', labelAr: 'دليل المشاريع', icon: '🎪', id: 'nav-projects' },
+    { path: '/vendors', labelEn: 'Vendor Directory', labelAr: 'دليل الموردين', icon: '🏢', id: 'nav-vendors' },
+    { path: '/warehouse', labelEn: 'Warehouse Hub', labelAr: 'المستودع المركزي', icon: '📦', id: 'nav-warehouse' },
     { path: '/approvals', labelEn: 'Governance Approvals', labelAr: 'الموافقات والحوكمة', icon: '✍️', id: 'nav-approvals' },
     { path: '/calendar', labelEn: 'Master Calendar', labelAr: 'التقويم العام', icon: '📅', id: 'nav-calendar' },
     { path: '/portfolio', labelEn: 'Portfolio Financials', labelAr: 'المحفظة المالية', icon: '📊', id: 'nav-portfolio' },

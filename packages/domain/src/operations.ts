@@ -1,4 +1,5 @@
 import { TimeWindow, TimeUtil } from './time.js';
+import { safeSha256 } from './crypto-util.js';
 
 export interface ReadinessCheckpoint {
   id: string;
@@ -377,6 +378,116 @@ export interface CrewAssignment {
   status: 'scheduled' | 'confirmed' | 'checked_in' | 'checked_out' | 'conflict_flagged';
 }
 
+export interface QatarLabourLawLimits {
+  ordinaryHoursPerDay: number; // 8 hours per day (48 hours per week)
+  ramadanHoursPerDay: number; // 6 hours per day (36 hours per week)
+  maxDailyHoursWithOvertime: number; // 10 hours max per day
+  maxContinuousHoursWithoutBreak: number; // 5 consecutive hours max
+  minBreakDurationHours: number; // 1 hour minimum interval
+  maxBreakDurationHours: number; // 3 hours maximum interval
+  minWeeklyRestConsecutiveHours: number; // 24 consecutive hours
+}
+
+/**
+ * Statutory Labour Law Baseline (Qatar Labour Law No. 14 of 2004).
+ * This represents national legal requirements, distinct from internal company policies.
+ */
+export const QATAR_LABOUR_LAW_BASELINE: QatarLabourLawLimits = {
+  ordinaryHoursPerDay: 8,
+  ramadanHoursPerDay: 6,
+  maxDailyHoursWithOvertime: 10,
+  maxContinuousHoursWithoutBreak: 5,
+  minBreakDurationHours: 1,
+  maxBreakDurationHours: 3,
+  minWeeklyRestConsecutiveHours: 24,
+};
+
+export interface E3FatiguePolicyConfig {
+  policyCode: string;
+  name: string;
+  country: string;
+  minRestBetweenShiftsHours: number; // Default 11 hours internal policy
+  maxConsecutiveDays: number; // Default 6 days before mandatory weekly rest
+  allowExceptionWithDualSignoff: boolean;
+  appliesToRoles?: string[];
+  appliesToCrewTypes?: PersonnelType[];
+  appliesToEventPhases?: string[];
+  appliesToVenues?: string[];
+}
+
+/**
+ * Internal E3 Fatigue Management Policy.
+ * Note: E3's 11-hour minimum rest interval between shifts is an internal corporate health & safety policy,
+ * not a statutory requirement of the Qatar Ministry of Labour.
+ */
+export const DEFAULT_E3_FATIGUE_POLICY: E3FatiguePolicyConfig = {
+  policyCode: 'POL-HSE-FATIGUE-01',
+  name: 'E3 Live Operations Fatigue Management Policy',
+  country: 'Qatar',
+  minRestBetweenShiftsHours: 11,
+  maxConsecutiveDays: 6,
+  allowExceptionWithDualSignoff: true,
+};
+
+export interface CrewComplianceEvaluation {
+  isStatutoryCompliant: boolean;
+  statutoryViolations: string[];
+  isFatiguePolicyCompliant: boolean;
+  fatiguePolicyViolations: string[];
+  requiresDualSignoffException: boolean;
+}
+
+export class CrewFatiguePolicyEngine {
+  /**
+   * Evaluates shift duration against Qatar Labour Law statutory limits (Law No. 14 of 2004).
+   */
+  static evaluateStatutoryCompliance(
+    shiftHours: number,
+    isRamadan: boolean = false,
+    limits: QatarLabourLawLimits = QATAR_LABOUR_LAW_BASELINE
+  ): { isCompliant: boolean; violations: string[] } {
+    const violations: string[] = [];
+    const maxStandardHours = isRamadan ? limits.ramadanHoursPerDay : limits.ordinaryHoursPerDay;
+
+    if (shiftHours > limits.maxDailyHoursWithOvertime) {
+      violations.push(
+        `STATUTORY_OVERTIME_BREACH: Scheduled shift of ${shiftHours}h exceeds Qatar Labour Law maximum limit of ${limits.maxDailyHoursWithOvertime}h/day.`
+      );
+    } else if (shiftHours > maxStandardHours) {
+      violations.push(
+        `STATUTORY_OVERTIME_APPLIED: Scheduled shift of ${shiftHours}h exceeds ordinary daily limit of ${maxStandardHours}h. Applicable overtime compensation required.`
+      );
+    }
+
+    return {
+      isCompliant: violations.filter((v) => v.startsWith('STATUTORY_OVERTIME_BREACH')).length === 0,
+      violations,
+    };
+  }
+
+  /**
+   * Evaluates rest interval between shifts under E3 Fatigue Management Policy.
+   */
+  static evaluateRestInterval(
+    previousShiftEnd: Date,
+    nextShiftStart: Date,
+    policy: E3FatiguePolicyConfig = DEFAULT_E3_FATIGUE_POLICY
+  ): { isCompliant: boolean; restHours: number; violation?: string } {
+    const diffMs = nextShiftStart.getTime() - previousShiftEnd.getTime();
+    const restHours = Math.round((diffMs / 3600000) * 10) / 10;
+
+    if (restHours < policy.minRestBetweenShiftsHours) {
+      return {
+        isCompliant: false,
+        restHours,
+        violation: `E3_FATIGUE_POLICY_BREACH: Rest interval of ${restHours}h is below the E3 Fatigue Management Policy minimum of ${policy.minRestBetweenShiftsHours}h between shifts.`,
+      };
+    }
+
+    return { isCompliant: true, restHours };
+  }
+}
+
 export class CrewConflictDetector {
   /**
    * Detects and flags crew allocations across overlapping projects (Sprint 03 Module 11).
@@ -517,13 +628,15 @@ export interface OperationalReadinessReport {
   dimensionChecks: DimensionReadinessCheck[];
   criticalBlockers: string[];
   exceptions: string[];
-  canOpen: boolean;
+  eligibleForOpeningReview: boolean;
+  canOpen: boolean; // Invariant: 100% readiness does not automatically open. Requires explicit opening authorization.
 }
 
 export class ComprehensiveReadinessEvaluator {
   /**
    * Evaluates all 10 operational readiness dimensions before opening (Sprint 03 Module 13).
    * Invariant: Status derives from underlying facts, NOT a manual toggle. Any unresolved critical condition forces NOT_READY.
+   * Crucially: 100% READY does NOT automatically authorize show opening. It determines eligibility for governed opening authorization.
    */
   static evaluate(projectId: string, checks: DimensionReadinessCheck[]): OperationalReadinessReport {
     const criticalBlockers: string[] = [];
@@ -546,14 +659,14 @@ export class ComprehensiveReadinessEvaluator {
     const overallScorePercent = checks.length > 0 ? Math.round(totalScore / checks.length) : 0;
 
     let overallStatus: ReadinessGateStatus = 'READY';
-    let canOpen = true;
+    let eligibleForOpeningReview = true;
 
     if (criticalBlockers.length > 0) {
       overallStatus = 'NOT_READY';
-      canOpen = false;
+      eligibleForOpeningReview = false;
     } else if (exceptions.length > 0 || overallScorePercent < 95) {
       overallStatus = 'READY_WITH_EXCEPTIONS';
-      canOpen = true;
+      eligibleForOpeningReview = true;
     }
 
     return {
@@ -564,8 +677,111 @@ export class ComprehensiveReadinessEvaluator {
       dimensionChecks: checks,
       criticalBlockers,
       exceptions,
-      canOpen,
+      eligibleForOpeningReview,
+      canOpen: false, // Explicit: Requires governed signoff via OpeningAuthorizationEngine
     };
   }
 }
+
+export interface OpeningAuthorization {
+  id: string;
+  projectId: string;
+  authorizedBy: string;
+  authorizedRole: string;
+  authorizedAt: Date;
+  readinessStatus: ReadinessGateStatus;
+  readinessScorePercent: number;
+  exceptionsAcknowledged: string[];
+  justification?: string;
+  dualSignoffBy?: string;
+  dualSignoffAt?: Date;
+  auditHash: string;
+}
+
+export class OpeningAuthorizationEngine {
+  public static readonly AUTHORIZED_ROLES = [
+    'project_director',
+    'executive_producer',
+    'operations_director',
+    'super_admin',
+    'lead_producer',
+  ];
+
+  /**
+   * Authorizes show opening based on governed operational readiness evaluation.
+   * Invariant: Opening CANNOT be authorized if overallStatus is NOT_READY.
+   * If status is READY_WITH_EXCEPTIONS, all exceptions must be explicitly acknowledged.
+   * An immutable audit record with cryptographic hash is produced.
+   */
+  static authorize(
+    report: OperationalReadinessReport,
+    authorizedBy: string,
+    authorizedRole: string,
+    params?: {
+      exceptionsAcknowledged?: string[];
+      justification?: string;
+      dualSignoffBy?: string;
+    }
+  ): { authorization?: OpeningAuthorization; error?: string } {
+    if (!report.eligibleForOpeningReview || report.overallStatus === 'NOT_READY') {
+      return {
+        error: `OPENING_BLOCKED: Cannot authorize opening while project status is NOT_READY (${report.criticalBlockers.length} critical blockers present).`,
+      };
+    }
+
+    const normalizedRole = authorizedRole.toLowerCase().replace(/[\s-]+/g, '_');
+    if (!this.AUTHORIZED_ROLES.includes(normalizedRole)) {
+      return {
+        error: `UNAUTHORIZED_ROLE: Role '${authorizedRole}' is not permitted to sign off show opening. Requires one of: ${this.AUTHORIZED_ROLES.join(', ')}.`,
+      };
+    }
+
+    if (report.overallStatus === 'READY_WITH_EXCEPTIONS') {
+      const acknowledged = params?.exceptionsAcknowledged || [];
+      const unacknowledged = report.exceptions.filter((e) => !acknowledged.includes(e));
+      if (unacknowledged.length > 0) {
+        return {
+          error: `EXCEPTIONS_UNACKNOWLEDGED: ${unacknowledged.length} exception(s) require explicit sign-off acknowledgment before opening authorization.`,
+        };
+      }
+    }
+
+    const id = `auth-open-${report.projectId}-${Date.now()}`;
+    const authorizedAt = new Date();
+    const dualSignoffAt = params?.dualSignoffBy ? new Date() : undefined;
+
+    const auditPayload = {
+      id,
+      projectId: report.projectId,
+      authorizedBy,
+      authorizedRole: normalizedRole,
+      authorizedAt: authorizedAt.toISOString(),
+      readinessStatus: report.overallStatus,
+      readinessScorePercent: report.overallScorePercent,
+      exceptionsAcknowledged: params?.exceptionsAcknowledged || [],
+      justification: params?.justification || '',
+      dualSignoffBy: params?.dualSignoffBy || '',
+    };
+
+    const auditHash = safeSha256(auditPayload);
+
+    return {
+      authorization: {
+        id,
+        projectId: report.projectId,
+        authorizedBy,
+        authorizedRole: normalizedRole,
+        authorizedAt,
+        readinessStatus: report.overallStatus,
+        readinessScorePercent: report.overallScorePercent,
+        exceptionsAcknowledged: params?.exceptionsAcknowledged || [],
+        justification: params?.justification,
+        dualSignoffBy: params?.dualSignoffBy,
+        dualSignoffAt,
+        auditHash,
+      },
+    };
+  }
+}
+
 

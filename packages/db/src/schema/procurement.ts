@@ -27,11 +27,17 @@ export const vendors = pgTable('vendors', {
   rating: text('rating').default('4.5'),
   qualificationStatus: text('qualification_status').default('approved').notNull(), // 'prospect', 'registration_pending', 'under_review', 'approved', 'conditionally_approved', 'suspended', 'blacklisted', 'archived'
   status: text('status').default('active').notNull(), // 'active', 'suspended', 'pending_verification'
+  restrictedBankDetails: jsonb('restricted_bank_details'),
+  riskFlags: jsonb('risk_flags').default([]),
+  onboardingStage: text('onboarding_stage').default('completed'),
+  documents: jsonb('documents').default([]),
+  projectsUsed: jsonb('projects_used').default([]),
   complianceVerified: boolean('compliance_verified').default(false).notNull(),
   soleSourceAuthorised: boolean('sole_source_authorised').default(false).notNull(),
   freelanceGracePeriodUntil: timestamp('freelance_grace_period_until', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
 
 export const vendorBankChangeRequests = pgTable('vendor_bank_change_requests', {
   id: uuid('id').primaryKey().defaultRandom(),

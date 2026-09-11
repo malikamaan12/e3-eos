@@ -316,28 +316,135 @@ export interface AssetAllocation {
   status: 'tentative' | 'confirmed' | 'released' | 'returned';
 }
 
+export type StandardWarehouseZone =
+  | 'AV'
+  | 'Lighting'
+  | 'Furniture'
+  | 'Games'
+  | 'Scenic'
+  | 'Branding'
+  | 'Tools'
+  | 'Consumables'
+  | 'Quarantine'
+  | 'Returns';
+
+export const STANDARD_WAREHOUSE_ZONES: readonly StandardWarehouseZone[] = [
+  'AV',
+  'Lighting',
+  'Furniture',
+  'Games',
+  'Scenic',
+  'Branding',
+  'Tools',
+  'Consumables',
+  'Quarantine',
+  'Returns',
+] as const;
+
+export type WarehouseMovementType =
+  | 'received'
+  | 'stored'
+  | 'reserved'
+  | 'allocated'
+  | 'picked'
+  | 'packed'
+  | 'dispatched'
+  | 'on_site'
+  | 'returned'
+  | 'inspected'
+  | 'restocked';
+
 export interface WarehouseMovement {
   id: string;
   assetId: string;
   source: string;
   destination: string;
-  movementType:
-    | 'received'
-    | 'stored'
-    | 'allocated'
-    | 'picked'
-    | 'packed'
-    | 'dispatched'
-    | 'on_site'
-    | 'returned'
-    | 'inspected'
-    | 'restocked';
+  movementType: WarehouseMovementType;
   quantity: number;
   condition: string;
   projectId?: string;
   evidenceUris: string[];
   userId: string;
   timestamp: Date;
+  notes?: string;
+}
+
+export class WarehouseOperationsEngine {
+  public static readonly ZONES = STANDARD_WAREHOUSE_ZONES;
+
+  /**
+   * Executes a governed warehouse movement through the 10-stage physical delivery lifecycle.
+   * Enforces destination zone validation, quarantine redirection for damaged goods, and state transitions.
+   */
+  static executeMovement(
+    asset: Asset,
+    movementParams: Omit<WarehouseMovement, 'id' | 'timestamp'>
+  ): { updatedAsset: Asset; movement: WarehouseMovement } {
+    let finalDestination = movementParams.destination;
+    let finalCondition: AssetCondition = (movementParams.condition as AssetCondition) || asset.condition;
+    let finalAvailability: AssetAvailability = asset.availability;
+    let finalZone = asset.zone;
+
+    // Damaged/failed inspection automatically routes to Quarantine zone
+    if (
+      movementParams.movementType === 'inspected' &&
+      ['damaged', 'needs_maintenance', 'quarantined'].includes(finalCondition)
+    ) {
+      finalDestination = 'Quarantine';
+      finalZone = 'Quarantine';
+      finalAvailability = 'damaged';
+    } else {
+      switch (movementParams.movementType) {
+        case 'stored':
+        case 'restocked':
+          finalAvailability = 'available';
+          finalZone = finalDestination;
+          break;
+        case 'reserved':
+        case 'allocated':
+          finalAvailability = 'reserved';
+          break;
+        case 'picked':
+        case 'packed':
+          finalAvailability = 'allocated';
+          break;
+        case 'dispatched':
+          finalAvailability = 'dispatched';
+          break;
+        case 'on_site':
+          finalAvailability = 'on_site';
+          break;
+        case 'returned':
+          finalAvailability = 'returned';
+          finalZone = 'Returns';
+          break;
+        case 'inspected':
+          if (finalCondition === 'good' || finalCondition === 'serviceable' || finalCondition === 'new') {
+            finalAvailability = 'available';
+            finalZone = finalDestination;
+          }
+          break;
+      }
+    }
+
+    const updatedAsset: Asset = {
+      ...asset,
+      condition: finalCondition,
+      availability: finalAvailability,
+      zone: finalZone,
+      location: finalDestination,
+      lastInspectionDate: movementParams.movementType === 'inspected' ? new Date() : asset.lastInspectionDate,
+    };
+
+    const movement: WarehouseMovement = {
+      ...movementParams,
+      destination: finalDestination,
+      id: `mov-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      timestamp: new Date(),
+    };
+
+    return { updatedAsset, movement };
+  }
 }
 
 export class AssetAllocationEngine {
@@ -407,4 +514,5 @@ export class AssetAllocationEngine {
     };
   }
 }
+
 

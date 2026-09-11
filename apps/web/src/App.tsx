@@ -15,12 +15,14 @@ import { ProjectCockpitView } from './views/ProjectCockpitView.js';
 import { AdminUsersView } from './views/AdminUsersView.js';
 import { AdminRolesView } from './views/AdminRolesView.js';
 
-// Portals
+// Portals & Workspaces
 import { FieldOpsView } from './views/FieldOpsView.js';
 import { ClientPortalView } from './views/ClientPortalView.js';
 import { SupplierPortalView } from './views/SupplierPortalView.js';
 import { LeadershipView } from './views/LeadershipView.js';
 import { AdminStudioView } from './views/AdminStudioView.js';
+import { VendorDirectoryView } from './views/VendorDirectoryView.js';
+import { WarehouseOperationsView } from './views/WarehouseOperationsView.js';
 
 const AppRouter: React.FC = () => {
   const { currentPath } = useEosContext();
@@ -52,6 +54,12 @@ const AppRouter: React.FC = () => {
     }
     if (currentPath === '/projects') {
       return <ProjectListView />;
+    }
+    if (currentPath === '/vendors') {
+      return <VendorDirectoryView />;
+    }
+    if (currentPath === '/warehouse' || currentPath === '/inventory') {
+      return <WarehouseOperationsView />;
     }
     if (currentPath === '/admin/users' || currentPath === '/admin') {
       return <AdminUsersView />;

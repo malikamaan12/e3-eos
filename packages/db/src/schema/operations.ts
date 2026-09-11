@@ -225,5 +225,25 @@ export const operationalReadinessGates = pgTable('operational_readiness_gates', 
   dimensionChecks: jsonb('dimension_checks').default([]).notNull(),
   criticalBlockers: jsonb('critical_blockers').$type<string[]>().default([]).notNull(),
   exceptions: jsonb('exceptions').$type<string[]>().default([]).notNull(),
+  eligibleForOpeningReview: boolean('eligible_for_opening_review').default(false).notNull(),
+  canOpen: boolean('can_open').default(false).notNull(),
   evaluatedAt: timestamp('evaluated_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const openingAuthorizations = pgTable('opening_authorizations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  authorizedBy: text('authorized_by').notNull(),
+  authorizedRole: text('authorized_role').notNull(),
+  authorizedAt: timestamp('authorized_at', { withTimezone: true }).defaultNow().notNull(),
+  readinessStatus: text('readiness_status').notNull(),
+  readinessScorePercent: text('readiness_score_percent').notNull(),
+  exceptionsAcknowledged: jsonb('exceptions_acknowledged').$type<string[]>().default([]).notNull(),
+  justification: text('justification'),
+  dualSignoffBy: text('dual_signoff_by'),
+  dualSignoffAt: timestamp('dual_signoff_at', { withTimezone: true }),
+  auditHash: text('audit_hash').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+

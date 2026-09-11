@@ -127,45 +127,86 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
         </div>
       )}
 
-      {/* Labor Regulations & Compliance Info Card */}
-      <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
-              👷 Crew & Labor Deployment (Sprint 03 Module 11)
+      {/* Dual Governance: Qatar Labour Law Statutory Baseline vs E3 Fatigue Policy */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        {/* Statutory Baseline */}
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '18px' }}>⚖️</span>
+            <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+              Qatar Labour Law Statutory Baseline (Law No. 14 of 2004)
             </h3>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
-              Cross-project conflict detection, Qatar Ministry of Labour 11-hour mandatory rest intervals, and venue accreditation.
-            </p>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span
-              style={{
-                fontSize: '12px',
-                fontWeight: 700,
-                color: '#16a34a',
-                backgroundColor: '#f0fdf4',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                border: '1px solid #bbf7d0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <span>⏱️</span> 11-Hour Rest Interval Compliant
-            </span>
-            <Button
-              id="btn-add-crew-assignment"
-              variant="primary"
-              size="md"
-              onClick={() => setIsModalOpen(true)}
-            >
-              + Assign Crew Member
-            </Button>
+          <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0' }}>
+            Mandatory national statutory limits enforced across all entities operating in the State of Qatar.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
+            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <span style={{ color: '#64748b' }}>Ordinary Daily Hours:</span>
+              <div style={{ fontWeight: 700, color: '#0f172a' }}>8h / day (48h / week)</div>
+            </div>
+            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <span style={{ color: '#64748b' }}>Holy Month of Ramadan:</span>
+              <div style={{ fontWeight: 700, color: '#0f172a' }}>6h / day (36h / week)</div>
+            </div>
+            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <span style={{ color: '#64748b' }}>Maximum With Overtime:</span>
+              <div style={{ fontWeight: 700, color: '#0f172a' }}>10h / day strictly capped</div>
+            </div>
+            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <span style={{ color: '#64748b' }}>Breaks & Weekly Rest:</span>
+              <div style={{ fontWeight: 700, color: '#0f172a' }}>1-3h (max 5h continuous) • 24h rest</div>
+            </div>
           </div>
+        </Card>
+
+        {/* E3 Fatigue Management Policy */}
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '18px' }}>🛡️</span>
+            <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+              E3 Fatigue Management Policy (POL-HSE-FATIGUE-01)
+            </h3>
+          </div>
+          <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0' }}>
+            Internal E3 Health, Safety & Welfare standard (distinct from statutory legislation).
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
+            <div style={{ backgroundColor: '#f0fdf4', padding: '8px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+              <span style={{ color: '#166534' }}>Inter-Shift Rest Interval:</span>
+              <div style={{ fontWeight: 800, color: '#15803d' }}>11 Hours Mandatory Rest</div>
+            </div>
+            <div style={{ backgroundColor: '#f0fdf4', padding: '8px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+              <span style={{ color: '#166534' }}>Exception Governance:</span>
+              <div style={{ fontWeight: 700, color: '#15803d' }}>Dual HSE & Director Signoff</div>
+            </div>
+            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <span style={{ color: '#64748b' }}>Configurable By:</span>
+              <div style={{ fontWeight: 700, color: '#0f172a' }}>Role, Crew Type, Event Phase</div>
+            </div>
+            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <span style={{ color: '#64748b' }}>Policy Scope:</span>
+              <div style={{ fontWeight: 700, color: '#0f172a' }}>Qatar, UAE, KSA Operations</div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Action Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '13px', color: '#64748b' }}>
+          Cross-project conflict detection active. Roster verified against statutory hours and 11-hour fatigue rest.
         </div>
-      </Card>
+        <Button
+          id="btn-add-crew-assignment"
+          variant="primary"
+          size="md"
+          onClick={() => setIsModalOpen(true)}
+        >
+          + Assign Crew Member
+        </Button>
+      </div>
+
 
       {/* Crew Roster Grid */}
       <Card>

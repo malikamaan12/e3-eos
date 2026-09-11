@@ -20,6 +20,12 @@ ALTER TABLE vendors ADD COLUMN IF NOT EXISTS licences JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE vendors ADD COLUMN IF NOT EXISTS certifications JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE vendors ADD COLUMN IF NOT EXISTS rating TEXT DEFAULT '4.5';
 ALTER TABLE vendors ADD COLUMN IF NOT EXISTS qualification_status TEXT NOT NULL DEFAULT 'approved';
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS restricted_bank_details JSONB;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS risk_flags JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS onboarding_stage TEXT DEFAULT 'completed';
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS documents JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS projects_used JSONB DEFAULT '[]'::jsonb;
+
 
 -- 2. Procurement Requirements
 CREATE TABLE IF NOT EXISTS procurement_requirements (
@@ -344,7 +350,7 @@ CREATE TABLE IF NOT EXISTS installation_items (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 12. Operational Readiness Gate
+-- 12. Operational Readiness Gate & Opening Authorizations
 CREATE TABLE IF NOT EXISTS operational_readiness_gates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organisation_id UUID NOT NULL REFERENCES organisations(id),
@@ -354,8 +360,29 @@ CREATE TABLE IF NOT EXISTS operational_readiness_gates (
   dimension_checks JSONB NOT NULL DEFAULT '[]'::jsonb,
   critical_blockers JSONB NOT NULL DEFAULT '[]'::jsonb,
   exceptions JSONB NOT NULL DEFAULT '[]'::jsonb,
+  eligible_for_opening_review BOOLEAN NOT NULL DEFAULT FALSE,
+  can_open BOOLEAN NOT NULL DEFAULT FALSE,
   evaluated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS opening_authorizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organisation_id UUID NOT NULL REFERENCES organisations(id),
+  project_id UUID NOT NULL REFERENCES projects(id),
+  authorized_by TEXT NOT NULL,
+  authorized_role TEXT NOT NULL,
+  authorized_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  readiness_status TEXT NOT NULL,
+  readiness_score_percent TEXT NOT NULL,
+  exceptions_acknowledged JSONB NOT NULL DEFAULT '[]'::jsonb,
+  justification TEXT,
+  dual_signoff_by TEXT,
+  dual_signoff_at TIMESTAMP WITH TIME ZONE,
+  audit_hash TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE warehouse_movements ADD COLUMN IF NOT EXISTS notes TEXT;
 
 -- 13. Enable Row-Level Security
 ALTER TABLE procurement_requirements ENABLE ROW LEVEL SECURITY;
@@ -374,6 +401,7 @@ ALTER TABLE crew_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_site_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE installation_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE operational_readiness_gates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE opening_authorizations ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tenant_isolation_procurement_requirements ON procurement_requirements USING (organisation_id = current_setting('app.current_tenant_id', true)::uuid);
 CREATE POLICY tenant_isolation_rfqs ON rfqs USING (organisation_id = current_setting('app.current_tenant_id', true)::uuid);
@@ -391,3 +419,5 @@ CREATE POLICY tenant_isolation_crew_assignments ON crew_assignments USING (organ
 CREATE POLICY tenant_isolation_daily_site_reports ON daily_site_reports USING (organisation_id = current_setting('app.current_tenant_id', true)::uuid);
 CREATE POLICY tenant_isolation_installation_items ON installation_items USING (organisation_id = current_setting('app.current_tenant_id', true)::uuid);
 CREATE POLICY tenant_isolation_operational_readiness_gates ON operational_readiness_gates USING (organisation_id = current_setting('app.current_tenant_id', true)::uuid);
+CREATE POLICY tenant_isolation_opening_authorizations ON opening_authorizations USING (organisation_id = current_setting('app.current_tenant_id', true)::uuid);
+

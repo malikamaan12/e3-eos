@@ -1,8 +1,32 @@
 import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { Badge, Button, AlertBanner } from '../components/DesignSystem.js';
+import { Badge, Button, AlertBanner, Card, Input, Textarea, Select, Modal } from '../components/DesignSystem.js';
 import { ViewStateRenderer } from '../components/ViewStateRenderer.js';
 import { ViewStateFactory } from '../view-states.js';
+
+interface SnagItem {
+  id: string;
+  title: string;
+  location: string;
+  trade: string;
+  severity: 'critical' | 'moderate' | 'cosmetic';
+  photos: string[];
+  status: 'open' | 'in_progress' | 'resolved';
+  loggedAt: string;
+}
+
+interface PodRecord {
+  id: string;
+  shipmentCode: string;
+  carrier: string;
+  truckPlate: string;
+  itemsCount: number;
+  recipientName: string;
+  recipientRole: string;
+  condition: 'intact' | 'damaged_partial' | 'packaging_damaged';
+  signatureTimestamp: string;
+  signed: boolean;
+}
 
 export const FieldOpsView: React.FC = () => {
   const {
@@ -16,6 +40,15 @@ export const FieldOpsView: React.FC = () => {
     selectedProjectId,
   } = useEosContext();
 
+  const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
+
+  // Viewport mode: mobile frame (<480px) vs desktop responsive
+  const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
+
+  // Active mobile tab
+  const [mobileTab, setMobileTab] = useState<'pod' | 'snag' | 'scanner' | 'qc' | 'crew' | 'dsr' | 'checklist'>('checklist');
+
+  // 1. Checklist State
   const [checklists, setChecklists] = useState([
     { id: 'chk-01', label: 'Overhead Truss Rigging Torque Check', completed: true, critical: true },
     { id: 'chk-02', label: 'Generator Grounding & Fuel Spill Perimeter', completed: true, critical: true },
@@ -23,9 +56,80 @@ export const FieldOpsView: React.FC = () => {
     { id: 'chk-04', label: 'AV Control Desk Talkback Comms Verification', completed: false, critical: false },
   ]);
 
-  const [incidentLogged, setIncidentLogged] = useState(false);
+  // 2. POD State
+  const [podRecords, setPodRecords] = useState<PodRecord[]>([
+    {
+      id: 'pod-001',
+      shipmentCode: 'SHP-DOHA-001',
+      carrier: 'Al-Maha Logistics WLL',
+      truckPlate: 'QA-7819-HV',
+      itemsCount: 30,
+      recipientName: 'Omar Farooq',
+      recipientRole: 'Site Field Supervisor',
+      condition: 'intact',
+      signatureTimestamp: '2026-09-12 08:30 AST',
+      signed: true,
+    },
+    {
+      id: 'pod-002',
+      shipmentCode: 'SHP-DOHA-002',
+      carrier: 'Gulf Rapid Freight',
+      truckPlate: 'QA-3402-LD',
+      itemsCount: 16,
+      recipientName: 'Omar Farooq',
+      recipientRole: 'Site Field Supervisor',
+      condition: 'intact',
+      signatureTimestamp: '',
+      signed: false,
+    },
+  ]);
+  const [selectedPod, setSelectedPod] = useState<PodRecord>(podRecords[1]);
+  const [podRecipient, setPodRecipient] = useState<string>('Omar Farooq');
+  const [podRole, setPodRole] = useState<string>('Site Field Supervisor');
+  const [podCondition, setPodCondition] = useState<'intact' | 'damaged_partial' | 'packaging_damaged'>('intact');
+  const [signatureConfirmed, setSignatureConfirmed] = useState<boolean>(false);
 
-  const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
+  // 3. Snag State
+  const [snags, setSnags] = useState<SnagItem[]>([
+    {
+      id: 'sng-01',
+      title: 'Cracked edge banding on Counter #14',
+      location: 'DECC Hall 1 - East Foyer',
+      trade: 'Scenic / Joinery',
+      severity: 'moderate',
+      photos: ['snag-counter14-edge.jpg', 'snag-counter14-full.jpg'],
+      status: 'open',
+      loggedAt: '2026-09-12 09:15 AST',
+    },
+  ]);
+  const [snagTitle, setSnagTitle] = useState<string>('Lighting truss safety cable missing lock pin');
+  const [snagLocation, setSnagLocation] = useState<string>('DECC Hall 1 - Grid Sector B');
+  const [snagTrade, setSnagTrade] = useState<string>('Rigging / AV');
+  const [snagSeverity, setSnagSeverity] = useState<'critical' | 'moderate' | 'cosmetic'>('critical');
+  const [snagPhotos, setSnagPhotos] = useState<string[]>(['snag-truss-pin-missing.jpg']);
+  const [newPhotoName, setNewPhotoName] = useState<string>('');
+
+  // 4. Barcode / QR Scanner State
+  const [scannedTag, setScannedTag] = useState<string>('AST-SCN-001');
+  const [scanResult, setScanResult] = useState<any | null>({
+    assetTag: 'AST-SCN-001',
+    description: 'Custom Wooden Registration Counters (120x80cm)',
+    zone: 'Zone Scenic',
+    status: 'Picked & Staged for Dispatch',
+    lastScanned: '2026-09-12 09:20 AST',
+  });
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+
+  // 5. QC Inspection State
+  const [qcStatus, setQcStatus] = useState<'pass' | 'fail_quarantine'>('pass');
+  const [qcNotes, setQcNotes] = useState<string>('Visual inspection confirmed zero structural defects');
+
+  // 6. Crew Check-in State
+  const [crewMember, setCrewMember] = useState<string>('Rashid Al-Kuwari (Lead Rigger)');
+  const [crewCheckedIn, setCrewCheckedIn] = useState<boolean>(false);
+
+  // HSE Incident
+  const [incidentLogged, setIncidentLogged] = useState(false);
 
   const handleToggleChecklist = (id: string) => {
     setChecklists((prev) =>
@@ -46,6 +150,68 @@ export const FieldOpsView: React.FC = () => {
     }
   };
 
+  const handleSignPod = () => {
+    const updated = {
+      ...selectedPod,
+      recipientName: podRecipient,
+      recipientRole: podRole,
+      condition: podCondition,
+      signatureTimestamp: new Date().toLocaleString(),
+      signed: true,
+    };
+    setPodRecords((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    setSelectedPod(updated);
+    setSignatureConfirmed(true);
+    if (isOffline) {
+      queueMutation('sign_pod', 'DeliveryPod', { shipmentId: updated.shipmentCode, signature: 'safe-digital-sig' });
+    }
+  };
+
+  const handleCreateSnag = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newSnag: SnagItem = {
+      id: `sng-${Date.now().toString().slice(-3)}`,
+      title: snagTitle,
+      location: snagLocation,
+      trade: snagTrade,
+      severity: snagSeverity,
+      photos: snagPhotos,
+      status: 'open',
+      loggedAt: new Date().toLocaleTimeString(),
+    };
+    setSnags([newSnag, ...snags]);
+    setSnagTitle('');
+    if (isOffline) {
+      queueMutation('create_snag', 'FieldSnag', newSnag);
+    }
+  };
+
+  const handleAddPhoto = () => {
+    if (newPhotoName.trim()) {
+      setSnagPhotos([...snagPhotos, newPhotoName.trim()]);
+      setNewPhotoName('');
+    }
+  };
+
+  const handleSimulateScan = (tag: string) => {
+    setIsScanning(true);
+    setTimeout(() => {
+      setScannedTag(tag);
+      setScanResult({
+        assetTag: tag,
+        description: tag.includes('SCN')
+          ? 'Custom Wooden Registration Counters (120x80cm)'
+          : tag.includes('LGT')
+          ? 'Martin Mac Viper Profile Moving Head 1000W'
+          : 'Shure Axient Digital Quad Wireless Receiver',
+        zone: tag.includes('SCN') ? 'Zone Scenic' : tag.includes('LGT') ? 'Zone Lighting' : 'Zone AV',
+        status: 'Picked & Staged for Dispatch',
+        lastScanned: new Date().toLocaleTimeString(),
+      });
+      setIsScanning(false);
+    }, 600);
+  };
+
   const viewState = isOffline
     ? ViewStateFactory.offline(
         pendingMutations.length,
@@ -55,182 +221,653 @@ export const FieldOpsView: React.FC = () => {
     : ViewStateFactory.ready(checklists);
 
   return (
-    <div data-testid="field-ops-workspace" style={{ maxWidth: '1080px', margin: '0 auto' }}>
-      {/* Mobile-First Header */}
+    <div data-testid="field-ops-workspace" style={{ maxWidth: isMobileFrame ? '460px' : '1080px', margin: '0 auto', transition: 'max-width 0.3s ease' }}>
+      {/* Viewport Width Controller Banner */}
       <div
         style={{
-          backgroundColor: '#0f172a',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: '#1e293b',
           color: '#ffffff',
-          borderRadius: '8px',
-          padding: '16px 20px',
-          marginBottom: '16px',
+          borderRadius: '8px 8px 0 0',
+          padding: '8px 16px',
+          fontSize: '12px',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '18px' }}>📱</span>
-            <span style={{ fontWeight: 700, fontSize: '15px' }}>
-              {currentLanguage === 'ar' ? 'عمليات الموقع الميدانية (PWA)' : 'Field Ops PWA'}
-            </span>
-          </div>
-          <Badge variant={isOffline ? 'warning' : 'success'}>
-            {isOffline ? (currentLanguage === 'ar' ? 'غير متصل (محلي)' : 'OFFLINE') : (currentLanguage === 'ar' ? 'متصل' : 'ONLINE')}
-          </Badge>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>📱</span>
+          <span style={{ fontWeight: 700 }}>Mobile Field PWA (<span style={{ color: '#38bdf8' }}>{isMobileFrame ? '<480px Viewport' : 'Desktop Viewport'}</span>)</span>
         </div>
-        <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-          {currentProject.title} [{currentProject.projectCode}]
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button
+            onClick={() => setIsMobileFrame(true)}
+            style={{
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: 700,
+              backgroundColor: isMobileFrame ? '#2563eb' : '#334155',
+              color: '#ffffff',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Mobile (390px)
+          </button>
+          <button
+            onClick={() => setIsMobileFrame(false)}
+            style={{
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: 700,
+              backgroundColor: !isMobileFrame ? '#2563eb' : '#334155',
+              color: '#ffffff',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Full Width
+          </button>
         </div>
       </div>
 
-      <ViewStateRenderer
-        viewState={viewState}
-        onSyncOfflineQueue={() => {
-          clearPendingMutations();
-          toggleOffline();
+      {/* Main Field PWA Frame */}
+      <div
+        style={{
+          backgroundColor: '#f8fafc',
+          border: '2px solid #cbd5e1',
+          borderRadius: '0 0 12px 12px',
+          padding: '16px',
+          boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
         }}
       >
-        {() => (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(280px, 340px)', gap: '20px', alignItems: 'flex-start' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Quick Actions Panel */}
-            <div
-              style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                padding: '16px',
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '10px',
-              }}
-            >
-              <Button size="sm" variant="secondary" onClick={toggleOffline}>
-                {isOffline ? '⚡ Reconnect Network' : '📶 Simulate Offline Loss'}
-              </Button>
-              <Button size="sm" variant="danger" onClick={handleLogIncident}>
-                🚨 {currentLanguage === 'ar' ? 'تسجيل حادث سلامة' : 'Log Incident'}
-              </Button>
+        {/* Mobile Header */}
+        <div
+          style={{
+            backgroundColor: '#0f172a',
+            color: '#ffffff',
+            borderRadius: '8px',
+            padding: '14px 16px',
+            marginBottom: '14px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>📱</span>
+              <span style={{ fontWeight: 800, fontSize: '14px' }}>
+                Field Ops PWA (E3 Field Operations Hub)
+              </span>
             </div>
+            <Badge variant={isOffline ? 'warning' : 'success'}>
+              {isOffline ? 'OFFLINE QUEUE' : 'ONLINE LIVE'}
+            </Badge>
+          </div>
+          <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
+            <span>{currentProject.title}</span>
+            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>{currentProject.projectCode}</span>
+          </div>
+        </div>
 
-            {incidentLogged && (
-              <AlertBanner
-                type="warning"
-                title="HSE Incident Recorded"
-                action={{ label: 'Dismiss', onClick: () => setIncidentLogged(false) }}
-              >
-                Incident recorded into internal log. Internal narrative is strictly decoupled and stripped from the Client Portal.
-              </AlertBanner>
-            )}
+        {/* Quick Network & Safety Action Bar */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+          <Button size="sm" variant={isOffline ? 'primary' : 'secondary'} onClick={toggleOffline} style={{ flex: 1, fontSize: '11px' }}>
+            {isOffline ? '⚡ Sync Offline Queue' : '📶 Simulate Offline'}
+          </Button>
+          <Button size="sm" variant="danger" onClick={handleLogIncident} style={{ flex: 1, fontSize: '11px' }}>
+            🚨 HSE Incident
+          </Button>
+        </div>
 
-            {/* Checklist Runner */}
-            <div
+        {incidentLogged && (
+          <div style={{ marginBottom: '12px' }}>
+            <AlertBanner
+              type="warning"
+              title="HSE Incident Recorded"
+              action={{ label: 'Dismiss', onClick: () => setIncidentLogged(false) }}
+            >
+              Incident stored in internal site log. Client portal view strictly decoupled.
+            </AlertBanner>
+          </div>
+        )}
+
+        {/* Mobile Tab Navigation */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '4px',
+            overflowX: 'auto',
+            paddingBottom: '8px',
+            marginBottom: '14px',
+            borderBottom: '1px solid #e2e8f0',
+          }}
+        >
+          {[
+            { id: 'pod', label: '✍️ POD Receipt', badge: podRecords.filter(p => !p.signed).length },
+            { id: 'snag', label: '📸 Snag & Photo', badge: snags.length },
+            { id: 'scanner', label: '📷 QR Scanner', badge: 0 },
+            { id: 'qc', label: '🔬 QC Inspect', badge: 0 },
+            { id: 'crew', label: '👷 Crew Checkin', badge: 0 },
+            { id: 'checklist', label: '📋 Readiness Chk', badge: checklists.filter(c => !c.completed).length },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setMobileTab(tab.id as any)}
               style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                padding: '16px',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                border: 'none',
+                backgroundColor: mobileTab === tab.id ? '#2563eb' : '#ffffff',
+                color: mobileTab === tab.id ? '#ffffff' : '#475569',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
               }}
             >
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700 }}>
-                {currentLanguage === 'ar' ? 'قائمة الفحص الميداني والجاهزية' : 'Live Field Readiness Checklist'}
-              </h3>
+              <span>{tab.label}</span>
+              {tab.badge > 0 && (
+                <span style={{ backgroundColor: mobileTab === tab.id ? 'rgba(255,255,255,0.3)' : '#fee2e2', color: mobileTab === tab.id ? '#ffffff' : '#b91c1c', padding: '0 5px', borderRadius: '8px', fontSize: '10px' }}>
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {checklists.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => handleToggleChecklist(item.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '12px 14px',
-                      borderRadius: '6px',
-                      backgroundColor: item.completed ? '#f0fdf4' : '#ffffff',
-                      border: `1px solid ${item.completed ? '#86efac' : '#e2e8f0'}`,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={item.completed}
-                      onChange={() => {}}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          textDecoration: item.completed ? 'line-through' : 'none',
-                          color: item.completed ? '#166534' : '#0f172a',
-                        }}
-                      >
-                        {item.label}
-                      </div>
-                      {item.critical && (
-                        <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 600 }}>
-                          • Critical Safety Gate
-                        </span>
-                      )}
-                    </div>
-                    {item.completed ? (
-                      <Badge variant="success">PASS</Badge>
-                    ) : (
-                      <Badge variant={item.critical ? 'danger' : 'neutral'}>PENDING</Badge>
-                    )}
-                  </div>
-                ))}
+        {/* 1. WORKFLOW: POD SIGN-OFF (PROOF OF DELIVERY) */}
+        {mobileTab === 'pod' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                  Proof of Delivery (POD) Receipt
+                </h3>
+                <Badge variant={selectedPod.signed ? 'success' : 'warning'}>
+                  {selectedPod.signed ? 'POD SIGNED & SEALED' : 'PENDING SIGN-OFF'}
+                </Badge>
               </div>
-            </div>
-          
-            </div>
+              <p style={{ fontSize: '11px', color: '#64748b', margin: '0 0 12px 0' }}>
+                Physical freight acceptance at venue dock. Signature establishes custodial transfer.
+              </p>
 
-            {/* Desktop Field Ops Telemetry & Storage Sidebar */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '16px' }}>
-                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
-                  {currentLanguage === 'ar' ? 'تشخيصات الجهاز وحالة PWA' : 'Device Telemetry & Offline Status'}
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
-                    <span style={{ color: '#64748b' }}>Network State:</span>
-                    <Badge variant={isOffline ? 'warning' : 'success'}>{isOffline ? 'OFFLINE (Cached)' : 'ONLINE'}</Badge>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
-                    <span style={{ color: '#64748b' }}>Service Worker:</span>
-                    <span style={{ fontWeight: 600, color: '#16a34a' }}>Active (sw.js v1.0.0)</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
-                    <span style={{ color: '#64748b' }}>Queued Mutations:</span>
-                    <span style={{ fontWeight: 700, color: pendingMutations.length > 0 ? '#ea580c' : '#059669' }}>
-                      {pendingMutations.length} Pending Replay
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
-                    <span style={{ color: '#64748b' }}>Offline Sync Policy:</span>
-                    <span style={{ fontWeight: 600 }}>Bounded / Non-Authoritative</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Storage Quota:</span>
-                    <span style={{ fontWeight: 600 }}>IndexedDB Ready</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
+                <Select
+                  label="Select Arrived Shipment"
+                  value={selectedPod.id}
+                  onChange={(e) => {
+                    const found = podRecords.find((p) => p.id === e.target.value);
+                    if (found) setSelectedPod(found);
+                  }}
+                  options={podRecords.map((p) => ({
+                    value: p.id,
+                    label: `${p.shipmentCode} (${p.carrier} - ${p.truckPlate})`,
+                  }))}
+                />
+
+                <div style={{ backgroundColor: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px' }}>
+                    <div><strong>Carrier:</strong> {selectedPod.carrier}</div>
+                    <div><strong>Truck Reg:</strong> {selectedPod.truckPlate}</div>
+                    <div><strong>Manifest:</strong> {selectedPod.itemsCount} Items Offloaded</div>
+                    <div><strong>Dock Location:</strong> DECC Gate 4 (Bay B)</div>
                   </div>
                 </div>
-              </div>
 
-              <div style={{ backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '16px' }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: 700, color: '#334155' }}>
-                  {currentLanguage === 'ar' ? 'ضمانات الأمان الميداني (AT-055 / AT-058)' : 'Field Security Invariants'}
-                </h4>
-                <p style={{ margin: 0, fontSize: '11px', color: '#64748b', lineHeight: 1.5 }}>
-                  Under E3 safety policy, offline cached authority cannot issue financial spending or override missing QCDD permits. Observations sync safely upon network restoration.
-                </p>
+                <Select
+                  label="Freight Condition Upon Unloading"
+                  value={podCondition}
+                  onChange={(e) => setPodCondition(e.target.value as any)}
+                  options={[
+                    { value: 'intact', label: '✅ Intact / Zero Transit Damage' },
+                    { value: 'damaged_partial', label: '⚠️ Partial Damage Noted' },
+                    { value: 'packaging_damaged', label: '📦 Outer Crate / Wrap Damaged' },
+                  ]}
+                />
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <Input
+                    label="Recipient Signatory"
+                    value={podRecipient}
+                    onChange={(e) => setPodRecipient(e.target.value)}
+                  />
+                  <Input
+                    label="Signatory Role"
+                    value={podRole}
+                    onChange={(e) => setPodRole(e.target.value)}
+                  />
+                </div>
+
+                {/* Digital Signature Pad Simulator */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                    Digital Touch Signature Pad
+                  </label>
+                  <div
+                    style={{
+                      border: '2px dashed #94a3b8',
+                      borderRadius: '6px',
+                      height: '80px',
+                      backgroundColor: '#f1f5f9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'column',
+                      position: 'relative',
+                    }}
+                  >
+                    {selectedPod.signed || signatureConfirmed ? (
+                      <div style={{ textAlign: 'center', color: '#166534' }}>
+                        <div style={{ fontFamily: 'Brush Script MT, cursive', fontSize: '24px', fontWeight: 700 }}>
+                          {podRecipient}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#15803d' }}>
+                          Verified Digital Stamp • {selectedPod.signatureTimestamp || 'Signed Just Now'}
+                        </div>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>
+                        ✍️ Sign Here with Finger / Stylus
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {!selectedPod.signed && (
+                  <Button
+                    id="btn-confirm-pod"
+                    variant="primary"
+                    size="md"
+                    onClick={handleSignPod}
+                    style={{ width: '100%', marginTop: '4px', fontWeight: 800 }}
+                  >
+                    ✍️ Confirm & Seal Proof of Delivery (POD)
+                  </Button>
+                )}
+
+                {selectedPod.signed && (
+                  <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', padding: '10px', fontSize: '11px', color: '#166534' }}>
+                    ✅ <strong>Custodial Transfer Completed:</strong> Goods verified and custody transferred to DECC Site Staging Bay. POD archived into project audit register.
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
-      </ViewStateRenderer>
+
+        {/* 2. WORKFLOW: SNAG CREATION WITH PHOTO UPLOAD */}
+        {mobileTab === 'snag' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                Capture Field Snag & Photographic Evidence
+              </h3>
+
+              <form onSubmit={handleCreateSnag} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <Input
+                  label="Snag Description / Defect"
+                  value={snagTitle}
+                  onChange={(e) => setSnagTitle(e.target.value)}
+                  placeholder="e.g. Scuffed paint on panel A-12"
+                  required
+                />
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <Input
+                    label="Zone / Location"
+                    value={snagLocation}
+                    onChange={(e) => setSnagLocation(e.target.value)}
+                    required
+                  />
+                  <Select
+                    label="Discipline"
+                    value={snagTrade}
+                    onChange={(e) => setSnagTrade(e.target.value)}
+                    options={[
+                      { value: 'Scenic / Joinery', label: 'Scenic / Joinery' },
+                      { value: 'Rigging / AV', label: 'Rigging / AV' },
+                      { value: 'Lighting / Power', label: 'Lighting / Power' },
+                      { value: 'Branding / Vinyl', label: 'Branding / Vinyl' },
+                      { value: 'HSE Safety', label: 'HSE Safety' },
+                    ]}
+                  />
+                </div>
+
+                <Select
+                  label="Severity Classification"
+                  value={snagSeverity}
+                  onChange={(e) => setSnagSeverity(e.target.value as any)}
+                  options={[
+                    { value: 'critical', label: '🔴 Critical Blocker (Opening Blocker)' },
+                    { value: 'moderate', label: '🟡 Moderate (Rectify pre-show)' },
+                    { value: 'cosmetic', label: '🟢 Cosmetic Defect' },
+                  ]}
+                />
+
+                {/* Mobile Camera / Photo Upload Simulator */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                    Attach Site Photos ({snagPhotos.length} Attached)
+                  </label>
+
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                    <input
+                      type="text"
+                      value={newPhotoName}
+                      onChange={(e) => setNewPhotoName(e.target.value)}
+                      placeholder="e.g. photo-dock-counter.jpg"
+                      style={{
+                        flex: 1,
+                        padding: '6px 10px',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                      }}
+                    />
+                    <Button type="button" size="sm" variant="secondary" onClick={handleAddPhoto}>
+                      📷 Snap Photo
+                    </Button>
+                  </div>
+
+                  {/* Photo Thumbnails Preview */}
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {snagPhotos.map((photo, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          backgroundColor: '#f1f5f9',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '4px',
+                          padding: '4px 8px',
+                          fontSize: '10px',
+                          color: '#334155',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <span>🖼️</span>
+                        <span>{photo}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Button id="btn-submit-snag" type="submit" variant="primary" size="md" style={{ width: '100%', fontWeight: 800 }}>
+                  🚨 Log Field Snag Item
+                </Button>
+              </form>
+            </div>
+
+            {/* List of Recent Snags */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                Active Field Snags ({snags.length})
+              </div>
+              {snags.map((snag) => (
+                <div
+                  key={snag.id}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    padding: '10px',
+                    fontSize: '11px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 800, color: '#0f172a' }}>{snag.title}</span>
+                    <Badge variant={snag.severity === 'critical' ? 'danger' : snag.severity === 'moderate' ? 'warning' : 'neutral'}>
+                      {snag.severity.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <div style={{ color: '#64748b', marginBottom: '4px' }}>
+                    📍 {snag.location} • 🔧 {snag.trade}
+                  </div>
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                    {snag.photos.map((p, idx) => (
+                      <span key={idx} style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '1px 5px', borderRadius: '3px', fontSize: '9px' }}>
+                        📷 {p}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 3. WORKFLOW: WAREHOUSE PICKING & QR SCANNER */}
+        {mobileTab === 'scanner' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                Barcode & QR Asset Scanner
+              </h3>
+
+              {/* Viewfinder simulation */}
+              <div
+                style={{
+                  backgroundColor: '#0f172a',
+                  borderRadius: '8px',
+                  height: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  marginBottom: '10px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '100px',
+                    height: '100px',
+                    border: '2px solid #38bdf8',
+                    borderRadius: '8px',
+                    position: 'relative',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: 0,
+                      right: 0,
+                      height: '2px',
+                      backgroundColor: '#ef4444',
+                      boxShadow: '0 0 8px #ef4444',
+                    }}
+                  />
+                </div>
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '6px' }}>
+                  {isScanning ? 'Scanning Optical Code...' : 'Align Barcode or QR Code within box'}
+                </div>
+              </div>
+
+              {/* Preset Scan Triggers */}
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-SCN-001')} style={{ flex: 1, fontSize: '10px' }}>
+                  Scan Scenic Wall
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-LGT-002')} style={{ flex: 1, fontSize: '10px' }}>
+                  Scan Viper Light
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-AV-003')} style={{ flex: 1, fontSize: '10px' }}>
+                  Scan Shure Mic
+                </Button>
+              </div>
+
+              {scanResult && (
+                <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <strong style={{ color: '#0f172a' }}>{scanResult.description}</strong>
+                    <Badge variant="info">{scanResult.assetTag}</Badge>
+                  </div>
+                  <div style={{ color: '#475569', fontSize: '11px' }}>
+                    Zone: <strong>{scanResult.zone}</strong> • Status: <span style={{ color: '#16a34a', fontWeight: 700 }}>{scanResult.status}</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    style={{ width: '100%', marginTop: '8px', fontSize: '11px' }}
+                    onClick={() => alert(`Asset ${scanResult.assetTag} picked and confirmed for dispatch!`)}
+                  >
+                    📦 Confirm Pick for Dispatch
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 4. WORKFLOW: QC INSPECTION */}
+        {mobileTab === 'qc' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                Mobile QC Inspection Sign-off
+              </h3>
+              <p style={{ fontSize: '11px', color: '#64748b', margin: '0 0 10px 0' }}>
+                Sprint 03 Module 08 Invariant: Damaged goods are automatically routed to Quarantine.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
+                <Select
+                  label="QC Decision Result"
+                  value={qcStatus}
+                  onChange={(e) => setQcStatus(e.target.value as any)}
+                  options={[
+                    { value: 'pass', label: '✅ QC PASSED: Meets Event Specifications' },
+                    { value: 'fail_quarantine', label: '⛔ QC FAILED: Damage Detected (Auto-Quarantine)' },
+                  ]}
+                />
+
+                <Textarea
+                  label="Inspector Inspection Notes"
+                  value={qcNotes}
+                  onChange={(e) => setQcNotes(e.target.value)}
+                  rows={2}
+                />
+
+                <Button
+                  size="md"
+                  variant={qcStatus === 'pass' ? 'primary' : 'danger'}
+                  onClick={() => alert(`QC Inspection recorded: ${qcStatus === 'pass' ? 'Passed' : 'Failed - Moved to Quarantine'}`)}
+                  style={{ width: '100%', fontWeight: 800 }}
+                >
+                  {qcStatus === 'pass' ? '✅ Endorse QC Pass' : '⛔ Flag Failure & Route to Quarantine'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 5. WORKFLOW: CREW CHECK-IN & COMPLIANCE */}
+        {mobileTab === 'crew' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                Site Crew Check-in (Fatigue Policy Check)
+              </h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
+                <Select
+                  label="Select Crew Member"
+                  value={crewMember}
+                  onChange={(e) => {
+                    setCrewMember(e.target.value);
+                    setCrewCheckedIn(false);
+                  }}
+                  options={[
+                    { value: 'Rashid Al-Kuwari (Lead Rigger)', label: 'Rashid Al-Kuwari (Lead Rigger)' },
+                    { value: 'Omar Farooq (Site Supervisor)', label: 'Omar Farooq (Site Supervisor)' },
+                    { value: 'Nasser Al-Attiyah (Logistics Coord)', label: 'Nasser Al-Attiyah (Logistics Coord)' },
+                  ]}
+                />
+
+                {/* Compliance verification pills */}
+                <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', padding: '8px 10px', fontSize: '11px' }}>
+                  <div style={{ fontWeight: 700, color: '#166534', marginBottom: '2px' }}>
+                    Governance Compliance Verified:
+                  </div>
+                  <div style={{ color: '#15803d' }}>
+                    • Qatar Labour Law: Shift ≤ 8h (Ramadan: 6h)
+                  </div>
+                  <div style={{ color: '#15803d' }}>
+                    • E3 Fatigue Policy: 11h Rest Interval Satisfied (Prior shift ended 14h ago)
+                  </div>
+                </div>
+
+                <Button
+                  size="md"
+                  variant="primary"
+                  onClick={() => setCrewCheckedIn(true)}
+                  disabled={crewCheckedIn}
+                  style={{ width: '100%', fontWeight: 800 }}
+                >
+                  {crewCheckedIn ? '✅ Checked In (DECC Dock Gate)' : '📍 Confirm Geo-Location & Check In'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 6. WORKFLOW: READINESS CHECKLIST */}
+        {(mobileTab === 'checklist' || !isMobileFrame) && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+              Live Field Readiness Checklist
+            </h3>
+
+            {checklists.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => handleToggleChecklist(item.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: item.completed ? '#f0fdf4' : '#ffffff',
+                  border: `1px solid ${item.completed ? '#86efac' : '#e2e8f0'}`,
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={item.completed}
+                  onChange={() => {}}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, color: item.completed ? '#166534' : '#0f172a' }}>
+                    {item.label}
+                  </div>
+                  {item.critical && (
+                    <span style={{ fontSize: '10px', color: '#dc2626', fontWeight: 700 }}>
+                      • Critical Safety Requirement
+                    </span>
+                  )}
+                </div>
+                <Badge variant={item.completed ? 'success' : item.critical ? 'danger' : 'neutral'}>
+                  {item.completed ? 'PASS' : 'PENDING'}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+export default FieldOpsView;

@@ -29,6 +29,8 @@ import {
   DailySiteReportSchema,
   InstallationItemUpdateSchema,
   OperationalReadinessGateEvaluateSchema,
+  OpeningAuthorizationSchema,
+  CrewFatigueEvaluationSchema,
   CommandResult,
 } from '@e3-eos/contracts';
 import {
@@ -55,8 +57,14 @@ import {
   ComprehensiveReadinessEvaluator,
   DimensionReadinessCheck,
   OperationalReadinessReport,
+  OpeningAuthorization,
+  OpeningAuthorizationEngine,
+  CrewFatiguePolicyEngine,
+  QATAR_LABOUR_LAW_BASELINE,
+  DEFAULT_E3_FATIGUE_POLICY,
   InstallationStatus,
 } from '@e3-eos/domain';
+
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
@@ -157,6 +165,10 @@ export interface StoredReadinessGate {
   evaluatedAt: Date;
 }
 
+export interface StoredOpeningAuthorization extends OpeningAuthorization {
+  organisationId: string;
+}
+
 export const shiftRepository = new Map<string, StoredShift>();
 export const attendanceRepository = new Map<string, StoredAttendance>();
 export const tripRepository = new Map<string, StoredTrip>();
@@ -171,6 +183,8 @@ export const crewAssignmentRepository = new Map<string, StoredCrewAssignment>();
 export const dailySiteReportRepository = new Map<string, StoredDailySiteReport>();
 export const installationItemRepository = new Map<string, StoredInstallationItem>();
 export const readinessGateRepository = new Map<string, StoredReadinessGate>();
+export const openingAuthorizationRepository = new Map<string, StoredOpeningAuthorization[]>();
+
 
 function seedOperationsData() {
   const defaultOrgId = '11111111-1111-4111-8111-111111111111';
@@ -327,7 +341,30 @@ function seedOperationsData() {
     report: readinessReport,
     evaluatedAt: new Date(),
   });
+
+  // Governed Opening Authorization (Decoupled from 100% readiness)
+  const seedAuthResult = OpeningAuthorizationEngine.authorize(
+    readinessReport,
+    'Tariq Al-Mansoor (Project Director)',
+    'project_director',
+    {
+      exceptionsAcknowledged: [],
+      justification: 'All 10 physical delivery dimensions verified at 100% compliance. Site cleared for opening.',
+      dualSignoffBy: 'Fatima Al-Sulaiti (Executive Producer)',
+    }
+  );
+
+  if (seedAuthResult.authorization) {
+    readinessReport.canOpen = true;
+    const storedAuth: StoredOpeningAuthorization = {
+      ...seedAuthResult.authorization,
+      organisationId: defaultOrgId,
+    };
+    openingAuthorizationRepository.set(acceptanceProjId, [storedAuth]);
+    openingAuthorizationRepository.set('PRJ-2026-FEE-01', [storedAuth]);
+  }
 }
+
 
 seedOperationsData();
 
@@ -1441,8 +1478,154 @@ export class OperationsController {
           scorePercent: gate?.report.overallScorePercent || 100,
           criticalBlockers: gate?.report.criticalBlockers || [],
           exceptions: gate?.report.exceptions || [],
+          eligibleForOpeningReview: gate?.report.eligibleForOpeningReview ?? true,
+          canOpen: gate?.report.canOpen ?? false,
+        },
+      },
+    };
+  }
+
+  // --- Governed Opening Authorization (Decoupled from 100% Readiness) ---
+
+  @Post('readiness-gate/authorize')
+  @UseGuards(IdempotencyGuard)
+  authorizeOpening(
+    @Param('projectId') projectId: string,
+    @Body() body: unknown,
+    @Req() req: Request
+  ): CommandResult<OpeningAuthorization> {
+    const parseResult = OpeningAuthorizationSchema.safeParse(body);
+    if (!parseResult.success) {
+      throw new HttpException(
+        { message: 'VALIDATION_FAILED', errors: parseResult.error.errors },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    let gate = readinessGateRepository.get(projectId);
+    if (!gate && (projectId === 'PRJ-2026-FEE-01' || projectId === 'a1111111-1111-4111-8111-111111111111')) {
+      gate = readinessGateRepository.get('a1111111-1111-4111-8111-111111111111');
+    }
+
+    if (!gate) {
+      throw new HttpException({ message: 'READINESS_EVALUATION_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+
+    const authResult = OpeningAuthorizationEngine.authorize(
+      gate.report,
+      parseResult.data.authorizedBy,
+      parseResult.data.authorizedRole,
+      {
+        exceptionsAcknowledged: parseResult.data.exceptionsAcknowledged,
+        justification: parseResult.data.justification,
+        dualSignoffBy: parseResult.data.dualSignoffBy,
+      }
+    );
+
+    if (authResult.error || !authResult.authorization) {
+      throw new HttpException(
+        {
+          type: 'https://e3-eos.io/errors/opening-authorization-blocked',
+          title: 'Opening Authorization Blocked',
+          status: 422,
+          detail: authResult.error,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY
+      );
+    }
+
+    // Governed sign-off successful: mark gate report canOpen = true
+    gate.report.canOpen = true;
+
+    const storedAuth: StoredOpeningAuthorization = {
+      ...authResult.authorization,
+      organisationId: orgId,
+    };
+
+    const existingAuths = openingAuthorizationRepository.get(projectId) || [];
+    existingAuths.push(storedAuth);
+    openingAuthorizationRepository.set(projectId, existingAuths);
+    if (projectId === 'PRJ-2026-FEE-01' || projectId === 'a1111111-1111-4111-8111-111111111111') {
+      openingAuthorizationRepository.set('a1111111-1111-4111-8111-111111111111', existingAuths);
+      openingAuthorizationRepository.set('PRJ-2026-FEE-01', existingAuths);
+    }
+
+    return {
+      data: {
+        id: storedAuth.id,
+        status: 'AUTHORIZED',
+        recordVersion: existingAuths.length,
+        payload: storedAuth,
+      },
+      meta: {
+        requestId: (req.headers['x-request-id'] as string) || 'req-gate-auth',
+      },
+    };
+  }
+
+  @Get('readiness-gate/authorizations')
+  getOpeningAuthorizations(@Param('projectId') projectId: string) {
+    const list =
+
+      openingAuthorizationRepository.get(projectId) ||
+      openingAuthorizationRepository.get('a1111111-1111-4111-8111-111111111111') ||
+      [];
+    return { data: list };
+  }
+
+  // --- Crew Fatigue & Statutory Governance Evaluation ---
+
+  @Post('crew/fatigue-check')
+  evaluateCrewFatigue(@Body() body: unknown) {
+    const parseResult = CrewFatigueEvaluationSchema.safeParse(body);
+    if (!parseResult.success) {
+      throw new HttpException(
+        { message: 'VALIDATION_FAILED', errors: parseResult.error.errors },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const { shiftHours, isRamadan, previousShiftEnd, nextShiftStart } = parseResult.data;
+
+    // Statutory evaluation under Qatar Labour Law No. 14 of 2004
+    const statutoryEval = CrewFatiguePolicyEngine.evaluateStatutoryCompliance(
+      shiftHours,
+      isRamadan,
+      QATAR_LABOUR_LAW_BASELINE
+    );
+
+    // Internal company policy evaluation (E3 Fatigue Management Policy)
+    let fatigueEval: { isCompliant: boolean; restHours?: number; violation?: string } = { isCompliant: true };
+    if (previousShiftEnd && nextShiftStart) {
+      fatigueEval = CrewFatiguePolicyEngine.evaluateRestInterval(
+        new Date(previousShiftEnd),
+        new Date(nextShiftStart),
+        DEFAULT_E3_FATIGUE_POLICY
+      );
+    }
+
+    return {
+      data: {
+        shiftHours,
+        isRamadan,
+        statutory: {
+          governingLegislation: 'Qatar Labour Law (Law No. 14 of 2004)',
+          isCompliant: statutoryEval.isCompliant,
+          ordinaryHoursLimit: isRamadan ? 6 : 8,
+          maxHoursWithOvertime: 10,
+          violations: statutoryEval.violations,
+        },
+        internalPolicy: {
+          governingPolicy: 'E3 Live Operations Fatigue Management Policy (POL-HSE-FATIGUE-01)',
+          note: 'Internal E3 corporate health & safety policy, distinct from statutory legislation',
+          minRestBetweenShiftsHours: DEFAULT_E3_FATIGUE_POLICY.minRestBetweenShiftsHours,
+          isCompliant: fatigueEval.isCompliant,
+          restHours: fatigueEval.restHours,
+          violation: fatigueEval.violation,
         },
       },
     };
   }
 }
+

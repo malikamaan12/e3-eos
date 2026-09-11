@@ -1675,66 +1675,6 @@ export class EosApiClient {
     return await res.json();
   }
 
-  async getVendors(): Promise<any[]> {
-    try {
-      const res = await fetch(`${this.baseUrl}/vendors`, {
-        headers: this.getHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return json.data || [];
-      }
-    } catch {}
-
-    return [
-      {
-        id: '00000000-0000-4000-a000-000000000001',
-        vendorCode: 'VEN-ABC-01',
-        name: 'ABC Joinery & Fabrication',
-        legalName: 'ABC Joinery LLC',
-        tradingName: 'ABC Scenic',
-        vendorType: 'fabricator',
-        status: 'active',
-        complianceVerified: true,
-        qualificationStatus: 'approved',
-        rating: 4.8,
-      },
-      {
-        id: '00000000-0000-4000-a000-000000000002',
-        vendorCode: 'VEN-QS-02',
-        name: 'Qatar Scenic Workshops',
-        legalName: 'Qatar Scenic Productions WLL',
-        vendorType: 'fabricator',
-        status: 'active',
-        complianceVerified: true,
-        qualificationStatus: 'approved',
-        rating: 4.5,
-      },
-      {
-        id: '00000000-0000-4000-a000-000000000003',
-        vendorCode: 'VEN-GE-03',
-        name: 'Gulf Exhibits & Structures',
-        legalName: 'Gulf Exhibition Systems Co.',
-        vendorType: 'fabricator',
-        status: 'active',
-        complianceVerified: true,
-        qualificationStatus: 'approved',
-        rating: 4.3,
-      },
-      {
-        id: '00000000-0000-4000-a000-000000000004',
-        vendorCode: 'VEN-LOG-04',
-        name: 'Al-Attiyah Fleet Logistics',
-        legalName: 'Al-Attiyah Transport & Logistics',
-        vendorType: 'logistics_supplier',
-        status: 'active',
-        complianceVerified: true,
-        qualificationStatus: 'approved',
-        rating: 4.9,
-      },
-    ];
-  }
-
   async getRfqs(projectId: string): Promise<any[]> {
     try {
       const res = await fetch(`${this.baseUrl}/projects/${projectId}/rfqs`, {
@@ -2491,10 +2431,169 @@ export class EosApiClient {
       logistics: { totalPackingLists: 1, deliveredPackingLists: 1, inTransitPackingLists: 0 },
       crew: { totalAssigned: 1, confirmed: 1, conflictsFlagged: 0 },
       site: { reportsCount: 1, totalInstallationItems: 1, acceptedInstallationItems: 1 },
-      readiness: { status: 'READY', scorePercent: 100, criticalBlockers: [], exceptions: [] },
+      readiness: {
+        status: 'READY',
+        scorePercent: 100,
+        criticalBlockers: [],
+        exceptions: [],
+        eligibleForOpeningReview: true,
+        canOpen: true,
+      },
     };
   }
+
+  // --- First-Class Vendor Management Methods (Sprint 03 Module 8) ---
+
+  async getVendors(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/vendors`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || [];
+      }
+    } catch {}
+
+    return [];
+  }
+
+  async getVendor(vendorId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/vendors/${vendorId}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to fetch vendor');
+    }
+    const json = await res.json();
+    return json.data;
+  }
+
+  async getVendorRestrictedBankDetails(vendorId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/vendors/${vendorId}/restricted-bank-details`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Access to restricted banking details forbidden');
+    }
+    const json = await res.json();
+    return json.data;
+  }
+
+  async createVendor(payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/vendors`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to create vendor');
+    }
+    return await res.json();
+  }
+
+  async transitionVendorStatus(vendorId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/vendors/${vendorId}/status`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Failed to update vendor status');
+    }
+    return await res.json();
+  }
+
+  // --- Warehouse Operations Methods (Sprint 03 Module 10) ---
+
+  async getWarehouseZones(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/warehouse/zones`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || [];
+      }
+    } catch {}
+
+    return [
+      { zone: 'AV', assetCount: 1, itemCount: 12, damagedCount: 0, status: 'nominal' },
+      { zone: 'Lighting', assetCount: 1, itemCount: 24, damagedCount: 0, status: 'nominal' },
+      { zone: 'Furniture', assetCount: 1, itemCount: 8, damagedCount: 0, status: 'nominal' },
+      { zone: 'Games', assetCount: 1, itemCount: 4, damagedCount: 0, status: 'nominal' },
+      { zone: 'Scenic', assetCount: 1, itemCount: 6, damagedCount: 0, status: 'nominal' },
+      { zone: 'Branding', assetCount: 1, itemCount: 16, damagedCount: 0, status: 'nominal' },
+      { zone: 'Tools', assetCount: 1, itemCount: 42, damagedCount: 0, status: 'nominal' },
+      { zone: 'Consumables', assetCount: 1, itemCount: 100, damagedCount: 0, status: 'nominal' },
+      { zone: 'Quarantine', assetCount: 1, itemCount: 2, damagedCount: 2, status: 'warning' },
+      { zone: 'Returns', assetCount: 1, itemCount: 8, damagedCount: 0, status: 'nominal' },
+    ];
+  }
+
+  async executeWarehouseMovement(payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/warehouse-movements/execute`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to execute warehouse movement');
+    }
+    return await res.json();
+  }
+
+  // --- Governed Opening Authorization Methods (Sprint 03 Module 13) ---
+
+  async authorizeOpening(projectId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/readiness-gate/authorize`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Opening authorization rejected');
+    }
+    return await res.json();
+  }
+
+  async getOpeningAuthorizations(projectId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/readiness-gate/authorizations`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || [];
+      }
+    } catch {}
+
+    return [];
+  }
+
+  // --- Crew Fatigue & Statutory Compliance ---
+
+  async evaluateCrewFatigue(payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/PRJ-2026-FEE-01/crew/fatigue-check`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to evaluate crew fatigue');
+    }
+    const json = await res.json();
+    return json.data;
+  }
 }
+
 
 
 

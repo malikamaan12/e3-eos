@@ -6,6 +6,7 @@ import {
   DailySiteReportEngine,
   InstallationTracker,
   ComprehensiveReadinessEvaluator,
+  OpeningAuthorizationEngine,
   Asset,
   AssetAllocation,
   PackingList,
@@ -269,16 +270,35 @@ describe('Sprint 03 — Assets, Logistics, Crew & Field Operations Suite', () =>
       { dimension: 'Technical Testing', isPassed: true, isCritical: true, scorePercent: 100, details: 'All circuits tested' },
     ];
 
-    it('authorizes show opening when all 10 dimensions pass with 100% score', () => {
+    it('100% readiness score confers opening review eligibility, not automatic authorization', () => {
       const report = ComprehensiveReadinessEvaluator.evaluate(projectA, checks100Pct);
 
       expect(report.overallStatus).toBe('READY');
       expect(report.overallScorePercent).toBe(100);
-      expect(report.canOpen).toBe(true);
+      expect(report.eligibleForOpeningReview).toBe(true);
+      expect(report.canOpen).toBe(false); // Invariant: decoupled from automatic opening
       expect(report.criticalBlockers).toHaveLength(0);
+
+      // Now explicit governed authorization transaction succeeds
+      const authResult = OpeningAuthorizationEngine.authorize(
+        report,
+        'Elena Rostova',
+        'executive_producer',
+        {
+          justification: 'All 10 dimensions verified at 100%. Civil Defence safety certificate approved.',
+        }
+      );
+
+      expect(authResult.error).toBeUndefined();
+      expect(authResult.authorization).toBeDefined();
+      const auth = authResult.authorization!;
+      expect(auth.authorizedRole).toBe('executive_producer');
+      expect(auth.readinessStatus).toBe('READY');
+      expect(auth.auditHash).toBeDefined();
+      expect(auth.auditHash.length).toBeGreaterThan(16);
     });
 
-    it('strictly forbids show opening if a critical dimension fails', () => {
+    it('strictly blocks show opening if a critical dimension fails', () => {
       const blockedChecks: DimensionReadinessCheck[] = [
         ...checks100Pct.slice(0, 7),
         { dimension: 'Permits', isPassed: false, isCritical: true, scorePercent: 0, details: 'Civil Defence fire safety certificate pending inspection' },
@@ -288,12 +308,26 @@ describe('Sprint 03 — Assets, Logistics, Crew & Field Operations Suite', () =>
       const report = ComprehensiveReadinessEvaluator.evaluate(projectA, blockedChecks);
 
       expect(report.overallStatus).toBe('NOT_READY');
+      expect(report.eligibleForOpeningReview).toBe(false);
       expect(report.canOpen).toBe(false);
       expect(report.criticalBlockers.length).toBeGreaterThan(0);
       expect(report.criticalBlockers[0]).toContain('Permits');
+
+      // Attempting governed authorization when critical blockers exist returns error
+      const authResult = OpeningAuthorizationEngine.authorize(
+        report,
+        'Elena Rostova',
+        'executive_producer',
+        {
+          justification: 'Attempting override with missing permits',
+        }
+      );
+
+      expect(authResult.authorization).toBeUndefined();
+      expect(authResult.error).toContain('OPENING_BLOCKED');
     });
 
-    it('permits show opening with exceptions when non-critical minor punchlist remains', () => {
+    it('permits governed show opening with exceptions when accompanied by justification and acknowledged exceptions', () => {
       const minorExceptionChecks: DimensionReadinessCheck[] = [
         ...checks100Pct.slice(0, 9),
         { dimension: 'Technical Testing', isPassed: false, isCritical: false, scorePercent: 90, details: 'Secondary backup printer IP not mapped', openException: 'Non-critical fallback printer manual entry active' },
@@ -302,8 +336,27 @@ describe('Sprint 03 — Assets, Logistics, Crew & Field Operations Suite', () =>
       const report = ComprehensiveReadinessEvaluator.evaluate(projectA, minorExceptionChecks);
 
       expect(report.overallStatus).toBe('READY_WITH_EXCEPTIONS');
-      expect(report.canOpen).toBe(true);
+      expect(report.eligibleForOpeningReview).toBe(true);
+      expect(report.canOpen).toBe(false); // Still false until signed
       expect(report.exceptions.length).toBeGreaterThan(0);
+
+      // Governed authorization with acknowledged exceptions succeeds
+      const authResult = OpeningAuthorizationEngine.authorize(
+        report,
+        'Elena Rostova',
+        'executive_producer',
+        {
+          justification: 'Non-blocking backup printer fallback active with manual supervisor runner',
+          exceptionsAcknowledged: report.exceptions,
+        }
+      );
+
+      expect(authResult.error).toBeUndefined();
+      expect(authResult.authorization).toBeDefined();
+      const auth = authResult.authorization!;
+      expect(auth.readinessStatus).toBe('READY_WITH_EXCEPTIONS');
+      expect(auth.exceptionsAcknowledged).toHaveLength(1);
+      expect(auth.auditHash).toBeDefined();
     });
   });
 });

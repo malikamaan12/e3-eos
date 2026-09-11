@@ -9,19 +9,199 @@ export interface BankDetails {
   swift: string;
 }
 
+export type VendorType =
+  | 'company'
+  | 'freelancer'
+  | 'individual_supplier'
+  | 'subcontractor'
+  | 'rental_supplier'
+  | 'fabricator'
+  | 'technical_supplier'
+  | 'logistics_supplier'
+  | 'talent_supplier'
+  | 'international_supplier';
+
+export const STANDARD_VENDOR_TYPES: VendorType[] = [
+  'company',
+  'freelancer',
+  'individual_supplier',
+  'subcontractor',
+  'rental_supplier',
+  'fabricator',
+  'technical_supplier',
+  'logistics_supplier',
+  'talent_supplier',
+  'international_supplier',
+];
+
+export type VendorStatus =
+  | 'prospect'
+  | 'registration_pending'
+  | 'under_review'
+  | 'approved'
+  | 'conditionally_approved'
+  | 'suspended'
+  | 'blacklisted'
+  | 'archived'
+  | 'active'; // backwards-compatibility alias
+
+export const STANDARD_VENDOR_STATUSES: VendorStatus[] = [
+  'prospect',
+  'registration_pending',
+  'under_review',
+  'approved',
+  'conditionally_approved',
+  'suspended',
+  'blacklisted',
+  'archived',
+];
+
 export type VendorCategory = 'corporate' | 'freelance' | 'cash_supplier';
+
+export interface VendorDocument {
+  id: string;
+  title: string;
+  documentType: 'cr' | 'tax_cert' | 'insurance' | 'trade_license' | 'iso_cert' | 'other';
+  uri: string;
+  validUntil?: Date;
+  uploadedAt: Date;
+}
+
+export interface VendorInsurancePolicy {
+  provider: string;
+  policyNumber: string;
+  validUntil: Date;
+  coverageAmount?: Money;
+}
 
 export interface Vendor {
   id: string;
   vendorCode: string;
   name: string;
-  category: VendorCategory;
-  status: 'active' | 'suspended' | 'pending_verification';
+  vendorType?: VendorType;
+  category?: VendorCategory;
+  status: VendorStatus;
+  crNumber?: string;
+  taxOrVatNumber?: string;
+  insurancePolicy?: VendorInsurancePolicy;
+  certifications?: string[];
   bankDetails?: BankDetails;
+  restrictedBankDetails?: BankDetails; // sensitive, RBAC restricted
+  documents?: VendorDocument[];
+  projectsUsed?: string[];
+  performanceRating?: number; // 0 - 100
+  riskFlags?: string[];
+  contactPerson?: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  country?: string;
+  onboardingStage?: string;
   complianceVerified: boolean;
   soleSourceAuthorised?: boolean;
   freelanceGracePeriodUntil?: Date;
 }
+
+export interface VendorApprovalPolicyConfig {
+  requireCrForCompanies: boolean;
+  requireTaxNumber: boolean;
+  requireValidInsurance: boolean;
+  requireVerifiedBankDetails: boolean;
+  maxRiskFlagsAllowed: number;
+}
+
+export const DEFAULT_VENDOR_APPROVAL_POLICY: VendorApprovalPolicyConfig = {
+  requireCrForCompanies: true,
+  requireTaxNumber: true,
+  requireValidInsurance: false,
+  requireVerifiedBankDetails: true,
+  maxRiskFlagsAllowed: 0,
+};
+
+export class VendorApprovalPolicyEngine {
+  static evaluate(
+    vendor: Vendor,
+    policy: VendorApprovalPolicyConfig = DEFAULT_VENDOR_APPROVAL_POLICY
+  ): {
+    canApprove: boolean;
+    violations: string[];
+    recommendedStatus: VendorStatus;
+  } {
+    const violations: string[] = [];
+
+    if (vendor.status === 'blacklisted') {
+      violations.push('VENDOR_BLACKLISTED: Vendor is explicitly blacklisted and cannot be approved.');
+      return { canApprove: false, violations, recommendedStatus: 'blacklisted' };
+    }
+
+    if (vendor.riskFlags && vendor.riskFlags.length > policy.maxRiskFlagsAllowed) {
+      violations.push(
+        `RISK_FLAGS_EXCEEDED: Vendor has ${vendor.riskFlags.length} active risk flag(s): ${vendor.riskFlags.join(', ')}`
+      );
+    }
+
+    const vendorType = vendor.vendorType || (vendor.category === 'freelance' ? 'freelancer' : 'company');
+    const isCompanyType = [
+      'company',
+      'subcontractor',
+      'rental_supplier',
+      'fabricator',
+      'technical_supplier',
+      'logistics_supplier',
+      'international_supplier',
+    ].includes(vendorType);
+
+    if (policy.requireCrForCompanies && isCompanyType && (!vendor.crNumber || vendor.crNumber.trim() === '')) {
+      violations.push('MISSING_CR: Commercial Registration (CR) number is required for corporate entities.');
+    }
+
+    if (policy.requireTaxNumber && (!vendor.taxOrVatNumber || vendor.taxOrVatNumber.trim() === '')) {
+      violations.push('MISSING_TAX_ID: Tax / VAT registration number is required.');
+    }
+
+    if (policy.requireVerifiedBankDetails && !vendor.bankDetails && !vendor.restrictedBankDetails) {
+      violations.push('MISSING_BANK_DETAILS: Bank details must be recorded prior to final approval.');
+    }
+
+    if (vendor.insurancePolicy && new Date(vendor.insurancePolicy.validUntil).getTime() < Date.now()) {
+      violations.push(
+        `EXPIRED_INSURANCE: Insurance policy expired on ${new Date(vendor.insurancePolicy.validUntil).toISOString()}`
+      );
+    } else if (policy.requireValidInsurance && !vendor.insurancePolicy) {
+      violations.push('MISSING_INSURANCE: Valid commercial insurance policy is required.');
+    }
+
+    const canApprove = violations.length === 0;
+    const recommendedStatus: VendorStatus = canApprove
+      ? 'approved'
+      : violations.length === 1 && violations[0].startsWith('MISSING_INSURANCE')
+      ? 'conditionally_approved'
+      : 'under_review';
+
+    return { canApprove, violations, recommendedStatus };
+  }
+
+  static maskIban(iban: string): string {
+    const clean = iban.replace(/\s+/g, '');
+    if (clean.length < 8) return '••••';
+    const start = clean.slice(0, 4);
+    const end = clean.slice(-4);
+    return `${start} •••• •••• •••• ${end}`;
+  }
+
+  static canAccessRestrictedBankDetails(role: string): boolean {
+    const authorizedRoles = [
+      'finance_controller',
+      'super_admin',
+      'commercial_director',
+      'financial_controller',
+      'cfo',
+    ];
+    return authorizedRoles.includes(role.toLowerCase().replace(/[\s-]+/g, '_'));
+  }
+}
+
 
 export interface BankChangeRequest {
   requestId: string;

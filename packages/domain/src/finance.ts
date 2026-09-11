@@ -107,7 +107,45 @@ export class FinancialCalculator {
       acceptedAccruedCost: currentAccrued.minus(inv),
     };
   }
+
+  /**
+   * Transitions an approved purchase order commitment into posted actual cost upon invoice approval.
+   * Invariant: Zero double-counting:
+   * remainingCommitments decreases by invoicedAmount,
+   * postedActualCost increases by invoicedAmount,
+   * and EAC (Actual + Accrued + Commitments + ETC) remains invariant.
+   */
+  static transitionCommitmentToActual(
+    position: FinancialPositionInput,
+    invoicedAmount: Money | string | number
+  ): FinancialPositionInput {
+    const c = position.currency;
+    const inv = invoicedAmount instanceof Money ? invoicedAmount : new Money(invoicedAmount, c);
+
+    const currentActual =
+      position.postedActualCost instanceof Money
+        ? position.postedActualCost
+        : new Money(position.postedActualCost, c);
+
+    const currentCommitment =
+      position.remainingCommitments instanceof Money
+        ? position.remainingCommitments
+        : new Money(position.remainingCommitments, c);
+
+    if (inv.greaterThan(currentCommitment)) {
+      throw new Error(
+        `Cannot transition ${inv.toString()} exceeding remaining commitments ${currentCommitment.toString()}`
+      );
+    }
+
+    return {
+      ...position,
+      postedActualCost: currentActual.plus(inv),
+      remainingCommitments: currentCommitment.minus(inv),
+    };
+  }
 }
+
 
 export interface CostAllocationLine {
   packageId: string;

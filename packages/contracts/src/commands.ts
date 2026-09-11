@@ -390,9 +390,55 @@ export const ClientPortalDecisionSchema = z.object({
 export type ClientPortalDecisionDto = z.infer<typeof ClientPortalDecisionSchema>;
 
 export const VendorCreateSchema = z.object({
-  vendorCode: z.string().min(2).max(50),
+  vendorCode: z.string().min(2).max(50).optional(),
   name: z.string().min(2).max(200),
-  category: z.enum(['corporate', 'freelance', 'cash_supplier']).default('corporate'),
+  vendorType: z
+    .enum([
+      'company',
+      'freelancer',
+      'individual_supplier',
+      'subcontractor',
+      'rental_supplier',
+      'fabricator',
+      'technical_supplier',
+      'logistics_supplier',
+      'talent_supplier',
+      'international_supplier',
+    ])
+    .default('company'),
+  category: z.enum(['corporate', 'freelance', 'cash_supplier']).optional(),
+  status: z
+    .enum([
+      'prospect',
+      'registration_pending',
+      'under_review',
+      'approved',
+      'conditionally_approved',
+      'suspended',
+      'blacklisted',
+      'archived',
+      'active',
+    ])
+    .default('prospect'),
+  crNumber: z.string().optional(),
+  taxOrVatNumber: z.string().optional(),
+  country: z.string().default('Qatar'),
+  contactPerson: z
+    .object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      phone: z.string().min(5),
+    })
+    .optional(),
+  insurancePolicy: z
+    .object({
+      provider: z.string(),
+      policyNumber: z.string(),
+      validUntil: z.string(),
+      coverageAmount: z.number().optional(),
+    })
+    .optional(),
+  certifications: z.array(z.string()).default([]),
   bankDetails: z
     .object({
       bankName: z.string(),
@@ -405,9 +451,12 @@ export const VendorCreateSchema = z.object({
   complianceVerified: z.boolean().default(false),
   soleSourceAuthorised: z.boolean().default(false),
   freelanceGracePeriodUntil: z.string().optional(),
+  riskFlags: z.array(z.string()).default([]),
+  notes: z.string().optional(),
 });
 
 export type VendorCreateDto = z.infer<typeof VendorCreateSchema>;
+
 
 export const VendorBankChangeSchema = z.object({
   proposedBankDetails: z.object({
@@ -1252,6 +1301,7 @@ export const WarehouseMovementSchema = z.object({
   movementType: z.enum([
     'received',
     'stored',
+    'reserved',
     'allocated',
     'picked',
     'packed',
@@ -1266,8 +1316,10 @@ export const WarehouseMovementSchema = z.object({
   projectId: z.string().optional(),
   evidenceUris: z.array(z.string()).default([]),
   userId: z.string(),
+  notes: z.string().optional(),
 });
 export type WarehouseMovementDto = z.infer<typeof WarehouseMovementSchema>;
+
 
 export const PackingListCreateSchema = z.object({
   packingListNumber: z.string().min(2).max(50),
@@ -1396,6 +1448,43 @@ export const OperationalReadinessGateEvaluateSchema = z.object({
   notes: z.string().optional(),
 });
 export type OperationalReadinessGateEvaluateDto = z.infer<typeof OperationalReadinessGateEvaluateSchema>;
+
+export const VendorStatusTransitionSchema = z.object({
+
+  status: z.enum([
+    'prospect',
+    'registration_pending',
+    'under_review',
+    'approved',
+    'conditionally_approved',
+    'suspended',
+    'blacklisted',
+    'archived',
+    'active',
+  ]),
+  rationale: z.string().optional(),
+  riskFlags: z.array(z.string()).optional(),
+});
+export type VendorStatusTransitionDto = z.infer<typeof VendorStatusTransitionSchema>;
+
+export const OpeningAuthorizationSchema = z.object({
+  projectId: z.string(),
+  authorizedBy: z.string().min(2),
+  authorizedRole: z.string().min(2),
+  exceptionsAcknowledged: z.array(z.string()).default([]),
+  justification: z.string().optional(),
+  dualSignoffBy: z.string().optional(),
+});
+export type OpeningAuthorizationDto = z.infer<typeof OpeningAuthorizationSchema>;
+
+export const CrewFatigueEvaluationSchema = z.object({
+  shiftHours: z.number().positive(),
+  isRamadan: z.boolean().default(false),
+  previousShiftEnd: z.string().optional(),
+  nextShiftStart: z.string().optional(),
+});
+export type CrewFatigueEvaluationDto = z.infer<typeof CrewFatigueEvaluationSchema>;
+
 
 export interface CommandResult<T = any> {
   data: {

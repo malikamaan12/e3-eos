@@ -37,7 +37,12 @@ import {
   AssetAllocation,
   WarehouseMovement,
   AssetAllocationEngine,
+  WarehouseOperationsEngine,
+  STANDARD_WAREHOUSE_ZONES,
+  WarehouseMovementType,
 } from '@e3-eos/domain';
+
+
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
@@ -153,6 +158,168 @@ function seedInventoryData() {
   };
   assetRepository.set(barrierId, barrier);
   assetRepository.set('AST-BAR-002', barrier);
+
+  // Additional 8 Zones Assets (Complete 10 Warehouse Zones Representation)
+  const additionalAssets: StoredAsset[] = [
+    {
+      id: '00000000-0000-4000-c000-000000000003',
+      organisationId: defaultOrgId,
+      assetTag: 'AST-AV-001',
+      barcode: 'E3-BC-AV-001',
+      name: 'Line Array Speaker Enclosure (L-Acoustics K2)',
+      category: 'Audio',
+      quantity: 12,
+      unit: 'cabinets',
+      ownership: 'e3_owned',
+      warehouseId: whId,
+      zone: 'AV',
+      location: 'Rack AV-01',
+      condition: 'serviceable',
+      availability: 'available',
+      purchaseValue: 180000,
+      replacementValue: 210000,
+      maintenanceStatus: 'Inspected',
+    },
+    {
+      id: '00000000-0000-4000-c000-000000000004',
+      organisationId: defaultOrgId,
+      assetTag: 'AST-LGT-001',
+      barcode: 'E3-BC-LGT-001',
+      name: 'Robe MegaPointe Moving Head Fixture',
+      category: 'Lighting',
+      quantity: 24,
+      unit: 'fixtures',
+      ownership: 'e3_owned',
+      warehouseId: whId,
+      zone: 'Lighting',
+      location: 'Rack LGT-04',
+      condition: 'serviceable',
+      availability: 'available',
+      purchaseValue: 120000,
+      replacementValue: 140000,
+      maintenanceStatus: 'Calibrated',
+    },
+    {
+      id: '00000000-0000-4000-c000-000000000005',
+      organisationId: defaultOrgId,
+      assetTag: 'AST-GAM-001',
+      barcode: 'E3-BC-GAM-001',
+      name: 'Interactive Motion VR Racing Simulator Pod',
+      category: 'Interactive & Games',
+      quantity: 4,
+      unit: 'pods',
+      ownership: 'e3_owned',
+      warehouseId: whId,
+      zone: 'Games',
+      location: 'Pod Bay G-01',
+      condition: 'serviceable',
+      availability: 'available',
+      purchaseValue: 95000,
+      replacementValue: 110000,
+      maintenanceStatus: 'Software updated',
+    },
+    {
+      id: '00000000-0000-4000-c000-000000000006',
+      organisationId: defaultOrgId,
+      assetTag: 'AST-SCN-001',
+      barcode: 'E3-BC-SCN-001',
+      name: 'Curved Aluminum Stage Truss Arch 12m',
+      category: 'Staging & Rigging',
+      quantity: 6,
+      unit: 'sections',
+      ownership: 'e3_owned',
+      warehouseId: whId,
+      zone: 'Scenic',
+      location: 'Aisle S-02',
+      condition: 'serviceable',
+      availability: 'available',
+      purchaseValue: 48000,
+      replacementValue: 55000,
+      maintenanceStatus: 'Structural load certified',
+    },
+    {
+      id: '00000000-0000-4000-c000-000000000007',
+      organisationId: defaultOrgId,
+      assetTag: 'AST-BRD-001',
+      barcode: 'E3-BC-BRD-001',
+      name: 'Modular LED Backlit Fabric Totem Frame',
+      category: 'Branding & Graphics',
+      quantity: 16,
+      unit: 'frames',
+      ownership: 'e3_owned',
+      warehouseId: whId,
+      zone: 'Branding',
+      location: 'Rack B-03',
+      condition: 'serviceable',
+      availability: 'available',
+      purchaseValue: 32000,
+      replacementValue: 38000,
+      maintenanceStatus: 'Tested',
+    },
+    {
+      id: '00000000-0000-4000-c000-000000000008',
+      organisationId: defaultOrgId,
+      assetTag: 'AST-CNS-001',
+      barcode: 'E3-BC-CNS-001',
+      name: 'Pro-Gaff Matte Black Stage Tape 50mm',
+      category: 'Consumables',
+      quantity: 100,
+      unit: 'rolls',
+      ownership: 'e3_owned',
+      warehouseId: whId,
+      zone: 'Consumables',
+      location: 'Bin C-12',
+      condition: 'serviceable',
+      availability: 'available',
+      purchaseValue: 8500,
+      replacementValue: 8500,
+      maintenanceStatus: 'Stocked',
+    },
+    {
+      id: '00000000-0000-4000-c000-000000000009',
+      organisationId: defaultOrgId,
+      assetTag: 'AST-QAR-001',
+      barcode: 'E3-BC-QAR-001',
+      name: 'Damaged 18-inch Subwoofer Enclosure (Quarantined)',
+      category: 'Audio',
+      quantity: 2,
+      unit: 'cabinets',
+      ownership: 'e3_owned',
+      warehouseId: whId,
+      zone: 'Quarantine',
+      location: 'Quarantine Bay Q-01',
+      condition: 'damaged',
+      availability: 'damaged',
+      purchaseValue: 24000,
+      replacementValue: 28000,
+      maintenanceStatus: 'Cone torn during venue load-out; repair parts ordered',
+    },
+    {
+      id: '00000000-0000-4000-c000-000000000010',
+      organisationId: defaultOrgId,
+      assetTag: 'AST-RET-001',
+      barcode: 'E3-BC-RET-001',
+      name: 'Returned Wireless Microphone Kits (DECC De-rig)',
+      category: 'Audio',
+      quantity: 8,
+      unit: 'kits',
+      ownership: 'e3_owned',
+      warehouseId: whId,
+      zone: 'Returns',
+      location: 'Intake Bay R-01',
+      condition: 'serviceable',
+      availability: 'returned',
+      purchaseValue: 40000,
+      replacementValue: 44000,
+      maintenanceStatus: 'Returned from DECC site; awaiting return inspection check',
+    },
+  ];
+
+  for (const extra of additionalAssets) {
+    assetRepository.set(extra.id, extra);
+    assetRepository.set(extra.assetTag, extra);
+  }
+
 
   // Seed Asset Allocation
   const allocId = 'alloc-fee-001';
@@ -839,5 +1006,84 @@ export class InventoryController {
       },
     };
   }
+
+  @Get('warehouse/zones')
+  @UseGuards(TenantIsolationGuard)
+  getWarehouseZones(@Req() req: Request) {
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const assets = Array.from(assetRepository.values()).filter((a) => a.organisationId === orgId);
+
+    const zones = STANDARD_WAREHOUSE_ZONES.map((zone) => {
+      const zoneAssets = assets.filter((a) => a.zone?.toLowerCase() === zone.toLowerCase());
+      const itemCount = zoneAssets.reduce((sum, a) => sum + (a.quantity || 1), 0);
+      const damagedCount = zoneAssets.filter((a) => ['damaged', 'quarantined'].includes(a.condition)).length;
+      return {
+        zone,
+        assetCount: zoneAssets.length,
+        itemCount,
+        damagedCount,
+        status: damagedCount > 0 && zone !== 'Quarantine' ? 'warning' : 'nominal',
+      };
+    });
+
+    return { data: zones };
+  }
+
+  @Post('warehouse-movements/execute')
+  @UseGuards(TenantIsolationGuard, IdempotencyGuard)
+  executeWarehouseMovement(@Body() body: unknown, @Req() req: Request): CommandResult<StoredWarehouseMovement> {
+    const parseResult = WarehouseMovementSchema.safeParse(body);
+    if (!parseResult.success) {
+      throw new HttpException(
+        { message: 'VALIDATION_FAILED', errors: parseResult.error.errors },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const asset = assetRepository.get(parseResult.data.assetId);
+    if (!asset || asset.organisationId !== orgId) {
+      throw new HttpException({ message: 'ASSET_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+
+    const { updatedAsset, movement } = WarehouseOperationsEngine.executeMovement(asset, {
+      assetId: asset.id,
+      source: parseResult.data.source,
+      destination: parseResult.data.destination,
+      movementType: parseResult.data.movementType as WarehouseMovementType,
+      quantity: parseResult.data.quantity,
+      condition: parseResult.data.condition,
+      projectId: parseResult.data.projectId,
+      evidenceUris: parseResult.data.evidenceUris,
+      userId: parseResult.data.userId,
+      notes: parseResult.data.notes,
+    });
+
+    // Update asset in repository
+    const storedAsset: StoredAsset = { ...updatedAsset, organisationId: orgId };
+    assetRepository.set(asset.id, storedAsset);
+    if (asset.assetTag) {
+      assetRepository.set(asset.assetTag, storedAsset);
+    }
+
+    const storedMovement: StoredWarehouseMovement = {
+      ...movement,
+      organisationId: orgId,
+    };
+    warehouseMovementRepository.set(storedMovement.id, storedMovement);
+
+    return {
+      data: {
+        id: storedMovement.id,
+        status: storedMovement.movementType,
+        recordVersion: 1,
+        payload: storedMovement,
+      },
+      meta: {
+        requestId: (req.headers['x-request-id'] as string) || 'req-wh-exec',
+      },
+    };
+  }
 }
+
 

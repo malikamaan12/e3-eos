@@ -15,6 +15,7 @@ import { Request } from 'express';
 import {
   VendorCreateSchema,
   VendorBankChangeSchema,
+  VendorStatusTransitionSchema,
   FrameworkContractCreateSchema,
   PurchaseOrderCreateSchema,
   PurchaseOrderReleaseSchema,
@@ -29,6 +30,9 @@ import {
 import {
   ProcurementEngine,
   Vendor,
+  VendorType,
+  VendorStatus,
+  VendorApprovalPolicyEngine,
   BankChangeRequest,
   FrameworkContract,
   PurchaseOrder,
@@ -42,6 +46,7 @@ import {
   BidEvaluationResult,
   SourceDecisionType,
 } from '@e3-eos/domain';
+
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
@@ -51,9 +56,24 @@ export interface StoredVendor extends Vendor {
   organisationId: string;
   legalName?: string;
   tradingName?: string;
-  vendorType?: string;
+  vendorType?: VendorType;
   qualificationStatus?: string;
   rating?: number;
+  crNumber?: string;
+  taxOrVatNumber?: string;
+  restrictedBankDetails?: any;
+  insurancePolicy?: any;
+  certifications?: string[];
+  documents?: any[];
+  projectsUsed?: string[];
+  riskFlags?: string[];
+  country?: string;
+  notes?: string;
+  contactPerson?: {
+    name: string;
+    email: string;
+    phone: string;
+  };
 }
 
 export interface StoredBankChangeRequest extends BankChangeRequest {
@@ -94,7 +114,7 @@ function seedProcurementData() {
   const defaultOrgId = '11111111-1111-4111-8111-111111111111';
   const acceptanceProjId = 'a1111111-1111-4111-8111-111111111111';
 
-  // Seed Vendors
+  // Seed Complete Multi-Type Vendors Directory (Sprint 03 Module 8)
   const abcJoinery: StoredVendor = {
     id: '00000000-0000-4000-a000-000000000001',
     organisationId: defaultOrgId,
@@ -104,11 +124,36 @@ function seedProcurementData() {
     tradingName: 'ABC Scenic',
     category: 'corporate',
     vendorType: 'fabricator',
-    status: 'active',
-    complianceVerified: true,
+    status: 'approved',
     qualificationStatus: 'approved',
+    crNumber: 'CR-DOH-1029384',
+    taxOrVatNumber: 'QA99001122',
+    country: 'Qatar',
     rating: 4.8,
+    complianceVerified: true,
+    soleSourceAuthorised: false,
+    contactPerson: {
+      name: 'Tarek Mansour',
+      email: 'tarek@abcjoinery.qa',
+      phone: '+974 4411 2233',
+    },
+    insurancePolicy: {
+      provider: 'Qatar General Insurance',
+      policyNumber: 'QGIC-CAR-2026-99',
+      validUntil: new Date('2027-12-31T00:00:00Z'),
+      coverageAmount: new Money(2000000, 'QAR'),
+    },
+    certifications: ['ISO 9001:2015', 'Civil Defence Fire Retardancy Class A'],
+    projectsUsed: ['PRJ-2026-FEE-01'],
+    riskFlags: [],
     bankDetails: {
+      bankName: 'Qatar National Bank (QNB)',
+      accountName: 'ABC Joinery LLC',
+      accountNumber: '001234567801',
+      iban: 'QA55QNBA00000000001234567801',
+      swift: 'QNBAQAQA',
+    },
+    restrictedBankDetails: {
       bankName: 'Qatar National Bank (QNB)',
       accountName: 'ABC Joinery LLC',
       accountNumber: '001234567801',
@@ -126,10 +171,22 @@ function seedProcurementData() {
     tradingName: 'Qatar Scenic',
     category: 'corporate',
     vendorType: 'fabricator',
-    status: 'active',
-    complianceVerified: true,
+    status: 'approved',
     qualificationStatus: 'approved',
+    crNumber: 'CR-DOH-2039481',
+    taxOrVatNumber: 'QA88112233',
+    country: 'Qatar',
     rating: 4.5,
+    complianceVerified: true,
+    soleSourceAuthorised: false,
+    riskFlags: [],
+    bankDetails: {
+      bankName: 'Commercial Bank of Qatar (CBQ)',
+      accountName: 'Qatar Scenic Productions WLL',
+      accountNumber: '002345678902',
+      iban: 'QA44CBQA00000000002345678902',
+      swift: 'CBQAQAQA',
+    },
   };
 
   const gulfExhibits: StoredVendor = {
@@ -140,11 +197,23 @@ function seedProcurementData() {
     legalName: 'Gulf Exhibition Systems Co.',
     tradingName: 'Gulf Exhibits',
     category: 'corporate',
-    vendorType: 'fabricator',
-    status: 'active',
-    complianceVerified: true,
+    vendorType: 'company',
+    status: 'approved',
     qualificationStatus: 'approved',
+    crNumber: 'CR-DOH-3049582',
+    taxOrVatNumber: 'QA77223344',
+    country: 'Qatar',
     rating: 4.3,
+    complianceVerified: true,
+    soleSourceAuthorised: false,
+    riskFlags: [],
+    bankDetails: {
+      bankName: 'Doha Bank',
+      accountName: 'Gulf Exhibition Systems Co.',
+      accountNumber: '003456789012',
+      iban: 'QA33DOHB00000000003456789012',
+      swift: 'DOHBQAQA',
+    },
   };
 
   const alAttiyah: StoredVendor = {
@@ -152,20 +221,185 @@ function seedProcurementData() {
     organisationId: defaultOrgId,
     vendorCode: 'VEN-LOG-04',
     name: 'Al-Attiyah Fleet Logistics',
-    legalName: 'Al-Attiyah Transport & Logistics',
+    legalName: 'Al-Attiyah Transport & Logistics WLL',
     tradingName: 'Al-Attiyah Logistics',
     category: 'corporate',
     vendorType: 'logistics_supplier',
-    status: 'active',
-    complianceVerified: true,
+    status: 'approved',
     qualificationStatus: 'approved',
+    crNumber: 'CR-DOH-4059683',
+    taxOrVatNumber: 'QA66334455',
+    country: 'Qatar',
     rating: 4.9,
+    complianceVerified: true,
+    soleSourceAuthorised: false,
+    riskFlags: [],
+    bankDetails: {
+      bankName: 'Qatar Islamic Bank (QIB)',
+      accountName: 'Al-Attiyah Transport & Logistics',
+      accountNumber: '004567890123',
+      iban: 'QA22QIBK00000000004567890123',
+      swift: 'QIBKQAQA',
+    },
   };
 
-  for (const v of [abcJoinery, qatarScenic, gulfExhibits, alAttiyah]) {
+  const dohaTechAudio: StoredVendor = {
+    id: '00000000-0000-4000-a000-000000000005',
+    organisationId: defaultOrgId,
+    vendorCode: 'VEN-TECH-05',
+    name: 'Doha Live Technical Audio Visual',
+    legalName: 'Doha Live Technical Production WLL',
+    tradingName: 'Doha AV Tech',
+    category: 'corporate',
+    vendorType: 'technical_supplier',
+    status: 'approved',
+    qualificationStatus: 'approved',
+    crNumber: 'CR-DOH-5069784',
+    taxOrVatNumber: 'QA55443322',
+    country: 'Qatar',
+    rating: 4.7,
+    complianceVerified: true,
+    riskFlags: [],
+    bankDetails: {
+      bankName: 'QNB',
+      accountName: 'Doha Live Technical Production',
+      accountNumber: '005678901234',
+      iban: 'QA55QNBA00000000005678901234',
+      swift: 'QNBAQAQA',
+    },
+  };
+
+  const arenaRentals: StoredVendor = {
+    id: '00000000-0000-4000-a000-000000000006',
+    organisationId: defaultOrgId,
+    vendorCode: 'VEN-RENT-06',
+    name: 'Gulf Arena Staging Rentals',
+    legalName: 'Gulf Arena Equipment Rental Co.',
+    tradingName: 'Gulf Arena Rentals',
+    category: 'corporate',
+    vendorType: 'rental_supplier',
+    status: 'conditionally_approved',
+    qualificationStatus: 'conditionally_approved',
+    crNumber: 'CR-DOH-6079885',
+    taxOrVatNumber: 'QA44332211',
+    country: 'Qatar',
+    rating: 4.2,
+    complianceVerified: true,
+    riskFlags: ['INSURANCE_PENDING_RENEWAL'],
+    notes: 'Conditional approval granted pending submission of updated 2027 third-party liability policy.',
+    bankDetails: {
+      bankName: 'CBQ',
+      accountName: 'Gulf Arena Equipment Rental',
+      accountNumber: '006789012345',
+      iban: 'QA44CBQA00000000006789012345',
+      swift: 'CBQAQAQA',
+    },
+  };
+
+  const hamadAcoustics: StoredVendor = {
+    id: '00000000-0000-4000-a000-000000000007',
+    organisationId: defaultOrgId,
+    vendorCode: 'VEN-FREE-07',
+    name: 'Hamad Al-Kuwari Live Sound Consulting',
+    category: 'freelance',
+    vendorType: 'freelancer',
+    status: 'approved',
+    qualificationStatus: 'approved',
+    taxOrVatNumber: 'QA33221100',
+    country: 'Qatar',
+    rating: 4.9,
+    complianceVerified: true,
+    riskFlags: [],
+    bankDetails: {
+      bankName: 'QNB',
+      accountName: 'Hamad Al-Kuwari',
+      accountNumber: '007890123456',
+      iban: 'QA55QNBA00000000007890123456',
+      swift: 'QNBAQAQA',
+    },
+  };
+
+  const meRigging: StoredVendor = {
+    id: '00000000-0000-4000-a000-000000000008',
+    organisationId: defaultOrgId,
+    vendorCode: 'VEN-SUBC-08',
+    name: 'Middle East Rigging Subcontractors',
+    legalName: 'Middle East Specialized Rigging WLL',
+    category: 'corporate',
+    vendorType: 'subcontractor',
+    status: 'under_review',
+    qualificationStatus: 'under_review',
+    crNumber: 'CR-DOH-7089986',
+    taxOrVatNumber: 'QA22110099',
+    country: 'Qatar',
+    rating: 4.0,
+    complianceVerified: false,
+    riskFlags: ['PENDING_TECHNICAL_AUDIT'],
+    bankDetails: {
+      bankName: 'Doha Bank',
+      accountName: 'Middle East Specialized Rigging',
+      accountNumber: '008901234567',
+      iban: 'QA33DOHB00000000008901234567',
+      swift: 'DOHBQAQA',
+    },
+  };
+
+  const kineticGmbH: StoredVendor = {
+    id: '00000000-0000-4000-a000-000000000009',
+    organisationId: defaultOrgId,
+    vendorCode: 'VEN-INT-09',
+    name: 'Kinetic Precision Systems GmbH',
+    legalName: 'Kinetic Precision Systems Munich GmbH',
+    category: 'corporate',
+    vendorType: 'international_supplier',
+    status: 'approved',
+    qualificationStatus: 'approved',
+    taxOrVatNumber: 'DE319208411',
+    country: 'Germany',
+    rating: 4.8,
+    complianceVerified: true,
+    riskFlags: [],
+    bankDetails: {
+      bankName: 'Deutsche Bank Munich',
+      accountName: 'Kinetic Precision Systems GmbH',
+      accountNumber: '4455667788',
+      iban: 'DE89370400440532013000',
+      swift: 'DEUTDEDBMUC',
+    },
+  };
+
+  const blacklistedVendor: StoredVendor = {
+    id: '00000000-0000-4000-a000-000000000010',
+    organisationId: defaultOrgId,
+    vendorCode: 'VEN-BL-10',
+    name: 'Substandard Scaffolding Rentals',
+    category: 'corporate',
+    vendorType: 'rental_supplier',
+    status: 'blacklisted',
+    qualificationStatus: 'blacklisted',
+    country: 'Qatar',
+    rating: 1.5,
+    complianceVerified: false,
+    riskFlags: ['FAILED_LOAD_SAFETY_INSPECTION', 'FORGED_COMPLIANCE_CERTIFICATES'],
+    notes: 'Permanently blacklisted following critical structural failure during 2025 dry run test.',
+  };
+
+  for (const v of [
+    abcJoinery,
+    qatarScenic,
+    gulfExhibits,
+    alAttiyah,
+    dohaTechAudio,
+    arenaRentals,
+    hamadAcoustics,
+    meRigging,
+    kineticGmbH,
+    blacklistedVendor,
+  ]) {
     vendorRepository.set(v.id, v);
     vendorRepository.set(v.vendorCode, v);
   }
+
 
   // Seed Procurement Requirement for Acceptance Scenario
   const reqId = '00000000-0000-4000-f000-000000000001';
@@ -321,18 +555,30 @@ seedProcurementData();
 @Controller()
 @UseFilters(ProblemDetailsFilter)
 export class ProcurementController {
-  // --- Vendor Endpoints ---
+  // --- Vendor Endpoints (Sprint 03 Module 8 First-Class Vendor Management) ---
 
   @Get('vendors')
   @UseGuards(TenantIsolationGuard)
   listVendors(@Req() req: Request) {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
     const seen = new Set<string>();
-    const list: StoredVendor[] = [];
+    const list: any[] = [];
     for (const v of vendorRepository.values()) {
       if (v.organisationId === orgId && !seen.has(v.id)) {
         seen.add(v.id);
-        list.push(v);
+        const { restrictedBankDetails, bankDetails, ...safeProfile } = v;
+        const maskedBank = bankDetails
+          ? {
+              ...bankDetails,
+              accountNumber: bankDetails.accountNumber ? `••••••••${bankDetails.accountNumber.slice(-4)}` : '••••••••',
+              iban: bankDetails.iban ? `${bankDetails.iban.slice(0, 4)}••••••••${bankDetails.iban.slice(-4)}` : '••••••••',
+            }
+          : undefined;
+        list.push({
+          ...safeProfile,
+          bankDetails: maskedBank,
+          hasRestrictedBankDetails: !!(restrictedBankDetails || bankDetails),
+        });
       }
     }
     return { data: list };
@@ -346,7 +592,70 @@ export class ProcurementController {
     if (!vendor || vendor.organisationId !== orgId) {
       throw new HttpException({ message: 'VENDOR_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
+    const role = (req.headers['x-user-role'] as string) || (req as any).userRole || 'viewer';
+    const canViewRestricted = [
+      'finance_controller',
+      'super_admin',
+      'commercial_director',
+      'financial_controller',
+      'cfo',
+    ].includes(role.toLowerCase().replace(/[\s-]+/g, '_'));
+
+    if (!canViewRestricted) {
+      const { restrictedBankDetails, bankDetails, ...safeProfile } = vendor;
+      const maskedBank = bankDetails
+        ? {
+            ...bankDetails,
+            accountNumber: bankDetails.accountNumber ? `••••••••${bankDetails.accountNumber.slice(-4)}` : '••••••••',
+            iban: bankDetails.iban ? `${bankDetails.iban.slice(0, 4)}••••••••${bankDetails.iban.slice(-4)}` : '••••••••',
+          }
+        : undefined;
+      return {
+        data: {
+          ...safeProfile,
+          bankDetails: maskedBank,
+          restrictedBankDetailsMasked: true,
+        },
+      };
+    }
     return { data: vendor };
+  }
+
+  @Get('vendors/:id/restricted-bank-details')
+  @UseGuards(TenantIsolationGuard)
+  getVendorRestrictedBankDetails(@Param('id') vendorId: string, @Req() req: Request) {
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const vendor = vendorRepository.get(vendorId);
+    if (!vendor || vendor.organisationId !== orgId) {
+      throw new HttpException({ message: 'VENDOR_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+    const role = (req.headers['x-user-role'] as string) || (req as any).userRole || 'viewer';
+    const canViewRestricted = [
+      'finance_controller',
+      'super_admin',
+      'commercial_director',
+      'financial_controller',
+      'cfo',
+    ].includes(role.toLowerCase().replace(/[\s-]+/g, '_'));
+
+    if (!canViewRestricted) {
+      throw new HttpException(
+        {
+          type: 'https://e3-eos.io/errors/forbidden',
+          title: 'Forbidden',
+          status: 403,
+          detail: `User role '${role}' is not authorized to access sensitive vendor banking details. Requires finance_controller or commercial_director.`,
+        },
+        HttpStatus.FORBIDDEN
+      );
+    }
+    return {
+      data: {
+        vendorId: vendor.id,
+        vendorCode: vendor.vendorCode,
+        bankDetails: vendor.restrictedBankDetails || vendor.bankDetails,
+      },
+    };
   }
 
   @Post('vendors/extended')
@@ -372,7 +681,7 @@ export class ProcurementController {
       tradingName: parseResult.data.tradingName,
       category: 'corporate',
       vendorType: parseResult.data.vendorType as any,
-      status: 'active',
+      status: 'approved',
       qualificationStatus: parseResult.data.qualificationStatus as any,
       rating: parseResult.data.rating,
       bankDetails: parseResult.data.bankDetails,
@@ -409,36 +718,131 @@ export class ProcurementController {
 
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
     const vendorId = `ven-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const vendorCode = parseResult.data.vendorCode || `VEN-${Date.now().toString().slice(-4)}`;
 
-    const vendor: StoredVendor = {
+    const newVendor: StoredVendor = {
       id: vendorId,
       organisationId: orgId,
-      vendorCode: parseResult.data.vendorCode,
+      vendorCode,
       name: parseResult.data.name,
-      category: parseResult.data.category,
-      status: 'active',
+      legalName: parseResult.data.name,
+      vendorType: (parseResult.data.vendorType as VendorType) || 'company',
+      category: parseResult.data.category || 'corporate',
+      status: (parseResult.data.status as VendorStatus) || 'prospect',
+      qualificationStatus: parseResult.data.status === 'approved' ? 'approved' : 'under_review',
+      crNumber: parseResult.data.crNumber,
+      taxOrVatNumber: parseResult.data.taxOrVatNumber,
+      country: parseResult.data.country || 'Qatar',
+      contactPerson: parseResult.data.contactPerson,
+      insurancePolicy: parseResult.data.insurancePolicy
+        ? {
+            provider: parseResult.data.insurancePolicy.provider,
+            policyNumber: parseResult.data.insurancePolicy.policyNumber,
+            validUntil: new Date(parseResult.data.insurancePolicy.validUntil),
+            coverageAmount: parseResult.data.insurancePolicy.coverageAmount
+              ? new Money(parseResult.data.insurancePolicy.coverageAmount, 'QAR')
+              : undefined,
+          }
+        : undefined,
+      certifications: parseResult.data.certifications || [],
       bankDetails: parseResult.data.bankDetails,
-      complianceVerified: parseResult.data.complianceVerified,
-      soleSourceAuthorised: parseResult.data.soleSourceAuthorised,
+      restrictedBankDetails: parseResult.data.bankDetails,
+      complianceVerified: parseResult.data.complianceVerified || false,
+      soleSourceAuthorised: parseResult.data.soleSourceAuthorised || false,
       freelanceGracePeriodUntil: parseResult.data.freelanceGracePeriodUntil
         ? new Date(parseResult.data.freelanceGracePeriodUntil)
         : undefined,
+      riskFlags: parseResult.data.riskFlags || [],
+      notes: parseResult.data.notes,
+      rating: 4.5,
     };
 
-    vendorRepository.set(vendorId, vendor);
+    if (newVendor.status === 'approved') {
+      const evaluation = VendorApprovalPolicyEngine.evaluate(newVendor);
+      if (!evaluation.canApprove) {
+        newVendor.status = evaluation.recommendedStatus;
+      }
+    }
+
+    vendorRepository.set(vendorId, newVendor);
+    vendorRepository.set(vendorCode, newVendor);
 
     return {
       data: {
         id: vendorId,
-        status: vendor.status,
+        status: newVendor.status,
         recordVersion: 1,
-        payload: vendor,
+        payload: newVendor,
       },
       meta: {
         requestId: (req.headers['x-request-id'] as string) || 'req-ven',
       },
     };
   }
+
+  @Post('vendors/:id/status')
+  @UseGuards(TenantIsolationGuard)
+  transitionVendorStatus(
+    @Param('id') vendorId: string,
+    @Body() body: unknown,
+    @Req() req: Request
+  ): CommandResult<StoredVendor> {
+    const parseResult = VendorStatusTransitionSchema.safeParse(body);
+    if (!parseResult.success) {
+      throw new HttpException(
+        { message: 'VALIDATION_FAILED', errors: parseResult.error.errors },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const vendor = vendorRepository.get(vendorId);
+    if (!vendor || vendor.organisationId !== orgId) {
+      throw new HttpException({ message: 'VENDOR_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+
+    const targetStatus = parseResult.data.status as VendorStatus;
+
+    if (targetStatus === 'approved') {
+      const evaluation = VendorApprovalPolicyEngine.evaluate(vendor);
+      if (!evaluation.canApprove) {
+        throw new HttpException(
+          {
+            type: 'https://e3-eos.io/errors/vendor-approval-failed',
+            title: 'Vendor Approval Rejected',
+            status: 422,
+            detail: `Vendor fails approval policy: ${evaluation.violations.join('; ')}`,
+            violations: evaluation.violations,
+          },
+          HttpStatus.UNPROCESSABLE_ENTITY
+        );
+      }
+    }
+
+    vendor.status = targetStatus;
+    vendor.qualificationStatus = targetStatus === 'approved' ? 'approved' : targetStatus;
+    if (parseResult.data.riskFlags) {
+      vendor.riskFlags = parseResult.data.riskFlags;
+    }
+
+    vendorRepository.set(vendor.id, vendor);
+    if (vendor.vendorCode) {
+      vendorRepository.set(vendor.vendorCode, vendor);
+    }
+
+    return {
+      data: {
+        id: vendor.id,
+        status: vendor.status,
+        recordVersion: 2,
+        payload: vendor,
+      },
+      meta: {
+        requestId: (req.headers['x-request-id'] as string) || 'req-ven-status',
+      },
+    };
+  }
+
 
   @Post('vendors/:id/bank-changes')
   @UseGuards(TenantIsolationGuard)
