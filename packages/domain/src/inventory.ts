@@ -262,3 +262,149 @@ export class InventoryReservationEngine {
     });
   }
 }
+
+export type AssetOwnership = 'e3_owned' | 'vendor_rental' | 'client_owned' | 'project_purchased' | 'consignment';
+export type AssetCondition = 'new' | 'good' | 'serviceable' | 'needs_maintenance' | 'damaged' | 'quarantined' | 'retired';
+export type AssetAvailability = 'available' | 'reserved' | 'allocated' | 'dispatched' | 'on_site' | 'returned' | 'damaged' | 'unavailable';
+
+export interface Asset {
+  id: string;
+  assetTag: string;
+  barcode: string;
+  name: string;
+  category: string;
+  subcategory?: string;
+  brand?: string;
+  model?: string;
+  serialNumber?: string;
+  quantity: number;
+  unit: string;
+  ownership: AssetOwnership;
+  warehouseId: string;
+  zone: string;
+  location: string;
+  condition: AssetCondition;
+  availability: AssetAvailability;
+  purchaseValue: number;
+  replacementValue: number;
+  maintenanceStatus: string;
+  lastInspectionDate?: Date;
+  nextInspectionDate?: Date;
+}
+
+export interface Warehouse {
+  id: string;
+  warehouseCode: string;
+  name: string;
+  country: string;
+  city: string;
+  address: string;
+  zones: string[];
+  capacity: string;
+  managerId: string;
+  operatingHours: string;
+}
+
+export interface AssetAllocation {
+  id: string;
+  assetId: string;
+  projectId: string;
+  procurementRequirementId?: string;
+  boqLineId?: string;
+  allocatedQuantity: number;
+  window: TimeWindow;
+  status: 'tentative' | 'confirmed' | 'released' | 'returned';
+}
+
+export interface WarehouseMovement {
+  id: string;
+  assetId: string;
+  source: string;
+  destination: string;
+  movementType:
+    | 'received'
+    | 'stored'
+    | 'allocated'
+    | 'picked'
+    | 'packed'
+    | 'dispatched'
+    | 'on_site'
+    | 'returned'
+    | 'inspected'
+    | 'restocked';
+  quantity: number;
+  condition: string;
+  projectId?: string;
+  evidenceUris: string[];
+  userId: string;
+  timestamp: Date;
+}
+
+export class AssetAllocationEngine {
+  /**
+   * Evaluates split between existing E3 internal asset inventory and external procurement (Sprint 03 Module 7).
+   * Example: 30 required, 8 available -> 8 internally allocated, 22 external procurement required.
+   */
+  static calculateInternalFulfillment(
+    requiredQuantity: number,
+    availableInventoryQuantity: number
+  ): {
+    allocatedInternally: number;
+    externalProcurementRequired: number;
+    fulfillmentRatePercent: number;
+  } {
+    if (requiredQuantity <= 0) {
+      return { allocatedInternally: 0, externalProcurementRequired: 0, fulfillmentRatePercent: 100 };
+    }
+
+    const allocatedInternally = Math.min(requiredQuantity, Math.max(0, availableInventoryQuantity));
+    const externalProcurementRequired = Math.max(0, requiredQuantity - allocatedInternally);
+    const fulfillmentRatePercent = Math.round((allocatedInternally / requiredQuantity) * 100);
+
+    return {
+      allocatedInternally,
+      externalProcurementRequired,
+      fulfillmentRatePercent,
+    };
+  }
+
+  /**
+   * Enforces multi-project asset allocation exclusivity (Sprint 03 Module 7).
+   * Invariant: An asset cannot be allocated to two overlapping projects unless explicitly allowed.
+   */
+  static validateAssetProjectAllocation(
+    asset: Asset,
+    existingAllocations: AssetAllocation[],
+    newAllocation: { projectId: string; window: TimeWindow; quantity: number }
+  ): void {
+    if (asset.condition === 'quarantined' || asset.condition === 'damaged' || asset.condition === 'retired') {
+      throw new Error(
+        `ASSET_NOT_SERVICEABLE: Asset ${asset.assetTag} (${asset.name}) is in '${asset.condition}' condition and cannot be allocated.`
+      );
+    }
+
+    // Check for active overlapping allocations for a different project
+    for (const alloc of existingAllocations) {
+      if (alloc.status !== 'confirmed') continue;
+      if (alloc.projectId === newAllocation.projectId) continue;
+
+      if (TimeUtil.overlaps(alloc.window, newAllocation.window)) {
+        throw new Error(
+          `ASSET_PROJECT_COLLISION: Asset ${asset.assetTag} (${asset.name}) is already confirmed for project ${alloc.projectId} from ${alloc.window.start.toISOString()} to ${alloc.window.end.toISOString()}. Cannot allocate to project ${newAllocation.projectId} during overlapping window.`
+        );
+      }
+    }
+  }
+
+  /**
+   * Records a custodial warehouse movement step through the complete operational lifecycle.
+   */
+  static recordMovement(movement: Omit<WarehouseMovement, 'id' | 'timestamp'>): WarehouseMovement {
+    return {
+      ...movement,
+      id: `mov-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      timestamp: new Date(),
+    };
+  }
+}
+

@@ -7,6 +7,13 @@ import { DocumentRegisterView } from './DocumentRegisterView.js';
 import { MasterGanttView } from './MasterGanttView.js';
 import { DesignReviewView } from './DesignReviewView.js';
 import { CommercialBOQView } from './CommercialBOQView.js';
+import { ProcurementDeliveryView } from './ProcurementDeliveryView.js';
+import { ProductionDeliveryView } from './ProductionDeliveryView.js';
+import { AssetsDeliveryView } from './AssetsDeliveryView.js';
+import { LogisticsDeliveryView } from './LogisticsDeliveryView.js';
+import { CrewDeliveryView } from './CrewDeliveryView.js';
+import { SiteOpsDeliveryView } from './SiteOpsDeliveryView.js';
+import { CrossModuleTraceabilityModal } from './CrossModuleTraceabilityModal.js';
 
 export const ProjectCockpitView: React.FC = () => {
   const {
@@ -43,11 +50,45 @@ export const ProjectCockpitView: React.FC = () => {
   // Workstream filter state
   const [workstreamFilter, setWorkstreamFilter] = useState<'needs_attention' | 'on_track' | 'all'>('needs_attention');
   const [selectedAuditDetail, setSelectedAuditDetail] = useState<any | null>(null);
-  const [cockpitModuleTab, setCockpitModuleTab] = useState<'overview' | 'requirements' | 'clarifications' | 'documents' | 'timeline' | 'design' | 'commercial'>(() => {
+  const [isLineageModalOpen, setIsLineageModalOpen] = useState<boolean>(false);
+  const [cockpitModuleTab, setCockpitModuleTab] = useState<
+    | 'overview'
+    | 'requirements'
+    | 'clarifications'
+    | 'documents'
+    | 'timeline'
+    | 'design'
+    | 'commercial'
+    | 'procurement'
+    | 'production'
+    | 'assets'
+    | 'logistics'
+    | 'crew'
+    | 'site'
+    | 'readiness'
+  >(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
-      if (tabParam && ['overview', 'requirements', 'clarifications', 'documents', 'timeline', 'design', 'commercial'].includes(tabParam)) {
+      if (
+        tabParam &&
+        [
+          'overview',
+          'requirements',
+          'clarifications',
+          'documents',
+          'timeline',
+          'design',
+          'commercial',
+          'procurement',
+          'production',
+          'assets',
+          'logistics',
+          'crew',
+          'site',
+          'readiness',
+        ].includes(tabParam)
+      ) {
         return tabParam as any;
       }
     }
@@ -319,6 +360,14 @@ export const ProjectCockpitView: React.FC = () => {
               ✍️ Request Approval
             </Button>
             <Button
+              id="cockpit-lineage-btn"
+              variant="secondary"
+              size="md"
+              onClick={() => setIsLineageModalOpen(true)}
+            >
+              🔗 Delivery Lineage
+            </Button>
+            <Button
               id="cockpit-audit-btn"
               variant="ghost"
               size="md"
@@ -509,6 +558,175 @@ export const ProjectCockpitView: React.FC = () => {
             QAR 1.52M
           </span>
         </button>
+
+        {/* --- SPRINT 03 PHYSICAL DELIVERY MODULES --- */}
+        <button
+          id="tab-cockpit-procurement"
+          onClick={() => setCockpitModuleTab('procurement')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'procurement' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'procurement' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'procurement' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>🛒</span> Procurement & RFQ
+          <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            PO Released
+          </span>
+        </button>
+
+        <button
+          id="tab-cockpit-production"
+          onClick={() => setCockpitModuleTab('production')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'production' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'production' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'production' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>🏭</span> Production & QC
+          <span style={{ fontSize: '11px', backgroundColor: '#f3e8ff', color: '#7e22ce', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            QC Passed
+          </span>
+        </button>
+
+        <button
+          id="tab-cockpit-assets"
+          onClick={() => setCockpitModuleTab('assets')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'assets' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'assets' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'assets' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>📦</span> Assets & Depot
+          <span style={{ fontSize: '11px', backgroundColor: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            8 Locked
+          </span>
+        </button>
+
+        <button
+          id="tab-cockpit-logistics"
+          onClick={() => setCockpitModuleTab('logistics')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'logistics' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'logistics' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'logistics' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>🚚</span> Logistics & Fleet
+          <span style={{ fontSize: '11px', backgroundColor: '#dcfce7', color: '#15803d', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            POD Signed
+          </span>
+        </button>
+
+        <button
+          id="tab-cockpit-crew"
+          onClick={() => setCockpitModuleTab('crew')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'crew' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'crew' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'crew' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>👷</span> Crew & Roster
+          <span style={{ fontSize: '11px', backgroundColor: '#e2e8f0', color: '#334155', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            11h Rest Ok
+          </span>
+        </button>
+
+        <button
+          id="tab-cockpit-site"
+          onClick={() => setCockpitModuleTab('site')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'site' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'site' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'site' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>📝</span> Site & DSR
+          <span style={{ fontSize: '11px', backgroundColor: '#dbeafe', color: '#1e40af', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            DSR Logged
+          </span>
+        </button>
+
+        <button
+          id="tab-cockpit-readiness"
+          onClick={() => setCockpitModuleTab('readiness')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'readiness' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'readiness' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'readiness' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>🚦</span> Readiness Gate
+          <span style={{ fontSize: '11px', backgroundColor: '#16a34a', color: '#ffffff', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+            100% READY
+          </span>
+        </button>
       </div>
 
       {cockpitModuleTab === 'requirements' && <RequirementsMatrixView projectId={projectId} />}
@@ -517,6 +735,13 @@ export const ProjectCockpitView: React.FC = () => {
       {cockpitModuleTab === 'timeline' && <MasterGanttView projectId={projectId} />}
       {cockpitModuleTab === 'design' && <DesignReviewView projectId={projectId} />}
       {cockpitModuleTab === 'commercial' && <CommercialBOQView projectId={projectId} />}
+      {cockpitModuleTab === 'procurement' && <ProcurementDeliveryView projectId={projectId} />}
+      {cockpitModuleTab === 'production' && <ProductionDeliveryView projectId={projectId} />}
+      {cockpitModuleTab === 'assets' && <AssetsDeliveryView projectId={projectId} />}
+      {cockpitModuleTab === 'logistics' && <LogisticsDeliveryView projectId={projectId} />}
+      {cockpitModuleTab === 'crew' && <CrewDeliveryView projectId={projectId} />}
+      {cockpitModuleTab === 'site' && <SiteOpsDeliveryView projectId={projectId} initialSection="dsr" />}
+      {cockpitModuleTab === 'readiness' && <SiteOpsDeliveryView projectId={projectId} initialSection="readiness" />}
 
       {cockpitModuleTab === 'overview' && (
         <>
@@ -1383,6 +1608,13 @@ export const ProjectCockpitView: React.FC = () => {
           />
         </form>
       </Modal>
+
+      {/* Cross-Module End-to-End Delivery Lineage Modal */}
+      <CrossModuleTraceabilityModal
+        isOpen={isLineageModalOpen}
+        onClose={() => setIsLineageModalOpen(false)}
+        projectId={projectId}
+      />
     </div>
   );
 };

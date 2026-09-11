@@ -22,7 +22,6 @@ RUN pnpm install --frozen-lockfile
 
 # Copy source trees
 COPY packages/ ./packages/
-COPY contracts/ ./contracts/
 COPY apps/api/ ./apps/api/
 
 # Build shared packages and apps/api
@@ -47,7 +46,6 @@ USER node
 COPY --chown=node:node --from=builder /app/package.json /app/pnpm-workspace.yaml ./
 COPY --chown=node:node --from=builder /app/node_modules ./node_modules
 COPY --chown=node:node --from=builder /app/packages ./packages
-COPY --chown=node:node --from=builder /app/contracts ./contracts
 COPY --chown=node:node --from=builder /app/apps/api ./apps/api
 
 EXPOSE 4000

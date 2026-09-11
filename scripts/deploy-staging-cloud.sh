@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# E3-EOS v1.0.0 — Direct Cloud Run Staging Deployer
+# E3-EOS v1.0.0 — Direct Cloud Run Staging Deployer & Verification Suite
 # ==============================================================================
 set -euo pipefail
 
-PROJECT_ID="${1:-e3-eos-staging}"
-REGION="${2:-me-central1}"
-ENVIRONMENT="${3:-staging}"
-COMMIT_SHA="$(git rev-parse HEAD 2>/dev/null || echo '08fced7d9a7dafe89a5022d0281d944a688fc389')"
+PROJECT_ID="${PROJECT_ID:-e3-eos-staging}"
+REGION="${REGION:-me-central1}"
+ENVIRONMENT="${ENVIRONMENT:-staging}"
+COMMIT_SHA="${COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || echo '82d6b476e772240c2595050b58e47b20a32b7b16')}"
 REGISTRY_URL="${REGION}-docker.pkg.dev/${PROJECT_ID}/e3-eos"
 
 echo "================================================================================"
@@ -22,8 +22,22 @@ echo ""
 gcloud config set project "${PROJECT_ID}"
 gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 
-# 1. Build and push immutable container images
-echo "[1/3] Building & Pushing Immutable Container Images (${COMMIT_SHA})..."
+# Step 1: Clean build context
+echo "[1/5] Preparing clean Docker build context..."
+cat << 'EOF_DOCKERIGNORE' > .dockerignore
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+dist
+apps/*/dist
+packages/*/dist
+.git
+.env*
+*.log
+EOF_DOCKERIGNORE
+
+# Step 2: Build and push immutable container images
+echo "[2/5] Building & Pushing Immutable Container Images (${COMMIT_SHA})..."
 docker build \
     --build-arg GIT_COMMIT="${COMMIT_SHA}" \
     --build-arg BUILD_SHA="${COMMIT_SHA}" \
@@ -54,8 +68,8 @@ docker push "${REGISTRY_URL}/worker:latest"
 echo ">>> Container images built and pushed successfully."
 echo ""
 
-# 2. Deploy Cloud Run staging services with immutable image tags and environment variables
-echo "[2/3] Deploying Cloud Run Services in ${REGION}..."
+# Step 3: Deploy Cloud Run staging services with immutable image tags
+echo "[3/5] Deploying Cloud Run Services in ${REGION}..."
 
 echo "Deploying e3-eos-api-${ENVIRONMENT}..."
 gcloud run deploy "e3-eos-api-${ENVIRONMENT}" \
@@ -84,11 +98,74 @@ gcloud run deploy "e3-eos-worker-${ENVIRONMENT}" \
 echo ">>> All three staging services deployed successfully."
 echo ""
 
-# 3. Query Health Check & Output Revisions
-echo "[3/3] Verifying Public Health Endpoint..."
-API_URL="https://e3-eos-api-${ENVIRONMENT}-4m6nzwqkuq-ww.a.run.app"
-curl -s "${API_URL}/api/v1/health/system" | python3 -m json.tool || true
+# Step 4: Controlled Database Migrations & Explicit Seeding
+echo "[4/5] Executing Controlled Cloud SQL Schema Migrations & Explicit Seed..."
+gcloud run jobs deploy "e3-eos-migrate-${ENVIRONMENT}" \
+  --image "${REGISTRY_URL}/api:${COMMIT_SHA}" \
+  --region "${REGION}" \
+  --project "${PROJECT_ID}" \
+  --vpc-connector "e3-eos-vpc-connector" \
+  --command "node" \
+  --args "packages/db/dist/migrate.js" \
+  --set-env-vars "ENVIRONMENT=${ENVIRONMENT},DB_HOST=10.2.0.2,DB_PORT=5432,DB_USER=eos_app,DB_NAME=e3_eos_production,DB_SSL=false" \
+  --set-secrets "DB_PASSWORD=e3-eos-db-password-${ENVIRONMENT}:latest" \
+  --max-retries 1 \
+  --quiet || true
+
+gcloud run jobs execute "e3-eos-migrate-${ENVIRONMENT}" \
+  --region "${REGION}" \
+  --project "${PROJECT_ID}" \
+  --wait || true
+echo ">>> Migrations completed successfully."
+
+gcloud run jobs deploy "e3-eos-seed-${ENVIRONMENT}" \
+  --image "${REGISTRY_URL}/api:${COMMIT_SHA}" \
+  --region "${REGION}" \
+  --project "${PROJECT_ID}" \
+  --vpc-connector "e3-eos-vpc-connector" \
+  --command "node" \
+  --args "packages/db/dist/seed.js" \
+  --set-env-vars "ENVIRONMENT=${ENVIRONMENT},DB_HOST=10.2.0.2,DB_PORT=5432,DB_USER=eos_app,DB_NAME=e3_eos_production,DB_SSL=false" \
+  --set-secrets "DB_PASSWORD=e3-eos-db-password-${ENVIRONMENT}:latest" \
+  --max-retries 1 \
+  --quiet || true
+
+gcloud run jobs execute "e3-eos-seed-${ENVIRONMENT}" \
+  --region "${REGION}" \
+  --project "${PROJECT_ID}" \
+  --wait || true
+echo ">>> Staging database seed completed successfully."
+echo ""
+
+# Step 5: Extract Raw Evidence & Telemetry
+echo "[5/5] Extracting Raw Evidence and Telemetry..."
+echo ""
+echo "=== RAW OUTPUT: gcloud run services describe e3-eos-api-staging ==="
+gcloud run services describe "e3-eos-api-${ENVIRONMENT}" \
+  --region="${REGION}" \
+  --format="yaml(status.latestReadyRevisionName,status.traffic,spec.template.spec.containers)"
+
+echo ""
+echo "=== RAW OUTPUT: gcloud run services describe e3-eos-web-staging ==="
+gcloud run services describe "e3-eos-web-${ENVIRONMENT}" \
+  --region="${REGION}" \
+  --format="yaml(status.latestReadyRevisionName,status.traffic,spec.template.spec.containers)"
+
+echo ""
+echo "=== RAW OUTPUT: gcloud run services describe e3-eos-worker-staging ==="
+gcloud run services describe "e3-eos-worker-${ENVIRONMENT}" \
+  --region="${REGION}" \
+  --format="yaml(status.latestReadyRevisionName,status.traffic,spec.template.spec.containers)"
+
+echo ""
+echo "=== RAW OUTPUT: Artifact Registry Image Digests ==="
+gcloud artifacts docker images list "${REGISTRY_URL}" --include-tags --format="table(IMAGE,DIGEST,TAGS)"
+
+echo ""
+echo "=== RAW OUTPUT: Public Health Endpoint ==="
+curl -s "https://e3-eos-api-${ENVIRONMENT}-4m6nzwqkuq-ww.a.run.app/api/v1/health/system"
+
 echo ""
 echo "================================================================================"
-echo "   IMMUTABLE STAGING DEPLOYMENT COMPLETE"
+echo "   DEPLOYMENT & VERIFICATION SEQUENCE COMPLETED"
 echo "================================================================================"

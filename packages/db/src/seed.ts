@@ -522,7 +522,233 @@ export async function runSeed(): Promise<SeedDataManifest> {
       }
     }
 
-    console.log('[*] ✓ Successfully populated persistent PostgreSQL tables with 16 roles, Qatar Tourism project, stages, documents, and unverified constraints.');
+    // 6. Seed Sprint 03 Real Acceptance Project: Large Indoor Family Entertainment Event
+    const feeProjectId = 'a1111111-1111-4111-8111-111111111111';
+    await client.query(`
+      INSERT INTO projects (
+        id, organisation_id, project_code, title, description, origin_code, owner_id,
+        client_organisation_id, maturity, outcome, created_by, updated_by, created_at, updated_at
+      ) VALUES (
+        $1, $2, 'PRJ-2026-FEE-01', 'Large Indoor Family Entertainment Event 2026',
+        'Flagship multi-zone indoor family festival featuring main stage, registration counters, AV, lighting, games, furniture, branding, security, and staffing.',
+        'DIRECT_AWARD', $3, '22222222-2222-4222-8222-222222222222', 'developing', 'undetermined', $3, $3, NOW(), NOW()
+      ) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title;
+    `, [feeProjectId, e3OrgId, pmUserId]);
+
+    for (const stage of STANDARD_THIRTEEN_STAGE_TEMPLATE.stages) {
+      await client.query(`
+        INSERT INTO project_stage_instances (
+          id, project_id, organisation_id, stage_number, stage_name, status, progress_percent, created_at, updated_at
+        ) VALUES (
+          gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW()
+        ) ON CONFLICT (project_id, stage_number) DO UPDATE SET
+          stage_name = EXCLUDED.stage_name, status = EXCLUDED.status, progress_percent = EXCLUDED.progress_percent;
+      `, [
+        feeProjectId,
+        e3OrgId,
+        stage.defaultOrder,
+        stage.name,
+        stage.defaultOrder <= 8 ? 'completed' : (stage.defaultOrder === 9 ? 'in_progress' : 'not_started'),
+        stage.defaultOrder <= 8 ? 100 : (stage.defaultOrder === 9 ? 65 : 0)
+      ]);
+    }
+
+    // 7. Seed Sprint 03 Physical Delivery Infrastructure & Acceptance Scenario
+    // Vendors
+    const abcJoineryId = '00000000-0000-4000-a000-000000000001';
+    const qatarScenicId = '00000000-0000-4000-a000-000000000002';
+    const gulfExhibitsId = '00000000-0000-4000-a000-000000000003';
+    const alAttiyahFleetId = '00000000-0000-4000-a000-000000000004';
+
+    await client.query(`
+      INSERT INTO vendors (id, organisation_id, vendor_code, name, legal_name, trading_name, vendor_type, category, country, rating, qualification_status, status, compliance_verified, created_at)
+      VALUES 
+        ($1, $5, 'VEN-ABC-01', 'ABC Joinery & Fabrication', 'ABC Joinery LLC', 'ABC Scenic', 'fabricator', 'corporate', 'Qatar', '4.8', 'approved', 'active', true, NOW()),
+        ($2, $5, 'VEN-QS-02', 'Qatar Scenic Workshops', 'Qatar Scenic Productions WLL', 'Qatar Scenic', 'fabricator', 'corporate', 'Qatar', '4.5', 'approved', 'active', true, NOW()),
+        ($3, $5, 'VEN-GE-03', 'Gulf Exhibits & Structures', 'Gulf Exhibition Systems Co.', 'Gulf Exhibits', 'fabricator', 'corporate', 'Qatar', '4.3', 'approved', 'active', true, NOW()),
+        ($4, $5, 'VEN-LOG-04', 'Al-Attiyah Fleet Logistics', 'Al-Attiyah Transport & Logistics', 'Al-Attiyah Logistics', 'logistics_supplier', 'corporate', 'Qatar', '4.9', 'approved', 'active', true, NOW())
+      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, qualification_status = EXCLUDED.qualification_status;
+    `, [abcJoineryId, qatarScenicId, gulfExhibitsId, alAttiyahFleetId, e3OrgId]);
+
+    // Warehouse
+    const dohaWarehouseId = '00000000-0000-4000-b000-000000000001';
+    await client.query(`
+      INSERT INTO warehouses (id, organisation_id, warehouse_code, name, country, city, address, capacity, manager_id, operating_hours, created_at)
+      VALUES ($1, $2, 'WH-DOHA-01', 'Doha Central Logistics Depot', 'Qatar', 'Doha', 'Street 24, Industrial Area, Doha', '12,000 sq m', '10000000-0000-4000-8000-000000000009', '07:00 - 20:00', NOW())
+      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+    `, [dohaWarehouseId, e3OrgId]);
+
+    // E3 Assets
+    const counterAssetId = '00000000-0000-4000-c000-000000000001';
+    const barrierAssetId = '00000000-0000-4000-c000-000000000002';
+    await client.query(`
+      INSERT INTO assets (id, organisation_id, asset_tag, barcode, name, category, quantity, ownership, warehouse_id, zone, location, condition, availability, purchase_value, replacement_value, created_at)
+      VALUES 
+        ($1, $3, 'AST-CNT-001', 'E3-BC-CNT-001', 'Modular Registration Counter (Branded)', 'Furniture & Staging', 8, 'e3_owned', $4, 'Furniture', 'Bay 03-A', 'serviceable', 'available', '12000', '16000', NOW()),
+        ($2, $3, 'AST-BAR-002', 'E3-BC-BAR-002', 'Crowd Control Barriers (2.5m Steel)', 'Crowd Safety', 42, 'e3_owned', $4, 'Tools', 'Yard B', 'serviceable', 'available', '25000', '32000', NOW())
+      ON CONFLICT (id) DO UPDATE SET quantity = EXCLUDED.quantity;
+    `, [counterAssetId, barrierAssetId, e3OrgId, dohaWarehouseId]);
+
+    // Acceptance Project BOQ, Procurement Requirement & Fulfillment Journey
+    const feeEstimateId = '00000000-0000-4000-d000-000000000001';
+    await client.query(`
+      INSERT INTO estimates (id, organisation_id, project_id, name, currency, status, total_cost, total_sell, version_number, created_at)
+      VALUES ($1, $2, $3, 'FEE 2026 Commercial Master Budget', 'QAR', 'approved', '450000', '680000', 1, NOW())
+      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+    `, [feeEstimateId, e3OrgId, feeProjectId]);
+
+    const feeBoqLineId = '00000000-0000-4000-e000-000000000001';
+    await client.query(`
+      INSERT INTO boq_lines (id, estimate_id, organisation_id, project_id, line_code, description, quantity, uom, unit_cost, unit_sell, created_at)
+      VALUES ($1, $2, $3, $4, 'BOQ-FEE-REG-01', 'Modular Branded Registration Counters (Complete Assembly with LED lighting)', '30', 'units', '2200', '3200', NOW())
+      ON CONFLICT (id) DO UPDATE SET description = EXCLUDED.description;
+    `, [feeBoqLineId, feeEstimateId, e3OrgId, feeProjectId]);
+
+    // Procurement Requirement (30 required: 8 internal E3 asset + 22 external fabrication)
+    const feeProcReqId = '00000000-0000-4000-f000-000000000001';
+    await client.query(`
+      INSERT INTO procurement_requirements (
+        id, organisation_id, project_id, requirement_code, source, boq_line_id, description, category,
+        quantity, unit, required_on_site_date, procurement_lead_time_days, required_delivery_location,
+        preferred_vendor_id, estimated_cost, approved_budget, status, priority, source_decision,
+        internal_asset_quantity, external_sourcing_quantity, created_at
+      ) VALUES (
+        $1, $2, $3, 'PRQ-FEE-001', 'boq_line', $4, 'Provide 30 branded registration counters for Hall 1 entry portal', 'Staging & Fabrication',
+        '30', 'units', NOW() + INTERVAL '7 days', '10', 'DECC Exhibition Hall 1',
+        $5, '66000', '70000', 'awarded', 'high', 'use_e3_asset',
+        '8', '22', NOW()
+      ) ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status;
+    `, [feeProcReqId, e3OrgId, feeProjectId, feeBoqLineId, abcJoineryId]);
+
+    // Internal Asset Allocation of 8 existing counters
+    await client.query(`
+      INSERT INTO asset_allocations (id, organisation_id, asset_id, project_id, procurement_requirement_id, boq_line_id, allocated_quantity, window_start, window_end, status, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 8, NOW(), NOW() + INTERVAL '14 days', 'confirmed', NOW())
+      ON CONFLICT DO NOTHING;
+    `, [e3OrgId, counterAssetId, feeProjectId, feeProcReqId, feeBoqLineId]);
+
+    // RFQ for balance (22 units)
+    const feeRfqId = '00000000-0000-4000-f000-000000000002';
+    await client.query(`
+      INSERT INTO rfqs (id, organisation_id, project_id, rfq_number, procurement_requirement_id, issue_date, closing_date, invited_vendor_ids, technical_specification, quantity, delivery_requirement, commercial_terms, status, created_at)
+      VALUES (
+        $1, $2, $3, 'RFQ-FEE-2026-001', $4, NOW() - INTERVAL '5 days', NOW() - INTERVAL '2 days',
+        $5, 'Fabrication of 22 modular branded registration counters matching design specification DES-FEE-REG-001 Rev 02', '22',
+        'Direct site delivery to DECC Hall 1 with loading dock clearance', '30 Days Net on final acceptance', 'issued', NOW()
+      ) ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status;
+    `, [feeRfqId, e3OrgId, feeProjectId, feeProcReqId, JSON.stringify([abcJoineryId, qatarScenicId, gulfExhibitsId])]);
+
+    // Vendor Quotes: ABC Joinery recommended
+    await client.query(`
+      INSERT INTO vendor_quotes (id, organisation_id, rfq_id, vendor_id, quote_reference, unit_rate, total_price, currency, delivery_time_days, payment_terms, warranty, technical_compliance, technical_score, commercial_score, risk_score, total_score, is_recommended, created_at)
+      VALUES 
+        (gen_random_uuid(), $1, $2, $3, 'QT-ABC-2026-88', '3000', '66000', 'QAR', '10', '30 Days Net', '12 Months', '100% Compliant', '95', '95', '92', '94', true, NOW()),
+        (gen_random_uuid(), $1, $2, $4, 'QT-QS-2026-104', '3250', '71500', 'QAR', '14', '30 Days Net', '12 Months', '100% Compliant', '90', '85', '85', '87', false, NOW()),
+        (gen_random_uuid(), $1, $2, $5, 'QT-GE-2026-302', '3400', '74800', 'QAR', '18', '50% Advance', '6 Months', 'Compliant with minor exclusions', '85', '80', '75', '80', false, NOW())
+      ON CONFLICT DO NOTHING;
+    `, [e3OrgId, feeRfqId, abcJoineryId, qatarScenicId, gulfExhibitsId]);
+
+    // Purchase Order for ABC Joinery: QAR 66,000 committed cost
+    const feePoId = '00000000-0000-4000-f000-000000000003';
+    await client.query(`
+      INSERT INTO purchase_orders (
+        id, organisation_id, project_id, po_number, vendor_id, rfq_id, procurement_requirement_id,
+        currency, subtotal, total_amount, payment_terms, delivery_date, delivery_location, status,
+        external_delivery_status, created_at
+      ) VALUES (
+        $1, $2, $3, 'PO-QND26-0045', $4, $5, $6,
+        'QAR', '66000', '66000', '30 Days Net', NOW() + INTERVAL '5 days', 'DECC Exhibition Hall 1', 'released',
+        'confirmed', NOW()
+      ) ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status;
+    `, [feePoId, e3OrgId, feeProjectId, abcJoineryId, feeRfqId, feeProcReqId]);
+
+    // Production Package: 22 units produced by ABC Joinery
+    const feePkgId = '00000000-0000-4000-f000-000000000004';
+    await client.query(`
+      INSERT INTO production_packages (
+        id, organisation_id, project_id, package_code, vendor_id, linked_requirement_id,
+        title, quantity, completed_quantity, material, finish, production_owner_id,
+        start_date, required_completion_date, delivery_date, status, created_at
+      ) VALUES (
+        $1, $2, $3, 'PKG-FEE-REG-01', $4, $5,
+        'Fabrication of 22 Modular Registration Counters', 22, 22, 'HDF Melamine & Aluminium Frame with Acrylic Logo Panel', 'Semi-gloss White and Burgundy',
+        '10000000-0000-4000-8000-000000000007', NOW() - INTERVAL '6 days', NOW() - INTERVAL '1 day', NOW(), 'delivered', NOW()
+      ) ON CONFLICT (id) DO UPDATE SET completed_quantity = EXCLUDED.completed_quantity, status = EXCLUDED.status;
+    `, [feePkgId, e3OrgId, feeProjectId, abcJoineryId, feeProcReqId]);
+
+    // Quality Inspection & Resolved Snag
+    const feeInspId = '00000000-0000-4000-f000-000000000005';
+    await client.query(`
+      INSERT INTO quality_inspections (id, organisation_id, project_id, package_id, inspector_id, inspection_date, inspection_type, result, created_at)
+      VALUES ($1, $2, $3, $4, '10000000-0000-4000-8000-000000000010', NOW() - INTERVAL '1 day', 'factory_acceptance', 'passed', NOW())
+      ON CONFLICT (id) DO NOTHING;
+    `, [feeInspId, e3OrgId, feeProjectId, feePkgId]);
+
+    await client.query(`
+      INSERT INTO snags (id, organisation_id, project_id, package_id, inspection_id, title, description, severity, status, assigned_to, blocks_dispatch, blocks_readiness, resolved_at, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, 'Edge banding touch-up on Counter #14', 'Minor vinyl film peel on rear cable grommet', 'minor', 'resolved', $5, false, false, NOW(), NOW())
+      ON CONFLICT DO NOTHING;
+    `, [e3OrgId, feeProjectId, feePkgId, feeInspId, abcJoineryId]);
+
+    // Packing List (30 counters: 8 internal + 22 fabricated) & Logistics
+    const feePackingListId = '00000000-0000-4000-f000-000000000006';
+    await client.query(`
+      INSERT INTO packing_lists (
+        id, organisation_id, project_id, packing_list_number, warehouse_id, destination,
+        vehicle_id, dispatch_date, required_arrival, items, status, delivery_proof, delivered_at, created_at
+      ) VALUES (
+        $1, $2, $3, 'PL-FEE-001', $4, 'DECC Hall 1 Loading Bay',
+        'TRUCK-07', NOW() - INTERVAL '12 hours', NOW() - INTERVAL '6 hours',
+        $5, 'delivered',
+        $6, NOW() - INTERVAL '6 hours', NOW()
+      ) ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status;
+    `, [
+      feePackingListId, e3OrgId, feeProjectId, dohaWarehouseId,
+      JSON.stringify([
+        { assetTag: 'AST-CNT-001', description: 'Modular Registration Counter (Internal E3 Asset)', quantity: 8, casesPallets: '4 pallets', weightKg: 800, volumeM3: 6.4 },
+        { assetTag: 'PKG-REG-01', description: 'Modular Registration Counter (ABC Joinery Fabricated)', quantity: 22, casesPallets: '11 pallets', weightKg: 2200, volumeM3: 17.6 }
+      ]),
+      JSON.stringify({ receiverName: 'Omar Farooq (Site Field Supervisor)', timestamp: new Date().toISOString(), photos: ['evidence/pl-fee-001-pod.jpg'], discrepancies: [] })
+    ]);
+
+    // Transport Plan: Truck 07
+    await client.query(`
+      INSERT INTO logistics_plans (id, organisation_id, project_id, vehicle_id, vehicle_type, supplier, driver_name, driver_phone, load_description, origin, destination, departure_time, arrival_time, access_slot, loading_dock, status, created_at)
+      VALUES (gen_random_uuid(), $1, $2, 'TRUCK-07', '7 Ton', 'Al-Attiyah Fleet Logistics', 'Hamad Al-Khelaifi', '+974 5511 2233', '30 Registration Counters on 15 Pallets', 'Doha Central Warehouse', 'DECC Hall 1', NOW() - INTERVAL '12 hours', NOW() - INTERVAL '6 hours', 'Slot A - Morning Dock Access', 'Dock 03', 'arrived', NOW())
+      ON CONFLICT DO NOTHING;
+    `, [e3OrgId, feeProjectId]);
+
+    // Installation Items: 30 Installed & Accepted
+    await client.query(`
+      INSERT INTO installation_items (id, organisation_id, project_id, package_id, title, status, installer_notes, verified_at, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, '30 × Modular Branded Registration Counters (Hall 1 Entry)', 'accepted', 'All 30 units positioned, leveled, cable-managed, power-tested, and accepted by Site Supervisor Omar Farooq', NOW(), NOW())
+      ON CONFLICT DO NOTHING;
+    `, [e3OrgId, feeProjectId, feePkgId]);
+
+    // Operational Readiness Gate: 100% COMPLETE
+    await client.query(`
+      INSERT INTO operational_readiness_gates (id, organisation_id, project_id, overall_status, overall_score_percent, dimension_checks, critical_blockers, exceptions, evaluated_at)
+      VALUES (
+        gen_random_uuid(), $1, $2, 'READY', '100',
+        $3, '[]'::jsonb, '[]'::jsonb, NOW()
+      ) ON CONFLICT DO NOTHING;
+    `, [
+      e3OrgId, feeProjectId,
+      JSON.stringify([
+        { dimension: 'Scope', isPassed: true, isCritical: true, scorePercent: 100, details: 'All 30 registration counter units fully delivered against scope' },
+        { dimension: 'Design', isPassed: true, isCritical: true, scorePercent: 100, details: 'Design DES-FEE-REG-001 approved and built to spec' },
+        { dimension: 'Production', isPassed: true, isCritical: true, scorePercent: 100, details: '22/22 units fabricated and dispatched on schedule' },
+        { dimension: 'Assets', isPassed: true, isCritical: true, scorePercent: 100, details: '8/8 internal E3 units inspected and dispatched without conflict' },
+        { dimension: 'Logistics', isPassed: true, isCritical: true, scorePercent: 100, details: 'Truck 07 cleared loading dock and confirmed site delivery' },
+        { dimension: 'Installation', isPassed: true, isCritical: true, scorePercent: 100, details: '30/30 units positioned, connected, and accepted on site' },
+        { dimension: 'HSE', isPassed: true, isCritical: true, scorePercent: 100, details: 'Zero safety incidents; flame-retardancy certificates verified' },
+        { dimension: 'Permits', isPassed: true, isCritical: true, scorePercent: 100, details: 'Civil Defence & DECC venue work permits fully approved' },
+        { dimension: 'Staffing', isPassed: true, isCritical: true, scorePercent: 100, details: 'Hostesses and technical operators rostered without conflict' },
+        { dimension: 'Technical Testing', isPassed: true, isCritical: true, scorePercent: 100, details: 'All integrated LED power runs load-tested and passed' }
+      ])
+    ]);
+
+    console.log('[*] ✓ Successfully populated persistent PostgreSQL tables with 16 roles, Qatar Tourism project, FEE Acceptance Project, stages, documents, physical delivery lifecycle, and unverified constraints.');
     client.release();
   } catch (err: any) {
     console.warn('[*] Database persistent seed notice:', err.message);

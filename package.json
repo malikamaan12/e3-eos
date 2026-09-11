@@ -11,6 +11,7 @@
     "typecheck": "pnpm -r run typecheck",
     "demo": "tsx scripts/demo.ts",
     "seed": "tsx packages/db/src/seed.ts",
+    "migrate": "tsx packages/db/src/migrate.ts",
     "verify:matrix": "tsx scripts/verify-acceptance-matrix.ts",
     "verify:preflight": "tsx scripts/verify-production-readiness.ts",
     "test:biz-regression": "tsx scripts/execute-business-regression.ts",

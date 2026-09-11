@@ -32,6 +32,7 @@ export async function runMigrations() {
       '0001_dear_genesis.sql',
       '0001_enable_row_level_security.sql',
       '0002_operational_constraints_and_documents.sql',
+      '0003_sprint_03_physical_delivery.sql',
     ];
 
     await client.query(`

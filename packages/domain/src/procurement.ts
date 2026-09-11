@@ -319,4 +319,192 @@ export class ProcurementEngine {
       isLineComplete,
     };
   }
+
+  /**
+   * Evaluates vendor RFQ quotes side-by-side using multi-criteria weighted scoring (AT-047 / Sprint 03 Module 3).
+   * Invariant: EOS produces a scoring recommendation, but NEVER automatically awards procurement without governance sign-off.
+   */
+  static evaluateBids(
+    rfq: RFQ,
+    quotes: VendorQuote[],
+    weights: { technical: number; commercial: number; risk: number } = { technical: 0.4, commercial: 0.4, risk: 0.2 }
+  ): BidEvaluationResult {
+    if (quotes.length === 0) {
+      throw new Error(`NO_QUOTES_TO_EVALUATE: RFQ ${rfq.rfqNumber} has zero submitted quotes.`);
+    }
+
+    // Identify lowest price for normalized commercial scoring
+    let minPrice = quotes[0].totalPrice.amount;
+    for (const q of quotes) {
+      if (q.totalPrice.amount.lt(minPrice)) {
+        minPrice = q.totalPrice.amount;
+      }
+    }
+
+    const evaluations = quotes.map((q) => {
+      // Technical score defaults to 85 if not manually scored, with compliance check
+      const isNonCompliant = q.technicalCompliance.toLowerCase().includes('non-compliant');
+      const techScore = q.technicalScore ?? (isNonCompliant ? 30 : 90);
+
+      // Commercial score: relative to lowest bid (minPrice / currentPrice * 100)
+      const commScore = q.totalPrice.amount.isZero()
+        ? 100
+        : Math.round(minPrice.dividedBy(q.totalPrice.amount).times(100).toNumber());
+
+      // Risk score: delivery timeline and warranty assessment
+      const riskScore = q.riskScore ?? (q.deliveryTimeDays <= 14 ? 90 : 70);
+
+      // Composite weighted score (0 - 100)
+      const compositeScore = Math.round(
+        techScore * weights.technical + commScore * weights.commercial + riskScore * weights.risk
+      );
+
+      return {
+        quoteId: q.id,
+        vendorId: q.vendorId,
+        unitRate: q.unitRate,
+        totalPrice: q.totalPrice,
+        technicalScore: techScore,
+        commercialScore: commScore,
+        riskScore,
+        compositeScore,
+        recommended: false,
+      };
+    });
+
+    // Sort by highest composite score
+    evaluations.sort((a, b) => b.compositeScore - a.compositeScore);
+    evaluations[0].recommended = true;
+
+    return {
+      rfqId: rfq.id,
+      quotesEvaluated: quotes.length,
+      evaluations,
+      recommendedVendorId: evaluations[0].vendorId,
+      recommendedQuoteId: evaluations[0].quoteId,
+      awardRationale: `Vendor ${evaluations[0].vendorId} achieved the highest composite score of ${evaluations[0].compositeScore}/100 across technical, commercial (${evaluations[0].totalPrice.toString()} ${evaluations[0].totalPrice.currency}), and delivery risk metrics.`,
+    };
+  }
+
+  /**
+   * Aggregates committed expenditure across approved and released purchase orders for EAC calculations.
+   */
+  static aggregateCommittedCost(pos: PurchaseOrder[], currency: CurrencyCode): Money {
+    let total = Money.zero(currency);
+    for (const po of pos) {
+      if (['approved', 'released', 'acknowledged', 'partially_received', 'fully_received'].includes(po.status)) {
+        if (po.totalAmount.currency !== currency) {
+          throw new Error(`CURRENCY_MISMATCH: PO ${po.poNumber} currency ${po.totalAmount.currency} does not match ${currency}`);
+        }
+        total = total.plus(po.totalAmount);
+      }
+    }
+    return total;
+  }
 }
+
+export type SourceDecisionType =
+  | 'buy'
+  | 'rent'
+  | 'use_e3_asset'
+  | 'client_supplied'
+  | 'vendor_package'
+  | 'subcontract';
+
+export interface ProcurementRequirement {
+  id: string;
+  projectId: string;
+  source: 'boq_line' | 'design_package' | 'requirement' | 'timeline_activity' | 'site_request' | 'variation' | 'operational_call_off';
+  boqLineId?: string;
+  requirementId?: string;
+  designPackageId?: string;
+  description: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  requiredOnSiteDate: Date;
+  procurementLeadTimeDays: number;
+  requiredDeliveryLocation: string;
+  technicalSpecification?: string;
+  preferredVendorId?: string;
+  procurementOwnerId?: string;
+  estimatedCost: Money;
+  approvedBudget: Money;
+  status:
+    | 'draft'
+    | 'internal_review'
+    | 'approved_to_source'
+    | 'rfq_active'
+    | 'quotes_received'
+    | 'evaluation'
+    | 'approval_required'
+    | 'awarded'
+    | 'po_issued'
+    | 'in_progress'
+    | 'delivered'
+    | 'closed'
+    | 'cancelled';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  sourceDecision: SourceDecisionType;
+  internalAssetQuantity: number;
+  externalSourcingQuantity: number;
+  allocatedAssetIds?: string[];
+  awardedPoId?: string;
+}
+
+export interface RFQ {
+  id: string;
+  rfqNumber: string;
+  projectId: string;
+  procurementRequirementId: string;
+  issueDate: Date;
+  closingDate: Date;
+  invitedVendorIds: string[];
+  technicalSpecification: string;
+  quantity: number;
+  deliveryRequirement: string;
+  commercialTerms?: string;
+  attachments: string[];
+  status: 'draft' | 'issued' | 'closed' | 'evaluated' | 'cancelled';
+}
+
+export interface VendorQuote {
+  id: string;
+  rfqId: string;
+  vendorId: string;
+  quoteReference: string;
+  unitRate: Money;
+  totalPrice: Money;
+  deliveryTimeDays: number;
+  paymentTerms: string;
+  warranty: string;
+  technicalCompliance: string;
+  exclusions?: string;
+  validityDays: number;
+  attachments: string[];
+  clarifications?: string;
+  technicalScore?: number;
+  commercialScore?: number;
+  riskScore?: number;
+  totalScore?: number;
+}
+
+export interface BidEvaluationResult {
+  rfqId: string;
+  quotesEvaluated: number;
+  evaluations: Array<{
+    quoteId: string;
+    vendorId: string;
+    unitRate: Money;
+    totalPrice: Money;
+    technicalScore: number;
+    commercialScore: number;
+    riskScore: number;
+    compositeScore: number;
+    recommended: boolean;
+  }>;
+  recommendedVendorId: string;
+  recommendedQuoteId: string;
+  awardRationale: string;
+}
+

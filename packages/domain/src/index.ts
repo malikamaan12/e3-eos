@@ -11,6 +11,7 @@ export * from './variations.js';
 export * from './designs.js';
 export * from './portal.js';
 export * from './procurement.js';
+export * from './production.js';
 export * from './inventory.js';
 export * from './operations.js';
 export * from './field-sync.js';

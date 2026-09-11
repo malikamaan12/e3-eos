@@ -60,6 +60,16 @@ export const SYNTHETIC_PROJECTS = {
     ownerId: SYNTHETIC_USERS.projectManager.id,
     clientOrganisationId: SYNTHETIC_ORGANISATIONS.clientCorp.id,
   },
+  acceptanceProject: {
+    id: 'a1111111-1111-4111-8111-111111111111',
+    organisationId: SYNTHETIC_ORGANISATIONS.e3Internal.id,
+    projectCode: 'PRJ-2026-FEE-01',
+    title: 'Large Indoor Family Entertainment Event 2026',
+    description: 'Flagship multi-zone indoor family festival featuring main stage, registration counters, AV, lighting, games, furniture, branding, security, and staffing.',
+    originCode: 'DIRECT_AWARD',
+    ownerId: SYNTHETIC_USERS.projectManager.id,
+    clientOrganisationId: SYNTHETIC_ORGANISATIONS.clientCorp.id,
+  },
 };
 
 export type SyntheticOrganisation = typeof SYNTHETIC_ORGANISATIONS[keyof typeof SYNTHETIC_ORGANISATIONS];

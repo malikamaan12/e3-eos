@@ -117,3 +117,113 @@ export const venueHandoverRecords = pgTable('venue_handover_records', {
   depositStatus: text('deposit_status').default('held').notNull(), // 'held', 'partially_retained', 'released'
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const packingLists = pgTable('packing_lists', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  packingListNumber: text('packing_list_number').notNull(),
+  warehouseId: uuid('warehouse_id'),
+  destination: text('destination').notNull(),
+  vehicleId: text('vehicle_id'),
+  driverId: uuid('driver_id').references(() => users.id),
+  dispatchDate: timestamp('dispatch_date', { withTimezone: true }).notNull(),
+  requiredArrival: timestamp('required_arrival', { withTimezone: true }).notNull(),
+  items: jsonb('items').default([]).notNull(),
+  status: text('status').default('draft').notNull(), // 'draft', 'picking', 'packed', 'ready', 'dispatched', 'in_transit', 'delivered', 'acknowledged', 'returned', 'closed'
+  deliveryProof: jsonb('delivery_proof'),
+  dispatchedAt: timestamp('dispatched_at', { withTimezone: true }),
+  deliveredAt: timestamp('delivered_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const logisticsPlans = pgTable('logistics_plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  vehicleId: text('vehicle_id').notNull(),
+  vehicleType: text('vehicle_type').default('7 Ton').notNull(),
+  supplier: text('supplier').notNull(),
+  driverName: text('driver_name').notNull(),
+  driverPhone: text('driver_phone').notNull(),
+  loadDescription: text('load_description').notNull(),
+  origin: text('origin').notNull(),
+  destination: text('destination').notNull(),
+  departureTime: timestamp('departure_time', { withTimezone: true }).notNull(),
+  arrivalTime: timestamp('arrival_time', { withTimezone: true }).notNull(),
+  accessSlot: text('access_slot').default('Slot A').notNull(),
+  permitNumber: text('permit_number'),
+  loadingDock: text('loading_dock').default('Dock 01').notNull(),
+  contactPerson: text('contact_person'),
+  status: text('status').default('planned').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const crewAssignments = pgTable('crew_assignments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  personName: text('person_name').notNull(),
+  employer: text('employer').default('E3 Live Operations').notNull(),
+  role: text('role').notNull(),
+  department: text('department').notNull(),
+  shiftId: uuid('shift_id'),
+  location: text('location').notNull(),
+  supervisorName: text('supervisor_name'),
+  windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
+  windowEnd: timestamp('window_end', { withTimezone: true }).notNull(),
+  accreditation: text('accreditation').default('Verified Site Pass').notNull(),
+  permit: text('permit'),
+  certification: text('certification'),
+  personnelType: text('personnel_type').default('e3_employee').notNull(),
+  status: text('status').default('scheduled').notNull(), // 'scheduled', 'confirmed', 'checked_in', 'checked_out', 'conflict_flagged'
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const dailySiteReports = pgTable('daily_site_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  reportDate: text('report_date').notNull(), // YYYY-MM-DD
+  workCompleted: text('work_completed').notNull(),
+  workDelayed: text('work_delayed').default('None').notNull(),
+  manpowerCount: text('manpower_count').default('0').notNull(),
+  equipmentActive: text('equipment_active').default('All operational').notNull(),
+  deliveriesReceived: text('deliveries_received').default('All cleared').notNull(),
+  incidentsOccurred: text('incidents_occurred').default('Zero incidents').notNull(),
+  snagsIdentified: text('snags_identified').default('None').notNull(),
+  clientInstructions: text('client_instructions').default('None').notNull(),
+  weatherConditions: text('weather_conditions').default('Clear, 28°C').notNull(),
+  photos: jsonb('photos').$type<string[]>().default([]).notNull(),
+  tomorrowPlan: text('tomorrow_plan').notNull(),
+  recordedBy: text('recorded_by').notNull(),
+  isImmutable: boolean('is_immutable').default(true).notNull(),
+  recordedAt: timestamp('recorded_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const installationItems = pgTable('installation_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  packageId: uuid('package_id'),
+  assetId: uuid('asset_id'),
+  title: text('title').notNull(),
+  status: text('status').default('not_delivered').notNull(), // 'not_delivered', 'delivered', 'positioned', 'installed', 'tested', 'accepted'
+  evidenceUris: jsonb('evidence_uris').$type<string[]>().default([]).notNull(),
+  installerNotes: text('installer_notes'),
+  verifiedBy: uuid('verified_by').references(() => users.id),
+  verifiedAt: timestamp('verified_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const operationalReadinessGates = pgTable('operational_readiness_gates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  overallStatus: text('overall_status').default('NOT_READY').notNull(), // 'READY', 'READY_WITH_EXCEPTIONS', 'NOT_READY'
+  overallScorePercent: text('overall_score_percent').default('0').notNull(),
+  dimensionChecks: jsonb('dimension_checks').default([]).notNull(),
+  criticalBlockers: jsonb('critical_blockers').$type<string[]>().default([]).notNull(),
+  exceptions: jsonb('exceptions').$type<string[]>().default([]).notNull(),
+  evaluatedAt: timestamp('evaluated_at', { withTimezone: true }).defaultNow().notNull(),
+});

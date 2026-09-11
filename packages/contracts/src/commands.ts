@@ -947,10 +947,455 @@ export const SupportFailureDrillSchema = z.object({
   details: z.string().min(5),
 });
 
-export type SupportFailureDrillDto = z.infer<typeof SupportFailureDrillSchema>;
+// --- SPRINT 03: PHYSICAL DELIVERY CONTROL CONTRACTS ---
 
+export const SourceDecisionEnum = z.enum([
+  'buy',
+  'rent',
+  'use_e3_asset',
+  'client_supplied',
+  'vendor_package',
+  'subcontract',
+]);
+export type SourceDecision = z.infer<typeof SourceDecisionEnum>;
 
+export const ProcurementStatusEnum = z.enum([
+  'draft',
+  'internal_review',
+  'approved_to_source',
+  'rfq_active',
+  'quotes_received',
+  'evaluation',
+  'approval_required',
+  'awarded',
+  'po_issued',
+  'in_progress',
+  'delivered',
+  'closed',
+  'cancelled',
+]);
+export type ProcurementStatus = z.infer<typeof ProcurementStatusEnum>;
 
+export const ProcurementRequirementCreateSchema = z.object({
+  projectId: z.string(),
+  source: z.enum([
+    'boq_line',
+    'design_package',
+    'requirement',
+    'timeline_activity',
+    'site_request',
+    'variation',
+    'operational_call_off',
+  ]).default('boq_line'),
+  boqLineId: z.string().optional(),
+  requirementId: z.string().optional(),
+  designPackageId: z.string().optional(),
+  description: z.string().min(2),
+  category: z.string().min(2),
+  quantity: z.number().positive(),
+  unit: z.string().min(1).default('units'),
+  requiredOnSiteDate: z.string(),
+  procurementLeadTimeDays: z.number().int().nonnegative().default(14),
+  requiredDeliveryLocation: z.string().min(2),
+  technicalSpecification: z.string().optional(),
+  preferredVendorId: z.string().optional(),
+  procurementOwnerId: z.string().optional(),
+  estimatedCost: z.number().nonnegative().default(0),
+  approvedBudget: z.number().nonnegative().default(0),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  sourceDecision: SourceDecisionEnum.default('buy'),
+  internalAssetQuantity: z.number().int().nonnegative().default(0),
+  externalSourcingQuantity: z.number().int().nonnegative().default(0),
+});
+export type ProcurementRequirementCreateDto = z.infer<typeof ProcurementRequirementCreateSchema>;
+
+export const SourceDecisionUpdateSchema = z.object({
+  sourceDecision: SourceDecisionEnum,
+  internalAssetQuantity: z.number().int().nonnegative().default(0),
+  externalSourcingQuantity: z.number().int().nonnegative().default(0),
+  rationale: z.string().optional(),
+});
+export type SourceDecisionUpdateDto = z.infer<typeof SourceDecisionUpdateSchema>;
+
+export const VendorExtendedCreateSchema = z.object({
+  vendorCode: z.string().min(2).max(50),
+  legalName: z.string().min(2).max(200),
+  tradingName: z.string().optional(),
+  vendorType: z.enum([
+    'company',
+    'freelancer',
+    'individual_supplier',
+    'subcontractor',
+    'international_supplier',
+    'rental_supplier',
+    'fabricator',
+    'talent_supplier',
+    'technical_supplier',
+    'logistics_supplier',
+  ]).default('company'),
+  country: z.string().default('Qatar'),
+  contactPersons: z.array(
+    z.object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      phone: z.string().min(5),
+      role: z.string().optional(),
+    })
+  ).default([]),
+  email: z.string().email(),
+  phone: z.string().min(5),
+  categories: z.array(z.string()).default([]),
+  services: z.array(z.string()).default([]),
+  brands: z.array(z.string()).default([]),
+  commercialRegistration: z.string().optional(),
+  taxVatNumber: z.string().optional(),
+  bankDetails: z.object({
+    bankName: z.string(),
+    accountName: z.string(),
+    accountNumber: z.string(),
+    iban: z.string(),
+    swift: z.string(),
+  }).optional(),
+  insurance: z.string().optional(),
+  licences: z.array(z.string()).default([]),
+  certifications: z.array(z.string()).default([]),
+  rating: z.number().min(1).max(5).default(4),
+  qualificationStatus: z.enum([
+    'prospect',
+    'registration_pending',
+    'under_review',
+    'approved',
+    'conditionally_approved',
+    'suspended',
+    'blacklisted',
+    'archived',
+  ]).default('approved'),
+});
+export type VendorExtendedCreateDto = z.infer<typeof VendorExtendedCreateSchema>;
+
+export const RfqCreateSchema = z.object({
+  rfqNumber: z.string().min(2).max(50),
+  projectId: z.string(),
+  procurementRequirementId: z.string(),
+  issueDate: z.string(),
+  closingDate: z.string(),
+  invitedVendorIds: z.array(z.string()).min(1),
+  technicalSpecification: z.string().min(5),
+  quantity: z.number().positive(),
+  deliveryRequirement: z.string().min(2),
+  commercialTerms: z.string().optional(),
+  attachments: z.array(z.string()).default([]),
+});
+export type RfqCreateDto = z.infer<typeof RfqCreateSchema>;
+
+export const VendorQuoteSubmitSchema = z.object({
+  rfqId: z.string(),
+  vendorId: z.string(),
+  quoteReference: z.string().min(2),
+  unitRate: z.number().positive(),
+  totalPrice: z.number().positive(),
+  currency: z.string().default('QAR'),
+  deliveryTimeDays: z.number().int().positive(),
+  paymentTerms: z.string().default('30 Days Net'),
+  warranty: z.string().default('12 Months Standard'),
+  technicalCompliance: z.string().default('100% Compliant with specs'),
+  exclusions: z.string().optional(),
+  validityDays: z.number().int().default(30),
+  attachments: z.array(z.string()).default([]),
+  clarifications: z.string().optional(),
+});
+export type VendorQuoteSubmitDto = z.infer<typeof VendorQuoteSubmitSchema>;
+
+export const BidEvaluationSchema = z.object({
+  technicalScore: z.number().min(0).max(100),
+  commercialScore: z.number().min(0).max(100),
+  riskScore: z.number().min(0).max(100),
+  recommendedVendorId: z.string(),
+  awardRationale: z.string().min(5),
+});
+export type BidEvaluationDto = z.infer<typeof BidEvaluationSchema>;
+
+export const ProductionPackageCreateSchema = z.object({
+  packageCode: z.string().min(2).max(50),
+  projectId: z.string(),
+  vendorId: z.string(),
+  linkedRequirementId: z.string().optional(),
+  approvedDesignRevisionId: z.string().optional(),
+  boqLineIds: z.array(z.string()).default([]),
+  title: z.string().min(2),
+  quantity: z.number().int().positive(),
+  material: z.string().min(2),
+  finish: z.string().optional(),
+  productionOwnerId: z.string(),
+  startDate: z.string(),
+  requiredCompletionDate: z.string(),
+  deliveryDate: z.string(),
+  status: z.enum([
+    'not_released',
+    'approved_for_production',
+    'material_procurement',
+    'fabrication',
+    'assembly',
+    'finishing',
+    'qc_inspection',
+    'rework_required',
+    'ready_for_dispatch',
+    'dispatched',
+    'installed',
+    'closed',
+  ]).default('not_released'),
+});
+export type ProductionPackageCreateDto = z.infer<typeof ProductionPackageCreateSchema>;
+
+export const FabricationReleaseSchema = z.object({
+  designApproved: z.boolean(),
+  commercialApproved: z.boolean(),
+  safetyApproved: z.boolean(),
+  vendorAwarded: z.boolean(),
+  approvedBy: z.string(),
+});
+export type FabricationReleaseDto = z.infer<typeof FabricationReleaseSchema>;
+
+export const QualityInspectionCreateSchema = z.object({
+  packageId: z.string(),
+  itemId: z.string().optional(),
+  inspectorId: z.string(),
+  inspectionDate: z.string(),
+  inspectionType: z.enum(['factory_acceptance', 'site_receipt', 'pre_dispatch', 'installation', 'final_handover']),
+  checklist: z.array(
+    z.object({
+      item: z.string(),
+      passed: z.boolean(),
+      notes: z.string().optional(),
+    })
+  ).default([]),
+  result: z.enum(['passed', 'failed', 'conditional']),
+  photos: z.array(z.string()).default([]),
+});
+export type QualityInspectionCreateDto = z.infer<typeof QualityInspectionCreateSchema>;
+
+export const SnagRecordSchema = z.object({
+  inspectionId: z.string().optional(),
+  packageId: z.string().optional(),
+  projectId: z.string(),
+  title: z.string().min(2),
+  severity: z.enum(['critical', 'major', 'minor', 'observation']).default('minor'),
+  status: z.enum([
+    'open',
+    'assigned',
+    'in_progress',
+    'ready_for_reinspection',
+    'resolved',
+    'accepted',
+    'reopened',
+  ]).default('open'),
+  assignedTo: z.string().optional(),
+  dueDate: z.string().optional(),
+  resolutionNotes: z.string().optional(),
+  blocksDispatch: z.boolean().default(false),
+  blocksReadiness: z.boolean().default(false),
+});
+export type SnagRecordDto = z.infer<typeof SnagRecordSchema>;
+
+export const AssetRegisterSchema = z.object({
+  assetTag: z.string().min(2).max(50),
+  barcode: z.string().min(2).max(50),
+  name: z.string().min(2).max(200),
+  category: z.string().min(2),
+  subcategory: z.string().optional(),
+  brand: z.string().optional(),
+  model: z.string().optional(),
+  serialNumber: z.string().optional(),
+  quantity: z.number().int().positive().default(1),
+  unit: z.string().default('units'),
+  ownership: z.enum(['e3_owned', 'vendor_rental', 'client_owned', 'project_purchased', 'consignment']).default('e3_owned'),
+  warehouseId: z.string(),
+  zone: z.string().default('General'),
+  location: z.string().default('Bay 01'),
+  condition: z.enum(['new', 'good', 'serviceable', 'needs_maintenance', 'damaged', 'quarantined', 'retired']).default('serviceable'),
+  availability: z.enum(['available', 'reserved', 'allocated', 'dispatched', 'on_site', 'returned', 'damaged', 'unavailable']).default('available'),
+  purchaseValue: z.number().nonnegative().default(0),
+  replacementValue: z.number().nonnegative().default(0),
+  maintenanceStatus: z.string().default('Up to date'),
+  lastInspectionDate: z.string().optional(),
+  nextInspectionDate: z.string().optional(),
+});
+export type AssetRegisterDto = z.infer<typeof AssetRegisterSchema>;
+
+export const AssetAllocationRequestSchema = z.object({
+  assetId: z.string(),
+  projectId: z.string(),
+  procurementRequirementId: z.string().optional(),
+  quantity: z.number().int().positive().default(1),
+  windowStart: z.string(),
+  windowEnd: z.string(),
+});
+export type AssetAllocationRequestDto = z.infer<typeof AssetAllocationRequestSchema>;
+
+export const WarehouseCreateSchema = z.object({
+  warehouseCode: z.string().min(2).max(50),
+  name: z.string().min(2).max(200),
+  country: z.string().default('Qatar'),
+  city: z.string().default('Doha'),
+  address: z.string().min(2),
+  zones: z.array(z.string()).default(['AV', 'Lighting', 'Scenic', 'Furniture', 'Games', 'Branding', 'Tools', 'Consumables', 'Quarantine', 'Returns']),
+  capacity: z.string().default('10,000 sq m'),
+  managerId: z.string(),
+  operatingHours: z.string().default('07:00 - 19:00'),
+});
+export type WarehouseCreateDto = z.infer<typeof WarehouseCreateSchema>;
+
+export const WarehouseMovementSchema = z.object({
+  assetId: z.string(),
+  source: z.string().min(2),
+  destination: z.string().min(2),
+  movementType: z.enum([
+    'received',
+    'stored',
+    'allocated',
+    'picked',
+    'packed',
+    'dispatched',
+    'on_site',
+    'returned',
+    'inspected',
+    'restocked',
+  ]),
+  quantity: z.number().int().positive().default(1),
+  condition: z.string().default('good'),
+  projectId: z.string().optional(),
+  evidenceUris: z.array(z.string()).default([]),
+  userId: z.string(),
+});
+export type WarehouseMovementDto = z.infer<typeof WarehouseMovementSchema>;
+
+export const PackingListCreateSchema = z.object({
+  packingListNumber: z.string().min(2).max(50),
+  projectId: z.string(),
+  warehouseId: z.string(),
+  destination: z.string().min(2),
+  vehicleId: z.string().optional(),
+  driverId: z.string().optional(),
+  dispatchDate: z.string(),
+  requiredArrival: z.string(),
+  items: z.array(
+    z.object({
+      assetId: z.string().optional(),
+      assetTag: z.string().optional(),
+      description: z.string().min(2),
+      quantity: z.number().int().positive(),
+      casesPallets: z.string().default('1 pallet'),
+      weightKg: z.number().nonnegative().default(0),
+      volumeM3: z.number().nonnegative().default(0),
+    })
+  ).min(1),
+});
+export type PackingListCreateDto = z.infer<typeof PackingListCreateSchema>;
+
+export const DeliveryProofSchema = z.object({
+  packingListId: z.string(),
+  receiverName: z.string().min(2),
+  receiverSignature: z.string().optional(),
+  timestamp: z.string(),
+  photos: z.array(z.string()).default([]),
+  discrepancies: z.array(
+    z.object({
+      item: z.string(),
+      expectedQty: z.number(),
+      receivedQty: z.number(),
+      condition: z.string(),
+      notes: z.string().optional(),
+    })
+  ).default([]),
+});
+export type DeliveryProofDto = z.infer<typeof DeliveryProofSchema>;
+
+export const TransportPlanSchema = z.object({
+  vehicleId: z.string().min(2),
+  vehicleType: z.string().default('7 Ton'), // open enum
+  supplier: z.string().min(2),
+  driverName: z.string().min(2),
+  driverPhone: z.string().min(5),
+  loadDescription: z.string().min(2),
+  origin: z.string().min(2),
+  destination: z.string().min(2),
+  departureTime: z.string(),
+  arrivalTime: z.string(),
+  accessSlot: z.string().default('Slot A - 08:00 to 10:00'),
+  permitNumber: z.string().optional(),
+  loadingDock: z.string().default('Dock 03'),
+  contactPerson: z.string().optional(),
+  status: z.enum(['planned', 'loading', 'in_transit', 'arrived', 'offloaded', 'departed']).default('planned'),
+});
+export type TransportPlanDto = z.infer<typeof TransportPlanSchema>;
+
+export const CrewAssignmentCreateSchema = z.object({
+  personName: z.string().min(2),
+  employer: z.string().default('E3 Live Operations'),
+  role: z.string().min(2),
+  department: z.string().default('Staging & Rigging'),
+  projectId: z.string(),
+  shiftId: z.string().optional(),
+  location: z.string().min(2),
+  supervisorName: z.string().optional(),
+  start: z.string(),
+  end: z.string(),
+  accreditation: z.string().default('Verified Site Pass'),
+  permit: z.string().optional(),
+  certification: z.string().optional(),
+  personnelType: z.enum([
+    'e3_employee',
+    'freelancer',
+    'vendor_crew',
+    'temporary_staff',
+    'security',
+    'ushers',
+    'technical_crew',
+    'performers',
+    'drivers',
+  ]).default('e3_employee'),
+  status: z.enum(['scheduled', 'confirmed', 'checked_in', 'checked_out', 'conflict_flagged']).default('scheduled'),
+});
+export type CrewAssignmentCreateDto = z.infer<typeof CrewAssignmentCreateSchema>;
+
+export const DailySiteReportSchema = z.object({
+  projectId: z.string(),
+  reportDate: z.string(),
+  workCompleted: z.string().min(5),
+  workDelayed: z.string().default('None'),
+  manpowerCount: z.number().int().nonnegative().default(0),
+  equipmentActive: z.string().default('All operational'),
+  deliveriesReceived: z.string().default('All scheduled trucks cleared'),
+  incidentsOccurred: z.string().default('Zero incidents reported'),
+  snagsIdentified: z.string().default('None'),
+  clientInstructions: z.string().default('None'),
+  weatherConditions: z.string().default('Clear, 28°C'),
+  photos: z.array(z.string()).default([]),
+  tomorrowPlan: z.string().min(5),
+  recordedBy: z.string().min(2),
+});
+export type DailySiteReportDto = z.infer<typeof DailySiteReportSchema>;
+
+export const InstallationItemUpdateSchema = z.object({
+  status: z.enum([
+    'not_delivered',
+    'delivered',
+    'positioned',
+    'installed',
+    'tested',
+    'accepted',
+  ]),
+  installerNotes: z.string().optional(),
+  evidenceUris: z.array(z.string()).default([]),
+  inspectorId: z.string().optional(),
+});
+export type InstallationItemUpdateDto = z.infer<typeof InstallationItemUpdateSchema>;
+
+export const OperationalReadinessGateEvaluateSchema = z.object({
+  projectId: z.string(),
+  notes: z.string().optional(),
+});
+export type OperationalReadinessGateEvaluateDto = z.infer<typeof OperationalReadinessGateEvaluateSchema>;
 
 export interface CommandResult<T = any> {
   data: {

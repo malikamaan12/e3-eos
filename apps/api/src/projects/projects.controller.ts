@@ -135,10 +135,29 @@ export function seedInitialProjects(): void {
         payrollSchedule: 'CONFIDENTIAL-INTERNAL',
       },
     },
+    {
+      id: 'a1111111-1111-4111-8111-111111111111',
+      organisationId: '11111111-1111-4111-8111-111111111111',
+      projectCode: 'PRJ-2026-FEE-01',
+      title: 'Large Indoor Family Entertainment Event 2026',
+      description: 'Flagship multi-zone indoor family festival featuring main stage, registration counters, AV, lighting, games, furniture, branding, security, and staffing.',
+      originCode: 'DIRECT_AWARD',
+      ownerId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      maturity: 'delivery',
+      outcome: 'undetermined',
+      rowVersion: 1,
+      clientOrganisationId: '22222222-2222-4222-8222-222222222222',
+      costingData: {
+        contractorBuyRateHourly: '125.00 QAR',
+        internalMarginTarget: '42.00%',
+        payrollSchedule: 'CONFIDENTIAL-INTERNAL',
+      },
+    },
   ];
 
   for (const proj of defaultProjects) {
     projectRepository.set(proj.id, proj);
+    projectRepository.set(proj.projectCode, proj);
   }
 }
 
