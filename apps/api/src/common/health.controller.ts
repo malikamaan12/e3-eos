@@ -1,6 +1,17 @@
 import { Controller, Get } from '@nestjs/common';
 import { ALL_STAGE_ACTIVITIES } from '@e3-eos/domain';
 
+function getEnvironment(): string {
+  const kService = (process.env.K_SERVICE || '').toLowerCase();
+  if (kService.includes('staging')) return 'staging';
+  const env = (process.env.ENVIRONMENT || '').trim().toLowerCase();
+  if (env === 'production' && !kService.includes('production')) {
+    // If not explicitly a production Cloud Run service, default to staging
+    return 'staging';
+  }
+  return env || 'staging';
+}
+
 @Controller('health')
 export class HealthController {
   private startTime = Date.now();
@@ -10,7 +21,7 @@ export class HealthController {
     return {
       status: 'ok',
       service: 'e3-eos-api',
-      environment: process.env.ENVIRONMENT || 'staging',
+      environment: getEnvironment(),
       timestamp: new Date().toISOString(),
     };
   }
@@ -24,7 +35,7 @@ export class HealthController {
       status: 'healthy',
       version: '1.0.0',
       service: 'e3-eos-api',
-      environment: process.env.ENVIRONMENT || 'staging',
+      environment: getEnvironment(),
       uptimeSeconds,
       timestamp: new Date().toISOString(),
       governance: {

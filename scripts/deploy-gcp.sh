@@ -8,9 +8,9 @@
 
 set -euo pipefail
 
-PROJECT_ID="${1:-e3-eos-production}"
+PROJECT_ID="${1:-e3-eos-staging}"
 REGION="${2:-me-central1}"
-ENVIRONMENT="${3:-production}"
+ENVIRONMENT="${3:-staging}"
 
 echo "================================================================================"
 echo "   E3-EOS v1.0.0 — ZERO-TOUCH GOOGLE CLOUD DEPLOYMENT ORCHESTRATOR"

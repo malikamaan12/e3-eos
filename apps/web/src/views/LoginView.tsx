@@ -82,7 +82,7 @@ export const LoginView: React.FC = () => {
 
   const selectPersona = (pEmail: string) => {
     setEmail(pEmail);
-    setPassword('Password123!');
+    setPassword('');
     setError(null);
     setMfaRequired(false);
   };
@@ -360,17 +360,17 @@ export const LoginView: React.FC = () => {
                   textDecoration: 'underline',
                 }}
               >
-                {showEvaluatorTools ? '▲ Hide Staging Credentials' : '▼ Staging Test Accounts'}
+                {showEvaluatorTools ? '▲ Hide Role Directory' : '▼ Staging Role Directory'}
               </button>
-              <span style={{ fontSize: '10px', color: '#475569' }}>
-                All passwords: <code style={{ color: '#94a3b8' }}>Password123!</code>
+              <span style={{ fontSize: '10px', color: '#64748b' }}>
+                Corporate SSO & RBAC
               </span>
             </div>
 
             {showEvaluatorTools && (
               <div style={{ marginTop: '12px' }}>
                 <p style={{ fontSize: '11px', color: '#94a3b8', margin: '0 0 8px' }}>
-                  Click an account to populate credentials for real authentication:
+                  Select an account email below to test role-based access:
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {keyPersonas.map((p) => {

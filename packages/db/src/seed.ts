@@ -195,27 +195,34 @@ export async function runSeed(): Promise<SeedDataManifest> {
       `, [org.id, org.name, org.code]);
     }
 
-    // 2. Seed Users & Accounts for 13 Roles
-    const defaultHashedPassword = hashPassword('Password123!');
+    // 2. Seed Users & Accounts for 13 Roles with Distinct Strong Passwords
+    const getInitialUserPassword = (email: string): string => {
+      if (process.env.INITIAL_ADMIN_PASSWORD) return process.env.INITIAL_ADMIN_PASSWORD;
+      const prefix = email.split('@')[0];
+      const capitalized = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+      return `E3#${capitalized}*Doha2026!`;
+    };
 
     for (const u of CANONICAL_E3_ROLES_USERS) {
       const orgId = (u as any).orgId || '11111111-1111-4111-8111-111111111111';
+      const userPasswordHash = hashPassword(getInitialUserPassword(u.email));
+
       await client.query(`
         INSERT INTO users (id, email, name, email_verified, is_super_admin, created_at, updated_at)
         VALUES ($1, $2, $3, true, $4, NOW(), NOW())
         ON CONFLICT (id) DO UPDATE SET email = $2, name = $3, is_super_admin = $4;
       `, [u.id, u.email, u.name, u.isSuperAdmin]);
 
-      // Password account (password: 'Password123!' hashed with scrypt salt)
+      // Password account (unique scrypt salt hash)
       await client.query(`
         UPDATE accounts SET password = $2 WHERE user_id = $1 AND provider_id = 'credential';
-      `, [u.id, defaultHashedPassword]);
+      `, [u.id, userPasswordHash]);
 
       await client.query(`
         INSERT INTO accounts (id, user_id, account_id, provider_id, password, created_at)
         SELECT gen_random_uuid(), $1, $2, 'credential', $3, NOW()
         WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE user_id = $1 AND provider_id = 'credential');
-      `, [u.id, u.email, defaultHashedPassword]);
+      `, [u.id, u.email, userPasswordHash]);
 
       // Membership
       await client.query(`

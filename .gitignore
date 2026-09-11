@@ -33,3 +33,4 @@ Thumbs.db
 .turbo/
 *.tsbuildinfo
 *.zip
+.credentials.local.json
