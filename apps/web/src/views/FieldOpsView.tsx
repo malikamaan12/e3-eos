@@ -353,6 +353,7 @@ export const FieldOpsView: React.FC = () => {
           ].map((tab) => (
             <button
               key={tab.id}
+              id={`mobile-tab-${tab.id}`}
               onClick={() => setMobileTab(tab.id as any)}
               style={{
                 padding: '6px 10px',

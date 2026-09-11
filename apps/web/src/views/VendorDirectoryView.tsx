@@ -506,6 +506,8 @@ export const VendorDirectoryView: React.FC = () => {
                     </td>
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                       <button
+                        id={`btn-vendor-profile-${vendor.vendorCode}`}
+                        className="btn-vendor-profile"
                         onClick={() => {
                           setSelectedVendor(vendor);
                           setRevealedBankDetails(null);

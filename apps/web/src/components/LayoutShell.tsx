@@ -520,7 +520,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             borderRight: direction === 'ltr' ? '1px solid #e2e8f0' : 'none',
             borderLeft: direction === 'rtl' ? '1px solid #e2e8f0' : 'none',
             padding: '16px 12px',
-            display: 'flex',
+            display: currentPath === '/field' ? 'none' : 'flex',
             flexDirection: 'column',
             gap: '4px',
           }}
