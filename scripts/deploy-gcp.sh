@@ -62,26 +62,47 @@ gcloud artifacts repositories create e3-eos \
 
 gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 
-echo "Building & Pushing Container Images to Artifact Registry..."
-docker build -t "${REGISTRY_URL}/api:latest" -f apps/api/Dockerfile .
+COMMIT_SHA="$(git rev-parse HEAD 2>/dev/null || echo '08fced7d9a7dafe89a5022d0281d944a688fc389')"
+echo "Building & Pushing Immutable Container Images (Commit: ${COMMIT_SHA}) to Artifact Registry..."
+
+docker build \
+    --build-arg GIT_COMMIT="${COMMIT_SHA}" \
+    --build-arg BUILD_SHA="${COMMIT_SHA}" \
+    -t "${REGISTRY_URL}/api:${COMMIT_SHA}" \
+    -t "${REGISTRY_URL}/api:latest" \
+    -f apps/api/Dockerfile .
+docker push "${REGISTRY_URL}/api:${COMMIT_SHA}"
 docker push "${REGISTRY_URL}/api:latest"
 
-docker build -t "${REGISTRY_URL}/web:latest" -f apps/web/Dockerfile .
+docker build \
+    --build-arg GIT_COMMIT="${COMMIT_SHA}" \
+    --build-arg BUILD_SHA="${COMMIT_SHA}" \
+    -t "${REGISTRY_URL}/web:${COMMIT_SHA}" \
+    -t "${REGISTRY_URL}/web:latest" \
+    -f apps/web/Dockerfile .
+docker push "${REGISTRY_URL}/web:${COMMIT_SHA}"
 docker push "${REGISTRY_URL}/web:latest"
 
-docker build -t "${REGISTRY_URL}/worker:latest" -f apps/worker/Dockerfile .
+docker build \
+    --build-arg GIT_COMMIT="${COMMIT_SHA}" \
+    --build-arg BUILD_SHA="${COMMIT_SHA}" \
+    -t "${REGISTRY_URL}/worker:${COMMIT_SHA}" \
+    -t "${REGISTRY_URL}/worker:latest" \
+    -f apps/worker/Dockerfile .
+docker push "${REGISTRY_URL}/worker:${COMMIT_SHA}"
 docker push "${REGISTRY_URL}/worker:latest"
-echo ">>> Container images built and pushed successfully."
+echo ">>> Container images built and pushed successfully with commit tag ${COMMIT_SHA}."
 echo ""
 
-# Step 5: Terraform Infrastructure Provisioning
+# Step 5: Terraform Infrastructure Provisioning & Cloud Run Deployment
 echo "[5/6] Executing Terraform Infrastructure Provisioning..."
 cd infra/terraform
 terraform init
 terraform apply -auto-approve \
     -var="project_id=${PROJECT_ID}" \
     -var="region=${REGION}" \
-    -var="environment=${ENVIRONMENT}"
+    -var="environment=${ENVIRONMENT}" \
+    -var="git_commit=${COMMIT_SHA}"
 
 API_URL="$(terraform output -raw api_service_url)"
 WEB_URL="$(terraform output -raw web_service_url)"

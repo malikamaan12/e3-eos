@@ -21,7 +21,7 @@ function resolveGitCommit(): string {
     const rev = execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
     if (rev) return rev;
   } catch {}
-  return '70ec21865b52e3b09582a69782cd5e5986d28418';
+  return '63535dde03f1db23d4e0287f36517e97485b013e';
 }
 
 const GIT_COMMIT = resolveGitCommit();

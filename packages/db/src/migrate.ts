@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-async function runMigrations() {
+export async function runMigrations() {
   console.log('=== Running PostgreSQL Migrations ===');
   const pool = new pg.Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -16,8 +16,9 @@ async function runMigrations() {
     database: process.env.DB_NAME || 'postgres',
   });
 
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     const isClean = process.argv.includes('--clean') || process.env.DB_CLEAN === 'true';
     if (isClean) {
       console.log('[*] Resetting public schema...');
@@ -68,13 +69,17 @@ async function runMigrations() {
     }
 
     console.log('=== All PostgreSQL Migrations Completed Successfully ===');
-  } catch (err) {
-    console.error('Migration error:', err);
-    process.exit(1);
+  } catch (err: any) {
+    console.error('Migration error:', err.message);
+    if (process.argv[1]?.includes('migrate.ts') || process.argv[1]?.includes('migrate.js')) {
+      process.exit(1);
+    }
   } finally {
-    client.release();
+    if (client) client.release();
     await pool.end();
   }
 }
 
-runMigrations();
+if (process.argv[1]?.includes('migrate.ts') || process.argv[1]?.includes('migrate.js')) {
+  runMigrations().catch(console.error);
+}

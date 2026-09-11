@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { getDb, getDbPool, withTenantTransaction, EosDatabase, PgPool } from '@e3-eos/db';
+import { getDb, getDbPool, withTenantTransaction, runMigrations, runSeed, EosDatabase, PgPool } from '@e3-eos/db';
 
 @Injectable()
 export class DbService implements OnModuleInit, OnModuleDestroy {
@@ -15,8 +15,10 @@ export class DbService implements OnModuleInit, OnModuleDestroy {
     try {
       const client = await this.pool.connect();
       client.release();
+      await runMigrations();
+      await runSeed();
     } catch (err: any) {
-      console.warn('[DbService] PostgreSQL pool connection notice:', err.message);
+      console.warn('[DbService] PostgreSQL initialization notice:', err.message);
     }
   }
 

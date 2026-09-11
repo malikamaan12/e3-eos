@@ -24,7 +24,7 @@ resource "google_cloud_run_v2_service" "api_service" {
     }
 
     containers {
-      image = "${var.region}-docker.pkg.dev/${var.project_id}/e3-eos/api:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/e3-eos/api:${var.git_commit}"
 
       resources {
         limits = {
@@ -44,6 +44,14 @@ resource "google_cloud_run_v2_service" "api_service" {
       env {
         name  = "ENVIRONMENT"
         value = var.environment
+      }
+      env {
+        name  = "GIT_COMMIT"
+        value = var.git_commit
+      }
+      env {
+        name  = "BUILD_SHA"
+        value = var.git_commit
       }
       env {
         name  = "REGION"
@@ -120,7 +128,7 @@ resource "google_cloud_run_v2_service" "web_service" {
     }
 
     containers {
-      image = "${var.region}-docker.pkg.dev/${var.project_id}/e3-eos/web:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/e3-eos/web:${var.git_commit}"
 
       resources {
         limits = {
@@ -136,6 +144,18 @@ resource "google_cloud_run_v2_service" "web_service" {
       env {
         name  = "NODE_ENV"
         value = "production"
+      }
+      env {
+        name  = "ENVIRONMENT"
+        value = var.environment
+      }
+      env {
+        name  = "GIT_COMMIT"
+        value = var.git_commit
+      }
+      env {
+        name  = "BUILD_SHA"
+        value = var.git_commit
       }
       env {
         name  = "API_URL"
@@ -165,7 +185,7 @@ resource "google_cloud_run_v2_service" "worker_service" {
     }
 
     containers {
-      image = "${var.region}-docker.pkg.dev/${var.project_id}/e3-eos/worker:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/e3-eos/worker:${var.git_commit}"
 
       resources {
         limits = {
@@ -181,6 +201,18 @@ resource "google_cloud_run_v2_service" "worker_service" {
       env {
         name  = "NODE_ENV"
         value = "production"
+      }
+      env {
+        name  = "ENVIRONMENT"
+        value = var.environment
+      }
+      env {
+        name  = "GIT_COMMIT"
+        value = var.git_commit
+      }
+      env {
+        name  = "BUILD_SHA"
+        value = var.git_commit
       }
       env {
         name  = "REGION"

@@ -47,6 +47,12 @@ variable "environment" {
   default     = "staging"
 }
 
+variable "git_commit" {
+  type        = string
+  description = "Git commit SHA / immutable container image tag"
+  default     = "08fced7d9a7dafe89a5022d0281d944a688fc389"
+}
+
 # --- VPC & Private Networking ---
 resource "google_compute_network" "vpc" {
   name                    = "e3-eos-vpc-${var.environment}"
