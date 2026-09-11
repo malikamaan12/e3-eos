@@ -6,7 +6,7 @@
  * and client profit margin redaction.
  */
 
-import { createHash } from 'crypto';
+import { safeSha256 } from './crypto-util.js';
 
 export type EngineeringDiscipline =
   | 'staging'
@@ -195,7 +195,7 @@ export function generateDocumentNumber(params: DocumentNumberingOptions): string
  * Computes canonical SHA-256 hash hex string from raw file bytes/buffer.
  */
 export function calculateFileSha256(content: Buffer | Uint8Array | string): string {
-  return createHash('sha256').update(content).digest('hex');
+  return safeSha256(content);
 }
 
 /**
