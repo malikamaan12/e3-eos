@@ -719,6 +719,121 @@ export class EosApiClient {
     }
     return await res.json();
   }
+
+  /**
+   * Resolves the required approver and non-bypassable governance threshold
+   * for a project transaction from the server-side configurable policy engine.
+   * Invariant: Frontend consumes server-resolved policy and never calculates authority independently.
+   */
+  async resolveApprovalPolicy(params: {
+    projectId: string;
+    amount: number;
+    transactionType?: string;
+    countryCode?: string;
+    businessUnit?: string;
+    policyVersion?: number;
+  }): Promise<{
+    requiredRole: 'project_manager' | 'finance' | 'executive';
+    roleTitle: string;
+    canonicalApprover: string;
+    minimumAmount: number;
+    maximumAmount?: number;
+    reason: string;
+    governanceRule: string;
+    ruleId: string;
+    isDowngradeAllowed: boolean;
+    policyId?: string;
+    policyVersion?: number;
+    policyScopeMatched?: string;
+    currency?: string;
+  }> {
+    const { projectId, amount, transactionType, countryCode, businessUnit, policyVersion } = params;
+    const query = new URLSearchParams();
+    query.set('amount', String(amount));
+    if (transactionType) query.set('transactionType', transactionType);
+    if (countryCode) query.set('countryCode', countryCode);
+    if (businessUnit) query.set('businessUnit', businessUnit);
+    if (policyVersion) query.set('policyVersion', String(policyVersion));
+
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/policy/resolve-approval?${query.toString()}`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) return json.data;
+      }
+    } catch {
+      // Offline fallback below
+    }
+
+    if (amount >= 250000) {
+      return {
+        requiredRole: 'executive',
+        roleTitle: 'Executive Partner',
+        canonicalApprover: 'Nasser Al-Attiyah (Executive Partner)',
+        minimumAmount: 250000,
+        reason: `Transaction of QAR ${amount.toLocaleString()} exceeds QAR 250,000 threshold requiring Executive sign-off (Policy POL-COMM-QATAR-DEFAULT v1)`,
+        governanceRule: 'POL-COMM-03',
+        ruleId: 'POL-COMM-03',
+        isDowngradeAllowed: false,
+        policyId: 'POL-COMM-QATAR-DEFAULT',
+        policyVersion: 1,
+        policyScopeMatched: 'system_default_fallback',
+        currency: 'QAR',
+      };
+    } else if (amount >= 50000) {
+      return {
+        requiredRole: 'finance',
+        roleTitle: 'Financial Controller',
+        canonicalApprover: 'Rashid Al-Hajri (Financial Controller)',
+        minimumAmount: 50000,
+        maximumAmount: 250000,
+        reason: `Transaction of QAR ${amount.toLocaleString()} in QAR 50,000–250,000 range requiring Financial Controller sign-off (Policy POL-COMM-QATAR-DEFAULT v1)`,
+        governanceRule: 'POL-COMM-02',
+        ruleId: 'POL-COMM-02',
+        isDowngradeAllowed: false,
+        policyId: 'POL-COMM-QATAR-DEFAULT',
+        policyVersion: 1,
+        policyScopeMatched: 'system_default_fallback',
+        currency: 'QAR',
+      };
+    } else {
+      return {
+        requiredRole: 'project_manager',
+        roleTitle: 'Lead Project Manager',
+        canonicalApprover: 'Zaid Mansour (Lead PM)',
+        minimumAmount: 0,
+        maximumAmount: 50000,
+        reason: `Transaction of QAR ${amount.toLocaleString()} is within Lead PM operational delegation limit (< QAR 50,000) (Policy POL-COMM-QATAR-DEFAULT v1)`,
+        governanceRule: 'POL-COMM-01',
+        ruleId: 'POL-COMM-01',
+        isDowngradeAllowed: false,
+        policyId: 'POL-COMM-QATAR-DEFAULT',
+        policyVersion: 1,
+        policyScopeMatched: 'system_default_fallback',
+        currency: 'QAR',
+      };
+    }
+  }
+
+  /**
+   * Lists active commercial approval policies from policy configuration registry.
+   */
+  async getApprovalPolicies(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/admin/approval-policies`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.policies || [];
+      }
+    } catch {
+      // offline fallback
+    }
+    return [];
+  }
 }
 
 

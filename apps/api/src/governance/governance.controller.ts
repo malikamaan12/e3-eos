@@ -26,6 +26,7 @@ import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { projectRepository } from '../projects/projects.controller.js';
 import { DbService } from '../common/db.service.js';
+import { resolveRequiredApprover } from '@e3-eos/policy';
 
 export interface StoredPolicySnapshot {
   id: string;
@@ -622,5 +623,55 @@ export class GovernanceController {
       (e) => e.projectId === projectId && e.organisationId === orgId
     );
     return { data: list, meta: { total: list.length } };
+  }
+
+  /**
+   * Resolves the required approver and non-bypassable governance threshold
+   * for a project transaction from the active configurable policy model.
+   */
+  @Get('policy/resolve-approval')
+  resolveApprovalPolicy(
+    @Param('projectId') projectId: string,
+    @Req() req: Request
+  ) {
+    const amount = Number(req.query.amount) || 0;
+    const transactionType = (req.query.transactionType as string) || '*';
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+
+    const resolution = resolveRequiredApprover(amount, {
+      projectId,
+      organisationId: orgId,
+      countryCode: 'QA',
+      businessUnit: 'live_operations',
+      transactionType,
+    });
+
+    return {
+      data: resolution,
+    };
+  }
+
+  @Post('policy/resolve-approval')
+  resolveApprovalPolicyPost(
+    @Param('projectId') projectId: string,
+    @Body() body: any,
+    @Req() req: Request
+  ) {
+    const amount = Number(body?.amount) || 0;
+    const transactionType = body?.transactionType || '*';
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+
+    const resolution = resolveRequiredApprover(amount, {
+      projectId,
+      organisationId: orgId,
+      countryCode: body?.countryCode || 'QA',
+      businessUnit: body?.businessUnit || 'live_operations',
+      transactionType,
+      policyVersion: body?.policyVersion,
+    });
+
+    return {
+      data: resolution,
+    };
   }
 }

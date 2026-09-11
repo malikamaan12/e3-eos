@@ -13,6 +13,7 @@ import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { DbService } from '../common/db.service.js';
 import { EmailDispatcherService } from '../common/email.service.js';
 import crypto from 'crypto';
+import { CommercialApprovalPolicyRegistry } from '@e3-eos/policy';
 
 export const CANONICAL_ROLES_CATALOG = [
   {
@@ -386,5 +387,49 @@ export class AdminController {
       UPDATE memberships SET is_revoked = $1, updated_at = NOW() WHERE user_id = $2;
     `, [isRevoked, userId]);
     return { success: true, message: isRevoked ? 'User access revoked.' : 'User access restored.' };
+  }
+
+  @Get('approval-policies')
+  async listApprovalPolicies() {
+    const policies = CommercialApprovalPolicyRegistry.listPolicies();
+    return {
+      policies,
+      total: policies.length,
+      defaultPolicyId: 'POL-COMM-QATAR-DEFAULT',
+    };
+  }
+
+  @Post('approval-policies')
+  async registerApprovalPolicy(@Body() body: any) {
+    if (!body || !body.policyId || !body.thresholds || !Array.isArray(body.thresholds)) {
+      throw new HttpException(
+        { title: 'Validation Error', detail: 'policyId and thresholds array are required' },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const policy = {
+      policyId: body.policyId,
+      policyVersion: Number(body.policyVersion) || 1,
+      organisationId: body.organisationId || undefined,
+      countryCode: body.countryCode || undefined,
+      businessUnit: body.businessUnit || undefined,
+      projectId: body.projectId || undefined,
+      transactionType: body.transactionType || '*',
+      currency: body.currency || 'QAR',
+      effectiveFrom: body.effectiveFrom || new Date().toISOString(),
+      status: body.status || 'active',
+      thresholds: body.thresholds,
+      metadata: body.metadata || {
+        approvedBy: 'E3 Governance Board',
+        approvedAt: new Date().toISOString(),
+        governanceReference: body.governanceReference || `E3-GOV-${Date.now()}`,
+      },
+    };
+    CommercialApprovalPolicyRegistry.registerPolicy(policy);
+    return {
+      success: true,
+      message: `Commercial approval policy ${policy.policyId} v${policy.policyVersion} registered successfully.`,
+      policy,
+    };
   }
 }

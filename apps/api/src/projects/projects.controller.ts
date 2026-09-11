@@ -29,6 +29,7 @@ import {
   calculateStageProgress,
   STANDARD_THIRTEEN_STAGE_TEMPLATE,
   InstantiatedActivity,
+  calculateOnboardingCompleteness,
 } from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
@@ -52,6 +53,9 @@ export interface StoredProject {
   dateRegister?: any;
   venueContext?: any;
   closedDimensions?: Record<string, { closedAt: string; manifestId: string }>;
+  isOnboardingComplete?: boolean;
+  onboardingCompletionPct?: number;
+  missingSections?: string[];
   costingData?: {
     contractorBuyRateHourly: string;
     internalMarginTarget: string;
@@ -180,20 +184,26 @@ export class ProjectsController {
         const res = await pool.query(query, params);
         if (res.rows.length > 0 || callerAudience === 'client' || callerRole === 'client_user') {
           return {
-            data: res.rows.map((r: any) => ({
-              id: r.id,
-              projectCode: r.project_code,
-              title: r.title,
-              description: r.description,
-              maturity: r.maturity,
-              outcome: r.outcome,
-              originCode: r.origin_code,
-              clientOrganisationId: r.client_organisation_id,
-              clientName: r.client_name,
-              organisationId: r.organisation_id,
-              ownerName: r.owner_name,
-              rowVersion: r.row_version || 1,
-            })),
+            data: res.rows.map((r: any) => {
+              const matched = projectRepository.get(r.id);
+              return {
+                id: r.id,
+                projectCode: r.project_code,
+                title: r.title,
+                description: r.description,
+                maturity: r.maturity,
+                outcome: r.outcome,
+                originCode: r.origin_code,
+                clientOrganisationId: r.client_organisation_id,
+                clientName: r.client_name,
+                organisationId: r.organisation_id,
+                ownerName: r.owner_name,
+                rowVersion: r.row_version || 1,
+                isOnboardingComplete: matched?.isOnboardingComplete ?? (r.maturity === 'draft' ? false : true),
+                onboardingCompletionPct: matched?.onboardingCompletionPct ?? (r.maturity === 'draft' ? 57 : 100),
+                missingSections: matched?.missingSections ?? [],
+              };
+            }),
             meta: { total: res.rows.length },
           };
         }
@@ -218,6 +228,9 @@ export class ProjectsController {
         originCode: p.originCode,
         clientOrganisationId: p.clientOrganisationId,
         rowVersion: p.rowVersion,
+        isOnboardingComplete: p.isOnboardingComplete ?? (p.maturity === 'draft' ? false : true),
+        onboardingCompletionPct: p.onboardingCompletionPct ?? (p.maturity === 'draft' ? 57 : 100),
+        missingSections: p.missingSections ?? [],
       })),
       meta: { total: visible.length },
     };
@@ -238,6 +251,24 @@ export class ProjectsController {
       const ownerId = b.team?.projectManagerId || '10000000-0000-4000-8000-000000000004';
       const clientOrgId = b.clientStakeholders?.clientOrganisationId || '22222222-2222-4222-8222-222222222222';
 
+      // Calculate dynamic onboarding completeness based on applicable route requirements
+      const completeness = calculateOnboardingCompleteness({
+        title,
+        code: projectCode,
+        businessRoute: originCode,
+        clientName: b.clientStakeholders?.clientName,
+        clientOrganisationId: clientOrgId,
+        tenderDeadline: b.dates?.submissionDeadline,
+        eventStartDate: b.dates?.eventStartDate || b.dates?.eventDate,
+        estimatedBudget: Number(b.commercialStartingPoint?.revenueValue?.toString().replace(/,/g, '')) || 0,
+        commercialModel: b.commercialStartingPoint?.classificationTag,
+        projectLead: b.team?.projectManagerName,
+        ownerId,
+        venueName: b.venue?.venueName,
+        workflowConfirmed: b.workflowConfirmed ?? (b.isFastTrack ? false : true),
+        stagesCount: b.workflowConfig?.stages?.length || 13,
+      });
+
       const newProject: StoredProject = {
         id: projectId,
         organisationId: orgId,
@@ -250,9 +281,12 @@ export class ProjectsController {
         dateRegister: b.dates,
         venueContext: b.venue,
         financialAssumptions: b.commercialStartingPoint,
-        maturity: 'onboarding',
+        maturity: b.isFastTrack ? 'draft' : 'onboarding',
         outcome: 'undetermined',
         rowVersion: 1,
+        isOnboardingComplete: b.isOnboardingComplete !== undefined ? b.isOnboardingComplete : completeness.isOnboardingComplete,
+        onboardingCompletionPct: b.onboardingCompletionPct !== undefined ? b.onboardingCompletionPct : completeness.completionPct,
+        missingSections: b.missingSections || completeness.missingSections,
         costingData: {
           contractorBuyRateHourly: '120.00 QAR',
           internalMarginTarget: '43.75%',
@@ -310,9 +344,12 @@ export class ProjectsController {
           payload: {
             projectCode,
             title,
-            maturity: 'onboarding',
+            maturity: newProject.maturity,
             outcome: 'undetermined',
             clientOrganisationId: clientOrgId,
+            isOnboardingComplete: newProject.isOnboardingComplete,
+            onboardingCompletionPct: newProject.onboardingCompletionPct,
+            missingSections: newProject.missingSections,
           },
         },
         meta: {
@@ -482,6 +519,9 @@ export class ProjectsController {
         clientName,
         maturity,
         health: 'healthy',
+        isOnboardingComplete: project?.isOnboardingComplete ?? (maturity === 'draft' ? false : true),
+        onboardingCompletionPct: project?.onboardingCompletionPct ?? (maturity === 'draft' ? 57 : 100),
+        missingSections: project?.missingSections ?? (maturity === 'draft' ? ['Venue & Spatial Parameters', 'Workflow Confirmation & Mandatory Gates'] : []),
         pm: {
           name: 'Zaid Mansour',
           email: 'pm@e3.qa',

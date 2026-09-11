@@ -64,6 +64,46 @@ export interface PolicyEvaluationReport {
   evaluations: RuleEvaluationResult[];
 }
 
+export interface CommercialApprovalTier {
+  tierId: string;
+  minAmount: number;
+  maxAmount?: number;
+  requiredRole: 'project_manager' | 'finance' | 'executive';
+  roleTitle: string;
+  canonicalApprover: string;
+  ruleId: string;
+  governanceRule: string;
+  description: string;
+}
+
+export interface CommercialApprovalPolicyConfig {
+  policyId: string;
+  policyVersion: number;
+  organisationId?: string; // Scope: Organisation
+  countryCode?: string;     // Scope: Country ('QA', '*')
+  businessUnit?: string;    // Scope: Business Unit ('live_operations', '*')
+  projectId?: string;       // Scope: Project ('*', or specific project UUID)
+  transactionType: string;  // Scope: Transaction Type ('purchase_order', 'contract_commitment', '*')
+  currency: string;         // 'QAR'
+  effectiveFrom: string;
+  status: 'active' | 'draft' | 'archived';
+  thresholds: CommercialApprovalTier[];
+  metadata?: {
+    approvedBy?: string;
+    approvedAt?: string;
+    governanceReference?: string;
+  };
+}
+
+export interface PolicyResolutionContext {
+  organisationId?: string;
+  countryCode?: string;
+  businessUnit?: string;
+  projectId?: string;
+  transactionType?: string;
+  policyVersion?: number;
+}
+
 export interface ApprovalThresholdResolution {
   requiredRole: 'project_manager' | 'finance' | 'executive';
   roleTitle: string;
@@ -74,4 +114,8 @@ export interface ApprovalThresholdResolution {
   governanceRule: string;
   ruleId: string;
   isDowngradeAllowed: boolean;
+  policyId?: string;
+  policyVersion?: number;
+  policyScopeMatched?: string;
+  currency?: string;
 }

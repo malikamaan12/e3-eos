@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Button, Badge } from '../components/DesignSystem.js';
+import { calculateOnboardingCompleteness } from '@e3-eos/domain';
 
 interface FastTrackProjectModalProps {
   isOpen: boolean;
@@ -44,16 +45,21 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
 
   const isAr = currentLanguage === 'ar';
 
-  const calculateMissingSections = () => {
-    const missing: string[] = [];
-    if (clientTbc || !clientName) missing.push('Client Approver & Signatory');
-    if (venueTbc || !venueName) missing.push('Confirmed Venue & Zone Specifications');
-    if (eventDateTbc || !eventDate) missing.push('Detailed Bump-In / Bump-Out Milestones');
-    if (!expectedCost) missing.push('Cost Baseline & Margin Breakdown');
-    missing.push('Key Delivery Stakeholders (Tech Director, HSE Lead)');
-    missing.push('Governance Gate 03 Four-Eyes Sign-off');
-    return missing;
-  };
+  // Invariant: Onboarding completeness is dynamically calculated based on route-specific applicable requirements.
+  // Formula: completed applicable requirements / total applicable requirements
+  const completeness = calculateOnboardingCompleteness({
+    title,
+    businessRoute: originRoute,
+    clientName: clientTbc ? '' : clientName,
+    tenderDeadline: submissionDeadline,
+    submissionDate: submissionDeadline,
+    eventStartDate: eventDateTbc ? '' : eventDate,
+    targetTimeline: eventDateTbc ? 'Target Q4 2026' : eventDate,
+    estimatedBudget: parseFloat(expectedValue.replace(/,/g, '')) || 0,
+    projectLead: leadPm,
+    venueName: venueTbc ? '' : venueName,
+    workflowConfirmed: false,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +77,6 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
     setIsSubmitting(true);
     setError(null);
 
-    const missingSections = calculateMissingSections();
     const generatedId = `f${Date.now().toString(16).padEnd(31, '0')}`;
     const code = `OPP-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
 
@@ -80,9 +85,9 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
       originRoute,
       maturity: 'draft',
       isFastTrack: true,
-      isOnboardingComplete: false,
-      onboardingCompletionPct: 38,
-      missingSections,
+      isOnboardingComplete: completeness.isOnboardingComplete,
+      onboardingCompletionPct: completeness.completionPct,
+      missingSections: completeness.missingSections,
       projectIdentity: {
         code,
         title,
@@ -544,8 +549,9 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                 </select>
               </div>
 
-              {/* Missing Sections Checklist Preview */}
+              {/* Dynamic Onboarding Completeness Checklist */}
               <div
+                id="ft-onboarding-completeness-card"
                 style={{
                   backgroundColor: '#f8fafc',
                   borderRadius: '8px',
@@ -555,18 +561,32 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>
-                    {isAr ? 'العناصر المتبقية للإكمال اللاحق (38% مكتمل):' : 'Pending Sections for Later Completion (38% Complete):'}
+                    {isAr
+                      ? `اكتمال متطلبات الإعداد (${completeness.completionPct}% مكتمل):`
+                      : `Onboarding Completeness (${completeness.completionPct}% Complete):`}
                   </span>
-                  <Badge variant="warning">Onboarding Incomplete</Badge>
+                  <Badge variant={completeness.isOnboardingComplete ? 'success' : 'warning'}>
+                    {completeness.completedApplicableRequirements} / {completeness.totalApplicableRequirements} Requirements ({completeness.completionPct}%)
+                  </Badge>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {calculateMissingSections().map((sec, idx) => (
-                    <div key={idx} style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ color: '#d97706' }}>⚠️</span>
-                      <span>{sec}</span>
-                    </div>
-                  ))}
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '8px' }}>
+                  Route: <strong>{completeness.businessRoute.toUpperCase()}</strong> • Formula: <code>{completeness.completedApplicableRequirements} completed / {completeness.totalApplicableRequirements} applicable</code>
                 </div>
+                {completeness.missingSections.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {completeness.missingSections.map((sec, idx) => (
+                      <div key={idx} style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ color: '#d97706' }}>⚠️</span>
+                        <span>{sec} (Required for {completeness.businessRoute.replace('_', ' ')})</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '11px', color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>✅</span>
+                    <span>All applicable route requirements satisfied.</span>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -6,6 +6,8 @@ import {
   RuleEvaluationResult,
   TriState,
   ApprovalThresholdResolution,
+  CommercialApprovalPolicyConfig,
+  PolicyResolutionContext,
 } from './types.js';
 
 export interface EvaluationContext {
@@ -235,82 +237,187 @@ export class PolicyEvaluator {
   }
 }
 
-export const E3_APPROVAL_THRESHOLDS = [
-  {
-    tier: 'operational_pm',
-    requiredRole: 'project_manager' as const,
-    roleTitle: 'Lead Project Manager',
-    canonicalApprover: 'Zaid Mansour (Lead PM)',
-    minAmount: 0,
-    maxAmount: 50000,
-    governanceRule: 'POL-COMM-01',
-    description: 'Standard operational expenditure and deliverable sign-offs up to QAR 50,000.',
-  },
-  {
-    tier: 'commercial_finance',
-    requiredRole: 'finance' as const,
-    roleTitle: 'Financial Controller',
-    canonicalApprover: 'Rashid Al-Hajri (Financial Controller)',
-    minAmount: 50000,
-    maxAmount: 250000,
-    governanceRule: 'POL-COMM-02',
-    description: 'Commercial PO commitments and contract variations between QAR 50,000 and QAR 250,000.',
-  },
-  {
-    tier: 'executive_partner',
-    requiredRole: 'executive' as const,
-    roleTitle: 'Executive Partner',
-    canonicalApprover: 'Nasser Al-Attiyah (Executive Partner)',
-    minAmount: 250000,
-    maxAmount: undefined,
-    governanceRule: 'POL-COMM-03',
-    description: 'Major enterprise commitments and four-eyes executive gates exceeding QAR 250,000.',
-  },
-] as const;
-
-/**
- * Dynamically resolves the required approver role and non-bypassable policy rule
- * based on the monetary value in Qatari Riyals (QAR).
- */
-export function resolveRequiredApprover(amountQar: number): ApprovalThresholdResolution {
-  const numericAmount = Math.max(0, Number(amountQar) || 0);
-
-  if (numericAmount >= 250000) {
-    return {
-      requiredRole: 'executive',
-      roleTitle: 'Executive Partner',
-      canonicalApprover: 'Nasser Al-Attiyah (Executive Partner)',
-      minimumAmount: 250000,
-      reason: `Transaction of QAR ${numericAmount.toLocaleString()} exceeds QAR 250,000 threshold requiring Executive Partner sign-off (Rule POL-COMM-03)`,
-      governanceRule: 'POL-COMM-03',
-      ruleId: 'POL-COMM-03',
-      isDowngradeAllowed: false,
-    };
-  }
-
-  if (numericAmount >= 50000) {
-    return {
+export const DEFAULT_E3_APPROVAL_POLICY: CommercialApprovalPolicyConfig = {
+  policyId: 'POL-COMM-QATAR-DEFAULT',
+  policyVersion: 1,
+  organisationId: '11111111-1111-4111-8111-111111111111',
+  countryCode: 'QA',
+  businessUnit: 'live_operations',
+  projectId: '*',
+  transactionType: '*',
+  currency: 'QAR',
+  effectiveFrom: '2026-01-01T00:00:00Z',
+  status: 'active',
+  thresholds: [
+    {
+      tierId: 'operational_pm',
+      requiredRole: 'project_manager',
+      roleTitle: 'Lead Project Manager',
+      canonicalApprover: 'Zaid Mansour (Lead PM)',
+      minAmount: 0,
+      maxAmount: 50000,
+      ruleId: 'POL-COMM-01',
+      governanceRule: 'POL-COMM-01',
+      description: 'Standard operational expenditure and deliverable sign-offs up to QAR 50,000.',
+    },
+    {
+      tierId: 'commercial_finance',
       requiredRole: 'finance',
       roleTitle: 'Financial Controller',
       canonicalApprover: 'Rashid Al-Hajri (Financial Controller)',
-      minimumAmount: 50000,
-      maximumAmount: 250000,
-      reason: `Transaction of QAR ${numericAmount.toLocaleString()} falls in QAR 50,000–250,000 range requiring Financial Controller sign-off (Rule POL-COMM-02)`,
-      governanceRule: 'POL-COMM-02',
+      minAmount: 50000,
+      maxAmount: 250000,
       ruleId: 'POL-COMM-02',
-      isDowngradeAllowed: false,
-    };
+      governanceRule: 'POL-COMM-02',
+      description: 'Commercial PO commitments and contract variations between QAR 50,000 and QAR 250,000.',
+    },
+    {
+      tierId: 'executive_partner',
+      requiredRole: 'executive',
+      roleTitle: 'Executive Partner',
+      canonicalApprover: 'Nasser Al-Attiyah (Executive Partner)',
+      minAmount: 250000,
+      maxAmount: undefined,
+      ruleId: 'POL-COMM-03',
+      governanceRule: 'POL-COMM-03',
+      description: 'Major enterprise commitments and four-eyes executive gates exceeding QAR 250,000.',
+    },
+  ],
+  metadata: {
+    approvedBy: 'E3 Governance Board',
+    approvedAt: '2026-01-01T00:00:00Z',
+    governanceReference: 'E3-GOV-2026-COMM-01',
+  },
+};
+
+/**
+ * Backward-compatible export of default threshold configurations.
+ */
+export const E3_APPROVAL_THRESHOLDS = DEFAULT_E3_APPROVAL_POLICY.thresholds;
+
+/**
+ * Versionable in-memory registry for Commercial Approval Policies.
+ * In production/staging, backed by PostgreSQL `policy_snapshots` and `active_policy_pointers`.
+ */
+export class CommercialApprovalPolicyRegistry {
+  private static policies: Map<string, CommercialApprovalPolicyConfig> = new Map([
+    [`${DEFAULT_E3_APPROVAL_POLICY.policyId}:v${DEFAULT_E3_APPROVAL_POLICY.policyVersion}`, DEFAULT_E3_APPROVAL_POLICY],
+  ]);
+
+  /**
+   * Registers or updates a policy configuration with explicit scope and versioning.
+   */
+  static registerPolicy(policy: CommercialApprovalPolicyConfig): void {
+    const key = `${policy.policyId}:v${policy.policyVersion}`;
+    this.policies.set(key, policy);
   }
 
+  /**
+   * Lists all registered approval policy configurations.
+   */
+  static listPolicies(): CommercialApprovalPolicyConfig[] {
+    return Array.from(this.policies.values());
+  }
+
+  /**
+   * Resolves the most specific active policy for a given context.
+   * Specificity hierarchy: Project > TransactionType > BusinessUnit > Country > Organisation > System Default.
+   */
+  static resolvePolicy(ctx?: PolicyResolutionContext): { policy: CommercialApprovalPolicyConfig; matchScope: string } {
+    if (!ctx) {
+      return { policy: DEFAULT_E3_APPROVAL_POLICY, matchScope: 'system_default' };
+    }
+
+    const activeList = Array.from(this.policies.values()).filter((p) => p.status === 'active');
+
+    // 1. Exact project-level override
+    if (ctx.projectId && ctx.projectId !== '*') {
+      const match = activeList.find((p) => p.projectId === ctx.projectId);
+      if (match) return { policy: match, matchScope: `project:${ctx.projectId}` };
+    }
+
+    // 2. Transaction-type specific override
+    if (ctx.transactionType && ctx.transactionType !== '*') {
+      const match = activeList.find((p) => p.transactionType === ctx.transactionType);
+      if (match) return { policy: match, matchScope: `transactionType:${ctx.transactionType}` };
+    }
+
+    // 3. Business unit override
+    if (ctx.businessUnit && ctx.businessUnit !== '*') {
+      const match = activeList.find((p) => p.businessUnit === ctx.businessUnit);
+      if (match) return { policy: match, matchScope: `businessUnit:${ctx.businessUnit}` };
+    }
+
+    // 4. Country code override
+    if (ctx.countryCode && ctx.countryCode !== '*') {
+      const match = activeList.find((p) => p.countryCode === ctx.countryCode);
+      if (match) return { policy: match, matchScope: `country:${ctx.countryCode}` };
+    }
+
+    // 5. Organisation default
+    if (ctx.organisationId) {
+      const match = activeList.find((p) => p.organisationId === ctx.organisationId);
+      if (match) return { policy: match, matchScope: `organisation:${ctx.organisationId}` };
+    }
+
+    return { policy: DEFAULT_E3_APPROVAL_POLICY, matchScope: 'system_default' };
+  }
+}
+
+/**
+ * Dynamically resolves the required approver role and non-bypassable policy rule
+ * by evaluating the active configured policy model for the given scope context.
+ */
+export function resolveRequiredApprover(
+  amountQar: number,
+  context?: PolicyResolutionContext
+): ApprovalThresholdResolution {
+  const numericAmount = Math.max(0, Number(amountQar) || 0);
+  const { policy, matchScope } = CommercialApprovalPolicyRegistry.resolvePolicy(context);
+
+  // Find matching threshold tier from active policy configuration
+  // Ordered from highest minimum threshold descending
+  const sortedTiers = [...policy.thresholds].sort((a, b) => b.minAmount - a.minAmount);
+
+  for (const tier of sortedTiers) {
+    if (numericAmount >= tier.minAmount) {
+      const rangeDesc = tier.maxAmount
+        ? `in QAR ${tier.minAmount.toLocaleString()}–${tier.maxAmount.toLocaleString()} range`
+        : `exceeds QAR ${tier.minAmount.toLocaleString()} threshold`;
+
+      return {
+        requiredRole: tier.requiredRole,
+        roleTitle: tier.roleTitle,
+        canonicalApprover: tier.canonicalApprover,
+        minimumAmount: tier.minAmount,
+        maximumAmount: tier.maxAmount,
+        reason: `Transaction of QAR ${numericAmount.toLocaleString()} ${rangeDesc} requiring ${tier.roleTitle} sign-off (Policy ${policy.policyId} v${policy.policyVersion} - Rule ${tier.ruleId})`,
+        governanceRule: tier.governanceRule,
+        ruleId: tier.ruleId,
+        isDowngradeAllowed: false,
+        policyId: policy.policyId,
+        policyVersion: policy.policyVersion,
+        policyScopeMatched: matchScope,
+        currency: policy.currency,
+      };
+    }
+  }
+
+  // Fallback to lowest tier if configured
+  const lowestTier = sortedTiers[sortedTiers.length - 1] || DEFAULT_E3_APPROVAL_POLICY.thresholds[0];
   return {
-    requiredRole: 'project_manager',
-    roleTitle: 'Lead Project Manager',
-    canonicalApprover: 'Zaid Mansour (Lead PM)',
-    minimumAmount: 0,
-    maximumAmount: 50000,
-    reason: `Transaction of QAR ${numericAmount.toLocaleString()} is within operational delegation limit (< QAR 50,000) (Rule POL-COMM-01)`,
-    governanceRule: 'POL-COMM-01',
-    ruleId: 'POL-COMM-01',
+    requiredRole: lowestTier.requiredRole,
+    roleTitle: lowestTier.roleTitle,
+    canonicalApprover: lowestTier.canonicalApprover,
+    minimumAmount: lowestTier.minAmount,
+    maximumAmount: lowestTier.maxAmount,
+    reason: `Transaction of QAR ${numericAmount.toLocaleString()} is within ${lowestTier.roleTitle} operational delegation limit (< QAR ${(lowestTier.maxAmount || 50000).toLocaleString()}) (Rule ${lowestTier.ruleId})`,
+    governanceRule: lowestTier.governanceRule,
+    ruleId: lowestTier.ruleId,
     isDowngradeAllowed: false,
+    policyId: policy.policyId,
+    policyVersion: policy.policyVersion,
+    policyScopeMatched: matchScope,
+    currency: policy.currency,
   };
 }
