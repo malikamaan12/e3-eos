@@ -160,4 +160,50 @@ describe('Sprint 01 Authentication & Authorization Verification Suite', () => {
       password: updatedPassword,
     }, mockRes)).rejects.toThrow();
   });
+
+  it('11. Authenticated UAT Impersonation: Super Admin can impersonate a target role with audit logging', async () => {
+    // Obtain super admin session
+    const pool = dbService.getPool();
+    const adminUserRes = await pool.query(`SELECT id, email FROM users WHERE email = 'superadmin@e3.qa' LIMIT 1;`);
+    const adminUser = adminUserRes.rows[0];
+    const adminToken = 'admin-uat-test-token-' + Date.now();
+    await pool.query(`
+      INSERT INTO sessions (id, user_id, token, expires_at, created_at)
+      VALUES (gen_random_uuid(), $1, $2, NOW() + INTERVAL '1 hour', NOW());
+    `, [adminUser.id, adminToken]);
+
+    const adminReq = { headers: { authorization: `Bearer ${adminToken}` } } as any;
+    const impRes = await authController.impersonate(adminReq, { targetEmail: 'pm@e3.qa' });
+    expect(impRes.success).toBe(true);
+    expect(impRes.sessionToken).toBeDefined();
+    expect(impRes.user.email).toBe('pm@e3.qa');
+    expect(impRes.impersonatedBy).toContain('superadmin@e3.qa');
+  });
+
+  it('12. Impersonation Security: Non-admin caller is rejected with 403 Forbidden', async () => {
+    // Target user (not super admin) attempts to impersonate
+    const nonAdminReq = { headers: { authorization: `Bearer ${sessionToken}` } } as any;
+    await expect(authController.impersonate(nonAdminReq, { targetEmail: 'pm@e3.qa' })).rejects.toThrow();
+  });
+
+  it('13. Production Token Redaction: Invitation and reset tokens are not leaked in production responses', async () => {
+    const prevEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const prodForgot = await authController.forgotPassword({ email: 'pm@e3.qa' });
+      expect((prodForgot as any).resetToken).toBeUndefined();
+      expect((prodForgot as any).resetUrl).toBeUndefined();
+      expect(prodForgot.message).toBeDefined();
+
+      const prodInvite = await adminController.inviteUser({
+        name: 'Redaction Test',
+        email: `redact.${Date.now()}@e3.qa`,
+        role: 'project_manager',
+      });
+      expect((prodInvite as any).inviteToken).toBeUndefined();
+      expect((prodInvite as any).inviteUrl).toBeUndefined();
+    } finally {
+      process.env.NODE_ENV = prevEnv;
+    }
+  });
 });

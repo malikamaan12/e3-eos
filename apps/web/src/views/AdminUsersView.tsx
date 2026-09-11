@@ -3,7 +3,7 @@ import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Select } from '../components/DesignSystem.js';
 
 export const AdminUsersView: React.FC = () => {
-  const { currentLanguage, apiClient, navigate, refreshTrigger, triggerRefresh } = useEosContext();
+  const { currentLanguage, apiClient, navigate, refreshTrigger, triggerRefresh, switchPersona, currentUser } = useEosContext();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -117,8 +117,8 @@ export const AdminUsersView: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1.5fr 1.8fr 140px 140px 120px',
-                padding: '10px 18px',
+                gridTemplateColumns: '1.4fr 1.6fr 120px 100px 110px 120px',
+                padding: '12px 18px',
                 backgroundColor: '#f8fafc',
                 borderBottom: '1px solid #e2e8f0',
                 fontSize: '11px',
@@ -132,6 +132,7 @@ export const AdminUsersView: React.FC = () => {
               <span>Role</span>
               <span>Audience</span>
               <span>Organization</span>
+              <span>Actions</span>
             </div>
 
             {users.map((u) => (
@@ -140,7 +141,7 @@ export const AdminUsersView: React.FC = () => {
                 id={`user-row-${u.email}`}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '1.5fr 1.8fr 140px 140px 120px',
+                  gridTemplateColumns: '1.4fr 1.6fr 120px 100px 110px 120px',
                   alignItems: 'center',
                   padding: '12px 18px',
                   borderBottom: '1px solid #f1f5f9',
@@ -165,6 +166,27 @@ export const AdminUsersView: React.FC = () => {
                 </div>
                 <div style={{ fontSize: '12px', color: '#64748b' }}>
                   {u.organisationName || 'E3 Events'}
+                </div>
+                <div>
+                  {currentUser?.isSuperAdmin && u.email !== currentUser.email && (
+                    <button
+                      id={`btn-impersonate-${u.id}`}
+                      type="button"
+                      onClick={() => switchPersona(u.email)}
+                      style={{
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        backgroundColor: '#f8fafc',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '4px',
+                        color: '#475569',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Audit as Role
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

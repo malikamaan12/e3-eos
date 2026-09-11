@@ -230,16 +230,55 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const switchPersona = async (_email: string) => {
-    // Impersonation requires explicit administrative delegation token
-    setIsImpersonating(false);
-    setImpersonatedBy(null);
-    triggerRefresh();
+  const switchPersona = async (targetEmail: string) => {
+    try {
+      const res = await fetch('/api/v1/auth/impersonate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
+        },
+        body: JSON.stringify({ targetEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || data.message || 'Impersonation rejected');
+      }
+      if (!isImpersonating && sessionToken && typeof window !== 'undefined') {
+        sessionStorage.setItem('eos_admin_primary_token', sessionToken);
+      }
+      setSessionToken(data.sessionToken);
+      apiClient.setSessionToken(data.sessionToken);
+      setIsImpersonating(true);
+      setImpersonatedBy(data.impersonatedBy);
+      if (data.user) {
+        setCurrentUser({
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.activeMembership?.role || 'project_manager',
+          department: 'Live Production',
+          permissions: [],
+        });
+      }
+      triggerRefresh();
+    } catch (e: any) {
+      console.error('[Impersonation Error]:', e.message);
+      alert(e.message || 'Impersonation failed');
+    }
   };
 
   const exitImpersonation = async () => {
+    const adminToken = typeof window !== 'undefined' ? sessionStorage.getItem('eos_admin_primary_token') : null;
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('eos_admin_primary_token');
+    }
     setIsImpersonating(false);
     setImpersonatedBy(null);
+    if (adminToken) {
+      setSessionToken(adminToken);
+      apiClient.setSessionToken(adminToken);
+    }
     triggerRefresh();
   };
 

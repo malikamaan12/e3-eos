@@ -316,11 +316,74 @@ export class AuthController {
       VALUES (gen_random_uuid(), $1, $2, $3, NOW());
     `, [user.id, resetToken, expiresAt]);
 
+    const isTestEnv = process.env.NODE_ENV === 'test';
     return {
       success: true,
       message: 'If an account exists with this email, password reset instructions have been sent.',
-      resetToken, // Returned in staging for automated verification
-      resetUrl: `/forgot-password?token=${resetToken}`,
+      ...(isTestEnv ? { resetToken, resetUrl: `/forgot-password?token=${resetToken}` } : {}),
+    };
+  }
+
+  // --- Authenticated UAT Impersonation (Super Admin Role Only) ---
+  @Post('impersonate')
+  async impersonate(@Req() req: Request, @Body() body: { targetEmail: string }) {
+    const sessionUser = await this.getSessionUser(req);
+    if (!sessionUser) {
+      throw new HttpException({ title: 'Unauthorized', detail: 'Authentication required' }, HttpStatus.UNAUTHORIZED);
+    }
+
+    if (!sessionUser.is_super_admin) {
+      throw new HttpException({ title: 'Forbidden', detail: 'Only Super Administrators with UAT evaluation privileges may initiate role impersonation.' }, HttpStatus.FORBIDDEN);
+    }
+
+    if (!body.targetEmail) {
+      throw new HttpException({ title: 'Validation Error', detail: 'targetEmail is required' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const pool = this.dbService.getPool();
+    const targetUserRes = await pool.query(`
+      SELECT u.id, u.email, u.name, u.is_super_admin, m.role, m.audience, m.organisation_id, m.is_revoked as membership_revoked, o.name as org_name
+      FROM users u
+      LEFT JOIN memberships m ON m.user_id = u.id
+      LEFT JOIN organisations o ON o.id = m.organisation_id
+      WHERE LOWER(u.email) = LOWER($1)
+      LIMIT 1;
+    `, [body.targetEmail.trim()]);
+
+    if (targetUserRes.rows.length === 0) {
+      throw new HttpException({ title: 'Not Found', detail: 'Target user not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const targetUser = targetUserRes.rows[0];
+    if (targetUser.membership_revoked) {
+      throw new HttpException({ title: 'Forbidden', detail: 'Cannot impersonate a disabled or revoked user' }, HttpStatus.FORBIDDEN);
+    }
+
+    // Create time-limited audit-tagged session token (1 hour)
+    const sessionToken = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await pool.query(`
+      INSERT INTO sessions (id, user_id, token, expires_at, ip_address, user_agent, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW())
+    `, [targetUser.id, sessionToken, expiresAt, '127.0.0.1', `E3-EOS Impersonation by ${sessionUser.email}`]);
+
+    return {
+      success: true,
+      sessionToken,
+      user: {
+        id: targetUser.id,
+        email: targetUser.email,
+        name: targetUser.name,
+        isSuperAdmin: targetUser.is_super_admin,
+      },
+      activeMembership: {
+        role: targetUser.role,
+        audience: targetUser.audience,
+        organisationId: targetUser.organisation_id,
+        organisationName: targetUser.org_name,
+      },
+      impersonatedBy: `${sessionUser.name} (${sessionUser.email})`,
     };
   }
 

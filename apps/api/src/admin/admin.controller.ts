@@ -197,6 +197,7 @@ export class AdminController {
       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, NOW());
     `, [orgId, email, name, role, body.department || null, inviteToken, expiresAt]);
 
+    const isTestEnv = process.env.NODE_ENV === 'test';
     return {
       success: true,
       message: `User ${name} successfully invited with role ${role}.`,
@@ -208,8 +209,7 @@ export class AdminController {
         organisationId: orgId,
         createdAt: user.created_at,
       },
-      inviteToken,
-      inviteUrl: `/accept-invite?token=${inviteToken}`,
+      ...(isTestEnv ? { inviteToken, inviteUrl: `/accept-invite?token=${inviteToken}` } : {}),
     };
   }
 
