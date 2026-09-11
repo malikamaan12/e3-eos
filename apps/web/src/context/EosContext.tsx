@@ -230,17 +230,16 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const switchPersona = async (email: string) => {
-    setIsImpersonating(true);
-    setImpersonatedBy('Tareq Al-Kuwari (Root Super Admin)');
-    await login(email, 'Password123!');
+  const switchPersona = async (_email: string) => {
+    // Impersonation requires explicit administrative delegation token
+    setIsImpersonating(false);
+    setImpersonatedBy(null);
     triggerRefresh();
   };
 
   const exitImpersonation = async () => {
     setIsImpersonating(false);
     setImpersonatedBy(null);
-    await login('superadmin@e3.qa', 'Password123!');
     triggerRefresh();
   };
 
