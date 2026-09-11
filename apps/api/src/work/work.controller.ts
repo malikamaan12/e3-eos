@@ -27,7 +27,13 @@ import {
   ProtectiveActionDto,
   CommandResult,
 } from '@e3-eos/contracts';
-import { StageGraphEngine, DependencyEdge } from '@e3-eos/domain';
+import {
+  StageGraphEngine,
+  DependencyEdge,
+  calculateCpmSchedule,
+  generateBumpInShifts,
+  GanttTaskInput,
+} from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
@@ -61,6 +67,128 @@ export const workPackageRepository = new Map<string, StoredWorkPackage>();
 export const taskRepository = new Map<string, StoredTask>();
 export const dependencyRepository = new Map<string, DependencyEdge>();
 export const protectiveActionRepository = new Map<string, any>();
+export const ganttTaskRepository = new Map<string, GanttTaskInput & { projectId: string }>();
+
+function seedInitialGantt() {
+  const projectIds = [
+    '00000000-0000-4000-8000-000000000001',
+    'f1111111-1111-4111-8111-111111111111',
+  ];
+
+  for (const projectId of projectIds) {
+    const rawTasks: Array<Omit<GanttTaskInput, 'id'> & { idSuffix: string }> = [
+      {
+        idSuffix: '1',
+        code: 'TSK-001',
+        title: 'Site Handover & Lusail Boulevard Perimeter Survey',
+        durationHours: 8,
+        stageNumber: 8,
+        assignedRole: 'Site Operations Lead',
+        isMilestone: false,
+      },
+      {
+        idSuffix: '2',
+        code: 'TSK-002',
+        title: 'Heavy Crane Mobilization & Primary Ground Rigging',
+        durationHours: 12,
+        stageNumber: 8,
+        assignedRole: 'Master Rigger',
+        isMilestone: false,
+        predecessorIds: [{ id: `gt-1-${projectId.slice(0, 8)}`, type: 'FS' }],
+      },
+      {
+        idSuffix: '3',
+        code: 'TSK-003',
+        title: 'Structural Truss Arch Assembly & Civil Defence Torque Inspection',
+        durationHours: 16,
+        stageNumber: 9,
+        assignedRole: 'Structural Engineer',
+        isMilestone: false,
+        predecessorIds: [{ id: `gt-2-${projectId.slice(0, 8)}`, type: 'FS' }],
+      },
+      {
+        idSuffix: '4',
+        code: 'TSK-004',
+        title: '360° Kinetic LED Tile Installation & Signal Cabling',
+        durationHours: 20,
+        stageNumber: 10,
+        assignedRole: 'Technical Director',
+        isMilestone: false,
+        predecessorIds: [{ id: `gt-3-${projectId.slice(0, 8)}`, type: 'FS' }],
+      },
+      {
+        idSuffix: '5',
+        code: 'TSK-005',
+        title: 'Audio Array Flying & Sound Pressure Tuning (Day Shift Only)',
+        durationHours: 14,
+        stageNumber: 10,
+        assignedRole: 'Sound Engineer',
+        isMilestone: false,
+        predecessorIds: [{ id: `gt-3-${projectId.slice(0, 8)}`, type: 'FS' }],
+      },
+      {
+        idSuffix: '6',
+        code: 'TSK-006',
+        title: 'Fire Marshall / Civil Defence Safety Sign-off Walkthrough',
+        durationHours: 4,
+        stageNumber: 11,
+        assignedRole: 'HSE Lead',
+        isMilestone: false,
+        predecessorIds: [
+          { id: `gt-4-${projectId.slice(0, 8)}`, type: 'FS' },
+          { id: `gt-5-${projectId.slice(0, 8)}`, type: 'FS' },
+        ],
+      },
+      {
+        idSuffix: '7',
+        code: 'TSK-007',
+        title: 'Full Technical Rehearsal & Drone Show Airspace Synchronization',
+        durationHours: 6,
+        stageNumber: 11,
+        assignedRole: 'Creative Director',
+        isMilestone: false,
+        predecessorIds: [{ id: `gt-6-${projectId.slice(0, 8)}`, type: 'FS' }],
+      },
+      {
+        idSuffix: '8',
+        code: 'TSK-008',
+        title: 'Qatar National Day Live Ceremony Show Execution',
+        durationHours: 4,
+        stageNumber: 12,
+        assignedRole: 'Executive Producer',
+        isMilestone: true,
+        predecessorIds: [{ id: `gt-7-${projectId.slice(0, 8)}`, type: 'FS' }],
+      },
+      {
+        idSuffix: '9',
+        code: 'TSK-009',
+        title: 'Rapid Strike & Boulevard Public Re-opening',
+        durationHours: 12,
+        stageNumber: 13,
+        assignedRole: 'Logistics Manager',
+        isMilestone: false,
+        predecessorIds: [{ id: `gt-8-${projectId.slice(0, 8)}`, type: 'FS' }],
+      },
+    ];
+
+    for (const t of rawTasks) {
+      const id = `gt-${t.idSuffix}-${projectId.slice(0, 8)}`;
+      ganttTaskRepository.set(id, {
+        id,
+        projectId,
+        code: t.code,
+        title: t.title,
+        durationHours: t.durationHours,
+        stageNumber: t.stageNumber,
+        assignedRole: t.assignedRole,
+        isMilestone: t.isMilestone,
+        predecessorIds: t.predecessorIds,
+      });
+    }
+  }
+}
+
+seedInitialGantt();
 
 @Controller('projects/:projectId')
 @UseFilters(ProblemDetailsFilter)
@@ -69,6 +197,26 @@ export class WorkController {
   private dbService: DbService;
   constructor(@Optional() dbService?: DbService) {
     this.dbService = dbService || new DbService();
+  }
+
+  @Get('gantt')
+  getGanttSchedule(@Param('projectId') projectId: string) {
+    const tasks = Array.from(ganttTaskRepository.values()).filter((t) => t.projectId === projectId);
+    const schedule = calculateCpmSchedule(tasks);
+    const shifts = generateBumpInShifts(72, 23, 6);
+    return {
+      data: {
+        projectId,
+        schedule,
+        shifts,
+        noiseCurfewHours: {
+          startHour: 23,
+          endHour: 6,
+          maxNightDb: 65,
+          maxDayDb: 95,
+        },
+      },
+    };
   }
 
   @Post('work-packages')

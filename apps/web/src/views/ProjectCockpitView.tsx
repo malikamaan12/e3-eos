@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { MetricCard, Card, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { RequirementsMatrixView } from './RequirementsMatrixView.js';
+import { DocumentRegisterView } from './DocumentRegisterView.js';
+import { MasterGanttView } from './MasterGanttView.js';
+import { CommercialBOQView } from './CommercialBOQView.js';
 
 export const ProjectCockpitView: React.FC = () => {
   const {
@@ -37,6 +41,7 @@ export const ProjectCockpitView: React.FC = () => {
   // Workstream filter state
   const [workstreamFilter, setWorkstreamFilter] = useState<'needs_attention' | 'on_track' | 'all'>('needs_attention');
   const [selectedAuditDetail, setSelectedAuditDetail] = useState<any | null>(null);
+  const [cockpitModuleTab, setCockpitModuleTab] = useState<'overview' | 'requirements' | 'documents' | 'timeline' | 'commercial'>('overview');
 
   // Decision Modal
   const [decidingApproval, setDecidingApproval] = useState<any | null>(null);
@@ -317,7 +322,132 @@ export const ProjectCockpitView: React.FC = () => {
         </div>
       </div>
 
-      {/* Prominent Onboarding Incomplete Warning Banner */}
+      {/* Sprint 02 Module Navigation Tabs */}
+      <div
+        id="cockpit-module-tabs"
+        style={{
+          display: 'flex',
+          gap: '8px',
+          borderBottom: '2px solid #e2e8f0',
+          marginBottom: '20px',
+          overflowX: 'auto',
+          paddingBottom: '2px',
+        }}
+      >
+        <button
+          id="tab-cockpit-overview"
+          onClick={() => setCockpitModuleTab('overview')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'overview' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'overview' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'overview' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>📊</span> Overview & Governance
+        </button>
+
+        <button
+          id="tab-cockpit-requirements"
+          onClick={() => setCockpitModuleTab('requirements')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'requirements' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'requirements' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'requirements' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>🎯</span> 7-Point Scope & Traceability
+        </button>
+
+        <button
+          id="tab-cockpit-documents"
+          onClick={() => setCockpitModuleTab('documents')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'documents' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'documents' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'documents' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>📑</span> Controlled Documents
+        </button>
+
+        <button
+          id="tab-cockpit-timeline"
+          onClick={() => setCockpitModuleTab('timeline')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'timeline' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'timeline' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'timeline' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>⏱️</span> Master Timeline (CPM)
+        </button>
+
+        <button
+          id="tab-cockpit-commercial"
+          onClick={() => setCockpitModuleTab('commercial')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '6px 6px 0 0',
+            fontSize: '13px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: cockpitModuleTab === 'commercial' ? '3px solid #2563eb' : '3px solid transparent',
+            backgroundColor: cockpitModuleTab === 'commercial' ? '#eff6ff' : 'transparent',
+            color: cockpitModuleTab === 'commercial' ? '#1d4ed8' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span>💰</span> Commercial & BOQ
+        </button>
+      </div>
+
+      {cockpitModuleTab === 'requirements' && <RequirementsMatrixView projectId={projectId} />}
+      {cockpitModuleTab === 'documents' && <DocumentRegisterView projectId={projectId} />}
+      {cockpitModuleTab === 'timeline' && <MasterGanttView projectId={projectId} />}
+      {cockpitModuleTab === 'commercial' && <CommercialBOQView projectId={projectId} />}
+
+      {cockpitModuleTab === 'overview' && (
+        <>
+          {/* Prominent Onboarding Incomplete Warning Banner */}
       {isIncomplete && (
         <div
           id="cockpit-incomplete-banner"
@@ -1023,6 +1153,8 @@ export const ProjectCockpitView: React.FC = () => {
           </div>
         )}
       </Card>
+      </>
+      )}
 
       {/* Modal: + Task */}
       <Modal

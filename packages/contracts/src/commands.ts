@@ -47,8 +47,18 @@ export const RequirementCreateSchema = z.object({
   title: z.string().min(3).max(250),
   description: z.string().min(5),
   sourceReference: z.string().optional(),
-  ownerId: z.string().uuid().optional(),
-  deliverablePackageId: z.string().uuid().optional(),
+  ownerId: z.string().optional(),
+  deliverablePackageId: z.string().optional(),
+  code: z.string().optional(),
+  category: z.string().optional(),
+  dueDate: z.string().optional(),
+  linkedDocumentId: z.string().optional(),
+  linkedDocumentNumber: z.string().optional(),
+  linkedDesignId: z.string().optional(),
+  linkedDesignVersion: z.string().optional(),
+  linkedBoqLineCode: z.string().optional(),
+  linkedTaskId: z.string().optional(),
+  targetCostQar: z.number().optional(),
 });
 
 export type RequirementCreateDto = z.infer<typeof RequirementCreateSchema>;
@@ -73,6 +83,12 @@ export const ClarificationCreateSchema = z.object({
   question: z.string().min(5),
   source: z.string().min(2),
   dueAt: z.string(),
+  category: z.string().optional(),
+  rfpSectionRef: z.string().optional(),
+  costDeltaQar: z.number().optional(),
+  scheduleDeltaDays: z.number().optional(),
+  scopeAltered: z.boolean().optional(),
+  linkedRequirementIds: z.array(z.string()).optional(),
 });
 
 export type ClarificationCreateDto = z.infer<typeof ClarificationCreateSchema>;
@@ -256,6 +272,7 @@ export const BOQLineCreateSchema = z.object({
   allocatedLumpSumPortion: z.string().optional(),
   discountPercent: z.string().default('0'),
   taxRate: z.string().default('0'),
+  linkedRequirementCode: z.string().optional(),
 });
 
 export type BOQLineCreateDto = z.infer<typeof BOQLineCreateSchema>;

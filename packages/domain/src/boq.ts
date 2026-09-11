@@ -70,6 +70,7 @@ export interface BOQLineInput {
   allocatedLumpSumPortion?: Decimal.Value; // Allocated amount of parent lump sum
   discountPercent?: Decimal.Value; // Percentage discount on this line (0 - 100)
   taxRate?: Decimal.Value; // Tax rate (e.g. 0.05 for 5% VAT)
+  linkedRequirementCode?: string; // Links line to ScopeRequirement code (e.g. REQ-QND-001)
 }
 
 export interface CalculatedBOQLine {

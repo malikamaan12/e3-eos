@@ -450,6 +450,40 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect(updated.status).toBe('completed');
       expect(updated.notes).toBe('Testing sign-off complete');
     });
+
+    it('should fetch 7-point scope traceability report and controlled documents via ApiClient', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      });
+
+      const matrix = await client.getRequirementsTraceability('00000000-0000-4000-8000-000000000001');
+      expect(matrix).toBeDefined();
+      expect(matrix.totalRequirements).toBe(4);
+      expect(matrix.evaluations).toHaveLength(4);
+      expect(matrix.overallTraceabilityPct).toBeGreaterThan(0);
+
+      const docs = await client.getControlledDocuments('00000000-0000-4000-8000-000000000001');
+      expect(docs.length).toBeGreaterThan(0);
+      expect(docs[0].documentNumber).toMatch(/^E3-/);
+
+      const transmittals = await client.getTransmittals('00000000-0000-4000-8000-000000000001');
+      expect(transmittals.length).toBeGreaterThan(0);
+      expect(transmittals[0].isClientFacing).toBe(true);
+
+      const gantt = await client.getGanttSchedule('00000000-0000-4000-8000-000000000001');
+      expect(gantt.schedule.projectDurationHours).toBeGreaterThan(0);
+      expect(gantt.schedule.criticalTasksCount).toBeGreaterThan(0);
+      expect(gantt.shifts.length).toBeGreaterThan(0);
+
+      const estimates = await client.getEstimates('00000000-0000-4000-8000-000000000001');
+      expect(estimates.length).toBeGreaterThan(0);
+
+      const lines = await client.getEstimateLines('00000000-0000-4000-8000-000000000001', estimates[0].id);
+      expect(lines.length).toBeGreaterThan(0);
+      expect(lines[0].linkedRequirementCode).toBeDefined();
+    });
   });
 });
 

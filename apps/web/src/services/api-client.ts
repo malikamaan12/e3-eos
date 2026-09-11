@@ -834,6 +834,615 @@ export class EosApiClient {
     }
     return [];
   }
+
+  /**
+   * Fetches the 7-Point Scope & Requirements Traceability Matrix report.
+   */
+  async getRequirementsTraceability(projectId: string): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/traceability`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data;
+      }
+    } catch {
+      // offline fallback
+    }
+
+    return {
+      projectId,
+      totalRequirements: 4,
+      applicableRequirements: 4,
+      negotiatedOutRequirements: 0,
+      fullyTraceableRequirements: 1,
+      unassignedRequirements: 1,
+      uncostedRequirements: 1,
+      unscheduledRequirements: 0,
+      overallTraceabilityPct: 68,
+      evaluations: [
+        {
+          requirementId: 'req-001',
+          code: 'REQ-QND-001',
+          hasOwner: true,
+          hasTargetDate: true,
+          hasControlledDocument: true,
+          hasDesignVersion: true,
+          hasBoqCost: true,
+          hasApprovalSignoff: true,
+          hasDeliveryEvidence: true,
+          completedPoints: 7,
+          totalPoints: 7,
+          traceabilityScorePct: 100,
+          isFullyTraceable: true,
+          missingAttributes: [],
+          riskRating: 'low',
+        },
+        {
+          requirementId: 'req-002',
+          code: 'REQ-QND-002',
+          hasOwner: true,
+          hasTargetDate: true,
+          hasControlledDocument: true,
+          hasDesignVersion: true,
+          hasBoqCost: true,
+          hasApprovalSignoff: true,
+          hasDeliveryEvidence: false,
+          completedPoints: 6,
+          totalPoints: 7,
+          traceabilityScorePct: 86,
+          isFullyTraceable: false,
+          missingAttributes: ['Delivery Verification Evidence (Site Sign-off / Photo)'],
+          riskRating: 'low',
+        },
+        {
+          requirementId: 'req-003',
+          code: 'REQ-QND-003',
+          hasOwner: true,
+          hasTargetDate: true,
+          hasControlledDocument: true,
+          hasDesignVersion: false,
+          hasBoqCost: true,
+          hasApprovalSignoff: false,
+          hasDeliveryEvidence: false,
+          completedPoints: 4,
+          totalPoints: 7,
+          traceabilityScorePct: 57,
+          isFullyTraceable: false,
+          missingAttributes: ['Technical CAD / Design Revision', 'Governance Approval Sign-off'],
+          riskRating: 'high',
+        },
+        {
+          requirementId: 'req-004',
+          code: 'REQ-QND-004',
+          hasOwner: false,
+          hasTargetDate: true,
+          hasControlledDocument: false,
+          hasDesignVersion: false,
+          hasBoqCost: false,
+          hasApprovalSignoff: false,
+          hasDeliveryEvidence: false,
+          completedPoints: 1,
+          totalPoints: 7,
+          traceabilityScorePct: 14,
+          isFullyTraceable: false,
+          missingAttributes: [
+            'Assigned Owner (Lead PM / Discipline Lead)',
+            'Controlled Document Reference',
+            'Technical CAD / Design Revision',
+            'Priced BOQ Line / Budget Allocation',
+            'Governance Approval Sign-off',
+          ],
+          riskRating: 'critical',
+        },
+      ],
+      summaryByDiscipline: {
+        creative_visual: { total: 1, traceable: 1 },
+        staging_technical: { total: 1, traceable: 0 },
+        health_safety: { total: 1, traceable: 0 },
+        protocol_ceremony: { total: 1, traceable: 0 },
+      },
+    };
+  }
+
+  /**
+   * Fetches raw scope requirements list.
+   */
+  async getRequirements(projectId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data?.requirements || [];
+      }
+    } catch {}
+    return [];
+  }
+
+  /**
+   * Creates a new scope requirement.
+   */
+  async createRequirement(projectId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `req-create-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to create requirement');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Fetches project clarifications / RFIs with urgent deadline flags.
+   */
+  async getClarifications(projectId: string): Promise<{ data: any[]; meta: any }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/clarifications`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {}
+    return {
+      data: [
+        {
+          id: 'clar-001',
+          clarificationCode: 'RFI-QND-001',
+          question: 'Confirm maximum permissible structural rigging load on Lusail Boulevard arch pylons.',
+          category: 'technical',
+          source: 'bidder_inquiry',
+          rfpSectionRef: 'Section 4.2.1',
+          submittedAt: '2026-09-08T09:00:00Z',
+          dueAt: '2026-09-12T18:00:00Z',
+          status: 'answered',
+          response: 'Rigging load certified up to 14.5 metric tonnes per arch leg with dual safety factor.',
+          impact: {
+            hasScopeImpact: false,
+            hasCostImpact: false,
+            hasScheduleImpact: false,
+            estimatedCostImpactQar: 0,
+            estimatedScheduleImpactDays: 0,
+            requiresVariationOrder: false,
+          },
+          linkedRequirementIds: ['REQ-QND-001', 'REQ-QND-002'],
+        },
+        {
+          id: 'clar-002',
+          clarificationCode: 'RFI-QND-002',
+          question: 'Request extension of live drone rehearsal window by 24 hours due to Hamad International airspace corridor.',
+          category: 'schedule',
+          source: 'client_query',
+          rfpSectionRef: 'Schedule Addendum C',
+          submittedAt: '2026-09-10T11:00:00Z',
+          dueAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+          status: 'submitted_to_client',
+          impact: {
+            hasScopeImpact: true,
+            hasCostImpact: true,
+            hasScheduleImpact: true,
+            estimatedCostImpactQar: 45000,
+            estimatedScheduleImpactDays: 1,
+            requiresVariationOrder: true,
+          },
+          linkedRequirementIds: ['REQ-QND-001'],
+        },
+      ],
+      meta: { total: 2, urgentCount: 1 },
+    };
+  }
+
+  /**
+   * Registers a controlled document.
+   */
+  async getControlledDocuments(projectId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/documents`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || [];
+      }
+    } catch {}
+    return [
+      {
+        id: 'doc-001',
+        projectCode: 'QND26',
+        documentNumber: 'E3-QND26-AV-DWG-0001',
+        title: 'Main Ceremony 360-Degree Kinetic LED Arch — General Elevation',
+        discipline: 'audio_visual',
+        documentType: 'drawing',
+        confidentialityLevel: 'client_confidential',
+        currentRevisionCode: 'Rev 01',
+        revisionsCount: 2,
+        createdBy: 'Karim Haddad (Technical Director)',
+        createdAt: '2026-09-08T10:00:00Z',
+      },
+      {
+        id: 'doc-002',
+        projectCode: 'QND26',
+        documentNumber: 'E3-QND26-STG-DWG-0002',
+        title: 'Lusail Boulevard Royal Pavilion Structural Load Calculations & Footings',
+        discipline: 'staging',
+        documentType: 'drawing',
+        confidentialityLevel: 'internal',
+        currentRevisionCode: 'Rev A',
+        revisionsCount: 1,
+        createdBy: 'Civil Defence Certified Structural Engineer',
+        createdAt: '2026-09-09T14:30:00Z',
+      },
+      {
+        id: 'doc-003',
+        projectCode: 'QND26',
+        documentNumber: 'E3-QND26-HSE-SPC-0003',
+        title: 'Fire Safety & Flame-Retardant Material Specifications (Law No. 13 Compliance)',
+        discipline: 'health_safety',
+        documentType: 'specification',
+        confidentialityLevel: 'public',
+        currentRevisionCode: 'Rev 02',
+        revisionsCount: 3,
+        createdBy: 'HSE & Civil Defence Lead',
+        createdAt: '2026-09-07T09:00:00Z',
+      },
+    ];
+  }
+
+  /**
+   * Creates a controlled document.
+   */
+  async createControlledDocument(projectId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/documents`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `doc-create-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to create controlled document');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Fetches controlled transmittals.
+   */
+  async getTransmittals(projectId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/documents/transmittals`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || [];
+      }
+    } catch {}
+    return [
+      {
+        id: 'tr-001',
+        transmittalNumber: 'TR-QND26-0001',
+        projectId,
+        recipientOrganisation: 'Qatar National Day Steering Committee',
+        recipientName: 'Sheikh Mansoor Al-Thani',
+        recipientEmail: 'client@qnd.qa',
+        purpose: 'for_client_approval',
+        issuedBy: 'Zaid Mansour (Lead PM)',
+        issuedAt: '2026-09-10T15:00:00Z',
+        items: [
+          {
+            documentNumber: 'E3-QND26-AV-DWG-0001',
+            title: 'Main Ceremony 360-Degree Kinetic LED Arch — General Elevation',
+            revisionCode: 'Rev 01',
+            contentHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+            remarks: 'Issued for formal client architectural review and aesthetic sign-off.',
+          },
+        ],
+        isClientFacing: true,
+        acknowledgementStatus: 'acknowledged',
+      },
+    ];
+  }
+
+  /**
+   * Issues a controlled transmittal pack (enforcing zero profit margin leakage).
+   */
+  async createTransmittal(projectId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/documents/transmittals`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `tr-create-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to issue transmittal');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Fetches master Gantt CPM schedule and operational shift windows.
+   */
+  async getGanttSchedule(projectId: string): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/gantt`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data;
+      }
+    } catch {}
+    return {
+      projectId,
+      schedule: {
+        projectDurationHours: 86,
+        criticalTasksCount: 8,
+        totalTasks: 9,
+        criticalPathTaskIds: [
+          'gt-1',
+          'gt-2',
+          'gt-3',
+          'gt-4',
+          'gt-6',
+          'gt-7',
+          'gt-8',
+          'gt-9',
+        ],
+        tasks: [
+          {
+            id: 'gt-1',
+            code: 'TSK-001',
+            title: 'Site Handover & Lusail Boulevard Perimeter Survey',
+            durationHours: 8,
+            earlyStartHours: 0,
+            earlyFinishHours: 8,
+            lateStartHours: 0,
+            lateFinishHours: 8,
+            totalFloatHours: 0,
+            isCritical: true,
+            stageNumber: 8,
+          },
+          {
+            id: 'gt-2',
+            code: 'TSK-002',
+            title: 'Heavy Crane Mobilization & Primary Ground Rigging',
+            durationHours: 12,
+            earlyStartHours: 8,
+            earlyFinishHours: 20,
+            lateStartHours: 8,
+            lateFinishHours: 20,
+            totalFloatHours: 0,
+            isCritical: true,
+            stageNumber: 8,
+          },
+          {
+            id: 'gt-3',
+            code: 'TSK-003',
+            title: 'Structural Truss Arch Assembly & Civil Defence Torque Inspection',
+            durationHours: 16,
+            earlyStartHours: 20,
+            earlyFinishHours: 36,
+            lateStartHours: 20,
+            lateFinishHours: 36,
+            totalFloatHours: 0,
+            isCritical: true,
+            stageNumber: 9,
+          },
+          {
+            id: 'gt-4',
+            code: 'TSK-004',
+            title: '360° Kinetic LED Tile Installation & Signal Cabling',
+            durationHours: 20,
+            earlyStartHours: 36,
+            earlyFinishHours: 56,
+            lateStartHours: 36,
+            lateFinishHours: 56,
+            totalFloatHours: 0,
+            isCritical: true,
+            stageNumber: 10,
+          },
+          {
+            id: 'gt-5',
+            code: 'TSK-005',
+            title: 'Audio Array Flying & Sound Pressure Tuning (Day Shift Only)',
+            durationHours: 14,
+            earlyStartHours: 36,
+            earlyFinishHours: 50,
+            lateStartHours: 42,
+            lateFinishHours: 56,
+            totalFloatHours: 6,
+            isCritical: false,
+            stageNumber: 10,
+          },
+          {
+            id: 'gt-6',
+            code: 'TSK-006',
+            title: 'Fire Marshall / Civil Defence Safety Sign-off Walkthrough',
+            durationHours: 4,
+            earlyStartHours: 56,
+            earlyFinishHours: 60,
+            lateStartHours: 56,
+            lateFinishHours: 60,
+            totalFloatHours: 0,
+            isCritical: true,
+            stageNumber: 11,
+          },
+          {
+            id: 'gt-7',
+            code: 'TSK-007',
+            title: 'Full Technical Rehearsal & Drone Show Airspace Synchronization',
+            durationHours: 6,
+            earlyStartHours: 60,
+            earlyFinishHours: 66,
+            lateStartHours: 60,
+            lateFinishHours: 66,
+            totalFloatHours: 0,
+            isCritical: true,
+            stageNumber: 11,
+          },
+          {
+            id: 'gt-8',
+            code: 'TSK-008',
+            title: 'Qatar National Day Live Ceremony Show Execution',
+            durationHours: 4,
+            earlyStartHours: 66,
+            earlyFinishHours: 70,
+            lateStartHours: 66,
+            lateFinishHours: 70,
+            totalFloatHours: 0,
+            isCritical: true,
+            stageNumber: 12,
+          },
+          {
+            id: 'gt-9',
+            code: 'TSK-009',
+            title: 'Rapid Strike & Boulevard Public Re-opening',
+            durationHours: 12,
+            earlyStartHours: 70,
+            earlyFinishHours: 82,
+            lateStartHours: 70,
+            lateFinishHours: 82,
+            totalFloatHours: 0,
+            isCritical: true,
+            stageNumber: 13,
+          },
+        ],
+      },
+      shifts: [
+        {
+          shiftNumber: 1,
+          label: 'Shift 1 (0:00 - 8:00)',
+          startHour: 0,
+          endHour: 8,
+          shiftType: 'overnight_heavy_lift',
+          allowedNoiseDb: 65,
+          isCurfewActive: true,
+        },
+        {
+          shiftNumber: 2,
+          label: 'Shift 2 (8:00 - 16:00)',
+          startHour: 8,
+          endHour: 16,
+          shiftType: 'day_rigging',
+          allowedNoiseDb: 95,
+          isCurfewActive: false,
+        },
+        {
+          shiftNumber: 3,
+          label: 'Shift 3 (16:00 - 24:00)',
+          startHour: 16,
+          endHour: 24,
+          shiftType: 'day_rigging',
+          allowedNoiseDb: 95,
+          isCurfewActive: false,
+        },
+      ],
+      noiseCurfewHours: {
+        startHour: 23,
+        endHour: 6,
+        maxNightDb: 65,
+        maxDayDb: 95,
+      },
+    };
+  }
+
+  /**
+   * Fetches commercial estimates for a project.
+   */
+  async getEstimates(projectId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/estimates`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || [];
+      }
+    } catch {}
+    return [
+      {
+        id: 'est-qnd-default',
+        projectId,
+        name: 'QND 2026 Master Delivery Commercial Baseline (Rev 01)',
+        currency: 'QAR',
+        status: 'approved',
+        versionNumber: 1,
+        totalCost: '985000',
+        totalSell: '1355000',
+        marginPercent: '27.3',
+        markupPercent: '37.6',
+        createdAt: '2026-09-08T08:00:00Z',
+      },
+    ];
+  }
+
+  /**
+   * Fetches BOQ lines for an estimate.
+   */
+  async getEstimateLines(projectId: string, estimateId: string): Promise<any[]> {
+    try {
+      const res = await fetch(
+        `${this.baseUrl}/projects/${projectId}/estimates/${estimateId}/lines`,
+        {
+          headers: this.getHeaders(),
+        }
+      );
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || [];
+      }
+    } catch {}
+    return [
+      {
+        id: 'line-1',
+        estimateId,
+        projectId,
+        lineCode: 'BOQ-AV-001',
+        description: '360-Degree Kinetic LED Arch Installation & Operation',
+        quantity: '1',
+        uom: 'lot',
+        unitCost: '320000',
+        unitSell: '450000',
+        durationMultiplier: '1',
+        isLumpSum: true,
+        linkedRequirementCode: 'REQ-QND-001',
+      },
+      {
+        id: 'line-2',
+        estimateId,
+        projectId,
+        lineCode: 'BOQ-STG-002',
+        description: 'Lusail Boulevard Royal Pavilion Substructure & Engineered Footings',
+        quantity: '1',
+        uom: 'lot',
+        unitCost: '580000',
+        unitSell: '780000',
+        durationMultiplier: '1',
+        isLumpSum: true,
+        linkedRequirementCode: 'REQ-QND-002',
+      },
+      {
+        id: 'line-3',
+        estimateId,
+        projectId,
+        lineCode: 'BOQ-HSE-003',
+        description: 'Civil Defence Certified Fire Retardant Coating & Fire Suppression Rig',
+        quantity: '1',
+        uom: 'lot',
+        unitCost: '85000',
+        unitSell: '125000',
+        durationMultiplier: '1',
+        isLumpSum: false,
+        linkedRequirementCode: 'REQ-QND-003',
+      },
+    ];
+  }
 }
 
 

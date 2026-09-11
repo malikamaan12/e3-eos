@@ -20,6 +20,7 @@ import { RolloutController } from './rollout/rollout.controller.js';
 import { GovernanceController } from './governance/governance.controller.js';
 import { AuthController } from './auth/auth.controller.js';
 import { AdminController } from './admin/admin.controller.js';
+import { DocumentsController } from './documents/documents.controller.js';
 import { HealthController } from './common/health.controller.js';
 import { OpenApiController } from './common/openapi.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
@@ -38,6 +39,7 @@ import { DbService } from './common/db.service.js';
     ProjectsController,
     GovernanceController,
     ScopeController,
+    DocumentsController,
     WorkController,
     CommercialController,
     DesignsController,

@@ -24,4 +24,8 @@ export * from './rollout.js';
 export * from './stage-activities.js';
 export * from './crypto-util.js';
 export * from './onboarding.js';
+export * from './requirements.js';
+export * from './clarifications.js';
+export * from './documents.js';
+export * from './gantt.js';
 

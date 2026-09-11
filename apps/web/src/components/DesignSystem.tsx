@@ -334,10 +334,13 @@ export interface ModalProps {
   title: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer, size = 'md' }) => {
   if (!isOpen) return null;
+
+  const maxWidth = size === 'sm' ? '420px' : size === 'lg' ? '720px' : size === 'xl' ? '960px' : '560px';
 
   return (
     <div
@@ -358,7 +361,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           backgroundColor: '#ffffff',
           borderRadius: '10px',
           width: '100%',
-          maxWidth: '560px',
+          maxWidth,
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
           overflow: 'hidden',
         }}

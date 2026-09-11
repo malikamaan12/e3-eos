@@ -80,10 +80,114 @@ export const boqLineRepository = new Map<string, StoredBOQLine>();
 export const proposalRepository = new Map<string, StoredProposal>();
 export const variationRepository = new Map<string, StoredVariation>();
 
+function seedInitialCommercial() {
+  const projectIds = [
+    '00000000-0000-4000-8000-000000000001',
+    'f1111111-1111-4111-8111-111111111111',
+  ];
+  const orgId = '11111111-1111-4111-8111-111111111111';
+
+  for (const projectId of projectIds) {
+    const estId = `est-qnd-${projectId.slice(0, 8)}`;
+    const estimate: StoredEstimate = {
+      id: estId,
+      organisationId: orgId,
+      projectId,
+      name: 'QND 2026 Master Delivery Commercial Baseline (Rev 01)',
+      currency: 'QAR',
+      status: 'approved',
+      versionNumber: 1,
+      totalCost: '985000',
+      totalSell: '1355000',
+      marginPercent: '27.3',
+      markupPercent: '37.6',
+      createdAt: '2026-09-08T08:00:00Z',
+    };
+    estimateRepository.set(estId, estimate);
+
+    const l1: StoredBOQLine = {
+      id: `line-1-${projectId.slice(0, 8)}`,
+      estimateId: estId,
+      organisationId: orgId,
+      projectId,
+      lineCode: 'BOQ-AV-001',
+      description: '360-Degree Kinetic LED Arch Installation & Operation',
+      quantity: '1',
+      uom: 'lot',
+      unitCost: '320000',
+      unitSell: '450000',
+      durationMultiplier: '1',
+      isLumpSum: true,
+      discountPercent: '0',
+      taxRate: '0',
+      linkedRequirementCode: 'REQ-QND-001',
+    };
+
+    const l2: StoredBOQLine = {
+      id: `line-2-${projectId.slice(0, 8)}`,
+      estimateId: estId,
+      organisationId: orgId,
+      projectId,
+      lineCode: 'BOQ-STG-002',
+      description: 'Lusail Boulevard Royal Pavilion Substructure & Engineered Footings',
+      quantity: '1',
+      uom: 'lot',
+      unitCost: '580000',
+      unitSell: '780000',
+      durationMultiplier: '1',
+      isLumpSum: true,
+      discountPercent: '0',
+      taxRate: '0',
+      linkedRequirementCode: 'REQ-QND-002',
+    };
+
+    const l3: StoredBOQLine = {
+      id: `line-3-${projectId.slice(0, 8)}`,
+      estimateId: estId,
+      organisationId: orgId,
+      projectId,
+      lineCode: 'BOQ-HSE-003',
+      description: 'Civil Defence Certified Fire Retardant Coating & Fire Suppression Rig',
+      quantity: '1',
+      uom: 'lot',
+      unitCost: '85000',
+      unitSell: '125000',
+      durationMultiplier: '1',
+      isLumpSum: false,
+      discountPercent: '0',
+      taxRate: '0',
+      linkedRequirementCode: 'REQ-QND-003',
+    };
+
+    boqLineRepository.set(l1.id, l1);
+    boqLineRepository.set(l2.id, l2);
+    boqLineRepository.set(l3.id, l3);
+  }
+}
+
+seedInitialCommercial();
+
 @Controller('projects/:projectId')
 @UseFilters(ProblemDetailsFilter)
 @UseGuards(TenantIsolationGuard)
 export class CommercialController {
+  @Get('estimates')
+  listEstimates(@Param('projectId') projectId: string) {
+    const list = Array.from(estimateRepository.values()).filter((e) => e.projectId === projectId);
+    return { data: list };
+  }
+
+  @Get('estimates/:estimateId/lines')
+  listEstimateLines(
+    @Param('projectId') projectId: string,
+    @Param('estimateId') estimateId: string
+  ) {
+    const list = Array.from(boqLineRepository.values()).filter(
+      (l) => l.projectId === projectId && l.estimateId === estimateId
+    );
+    return { data: list };
+  }
+
   @Post('estimates')
   @UseGuards(IdempotencyGuard)
   createEstimate(
@@ -174,6 +278,7 @@ export class CommercialController {
       allocatedLumpSumPortion: parseResult.data.allocatedLumpSumPortion,
       discountPercent: parseResult.data.discountPercent,
       taxRate: parseResult.data.taxRate,
+      linkedRequirementCode: parseResult.data.linkedRequirementCode,
     };
 
     boqLineRepository.set(lineId, line);
@@ -473,6 +578,8 @@ export class CommercialController {
           pendingExposureCost: financials.pendingExposureCost.toString(),
           totalForecastSell: financials.totalForecastSell.toString(),
           totalForecastCost: financials.totalForecastCost.toString(),
+          estimateAtCompletion: financials.totalForecastCost.toString(),
+          varianceAtCompletion: financials.approvedCostBudget.minus(financials.totalForecastCost).toString(),
         },
       },
       meta: {
