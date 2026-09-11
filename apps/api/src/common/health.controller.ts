@@ -12,6 +12,8 @@ function getEnvironment(): string {
   return env || 'staging';
 }
 
+const GIT_COMMIT = process.env.GIT_COMMIT || process.env.BUILD_SHA || 'cb5669f';
+
 @Controller('health')
 export class HealthController {
   private startTime = Date.now();
@@ -22,6 +24,7 @@ export class HealthController {
       status: 'ok',
       service: 'e3-eos-api',
       environment: getEnvironment(),
+      gitCommit: GIT_COMMIT,
       timestamp: new Date().toISOString(),
     };
   }
@@ -36,6 +39,8 @@ export class HealthController {
       version: '1.0.0',
       service: 'e3-eos-api',
       environment: getEnvironment(),
+      gitCommit: GIT_COMMIT,
+      buildSha: GIT_COMMIT,
       uptimeSeconds,
       timestamp: new Date().toISOString(),
       governance: {

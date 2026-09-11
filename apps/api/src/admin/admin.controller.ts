@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { DbService } from '../common/db.service.js';
+import { EmailDispatcherService } from '../common/email.service.js';
 import crypto from 'crypto';
 
 export const CANONICAL_ROLES_CATALOG = [
@@ -197,6 +198,16 @@ export class AdminController {
       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, NOW());
     `, [orgId, email, name, role, body.department || null, inviteToken, expiresAt]);
 
+    const inviteUrl = `${process.env.APP_BASE_URL || 'https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app'}/accept-invite?token=${inviteToken}`;
+    const emailDispatcher = new EmailDispatcherService(this.dbService);
+    await emailDispatcher.dispatchEmail({
+      to: email,
+      subject: 'Invitation to join E3 Event Operating System (EOS)',
+      template: 'user_invitation',
+      link: inviteUrl,
+      recipientName: name,
+    });
+
     const isTestEnv = process.env.NODE_ENV === 'test';
     return {
       success: true,
@@ -209,7 +220,7 @@ export class AdminController {
         organisationId: orgId,
         createdAt: user.created_at,
       },
-      ...(isTestEnv ? { inviteToken, inviteUrl: `/accept-invite?token=${inviteToken}` } : {}),
+      ...(isTestEnv ? { inviteToken, inviteUrl } : {}),
     };
   }
 

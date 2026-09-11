@@ -14,6 +14,7 @@ import {
 import { Request, Response } from 'express';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { DbService } from '../common/db.service.js';
+import { EmailDispatcherService } from '../common/email.service.js';
 import crypto from 'crypto';
 import {
   hashPassword,
@@ -316,11 +317,21 @@ export class AuthController {
       VALUES (gen_random_uuid(), $1, $2, $3, NOW());
     `, [user.id, resetToken, expiresAt]);
 
+    const resetUrl = `${process.env.APP_BASE_URL || 'https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app'}/forgot-password?token=${resetToken}`;
+    const emailDispatcher = new EmailDispatcherService(this.dbService);
+    await emailDispatcher.dispatchEmail({
+      to: cleanEmail,
+      subject: 'Reset your E3-EOS password',
+      template: 'password_reset',
+      link: resetUrl,
+      recipientName: user.name,
+    });
+
     const isTestEnv = process.env.NODE_ENV === 'test';
     return {
       success: true,
       message: 'If an account exists with this email, password reset instructions have been sent.',
-      ...(isTestEnv ? { resetToken, resetUrl: `/forgot-password?token=${resetToken}` } : {}),
+      ...(isTestEnv ? { resetToken, resetUrl } : {}),
     };
   }
 
