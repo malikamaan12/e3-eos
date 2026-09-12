@@ -117,24 +117,7 @@ gcloud run jobs execute "e3-eos-migrate-${ENVIRONMENT}" \
   --project "${PROJECT_ID}" \
   --wait || true
 echo ">>> Migrations completed successfully."
-
-gcloud run jobs deploy "e3-eos-seed-${ENVIRONMENT}" \
-  --image "${REGISTRY_URL}/api:${COMMIT_SHA}" \
-  --region "${REGION}" \
-  --project "${PROJECT_ID}" \
-  --vpc-connector "e3-eos-vpc-connector" \
-  --command "node" \
-  --args "packages/db/dist/seed.js" \
-  --set-env-vars "ENVIRONMENT=${ENVIRONMENT},DB_HOST=10.2.0.2,DB_PORT=5432,DB_USER=eos_app,DB_NAME=e3_eos_production,DB_SSL=false" \
-  --set-secrets "DB_PASSWORD=e3-eos-db-password-${ENVIRONMENT}:latest" \
-  --max-retries 1 \
-  --quiet || true
-
-gcloud run jobs execute "e3-eos-seed-${ENVIRONMENT}" \
-  --region "${REGION}" \
-  --project "${PROJECT_ID}" \
-  --wait || true
-echo ">>> Staging database seed completed successfully."
+echo ">>> Non-destructive controlled migrations completed successfully."
 echo ""
 
 # Step 5: Extract Raw Evidence & Telemetry

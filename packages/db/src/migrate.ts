@@ -33,6 +33,8 @@ export async function runMigrations() {
       '0001_enable_row_level_security.sql',
       '0002_operational_constraints_and_documents.sql',
       '0003_sprint_03_physical_delivery.sql',
+      '0004_sprint_04_live_operations.sql',
+      '0005_sprint_05_finance_commercial_reconciliation.sql',
     ];
 
     await client.query(`
