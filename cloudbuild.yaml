@@ -1,0 +1,18 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/api:latest', '-t', 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/api:4fcfb17', '-f', 'apps/api/Dockerfile', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/web:latest', '-t', 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/web:4fcfb17', '-f', 'apps/web/Dockerfile', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/worker:latest', '-t', 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/worker:4fcfb17', '-f', 'apps/worker/Dockerfile', '.']
+
+images:
+  - 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/api:latest'
+  - 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/api:4fcfb17'
+  - 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/web:latest'
+  - 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/web:4fcfb17'
+  - 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/worker:latest'
+  - 'me-central1-docker.pkg.dev/e3-eos-staging/e3-eos/worker:4fcfb17'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
