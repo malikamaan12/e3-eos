@@ -53,3 +53,95 @@ export const projectLessons = pgTable('project_lessons', {
   masterPolicyModified: boolean('master_policy_modified').default(false).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+// ============================================================================
+// SPRINT 05: CLIENT RESULTS ROOM, POST-EVENT REPORTS, KPIS & KNOWLEDGE TABLES
+// ============================================================================
+
+export const clientResultsRooms = pgTable('client_results_rooms', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  status: text('status').default('draft').notNull(), // 'draft', 'published', 'archived'
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  projectOverviewJson: jsonb('project_overview_json').notNull(),
+  deliveredScopeJson: jsonb('delivered_scope_json').notNull(),
+  curatedPhotosJson: jsonb('curated_photos_json').default([]).notNull(),
+  attendanceMetricsJson: jsonb('attendance_metrics_json').notNull(),
+  executiveHighlightsJson: jsonb('executive_highlights_json').notNull(),
+  clientBillingStatusJson: jsonb('client_billing_status_json'),
+  serverRedactionVerified: boolean('server_redaction_verified').default(true).notNull(),
+  publishedBy: text('published_by'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const postEventReports = pgTable('post_event_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  reportTitle: text('report_title').notNull(),
+  sectionsJson: jsonb('sections_json').notNull(),
+  isFinalized: boolean('is_finalized').default(false).notNull(),
+  finalizedAt: timestamp('finalized_at', { withTimezone: true }),
+  finalizedBy: text('finalized_by'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const projectKpis = pgTable('project_kpis', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  kpiCode: text('kpi_code').notNull(),
+  name: text('name').notNull(),
+  targetValue: text('target_value').notNull(),
+  actualValue: text('actual_value').notNull(),
+  measurementMethod: text('measurement_method').notNull(),
+  status: text('status').default('measuring').notNull(), // 'not_started', 'measuring', 'met', 'partially_met', 'missed', 'exception_accepted'
+  evidenceReference: text('evidence_reference'),
+  evaluatedAt: timestamp('evaluated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const clientFeedbackRecords = pgTable('client_feedback_records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  clientRepresentative: text('client_representative').notNull(),
+  surveyMethod: text('survey_method').notNull(), // 'portal_survey', 'structured_meeting', 'client_signoff', 'free_text'
+  overallRating: integer('overall_rating').notNull(),
+  npsScore: integer('nps_score'),
+  feedbackComments: text('feedback_comments').notNull(),
+  clientSignoffUri: text('client_signoff_uri'),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const lessonsLearned = pgTable('lessons_learned', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  category: text('category').notNull(), // 'commercial', 'procurement', 'production', 'logistics', 'design', 'venue', 'client', 'hse', 'staffing', 'technical', 'marketing'
+  observation: text('observation').notNull(),
+  rootCause: text('root_cause').notNull(),
+  impact: text('impact').notNull(),
+  recommendation: text('recommendation').notNull(),
+  reusableAcrossProjects: boolean('reusable_across_projects').default(true).notNull(),
+  applicableProjectTypes: jsonb('applicable_project_types').default([]).notNull(),
+  loggedBy: text('logged_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const vendorPerformanceEvaluations = pgTable('vendor_performance_evaluations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  vendorId: uuid('vendor_id').notNull(),
+  projectId: uuid('project_id').references(() => projects.id).notNull(),
+  priceScore: integer('price_score').notNull(),
+  qualityScore: integer('quality_score').notNull(),
+  deliveryScore: integer('delivery_score').notNull(),
+  responsivenessScore: integer('responsiveness_score').notNull(),
+  hseScore: integer('hse_score').notNull(),
+  averageScore: text('average_score').notNull(),
+  evaluatorName: text('evaluator_name').notNull(),
+  recommendForFutureProjects: boolean('recommend_for_future_projects').default(true).notNull(),
+  narrativeComments: text('narrative_comments'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});

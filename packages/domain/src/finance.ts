@@ -144,6 +144,152 @@ export class FinancialCalculator {
       remainingCommitments: currentCommitment.minus(inv),
     };
   }
+
+  /**
+   * Applies an approved supplier invoice to PO commitment.
+   * Decreases remainingCommitments, increases postedActualCost by invoice amount.
+   * EAC remains invariant. Zero double-counting.
+   */
+  static applySupplierInvoiceToCommitment(
+    position: FinancialPositionInput,
+    invoicedAmount: Money | string | number
+  ): FinancialPositionInput {
+    return this.transitionCommitmentToActual(position, invoicedAmount);
+  }
+
+  /**
+   * Calculates real-time project cash position across billed, collected, actuals and commitments.
+   */
+  static calculateCashPosition(input: CashPositionInput): CashPositionResult {
+    const c = input.currency;
+    const toMoney = (val: Money | string | number): Money =>
+      val instanceof Money ? val : new Money(val, c);
+
+    const contractValue = toMoney(input.contractValue);
+    const billedAmount = toMoney(input.billedAmount);
+    const collectedAmount = toMoney(input.collectedAmount);
+    const postedActualCost = toMoney(input.postedActualCost);
+    const remainingCommitments = toMoney(input.remainingCommitments);
+
+    const receivablesAmount = billedAmount.minus(collectedAmount);
+    const unbilledContractAmount = contractValue.minus(billedAmount);
+    const netCashFlow = collectedAmount.minus(postedActualCost);
+    const netCashExposure = collectedAmount.minus(postedActualCost.plus(remainingCommitments));
+
+    return {
+      currency: c,
+      contractValue,
+      billedAmount,
+      collectedAmount,
+      receivablesAmount,
+      unbilledContractAmount,
+      postedActualCost,
+      remainingCommitments,
+      netCashFlow,
+      netCashExposure,
+    };
+  }
+
+  /**
+   * Generates a step-by-step margin bridge waterfall from tender to final forecast.
+   */
+  static calculateMarginBridge(input: MarginBridgeInput): MarginBridgeResult {
+    const c = input.currency;
+    const toMoney = (val: Money | string | number): Money =>
+      val instanceof Money ? val : new Money(val, c);
+
+    const tenderRevenue = toMoney(input.tenderRevenue);
+    const tenderCost = toMoney(input.tenderCost);
+    const tenderMargin = tenderRevenue.minus(tenderCost);
+    const tenderMarginPercent = !tenderRevenue.amount.isZero()
+      ? `${tenderMargin.amount.dividedBy(tenderRevenue.amount).times(100).toFixed(2)}%`
+      : '0.00%';
+
+    const variationRevenue = toMoney(input.variationsApprovedRevenue);
+    const variationCost = toMoney(input.variationsApprovedCost);
+    const variationMargin = variationRevenue.minus(variationCost);
+
+    const currentBudgetRevenue = tenderRevenue.plus(variationRevenue);
+    const currentBudgetCost = tenderCost.plus(variationCost);
+    const currentBudgetMargin = currentBudgetRevenue.minus(currentBudgetCost);
+
+    const costOverrunsOrSavings = toMoney(input.costOverrunsOrSavings);
+    const finalForecastRevenue = currentBudgetRevenue;
+    const finalForecastCost = currentBudgetCost.plus(costOverrunsOrSavings);
+    const finalForecastMargin = finalForecastRevenue.minus(finalForecastCost);
+    const finalForecastMarginPercent = !finalForecastRevenue.amount.isZero()
+      ? `${finalForecastMargin.amount.dividedBy(finalForecastRevenue.amount).times(100).toFixed(2)}%`
+      : '0.00%';
+
+    return {
+      currency: c,
+      tenderRevenue,
+      tenderCost,
+      tenderMargin,
+      tenderMarginPercent,
+      variationRevenue,
+      variationCost,
+      variationMargin,
+      currentBudgetRevenue,
+      currentBudgetCost,
+      currentBudgetMargin,
+      costOverrunsOrSavings,
+      finalForecastRevenue,
+      finalForecastCost,
+      finalForecastMargin,
+      finalForecastMarginPercent,
+    };
+  }
+}
+
+export interface CashPositionInput {
+  currency: CurrencyCode;
+  contractValue: Money | string | number;
+  billedAmount: Money | string | number;
+  collectedAmount: Money | string | number;
+  postedActualCost: Money | string | number;
+  remainingCommitments: Money | string | number;
+}
+
+export interface CashPositionResult {
+  currency: CurrencyCode;
+  contractValue: Money;
+  billedAmount: Money;
+  collectedAmount: Money;
+  receivablesAmount: Money;
+  unbilledContractAmount: Money;
+  postedActualCost: Money;
+  remainingCommitments: Money;
+  netCashFlow: Money;
+  netCashExposure: Money;
+}
+
+export interface MarginBridgeInput {
+  currency: CurrencyCode;
+  tenderRevenue: Money | string | number;
+  tenderCost: Money | string | number;
+  variationsApprovedRevenue: Money | string | number;
+  variationsApprovedCost: Money | string | number;
+  costOverrunsOrSavings: Money | string | number;
+}
+
+export interface MarginBridgeResult {
+  currency: CurrencyCode;
+  tenderRevenue: Money;
+  tenderCost: Money;
+  tenderMargin: Money;
+  tenderMarginPercent: string;
+  variationRevenue: Money;
+  variationCost: Money;
+  variationMargin: Money;
+  currentBudgetRevenue: Money;
+  currentBudgetCost: Money;
+  currentBudgetMargin: Money;
+  costOverrunsOrSavings: Money;
+  finalForecastRevenue: Money;
+  finalForecastCost: Money;
+  finalForecastMargin: Money;
+  finalForecastMarginPercent: string;
 }
 
 

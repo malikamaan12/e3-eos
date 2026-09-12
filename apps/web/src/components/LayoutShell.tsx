@@ -56,23 +56,69 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
 
   const organisations = Object.values(SYNTHETIC_ORGANISATIONS) as SyntheticOrganisation[];
 
-  const mainNavItems = [
-    { path: '/', labelEn: 'Home Dashboard', labelAr: 'الرئيسية', icon: '🏠', id: 'nav-home' },
-    { path: '/my-work', labelEn: 'My Work', labelAr: 'مهامي الشخصية', icon: '📋', id: 'nav-my-work' },
-    { path: '/projects', labelEn: 'Projects Directory', labelAr: 'دليل المشاريع', icon: '🎪', id: 'nav-projects' },
-    { path: '/vendors', labelEn: 'Vendor Directory', labelAr: 'دليل الموردين', icon: '🏢', id: 'nav-vendors' },
-    { path: '/warehouse', labelEn: 'Warehouse Hub', labelAr: 'المستودع المركزي', icon: '📦', id: 'nav-warehouse' },
-    { path: '/approvals', labelEn: 'Governance Approvals', labelAr: 'الموافقات والحوكمة', icon: '✍️', id: 'nav-approvals' },
-    { path: '/calendar', labelEn: 'Master Calendar', labelAr: 'التقويم العام', icon: '📅', id: 'nav-calendar' },
-    { path: '/portfolio', labelEn: 'Portfolio Financials', labelAr: 'المحفظة المالية', icon: '📊', id: 'nav-portfolio' },
-    { path: '/reports', labelEn: 'Reports & Audits', labelAr: 'التقارير وسجلات التدقيق', icon: '📈', id: 'nav-reports' },
-    { path: '/admin/users', labelEn: 'Administration & RBAC', labelAr: 'الإدارة والصلاحيات', icon: '⚙️', id: 'nav-admin' },
-  ];
-
-  const portalItems = [
-    { path: '/field', labelEn: 'Field Ops Mobile PWA', labelAr: 'عمليات الموقع الميدانية', icon: '📱', id: 'nav-field' },
-    { path: '/client', labelEn: 'Client Collaboration Portal', labelAr: 'بوابة تعاون العميل', icon: '🤝', id: 'nav-client' },
-    { path: '/supplier', labelEn: 'Supplier Portal (RFQ)', labelAr: 'بوابة الموردين والشركاء', icon: '🏢', id: 'nav-supplier' },
+  const navSections = [
+    {
+      titleEn: 'Control',
+      titleAr: 'التحكم والحوكمة',
+      items: [
+        { path: '/', labelEn: 'Home Dashboard', labelAr: 'الرئيسية', icon: '🏠', id: 'nav-home' },
+        { path: '/my-work', labelEn: 'My Work', labelAr: 'مهامي الشخصية', icon: '📋', id: 'nav-my-work' },
+        { path: '/projects', labelEn: 'Projects Directory', labelAr: 'دليل المشاريع', icon: '🎪', id: 'nav-projects' },
+        { path: '/approvals', labelEn: 'Governance Approvals', labelAr: 'الموافقات والحوكمة', icon: '✍️', id: 'nav-approvals' },
+        { path: '/calendar', labelEn: 'Master Calendar', labelAr: 'التقويم العام', icon: '📅', id: 'nav-calendar' },
+        { path: '/portfolio', labelEn: 'Portfolio Financials', labelAr: 'المحفظة المالية', icon: '📊', id: 'nav-portfolio' },
+        { path: '/reports', labelEn: 'Reports & Audits', labelAr: 'التقارير وسجلات التدقيق', icon: '📈', id: 'nav-reports' },
+        { path: '/admin/users', labelEn: 'Administration & RBAC', labelAr: 'الإدارة والصلاحيات', icon: '⚙️', id: 'nav-admin' },
+      ],
+    },
+    {
+      titleEn: 'Delivery',
+      titleAr: 'التوريد والمستودعات',
+      items: [
+        { path: '/vendors', labelEn: 'Vendor Directory', labelAr: 'دليل الموردين', icon: '🏢', id: 'nav-vendors' },
+        { path: '/warehouse', labelEn: 'Warehouse Hub', labelAr: 'المستودع المركزي', icon: '📦', id: 'nav-warehouse' },
+      ],
+    },
+    {
+      titleEn: 'Live Operations',
+      titleAr: 'العمليات المباشرة',
+      items: [
+        { path: '/live/command-center', labelEn: 'Command Centre', labelAr: 'مركز القيادة الميداني', icon: '🛰️', id: 'nav-command-center' },
+        { path: '/live/run-sheet', labelEn: 'Master Run Sheet', labelAr: 'جدول العرض المباشر', icon: '⏱️', id: 'nav-run-sheet' },
+        { path: '/live/compliance', labelEn: 'Compliance Register', labelAr: 'سجل الامتثال والتراخيص', icon: '⚖️', id: 'nav-compliance' },
+        { path: '/live/roster', labelEn: 'Live Roster & Crew', labelAr: 'سجل الحضور والإجهاد', icon: '👥', id: 'nav-roster' },
+        { path: '/field', labelEn: 'Field Ops Mobile PWA', labelAr: 'عمليات الموقع الميدانية', icon: '📱', id: 'nav-field' },
+      ],
+    },
+    {
+      titleEn: 'Closeout & Settlement',
+      titleAr: 'الإغلاق والتسوية',
+      items: [
+        { path: '/closeout', labelEn: 'Bump-Out & Closeout', labelAr: 'التفكيك والإغلاق التشغيلي', icon: '🏁', id: 'nav-closeout' },
+      ],
+    },
+    {
+      titleEn: 'Commercial & Reconciliation',
+      titleAr: 'المالية والمطابقة التجارية',
+      items: [
+        { path: '/commercial/financial-control', labelEn: 'Financial Control Center', labelAr: 'مركز الرقابة المالية', icon: '💰', id: 'nav-fin-control' },
+        { path: '/commercial/supplier-invoices', labelEn: 'Supplier Invoices (3-Way Match)', labelAr: 'فواتير الموردين والمطابقة', icon: '🧾', id: 'nav-sup-invoices' },
+        { path: '/commercial/client-billing', labelEn: 'Client Billing & Collections', labelAr: 'فوترة العميل والتحصيل', icon: '💳', id: 'nav-client-billing' },
+        { path: '/commercial/closeout', labelEn: 'Commercial Closeout (10 Pillars)', labelAr: 'الإغلاق التجاري المالي', icon: '🔒', id: 'nav-comm-closeout' },
+        { path: '/closeout/performance', labelEn: 'Performance & Knowledge Base', labelAr: 'الأداء والدروس المستفادة', icon: '🧠', id: 'nav-knowledge' },
+        { path: '/admin/integrations', labelEn: 'Enterprise Integrations (ERP)', labelAr: 'تكامل النظم المؤسسية', icon: '🔌', id: 'nav-integrations' },
+      ],
+    },
+    {
+      titleEn: 'Portals',
+      titleAr: 'البوابات المتخصصة',
+      items: [
+        { path: '/client/results', labelEn: 'Client Results Room', labelAr: 'غرفة نتائج العميل', icon: '🏆', id: 'nav-client-results' },
+        { path: '/reports/post-event', labelEn: 'Post-Event Closeout Report', labelAr: 'تقرير ما بعد الفعالية', icon: '📜', id: 'nav-post-event' },
+        { path: '/client', labelEn: 'Client Collaboration', labelAr: 'بوابة تعاون العميل', icon: '🤝', id: 'nav-client' },
+        { path: '/supplier', labelEn: 'Supplier Portal (RFQ)', labelAr: 'بوابة الموردين والشركاء', icon: '🏢', id: 'nav-supplier' },
+      ],
+    },
   ];
 
   return (
@@ -525,115 +571,69 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             gap: '4px',
           }}
         >
-          <div
-            style={{
-              fontSize: '11px',
-              fontWeight: 700,
-              color: '#94a3b8',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              padding: '4px 8px 8px 8px',
-            }}
-          >
-            {currentLanguage === 'ar' ? 'التنقل الرئيسي' : 'Main Navigation'}
-          </div>
-
-          {mainNavItems.map((item) => {
-            const isActive = item.path === '/'
-              ? currentPath === '/'
-              : currentPath.startsWith(item.path);
-            return (
-              <button
-                key={item.id}
-                id={item.id}
-                onClick={() => navigate(item.path)}
+          {navSections.map((section, sIdx) => (
+            <div key={section.titleEn} style={{ marginTop: sIdx > 0 ? '12px' : 0 }}>
+              <div
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '9px 12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  backgroundColor: isActive ? '#eff6ff' : 'transparent',
-                  color: isActive ? '#1d4ed8' : '#334155',
-                  fontWeight: isActive ? 700 : 500,
-                  fontSize: '13px',
-                  textAlign: direction === 'rtl' ? 'right' : 'left',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.15s ease',
-                  fontFamily: 'inherit',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  color: '#94a3b8',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.6px',
+                  padding: '6px 8px 4px 8px',
+                  borderTop: sIdx > 0 ? '1px solid #f1f5f9' : 'none',
+                  paddingTop: sIdx > 0 ? '10px' : '4px',
                 }}
               >
-                <span style={{ fontSize: '15px' }}>{item.icon}</span>
-                <span style={{ flex: 1 }}>{currentLanguage === 'ar' ? item.labelAr : item.labelEn}</span>
-                {isActive && (
-                  <span
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      backgroundColor: '#2563eb',
-                    }}
-                  />
-                )}
-              </button>
-            );
-          })}
+                {currentLanguage === 'ar' ? section.titleAr : section.titleEn}
+              </div>
 
-          <div
-            style={{
-              fontSize: '11px',
-              fontWeight: 700,
-              color: '#94a3b8',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              padding: '16px 8px 6px 8px',
-              borderTop: '1px solid #f1f5f9',
-              marginTop: '8px',
-            }}
-          >
-            {currentLanguage === 'ar' ? 'البوابات المتخصصة' : 'Portals & Field'}
-          </div>
-
-          {portalItems.map((item) => {
-            const isActive = currentPath === item.path;
-            return (
-              <button
-                key={item.id}
-                id={item.id}
-                onClick={() => navigate(item.path)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '9px 12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  backgroundColor: isActive ? '#eff6ff' : 'transparent',
-                  color: isActive ? '#1d4ed8' : '#334155',
-                  fontWeight: isActive ? 700 : 500,
-                  fontSize: '13px',
-                  textAlign: direction === 'rtl' ? 'right' : 'left',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.15s ease',
-                  fontFamily: 'inherit',
-                }}
-              >
-                <span style={{ fontSize: '15px' }}>{item.icon}</span>
-                <span style={{ flex: 1 }}>{currentLanguage === 'ar' ? item.labelAr : item.labelEn}</span>
-                {isActive && (
-                  <span
+              {section.items.map((item) => {
+                const isActive = item.path === '/'
+                  ? currentPath === '/'
+                  : currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
+                return (
+                  <button
+                    key={item.id}
+                    id={item.id}
+                    onClick={() => navigate(item.path)}
                     style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      backgroundColor: '#2563eb',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: isActive ? '#eff6ff' : 'transparent',
+                      color: isActive ? '#1d4ed8' : '#334155',
+                      fontWeight: isActive ? 700 : 500,
+                      fontSize: '12px',
+                      textAlign: direction === 'rtl' ? 'right' : 'left',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s ease',
+                      fontFamily: 'inherit',
+                      width: '100%',
                     }}
-                  />
-                )}
-              </button>
-            );
-          })}
+                  >
+                    <span style={{ fontSize: '14px' }}>{item.icon}</span>
+                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {currentLanguage === 'ar' ? item.labelAr : item.labelEn}
+                    </span>
+                    {isActive && (
+                      <span
+                        style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          backgroundColor: '#2563eb',
+                        }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </aside>
 
         {/* Content Viewport */}

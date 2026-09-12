@@ -697,23 +697,6 @@ export const VenueHandoverSchema = z.object({
 
 export type VenueHandoverDto = z.infer<typeof VenueHandoverSchema>;
 
-export const FieldSyncBatchSchema = z.object({
-  deviceId: z.string().min(2),
-  operations: z
-    .array(
-      z.object({
-        clientOperationId: z.string(),
-        entityType: z.enum(['attendance', 'task_completion', 'inspection', 'incident']),
-        action: z.string(),
-        clientTimestamp: z.string(),
-        workerId: z.string(),
-        payload: z.record(z.unknown()),
-      })
-    )
-    .min(1),
-});
-
-export type FieldSyncBatchDto = z.infer<typeof FieldSyncBatchSchema>;
 
 export const MediaUploadIntentSchema = z.object({
   storageKey: z.string(),
@@ -1484,6 +1467,622 @@ export const CrewFatigueEvaluationSchema = z.object({
   nextShiftStart: z.string().optional(),
 });
 export type CrewFatigueEvaluationDto = z.infer<typeof CrewFatigueEvaluationSchema>;
+
+// --- SPRINT 04 LIVE EVENT COMMAND SYSTEM SCHEMAS ---
+
+export const WorkerQualificationCreateSchema = z.object({
+  workerId: z.string(),
+  workerName: z.string().optional(),
+  qualificationType: z.string().min(2),
+  certificateNumber: z.string().min(1),
+  issuer: z.string().min(2),
+  issueDate: z.string().optional(),
+  validUntil: z.string(),
+  status: z.enum(['valid', 'expiring_soon', 'expired', 'suspended', 'pending_verification', 'not_applicable']).default('valid'),
+  projectApplicability: z.array(z.string()).default([]),
+  restrictedDuties: z.array(z.string()).default([]),
+  supportingDocumentUri: z.string().optional(),
+});
+export type WorkerQualificationCreateDto = z.infer<typeof WorkerQualificationCreateSchema>;
+
+export const CrewAttendanceCheckInSchema = z.object({
+  projectId: z.string(),
+  workerId: z.string(),
+  personName: z.string().optional(),
+  shiftId: z.string().optional(),
+  role: z.string(),
+  actualCheckIn: z.string(),
+  source: z.enum(['supervisor_manual', 'qr_barcode', 'employee_checkin', 'imported_timesheet', 'vendor_confirmation', 'offline_capture']).default('supervisor_manual'),
+});
+export type CrewAttendanceCheckInDto = z.infer<typeof CrewAttendanceCheckInSchema>;
+
+export const CrewAttendanceAdjustmentSchema = z.object({
+  attendanceId: z.string(),
+  actualCheckIn: z.string().optional(),
+  actualCheckOut: z.string().optional(),
+  breaks: z.array(z.object({ start: z.string(), end: z.string(), durationMinutes: z.number() })).optional(),
+  adjustmentReason: z.string().min(5),
+  supervisorId: z.string(),
+});
+export type CrewAttendanceAdjustmentDto = z.infer<typeof CrewAttendanceAdjustmentSchema>;
+
+export const ComplianceObligationCreateSchema = z.object({
+  projectId: z.string(),
+  type: z.enum(['permit', 'licence', 'certificate', 'rams', 'method_statement', 'insurance', 'authority_approval', 'venue_approval', 'hse_requirement', 'equipment_certificate', 'staff_accreditation', 'temporary_operating_permit']),
+  requirement: z.string().min(3),
+  authorityName: z.string().min(2),
+  applicableScope: z.string(),
+  zone: z.string(),
+  responsibleOwnerId: z.string(),
+  dueDate: z.string(),
+  issueDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  status: z.enum(['required', 'in_preparation', 'submitted', 'awaiting_approval', 'approved', 'verified_alternative', 'rejected', 'expired', 'not_applicable', 'superseded']).default('required'),
+  evidenceRef: z.string().optional(),
+  verificationMethod: z.string().optional(),
+  isBlocking: z.boolean().default(true),
+});
+export type ComplianceObligationCreateDto = z.infer<typeof ComplianceObligationCreateSchema>;
+
+export const ComplianceObligationVerifySchema = z.object({
+  obligationId: z.string(),
+  verifiedBy: z.string(),
+  verificationMethod: z.string().min(3),
+  physicalDocReference: z.string().min(2),
+  notes: z.string().optional(),
+});
+export type ComplianceObligationVerifyDto = z.infer<typeof ComplianceObligationVerifySchema>;
+
+export const LiveRunSheetItemCreateSchema = z.object({
+  projectId: z.string(),
+  time: z.string(),
+  activity: z.string().min(3),
+  zone: z.string(),
+  ownerId: z.string(),
+  department: z.string(),
+  cue: z.string().optional(),
+  dependencies: z.array(z.string()).default([]),
+  baselineTime: z.string().optional(),
+});
+export type LiveRunSheetItemCreateDto = z.infer<typeof LiveRunSheetItemCreateSchema>;
+
+export const LiveRunSheetItemUpdateSchema = z.object({
+  status: z.enum(['upcoming', 'ready', 'active', 'delayed', 'complete', 'skipped', 'cancelled', 'blocked']),
+  actualTime: z.string().optional(),
+  delayMinutes: z.number().default(0),
+  delayReason: z.string().optional(),
+  notes: z.string().optional(),
+  evidence: z.string().optional(),
+});
+export type LiveRunSheetItemUpdateDto = z.infer<typeof LiveRunSheetItemUpdateSchema>;
+
+export const IncidentReportSchema = z.object({
+  projectId: z.string(),
+  timestamp: z.string().optional(),
+  location: z.string().min(2),
+  zone: z.string(),
+  reporterId: z.string(),
+  reporterName: z.string().optional(),
+  incidentType: z.enum(['hse', 'medical', 'security', 'technical', 'operational', 'guest', 'asset_damage', 'property_damage', 'crowd', 'vendor', 'transport', 'weather']),
+  severity: z.enum(['critical', 'major', 'moderate', 'minor', 'observation']),
+  description: z.string().min(5),
+  peopleInvolved: z.array(z.string()).default([]),
+  assetsInvolved: z.array(z.string()).default([]),
+  immediateAction: z.string().optional(),
+  protectiveAction: z.enum(['none', 'stop_work', 'isolate_equipment', 'close_zone', 'evacuate_area', 'suspend_activity', 'request_medical']).default('none'),
+  restrictedPersonalNarrative: z.string().optional(),
+  clientSafeSummary: z.string().optional(),
+  assignedOwnerId: z.string().optional(),
+});
+export type IncidentReportDto = z.infer<typeof IncidentReportSchema>;
+
+export const IncidentProtectiveActionSchema = z.object({
+  incidentId: z.string(),
+  protectiveAction: z.enum(['stop_work', 'isolate_equipment', 'close_zone', 'evacuate_area', 'suspend_activity', 'request_medical']),
+  justification: z.string().min(5),
+  authorizedBy: z.string(),
+  zone: z.string().optional(),
+});
+export type IncidentProtectiveActionDto = z.infer<typeof IncidentProtectiveActionSchema>;
+
+export const MaintenanceFaultCreateSchema = z.object({
+  projectId: z.string(),
+  assetId: z.string(),
+  assetName: z.string().optional(),
+  fault: z.string().min(3),
+  severity: z.enum(['critical', 'major', 'moderate', 'minor']),
+  operationalImpact: z.string(),
+  technicianId: z.string().optional(),
+});
+export type MaintenanceFaultCreateDto = z.infer<typeof MaintenanceFaultCreateSchema>;
+
+export const MaintenanceFaultResolveSchema = z.object({
+  faultId: z.string(),
+  actionTaken: z.string().min(5),
+  downtimeMinutes: z.number().default(0),
+  resolutionNotes: z.string().optional(),
+  resolvedBy: z.string(),
+});
+export type MaintenanceFaultResolveDto = z.infer<typeof MaintenanceFaultResolveSchema>;
+
+export const ClientRequestLogSchema = z.object({
+  projectId: z.string(),
+  clientRep: z.string().min(2),
+  requestText: z.string().min(5),
+  urgency: z.enum(['low', 'medium', 'high', 'urgent']),
+  zone: z.string(),
+  impactNotes: z.string().optional(),
+  costImpactEstimate: z.string().optional(),
+  scheduleImpactEstimate: z.string().optional(),
+});
+export type ClientRequestLogDto = z.infer<typeof ClientRequestLogSchema>;
+
+export const ShiftHandoverCreateSchema = z.object({
+  projectId: z.string(),
+  shiftName: z.string(),
+  outgoingSupervisorId: z.string(),
+  outgoingSupervisorName: z.string(),
+  incomingSupervisorId: z.string(),
+  incomingSupervisorName: z.string(),
+  statusSummary: z.string().min(10),
+  openIncidentIds: z.array(z.string()).default([]),
+  openSnagIds: z.array(z.string()).default([]),
+  delayedItemIds: z.array(z.string()).default([]),
+  permitsExpiringIds: z.array(z.string()).default([]),
+  nextCriticalActions: z.string().optional(),
+  notes: z.string().optional(),
+  mutualAcknowledgment: z.boolean().default(true),
+});
+export type ShiftHandoverCreateDto = z.infer<typeof ShiftHandoverCreateSchema>;
+
+export const ZoneReadinessEvaluateSchema = z.object({
+  projectId: z.string(),
+  zone: z.string(),
+  level: z.enum(['event', 'hall', 'zone', 'activation', 'stage', 'package']).default('zone'),
+  readinessStatus: z.enum(['READY', 'READY_WITH_EXCEPTIONS', 'NOT_READY']),
+  scorePercent: z.number().min(0).max(100),
+  unresolvedCriticalItems: z.array(z.string()).default([]),
+  exceptions: z.array(z.string()).default([]),
+});
+export type ZoneReadinessEvaluateDto = z.infer<typeof ZoneReadinessEvaluateSchema>;
+
+export const OpeningReleaseDecisionSchema = z.object({
+  projectId: z.string(),
+  snapshotId: z.string(),
+  decision: z.enum(['authorized', 'authorized_with_exceptions', 'not_authorized', 'suspended', 'revoked']),
+  approver: z.string().min(2),
+  authoritySource: z.string().min(2),
+  comments: z.string().min(5),
+  exceptionsAcknowledged: z.array(z.string()).default([]),
+});
+export type OpeningReleaseDecisionDto = z.infer<typeof OpeningReleaseDecisionSchema>;
+
+export const BumpOutActivityUpdateSchema = z.object({
+  projectId: z.string(),
+  area: z.string(),
+  status: z.enum(['planned', 'active', 'delayed', 'awaiting_inspection', 'complete', 'exception_open']),
+  dismantleProgressPercent: z.number().min(0).max(100),
+  assetRemovalProgressPercent: z.number().min(0).max(100),
+  wasteCleared: z.boolean().default(false),
+  reinstatementStatus: z.string(),
+  notes: z.string().optional(),
+});
+export type BumpOutActivityUpdateDto = z.infer<typeof BumpOutActivityUpdateSchema>;
+
+export const AssetReturnInspectionSchema = z.object({
+  projectId: z.string(),
+  assetId: z.string(),
+  assetTag: z.string().optional(),
+  assetName: z.string().optional(),
+  outboundCondition: z.string().default('good'),
+  returnCondition: z.enum(['good', 'maintenance_required', 'damaged', 'missing', 'quarantined', 'consumable', 'vendor_return_pending']),
+  quantity: z.number().positive(),
+  damageDescription: z.string().optional(),
+  photoEvidenceUris: z.array(z.string()).default([]),
+  claimPotential: z.boolean().default(false),
+  claimValueEstimate: z.string().optional(),
+  maintenanceRequirement: z.string().optional(),
+  inspector: z.string(),
+});
+export type AssetReturnInspectionDto = z.infer<typeof AssetReturnInspectionSchema>;
+
+export const ClaimsExposureLogSchema = z.object({
+  projectId: z.string(),
+  itemId: z.string(),
+  itemDescription: z.string(),
+  ownerType: z.enum(['e3_asset', 'rental_supplier', 'client_property', 'venue_infrastructure']),
+  claimValueEstimate: z.string(),
+  damageType: z.string(),
+  responsibleParty: z.string(),
+  vendorOrClientInvolved: z.string().optional(),
+  evidenceUris: z.array(z.string()).default([]),
+  status: z.enum(['identified', 'under_investigation', 'claimed', 'disputed', 'settled', 'written_off']).default('identified'),
+});
+export type ClaimsExposureLogDto = z.infer<typeof ClaimsExposureLogSchema>;
+
+export const VenueHandoverSignoffSchema = z.object({
+  projectId: z.string(),
+  area: z.string(),
+  clientVenueRep: z.string().min(2),
+  reinstatementStatus: z.enum(['pending', 'inspected', 'accepted', 'remedial_required']),
+  damageNotes: z.string().optional(),
+  cleanlinessPassed: z.boolean().default(true),
+  keysHandedBack: z.boolean().default(true),
+  utilitiesChecked: z.boolean().default(true),
+  signedBy: z.string().min(2),
+  signedAt: z.string().optional(),
+});
+export type VenueHandoverSignoffDto = z.infer<typeof VenueHandoverSignoffSchema>;
+
+export const OperationalClosureDecisionSchema = z.object({
+  projectId: z.string(),
+  closureConfirmed: z.boolean(),
+  authorizedBy: z.string().min(2),
+  justification: z.string().min(10),
+  dimensionsChecked: z.object({
+    eventOperationComplete: z.boolean(),
+    bumpOutComplete: z.boolean(),
+    venueHandoverComplete: z.boolean(),
+    assetsReturned: z.boolean(),
+    majorClaimsIdentified: z.boolean(),
+    criticalIncidentsClosed: z.boolean(),
+    siteEvidenceComplete: z.boolean(),
+  }),
+  openReceivablesAcknowledged: z.boolean().default(true),
+});
+export type OperationalClosureDecisionDto = z.infer<typeof OperationalClosureDecisionSchema>;
+
+export const FieldSyncBatchSchema = z.object({
+  deviceId: z.string().min(2),
+  operations: z
+    .array(
+      z.object({
+        clientOperationId: z.string(),
+        entityType: z.enum(['attendance', 'task_completion', 'inspection', 'incident']),
+        action: z.string(),
+        clientTimestamp: z.string(),
+        workerId: z.string(),
+        payload: z.record(z.unknown()),
+      })
+    )
+    .min(1),
+  mediaUploads: z.array(z.any()).default([]),
+});
+export type FieldSyncBatchDto = z.infer<typeof FieldSyncBatchSchema>;
+
+// ============================================================================
+// SPRINT 05: FINANCE RECONCILIATION, BILLING, REPORTING & CLOSEOUT SCHEMAS
+// ============================================================================
+
+export const SupplierInvoiceStatusEnum = z.enum([
+  'received',
+  'under_review',
+  'match_exception',
+  'approved',
+  'partially_approved',
+  'rejected',
+  'payment_scheduled',
+  'partially_paid',
+  'paid',
+  'disputed',
+  'cancelled',
+]);
+export type SupplierInvoiceStatus = z.infer<typeof SupplierInvoiceStatusEnum>;
+
+export const SupplierInvoiceCreateSchema = z.object({
+  projectId: z.string(),
+  vendorId: z.string(),
+  poId: z.string().optional(),
+  invoiceNumber: z.string().min(2),
+  invoiceDate: z.string(),
+  receivedDate: z.string().optional(),
+  currency: z.string().default('QAR'),
+  amountExcludingTax: z.number().nonnegative(),
+  taxAmount: z.number().nonnegative().default(0),
+  totalAmount: z.number().positive(),
+  paymentTerms: z.string().default('30_days_net'),
+  dueDate: z.string().optional(),
+  supportingDocUri: z.string().optional(),
+  lineItems: z.array(
+    z.object({
+      poLineId: z.string().optional(),
+      description: z.string(),
+      quantity: z.number().positive(),
+      unitCost: z.number().nonnegative(),
+      totalCost: z.number().nonnegative(),
+    })
+  ).default([]),
+});
+export type SupplierInvoiceCreateDto = z.infer<typeof SupplierInvoiceCreateSchema>;
+
+export const SupplierInvoiceApproveSchema = z.object({
+  invoiceId: z.string(),
+  approvedAmount: z.number().positive(),
+  authorizedBy: z.string().min(2),
+  approverRole: z.string().default('commercial_director'),
+  justification: z.string().min(5),
+  poRemainingCommitmentAdjustment: z.number().nonnegative().optional(),
+});
+export type SupplierInvoiceApproveDto = z.infer<typeof SupplierInvoiceApproveSchema>;
+
+export const ThreeWayMatchEvaluationSchema = z.object({
+  invoiceId: z.string(),
+  poId: z.string(),
+  deliveryReceiptId: z.string().optional(),
+  tolerancePercentage: z.number().default(0),
+});
+export type ThreeWayMatchEvaluationDto = z.infer<typeof ThreeWayMatchEvaluationSchema>;
+
+export const InvoiceOcrConfirmSchema = z.object({
+  fileHash: z.string(),
+  extractedVendor: z.string().optional(),
+  extractedInvoiceNumber: z.string(),
+  extractedDate: z.string(),
+  extractedCurrency: z.string().default('QAR'),
+  extractedSubtotal: z.number().nonnegative(),
+  extractedTax: z.number().nonnegative().default(0),
+  extractedTotal: z.number().positive(),
+  confirmedBy: z.string().min(2),
+  confidenceScore: z.number().min(0).max(1),
+  poNumber: z.string().optional(),
+  projectId: z.string(),
+  vendorId: z.string(),
+});
+export type InvoiceOcrConfirmDto = z.infer<typeof InvoiceOcrConfirmSchema>;
+
+export const ClientInvoiceStatusEnum = z.enum([
+  'draft',
+  'internal_review',
+  'ready_to_issue',
+  'issued',
+  'client_acknowledged',
+  'partially_paid',
+  'paid',
+  'overdue',
+  'disputed',
+  'cancelled',
+  'credited',
+]);
+export type ClientInvoiceStatus = z.infer<typeof ClientInvoiceStatusEnum>;
+
+export const ClientInvoiceCreateSchema = z.object({
+  projectId: z.string(),
+  clientOrganisationId: z.string(),
+  milestoneId: z.string().optional(),
+  contractReference: z.string(),
+  invoiceNumber: z.string().min(2),
+  billingType: z.enum([
+    'advance',
+    'milestone',
+    'progress',
+    'final',
+    'variation',
+    'retention_release',
+    'credit_note',
+    'debit_adjustment',
+  ]),
+  currency: z.string().default('QAR'),
+  invoiceDate: z.string(),
+  dueDate: z.string(),
+  grossAmount: z.number().positive(),
+  taxAmount: z.number().nonnegative().default(0),
+  retentionDeduction: z.number().nonnegative().default(0),
+  netDueAmount: z.number().positive(),
+  supportingDeliverablesJson: z.array(z.string()).default([]),
+});
+export type ClientInvoiceCreateDto = z.infer<typeof ClientInvoiceCreateSchema>;
+
+export const PaymentMilestoneCreateSchema = z.object({
+  projectId: z.string(),
+  milestoneName: z.string().min(2),
+  milestoneCode: z.string(),
+  percentageOfContract: z.number().min(0).max(100),
+  contractualAmount: z.number().positive(),
+  plannedBillingDate: z.string(),
+  evidenceRequirements: z.array(z.string()).default([]),
+});
+export type PaymentMilestoneCreateDto = z.infer<typeof PaymentMilestoneCreateSchema>;
+
+export const CollectionRecordCreateSchema = z.object({
+  clientInvoiceId: z.string(),
+  projectId: z.string(),
+  amountReceived: z.number().positive(),
+  paymentDate: z.string(),
+  paymentReference: z.string().min(2),
+  paymentMethod: z.enum(['bank_transfer', 'cheque', 'credit_card', 'letter_of_credit']),
+  withholdingTax: z.number().nonnegative().default(0),
+  deductions: z.number().nonnegative().default(0),
+  disputedBalance: z.number().nonnegative().default(0),
+  bankAccountId: z.string().optional(),
+  recordedBy: z.string().min(2),
+});
+export type CollectionRecordCreateDto = z.infer<typeof CollectionRecordCreateSchema>;
+
+export const CommercialVariationCreateSchema = z.object({
+  projectId: z.string(),
+  variationCode: z.string(),
+  title: z.string().min(2),
+  source: z.enum([
+    'client_request',
+    'addendum',
+    'site_instruction',
+    'design_change',
+    'quantity_change',
+    'delay',
+    'authority_requirement',
+    'venue_requirement',
+    'internal_error',
+    'force_majeure',
+    'other',
+  ]),
+  scopeDescription: z.string().min(10),
+  costImpact: z.number(),
+  sellImpact: z.number(),
+  timeImpactDays: z.number().default(0),
+  approvedCost: z.number().optional(),
+  approvedSell: z.number().optional(),
+  supportingEvidenceUri: z.string().optional(),
+});
+export type CommercialVariationCreateDto = z.infer<typeof CommercialVariationCreateSchema>;
+
+export const ProjectExpenseClaimCreateSchema = z.object({
+  projectId: z.string(),
+  claimantId: z.string(),
+  claimantName: z.string().min(2),
+  date: z.string(),
+  category: z.enum([
+    'staff_expense',
+    'project_cash_expense',
+    'site_purchase',
+    'transport',
+    'crew_welfare',
+    'emergency_purchase',
+    'other',
+  ]),
+  supplierName: z.string().min(2),
+  amount: z.number().positive(),
+  currency: z.string().default('QAR'),
+  receiptUri: z.string().optional(),
+  reason: z.string().min(5),
+  costCode: z.string().default('COST-OPS-MISC'),
+});
+export type ProjectExpenseClaimCreateDto = z.infer<typeof ProjectExpenseClaimCreateSchema>;
+
+export const MultiCurrencyExchangeRateSchema = z.object({
+  baseCurrency: z.string().length(3),
+  transactionCurrency: z.string().length(3),
+  exchangeRate: z.number().positive(),
+  rateSource: z.string().default('Qatar Central Bank'),
+  rateDate: z.string(),
+});
+export type MultiCurrencyExchangeRateDto = z.infer<typeof MultiCurrencyExchangeRateSchema>;
+
+export const TaxConfigurationSchema = z.object({
+  jurisdictionCode: z.string().min(2),
+  taxName: z.string().min(2),
+  taxType: z.enum(['vat', 'gst', 'sales_tax', 'zero_rated', 'exempt', 'withholding', 'reverse_charge']),
+  standardRatePercent: z.number().min(0).max(100),
+  reverseChargeApplicable: z.boolean().default(false),
+});
+export type TaxConfigurationDto = z.infer<typeof TaxConfigurationSchema>;
+
+export const CommercialCloseoutDecisionSchema = z.object({
+  projectId: z.string(),
+  closureConfirmed: z.boolean(),
+  authorizedBy: z.string().min(2),
+  justification: z.string().min(10),
+  checklist: z.object({
+    allSupplierInvoicesReceived: z.boolean(),
+    poCommitmentsClosed: z.boolean(),
+    pendingVariationsResolved: z.boolean(),
+    clientInvoicesIssued: z.boolean(),
+    collectionsCompletedOrIsolated: z.boolean(),
+    creditNotesResolved: z.boolean(),
+    retentionsTracked: z.boolean(),
+    claimsSettledOrBonded: z.boolean(),
+    finalMarginReconciled: z.boolean(),
+    commercialDocumentsComplete: z.boolean(),
+  }),
+  finalGrossMarginPercent: z.string(),
+});
+export type CommercialCloseoutDecisionDto = z.infer<typeof CommercialCloseoutDecisionSchema>;
+
+export const PostEventReportCreateSchema = z.object({
+  projectId: z.string(),
+  reportTitle: z.string().min(5),
+  executiveSummary: z.string().min(20),
+  deliveredScopeOverview: z.string().min(20),
+  attendanceHighlights: z.string(),
+  safetyAchievements: z.string(),
+  kpiPerformanceSummary: z.string(),
+  clientRecommendations: z.string(),
+  curatedPhotoUris: z.array(z.string()).default([]),
+});
+export type PostEventReportCreateDto = z.infer<typeof PostEventReportCreateSchema>;
+
+export const ProjectKpiEvaluationSchema = z.object({
+  projectId: z.string(),
+  kpiCode: z.string(),
+  name: z.string().min(2),
+  targetValue: z.string(),
+  actualValue: z.string(),
+  status: z.enum(['not_started', 'measuring', 'met', 'partially_met', 'missed', 'exception_accepted']),
+  evidenceReference: z.string().optional(),
+});
+export type ProjectKpiEvaluationDto = z.infer<typeof ProjectKpiEvaluationSchema>;
+
+export const ClientFeedbackSubmissionSchema = z.object({
+  projectId: z.string(),
+  clientRepresentative: z.string().min(2),
+  surveyMethod: z.enum(['portal_survey', 'structured_meeting', 'client_signoff', 'free_text']),
+  overallRating: z.number().min(1).max(5),
+  npsScore: z.number().min(0).max(10).optional(),
+  feedbackComments: z.string().min(5),
+});
+export type ClientFeedbackSubmissionDto = z.infer<typeof ClientFeedbackSubmissionSchema>;
+
+export const LessonsLearnedCreateSchema = z.object({
+  projectId: z.string(),
+  category: z.enum([
+    'commercial',
+    'procurement',
+    'production',
+    'logistics',
+    'design',
+    'venue',
+    'client',
+    'hse',
+    'staffing',
+    'technical',
+    'marketing',
+  ]),
+  observation: z.string().min(10),
+  rootCause: z.string().min(10),
+  impact: z.string().min(10),
+  recommendation: z.string().min(10),
+  reusableAcrossProjects: z.boolean().default(true),
+  applicableProjectTypes: z.array(z.string()).default([]),
+});
+export type LessonsLearnedCreateDto = z.infer<typeof LessonsLearnedCreateSchema>;
+
+export const VendorPerformanceEvaluationSchema = z.object({
+  vendorId: z.string(),
+  projectId: z.string(),
+  priceScore: z.number().min(1).max(5),
+  qualityScore: z.number().min(1).max(5),
+  deliveryScore: z.number().min(1).max(5),
+  responsivenessScore: z.number().min(1).max(5),
+  hseScore: z.number().min(1).max(5),
+  evaluatorName: z.string().min(2),
+  recommendForFutureProjects: z.boolean().default(true),
+  narrativeComments: z.string().optional(),
+});
+export type VendorPerformanceEvaluationDto = z.infer<typeof VendorPerformanceEvaluationSchema>;
+
+export const ConnectorConfigSchema = z.object({
+  connectorType: z.enum(['erp_accounting', 'm365', 'google_workspace', 'crm', 'ticketing', 'marketing']),
+  connectorName: z.string().min(2),
+  systemOfRecordDomain: z.string(),
+  endpointUrl: z.string().optional(),
+  syncIntervalMinutes: z.number().default(60),
+});
+export type ConnectorConfigDto = z.infer<typeof ConnectorConfigSchema>;
+
+export const ReconciliationExceptionResolveSchema = z.object({
+  exceptionId: z.string(),
+  resolutionAction: z.enum(['override_with_eos', 'accept_external', 'quarantine', 'manual_adjustment']),
+  justification: z.string().min(5),
+  resolvedBy: z.string().min(2),
+});
+export type ReconciliationExceptionResolveDto = z.infer<typeof ReconciliationExceptionResolveSchema>;
+
+export const PeriodLockCreateSchema = z.object({
+  projectId: z.string(),
+  periodKey: z.string(), // e.g. '2026-08'
+  lockedBy: z.string().min(2),
+  snapshotNotes: z.string().optional(),
+});
+export type PeriodLockCreateDto = z.infer<typeof PeriodLockCreateSchema>;
 
 
 export interface CommandResult<T = any> {

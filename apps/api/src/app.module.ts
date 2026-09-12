@@ -23,6 +23,13 @@ import { AdminController } from './admin/admin.controller.js';
 import { DocumentsController } from './documents/documents.controller.js';
 import { ConstraintsController } from './operations/constraints.controller.js';
 import { HealthController } from './common/health.controller.js';
+import { LiveOpsController } from './live-ops/live-ops.controller.js';
+import {
+  CommercialFinanceController,
+  ClientResultsRoomController,
+  PostEventReportingController,
+  EnterpriseIntegrationsController,
+} from './commercial/commercial-finance.controller.js';
 import { OpenApiController } from './common/openapi.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
 import { IdempotencyGuard } from './common/idempotency.guard.js';
@@ -44,12 +51,17 @@ import { DbService } from './common/db.service.js';
     ConstraintsController,
     WorkController,
     CommercialController,
+    CommercialFinanceController,
+    ClientResultsRoomController,
+    PostEventReportingController,
+    EnterpriseIntegrationsController,
     DesignsController,
     PortalController,
     ProcurementController,
     InventoryController,
     ProductionController,
     OperationsController,
+    LiveOpsController,
     FieldSyncController,
     FinanceController,
     ReportingController,
