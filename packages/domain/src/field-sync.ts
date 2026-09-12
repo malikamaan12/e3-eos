@@ -11,7 +11,7 @@ export interface WorkerQualification {
 
 export interface QueuedFieldOperation {
   clientOperationId: string;
-  entityType: 'attendance' | 'task_completion' | 'inspection' | 'incident';
+  entityType: 'attendance' | 'task_completion' | 'inspection' | 'incident' | 'snag' | 'note';
   action: string;
   clientTimestamp: Date;
   workerId: string;
@@ -23,6 +23,7 @@ export interface OperationSyncResult {
   status: 'applied' | 'duplicate_ignored' | 'observation_flagged_for_review' | 'rejected';
   reason?: string;
   serverTimestamp: Date;
+  clockDriftMs?: number;
 }
 
 export interface MediaUploadState {
@@ -52,6 +53,56 @@ export interface RegulatoryPermit {
 
 export class FieldSyncEngine {
   /**
+   * Authoritative actions that are strictly prohibited offline.
+   * Invariant: Authoritative financial, contract award, and opening releases require online server authentication.
+   */
+  static readonly PROHIBITED_OFFLINE_ACTIONS = new Set([
+    'financial_posting',
+    'purchase_order_approval',
+    'opening_authorization',
+    'vendor_contract_award',
+    'regulatory_signoff',
+    'stage_release',
+    'commercial_commitment',
+  ]);
+
+  /**
+   * Validates whether an offline operation is permitted under bounded offline policy.
+   */
+  static validateOfflineOperationAllowed(op: QueuedFieldOperation): {
+    allowed: boolean;
+    code?: string;
+    reason?: string;
+  } {
+    const normalizedAction = op.action.toLowerCase().replace(/[\s-]+/g, '_');
+    if (this.PROHIBITED_OFFLINE_ACTIONS.has(normalizedAction)) {
+      return {
+        allowed: false,
+        code: 'AUTHORITATIVE_ACTION_REQUIRES_ONLINE_AUTH',
+        reason: `AUTHORITATIVE_ACTION_REQUIRES_ONLINE_AUTH: Action '${op.action}' is an authoritative financial or governance commitment and cannot be executed offline. Must be executed with online server credentials.`,
+      };
+    }
+    return { allowed: true };
+  }
+
+  /**
+   * Reconciles clock drift between mobile client timestamp and server reception timestamp.
+   */
+  static reconcileClockDrift(clientTime: Date, serverTime: Date = new Date()): {
+    driftMs: number;
+    isExcessive: boolean;
+    serverTimestamp: Date;
+  } {
+    const driftMs = serverTime.getTime() - clientTime.getTime();
+    const isExcessive = Math.abs(driftMs) > 24 * 60 * 60 * 1000; // >24h drift
+    return {
+      driftMs,
+      isExcessive,
+      serverTimestamp: serverTime,
+    };
+  }
+
+  /**
    * Evaluates offline action when worker qualification has been revoked on server (AT-055).
    * Invariant: Attendance observation is retained for supervisor review, but authoritative release is denied.
    */
@@ -59,6 +110,17 @@ export class FieldSyncEngine {
     op: QueuedFieldOperation,
     qualification?: WorkerQualification
   ): OperationSyncResult {
+    // Check bounded offline authorization first
+    const offlineCheck = this.validateOfflineOperationAllowed(op);
+    if (!offlineCheck.allowed) {
+      return {
+        clientOperationId: op.clientOperationId,
+        status: 'rejected',
+        reason: offlineCheck.reason,
+        serverTimestamp: new Date(),
+      };
+    }
+
     if (!qualification || qualification.status === 'revoked') {
       // Invariant AT-055: Retain observation for review, but deny authoritative qualified release
       return {
@@ -84,6 +146,16 @@ export class FieldSyncEngine {
     op: QueuedFieldOperation,
     processedIds: Set<string>
   ): OperationSyncResult {
+    const offlineCheck = this.validateOfflineOperationAllowed(op);
+    if (!offlineCheck.allowed) {
+      return {
+        clientOperationId: op.clientOperationId,
+        status: 'rejected',
+        reason: offlineCheck.reason,
+        serverTimestamp: new Date(),
+      };
+    }
+
     if (processedIds.has(op.clientOperationId)) {
       return {
         clientOperationId: op.clientOperationId,

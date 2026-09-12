@@ -46,7 +46,7 @@ export const FieldOpsView: React.FC = () => {
   const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
 
   // Active mobile tab
-  const [mobileTab, setMobileTab] = useState<'pod' | 'snag' | 'scanner' | 'qc' | 'crew' | 'dsr' | 'checklist'>('checklist');
+  const [mobileTab, setMobileTab] = useState<'pod' | 'snag' | 'scanner' | 'qc' | 'crew' | 'dsr' | 'checklist' | 'queue'>('checklist');
 
   // 1. Checklist State
   const [checklists, setChecklists] = useState([
@@ -344,6 +344,7 @@ export const FieldOpsView: React.FC = () => {
           }}
         >
           {[
+            { id: 'queue', label: '📥 Offline Queue', badge: 3 },
             { id: 'pod', label: '✍️ POD Receipt', badge: podRecords.filter(p => !p.signed).length },
             { id: 'snag', label: '📸 Snag & Photo', badge: snags.length },
             { id: 'scanner', label: '📷 QR Scanner', badge: 0 },
@@ -864,6 +865,147 @@ export const FieldOpsView: React.FC = () => {
                 </Badge>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* 7. WORKFLOW: BOUNDED OFFLINE QUEUE & MEDIA GATE (AT-056, AT-057, AT-058) */}
+        {mobileTab === 'queue' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* Storage Eviction Contingency Disclosure (AT-058) */}
+            <div
+              style={{
+                backgroundColor: '#fffbeb',
+                border: '1px solid #fde68a',
+                padding: '12px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                color: '#92400e',
+              }}
+              id="disclosure-storage-eviction"
+            >
+              <strong>INVARIANT AT-058 (OFFLINE CONTINGENCY DISCLOSURE):</strong> E3-EOS discloses that offline PWA device
+              storage cannot guarantee background sync or remote offline wipe without an active authenticated network session.
+              When device storage is evicted or a session revoked, local drafts must follow manual supervisor contingency protocols.
+            </div>
+
+            {/* Bounded Offline Policy Warning */}
+            <div
+              style={{
+                backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                padding: '12px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                color: '#1e40af',
+              }}
+              id="bounded-offline-warning"
+            >
+              <strong>BOUNDED OFFLINE RULE:</strong> Authoritative actions (financial postings, PO approvals, opening authorizations,
+              vendor awards) CANNOT be executed offline. They require active online server authentication.
+            </div>
+
+            {/* Queued Operations List (AT-056) */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <h4 style={{ margin: 0, fontSize: '13px', color: '#0f172a' }}>Queued Field Operations (3)</h4>
+                <Badge variant="warning">AWAITING SERVER SYNC</Badge>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {[
+                  {
+                    opId: 'op-snag-90124',
+                    action: 'log_snag',
+                    entity: 'snag',
+                    desc: 'Scenic Wall scratched panel #4 (Hall 1)',
+                    timestamp: '2026-09-12 08:42 AST',
+                    status: 'queued',
+                    dedupTag: 'dedup-hash-90124',
+                  },
+                  {
+                    opId: 'op-att-90125',
+                    action: 'check_in_crew',
+                    entity: 'attendance',
+                    desc: 'Ahmed Al-Kuwari check-in Main Stage',
+                    timestamp: '2026-09-12 08:45 AST',
+                    status: 'queued',
+                    dedupTag: 'dedup-hash-90125',
+                  },
+                  {
+                    opId: 'op-qc-90126',
+                    action: 'inspection_checkpoint',
+                    entity: 'inspection',
+                    desc: 'Truss torque check Main Stage Rigging',
+                    timestamp: '2026-09-12 08:50 AST',
+                    status: 'queued',
+                    dedupTag: 'dedup-hash-90126',
+                  },
+                ].map((op) => (
+                  <div
+                    key={op.opId}
+                    style={{
+                      padding: '10px 12px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <strong style={{ color: '#0f172a' }}>{op.action}</strong>
+                      <span style={{ fontFamily: 'monospace', fontSize: '10px', color: '#64748b' }}>{op.opId}</span>
+                    </div>
+                    <div style={{ color: '#475569', marginBottom: '4px' }}>{op.desc}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94a3b8' }}>
+                      <span>Client Time: {op.timestamp}</span>
+                      <span style={{ color: '#0284c7', fontWeight: 600 }}>Deduplication Key: {op.dedupTag}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Media Upload Verification Gate (AT-057) */}
+            <div>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#0f172a' }}>Binary Media Upload Verification Gate (AT-057)</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div
+                  style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #86efac',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                    <strong>snag-counter14-full.jpg</strong>
+                    <Badge variant="success">BINARY COMPLETE (2.4 MB / 2.4 MB)</Badge>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#166534' }}>
+                    ✓ Upload complete & verified. Snag inspection accepted as verified evidence.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#fff1f2',
+                    border: '1px solid #fecdd3',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                    <strong>snag-audio-cable-overhead.jpg</strong>
+                    <Badge variant="warning">PENDING BINARY UPLOAD (1.8 MB / 4.2 MB)</Badge>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#9f1239' }}>
+                    ⚠️ Incomplete upload: Snag remains <code>pending_binary_upload</code> until binary bytes are completely received.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

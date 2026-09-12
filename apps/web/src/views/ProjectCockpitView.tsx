@@ -368,6 +368,39 @@ export const ProjectCockpitView: React.FC = () => {
               🔗 Delivery Lineage
             </Button>
             <Button
+              id="cockpit-live-cmd-btn"
+              variant="primary"
+              size="md"
+              style={{ backgroundColor: '#0f172a', borderColor: '#334155' }}
+              onClick={() => navigate('/live/command-center')}
+            >
+              🛰️ Live Command
+            </Button>
+            <Button
+              id="cockpit-run-sheet-btn"
+              variant="secondary"
+              size="md"
+              onClick={() => navigate('/live/run-sheet')}
+            >
+              ⏱️ Run Sheet
+            </Button>
+            <Button
+              id="cockpit-compliance-btn"
+              variant="secondary"
+              size="md"
+              onClick={() => navigate('/live/compliance')}
+            >
+              ⚖️ Compliance
+            </Button>
+            <Button
+              id="cockpit-closeout-btn"
+              variant="secondary"
+              size="md"
+              onClick={() => navigate('/closeout')}
+            >
+              🏁 Closeout
+            </Button>
+            <Button
               id="cockpit-audit-btn"
               variant="ghost"
               size="md"
