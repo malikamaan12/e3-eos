@@ -351,7 +351,7 @@ describe('Sprint 07 Acceptance Suite: Production Rollout, Security, Recovery & G
       const evalResult = GoLiveEngine.evaluate({
         environment: 'production',
         releaseTag: 'eos-v1.0.0-rc1',
-        gitCommit: '3e73735',
+        gitCommit: 'e1ee727',
       });
 
       expect(evalResult.canGoLive).toBe(true);
@@ -368,7 +368,7 @@ describe('Sprint 07 Acceptance Suite: Production Rollout, Security, Recovery & G
       const signoffRes = rolloutController.signoffProduction(
         {
           releaseTag: 'eos-v1.0.0-rc1',
-          gitCommit: '3e73735',
+          gitCommit: 'e1ee727',
           environment: 'production',
           decision: 'approved_for_go_live',
           authorizedBy: 'E3 Executive Leadership & Asset Owner',

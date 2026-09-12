@@ -159,7 +159,7 @@ async function capture() {
         action: async () => {
           await page.evaluate(() => {
             const btns = Array.from(document.querySelectorAll('button'));
-            const signBtn = btns.find((b) => b.textContent && b.textContent.includes('Authorize Production Go-Live'));
+            const signBtn = btns.find((b) => b.textContent && (b.textContent.includes('Record Executive Sign-Off') || b.textContent.includes('Authorize Production Go-Live')));
             if (signBtn) signBtn.click();
           });
           await sleep(1200);

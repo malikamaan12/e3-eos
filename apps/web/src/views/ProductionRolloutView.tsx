@@ -12,6 +12,7 @@ export type RolloutTab =
   | 'restore-drill'
   | 'security-findings'
   | 'uat-progress'
+  | 'uat-defects'
   | 'training-adoption'
   | 'support-health'
   | 'exception-register'
@@ -23,6 +24,9 @@ export const ProductionRolloutView: React.FC = () => {
   const { currentPath } = useEosContext();
 
   const getInitialTab = (): RolloutTab => {
+    if (typeof window !== 'undefined' && window.location.search.includes('role=')) return 'uat-progress';
+    if (currentPath.includes('uat-defects') || currentPath.includes('defects')) return 'uat-defects';
+    if (currentPath.includes('human-uat') || currentPath.includes('uat')) return 'uat-progress';
     if (currentPath.includes('feature-flags')) return 'feature-flags';
     if (currentPath.includes('support')) return 'support-health';
     if (currentPath.includes('go-live')) return 'go-no-go-board';
@@ -33,10 +37,40 @@ export const ProductionRolloutView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<RolloutTab>(getInitialTab());
 
   useEffect(() => {
-    if (currentPath.includes('feature-flags')) setActiveTab('feature-flags');
-    else if (currentPath.includes('support')) setActiveTab('support-health');
-    else if (currentPath.includes('go-live')) setActiveTab('go-no-go-board');
-    else if (currentPath.includes('certificate')) setActiveTab('production-sign-off');
+    if (currentPath.includes('uat-defects') || currentPath.includes('defects')) {
+      setActiveTab('uat-defects');
+    } else if (currentPath.includes('human-uat') || currentPath.includes('uat')) {
+      setActiveTab('uat-progress');
+    } else if (currentPath.includes('feature-flags')) {
+      setActiveTab('feature-flags');
+    } else if (currentPath.includes('support')) {
+      setActiveTab('support-health');
+    } else if (currentPath.includes('go-live')) {
+      setActiveTab('go-no-go-board');
+    } else if (currentPath.includes('certificate')) {
+      setActiveTab('production-sign-off');
+    }
+
+    // Role-specific start link query param listener (?role=...)
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const roleParam = searchParams.get('role');
+      if (roleParam) {
+        const norm = roleParam.toLowerCase().replace(/-/g, '_');
+        if (norm.includes('exec') || norm.includes('managing')) setSelectedUatRoleCode('executive_managing_director');
+        else if (norm === 'project_director' || norm === 'pd') setSelectedUatRoleCode('project_director');
+        else if (norm === 'project_manager' || norm === 'pm') setSelectedUatRoleCode('project_manager');
+        else if (norm.includes('finance') || norm === 'fc') setSelectedUatRoleCode('finance_controller');
+        else if (norm.includes('proc')) setSelectedUatRoleCode('procurement');
+        else if (norm.includes('production') || norm.includes('technical') || norm === 'tech') setSelectedUatRoleCode('production_technical');
+        else if (norm.includes('warehouse') || norm.includes('logistics') || norm === 'wh') setSelectedUatRoleCode('warehouse_logistics');
+        else if (norm.includes('hse') || norm.includes('operations') || norm === 'ops') setSelectedUatRoleCode('hse_operations');
+        else if (norm.includes('field') || norm.includes('supervisor')) setSelectedUatRoleCode('field_supervisor');
+        else if (norm.includes('client')) setSelectedUatRoleCode('client_user');
+        else if (norm.includes('admin') || norm.includes('super')) setSelectedUatRoleCode('super_admin');
+        setActiveTab('uat-progress');
+      }
+    }
   }, [currentPath]);
 
   // Feature Flags State
@@ -344,6 +378,626 @@ export const ProductionRolloutView: React.FC = () => {
     });
   };
 
+  // Section 2: 11 Canonical UAT Accounts (Awaiting Assignment)
+  const [uatTesterAccounts, setUatTesterAccounts] = useState([
+    { role: '1. Executive / Managing Director', code: 'executive_managing_director', email: 'uat-executive@e3.qa', link: '/admin/release/human-uat?role=executive-managing-director', assignedTester: 'Awaiting Assignment', device: 'Desktop / Laptop' },
+    { role: '2. Project Director', code: 'project_director', email: 'uat-director@e3.qa', link: '/admin/release/human-uat?role=project-director', assignedTester: 'Awaiting Assignment', device: 'Desktop / Laptop' },
+    { role: '3. Project Manager (Day-to-day)', code: 'project_manager', email: 'uat-pm@e3.qa', link: '/admin/release/human-uat?role=project-manager', assignedTester: 'Awaiting Assignment', device: 'Desktop / Laptop' },
+    { role: '4. Finance Controller', code: 'finance_controller', email: 'uat-finance@e3.qa', link: '/admin/release/human-uat?role=finance-controller', assignedTester: 'Awaiting Assignment', device: 'Desktop / Laptop' },
+    { role: '5. Procurement', code: 'procurement', email: 'uat-procurement@e3.qa', link: '/admin/release/human-uat?role=procurement', assignedTester: 'Awaiting Assignment', device: 'Desktop / Laptop' },
+    { role: '6. Production / Technical', code: 'production_technical', email: 'uat-technical@e3.qa', link: '/admin/release/human-uat?role=production-technical', assignedTester: 'Awaiting Assignment', device: 'Desktop / Workstation' },
+    { role: '7. Warehouse / Logistics', code: 'warehouse_logistics', email: 'uat-logistics@e3.qa', link: '/admin/release/human-uat?role=warehouse-logistics', assignedTester: 'Awaiting Assignment', device: 'Desktop / Tablet' },
+    { role: '8. HSE / Operations', code: 'hse_operations', email: 'uat-hse@e3.qa', link: '/admin/release/human-uat?role=hse-operations', assignedTester: 'Awaiting Assignment', device: 'Desktop / Tablet' },
+    { role: '9. Field Supervisor', code: 'field_supervisor', email: 'uat-field@e3.qa', link: '/admin/release/human-uat?role=field-supervisor', assignedTester: 'Awaiting Assignment', device: 'Real Phone / Tablet' },
+    { role: '10. Client User', code: 'client_user', email: 'uat-client@qatartourism.qa', link: '/admin/release/human-uat?role=client-user', assignedTester: 'Awaiting Assignment', device: 'Desktop / Tablet' },
+    { role: '11. Super Admin', code: 'super_admin', email: 'uat-superadmin@e3.qa', link: '/admin/release/human-uat?role=super-admin', assignedTester: 'Awaiting Assignment', device: 'Desktop / Workstation' },
+  ]);
+
+  // Section 1: 11 Canonical Human UAT Roles (Status Pending, Score 0, 0 / 11 Complete)
+  const [humanUatList, setHumanUatList] = useState([
+    {
+      id: 'uat-exec-01',
+      role: '1. Executive / Managing Director',
+      code: 'executive_managing_director',
+      champion: 'Managing Director / Executive Director',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'Portfolio overview → Project Risk → Margin → Cash Position → Approvals → Evidence Drilldown → Executive Decision',
+      roleQuestion: 'Can you understand the health of the business and identify what needs your attention without asking the project team for another spreadsheet?',
+      scenarioSteps: [
+        'Open portfolio overview & identify projects at risk',
+        'Inspect cross-project gross & net margin forecasts',
+        'Inspect receivables aging & cashflow projections',
+        'Review pending milestone approval request',
+        'Drill into underlying evidence & BOQ variations',
+        'Approve or reject within statutory authority limits',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-pd-02',
+      role: '2. Project Director',
+      code: 'project_director',
+      champion: 'Senior Project Director',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'Portfolio → Project Cockpit → Schedule Risk → Commercial Position → Procurement → Production → Readiness → Closeout',
+      roleQuestion: 'Can you understand whether the project is genuinely under control?',
+      scenarioSteps: [
+        'Open project charter & scope breakdown',
+        'Review multi-stage Gantt timeline & milestones',
+        'Inspect critical-path blockers & dependencies',
+        'Evaluate stage gate operational requirements',
+        'Authorize milestone progression docket',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-pm-03',
+      role: '3. Project Manager (Day-to-day)',
+      code: 'project_manager',
+      champion: 'Lead Delivery Project Manager',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'Project → Requirements → RFI → Documents → Design → Timeline → BOQ → Procurement → Production → Site → Closeout',
+      roleQuestion: 'Would you genuinely manage your project through EOS instead of Excel, WhatsApp and separate trackers?',
+      scenarioSteps: [
+        'Open active project cockpit',
+        'Inspect requirements traceability & RFI threads',
+        'Review technical design drafts & variation requests',
+        'Track physical procurement and fabrication status',
+        'Review live site logs and shift handovers',
+        'Verify ability to explain: what is happening, late, blocked, needs approval, changed financially, must happen next',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-fc-04',
+      role: '4. Finance Controller',
+      code: 'finance_controller',
+      champion: 'Chief Financial Officer / Financial Controller',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'Budget vs Actual → PO Commitments → Invoices → Milestone Billing → Retention → Closeout',
+      roleQuestion: 'Does the financial audit trail hold up, and are commitment numbers trustworthy?',
+      scenarioSteps: [
+        'Open project financial ledger & budget allocation',
+        'Reconcile PO commitments against issued invoices',
+        'Inspect 3-way matching validation dockets',
+        'Verify milestone billing readiness & client certs',
+        'Validate retention release schedule & tax accounts',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-proc-05',
+      role: '5. Procurement',
+      code: 'procurement',
+      champion: 'Head of Supply Chain & Procurement',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'BOQ Item → RFQ → Bid Compare → Award → PO Issue → Delivery Tracking → Receipt Inspection',
+      roleQuestion: 'Can you run the procurement cycle without duplicating work in offline files?',
+      scenarioSteps: [
+        'Open BOQ requirements ready for procurement',
+        'Draft and issue RFQ to qualified vendor pool',
+        'Compare vendor bids & commercial terms',
+        'Generate and authorize Purchase Order',
+        'Track logistics ETA & physical receipt inspection',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-tech-06',
+      role: '6. Production / Technical',
+      code: 'production_technical',
+      champion: 'Technical Director / Fabrication Lead',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'Design Package → Material Takeoff → Workshop Queue → Fabrication Progress → QA Inspection → Dispatch',
+      roleQuestion: 'Is the workshop workflow practical and fast enough on the shop floor?',
+      scenarioSteps: [
+        'Review approved design specifications & drawing revisions',
+        'Inspect workshop fabrication queue & machine allocations',
+        'Log assembly milestone & labor progress',
+        'Perform QA inspection and dimensional check',
+        'Authorize finished goods dispatch docket',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-wh-07',
+      role: '7. Warehouse / Logistics',
+      code: 'warehouse_logistics',
+      champion: 'Logistics & Warehouse Operations Manager',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'Goods Inward → Bin Allocation → Serialized Asset Tracking → Picking → Packing → Gate Pass',
+      roleQuestion: 'Can warehouse staff complete inward/outward tasks quickly on tablet/desktop?',
+      scenarioSteps: [
+        'Log inward receipt from freight carrier',
+        'Inspect serial numbers and allocate warehouse bin',
+        'Fulfill project requisition pick list',
+        'Pack shipment and affix container barcode',
+        'Generate tamper-evident security gate pass',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-hse-08',
+      role: '8. HSE / Operations',
+      code: 'hse_operations',
+      champion: 'Head of Health, Safety & Environment',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'Inductions → RAMS Review → Incident / Near Miss Log → Corrective Action → Daily Briefing',
+      roleQuestion: 'Does EOS give you real control and immediate safety visibility without paperwork friction?',
+      scenarioSteps: [
+        'Inspect daily site induction registry',
+        'Review risk assessment & method statements (RAMS)',
+        'Log near-miss hazard observation with severity tag',
+        'Assign corrective action to site supervisor',
+        'Publish digital toolbox talk & daily safety sign-off',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-field-09',
+      role: '9. Field Supervisor',
+      code: 'field_supervisor',
+      champion: 'Site Operations Lead / General Superintendent',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'Mobile Run Sheet → Crew Check-In → Cue Execution → Incident / Delay → Shift Handover',
+      roleQuestion: 'Is the mobile/tablet site workflow fast, responsive and usable under field pressure?',
+      scenarioSteps: [
+        'Open mobile run sheet on phone / tablet',
+        'Record crew attendance & badge scan check-in',
+        'Execute live event cues & mark complete',
+        'Record unexpected 15-minute weather delay event',
+        'Complete digital end-of-shift handover report',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-client-10',
+      role: '10. Client User',
+      code: 'client_user',
+      champion: 'Client Project Director (Ministry / Authority Lead)',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'Portal Login → Scope & Milestones → Variation Approvals → Document Reviews → Invoices',
+      roleQuestion: 'Does the client portal build trust and transparency without exposing internal mess?',
+      scenarioSteps: [
+        'Log in to secure multi-tenant Client Portal',
+        'Review project milestones & visual progress gallery',
+        'Review formal Scope Variation Request (CR-002)',
+        'Approve variation or provide revision comments',
+        'Download certified progress payment certificate',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+    {
+      id: 'uat-admin-11',
+      role: '11. Super Admin',
+      code: 'super_admin',
+      champion: 'Enterprise Systems Administrator / Platform Lead',
+      assignedTester: '',
+      status: 'Pending',
+      scenario: 'User Provisioning → Roles & RLS → Feature Flags → Backup / Restore → Audit Logs',
+      roleQuestion: 'Can you operate, govern, audit and support EOS safely in production?',
+      scenarioSteps: [
+        'Inspect user directory and assign fine-grained RBAC role',
+        'Verify Row-Level Security tenant boundary enforcement',
+        'Audit feature flag toggles & operational kill switches',
+        'Inspect disaster recovery snapshot manifest checksums',
+        'Inspect immutable audit logs for statutory compliance',
+      ],
+      startDate: '',
+      completionDate: '',
+      score: 0,
+      openDefects: 0,
+      finalDecision: 'pending',
+      user: '',
+      date: '2026-09-12',
+      device: '',
+      browser: '',
+      startTime: '',
+      endTime: '',
+      result: 'pending',
+      frictionNotes: '',
+      p0Defects: 0,
+      p1Defects: 0,
+      p2p3Defects: 0,
+      defectNotes: '',
+      usabilityScore: 0,
+      adoptionResponse: 'unanswered',
+      acknowledged: false,
+    },
+  ]);
+
+  const [selectedUatRoleCode, setSelectedUatRoleCode] = useState<string>('executive_managing_director');
+  const [editingUatForm, setEditingUatForm] = useState({
+    assignedTester: '',
+    user: '',
+    status: 'Pending' as 'Pending' | 'In Progress' | 'Passed' | 'Passed With Issues' | 'Failed' | 'Retest Required',
+    startDate: '2026-09-12',
+    completionDate: '',
+    date: '2026-09-12',
+    device: 'Desktop / Laptop',
+    browser: 'Chrome 128',
+    startTime: '09:00',
+    endTime: '09:45',
+    result: 'pending' as 'pending' | 'passed' | 'passed_with_issues' | 'failed' | 'retest_required',
+    frictionNotes: '',
+    p0Defects: 0,
+    p1Defects: 0,
+    p2p3Defects: 0,
+    openDefects: 0,
+    defectNotes: '',
+    usabilityScore: 0,
+    score: 0,
+    adoptionResponse: 'unanswered' as 'unanswered' | 'yes' | 'yes_with_improvements' | 'no',
+    finalDecision: 'pending' as 'pending' | 'accepted' | 'rejected' | 'exception',
+    acknowledged: false,
+  });
+
+  // Section 15 & 18: Defect Tracking & Triage Board State
+  const [uatDefects, setUatDefects] = useState<any[]>([]);
+  const [defectFilterSeverity, setDefectFilterSeverity] = useState<string>('ALL');
+
+  // Guided checklist progress states
+  const [checkedSteps, setCheckedSteps] = useState<Record<string, Record<number, boolean>>>({});
+  const [roleUnderstanding, setRoleUnderstanding] = useState<Record<string, 'YES' | 'PARTIALLY' | 'NO' | null>>({});
+
+  // One-Click Issue Reporting Modal State (Section 17)
+  const [isReportIssueOpen, setIsReportIssueOpen] = useState(false);
+  const [isInvitationPackOpen, setIsInvitationPackOpen] = useState(false);
+  const [isAdminGuideOpen, setIsAdminGuideOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const [issueReportForm, setIssueReportForm] = useState({
+    problem: '',
+    expectedBehavior: '',
+    severity: 'P2' as 'P0' | 'P1' | 'P2' | 'P3',
+    screenshot: '',
+    workaround: '',
+  });
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const handleToggleStep = (roleCode: string, stepIdx: number) => {
+    setCheckedSteps((prev) => ({
+      ...prev,
+      [roleCode]: {
+        ...(prev[roleCode] || {}),
+        [stepIdx]: !((prev[roleCode] || {})[stepIdx]),
+      },
+    }));
+  };
+
+  const handleStartTest = (roleCode: string) => {
+    setHumanUatList((prev) =>
+      prev.map((r) => (r.code === roleCode && r.status === 'Pending' ? { ...r, status: 'In Progress' } : r))
+    );
+    showToast(`Test session for ${roleCode} is now IN PROGRESS.`);
+  };
+
+  const handleSelectUatRole = (code: string) => {
+    setSelectedUatRoleCode(code);
+    const item = humanUatList.find((r) => r.code === code);
+    if (item) {
+      setEditingUatForm({
+        assignedTester: item.assignedTester || item.user || '',
+        user: item.user || item.assignedTester || '',
+        status: (item.status as any) || 'Pending',
+        startDate: item.startDate || '2026-09-12',
+        completionDate: item.completionDate || '',
+        date: item.date || '2026-09-12',
+        device: item.device || (code === 'field_supervisor' ? 'iPhone 15 Pro / iPad' : 'Desktop / Laptop'),
+        browser: item.browser || 'Chrome 128',
+        startTime: item.startTime || '09:00',
+        endTime: item.endTime || '09:45',
+        result: item.result as any,
+        frictionNotes: item.frictionNotes || '',
+        p0Defects: item.p0Defects || 0,
+        p1Defects: item.p1Defects || 0,
+        p2p3Defects: item.p2p3Defects || 0,
+        openDefects: item.openDefects || 0,
+        defectNotes: item.defectNotes || '',
+        usabilityScore: item.usabilityScore || item.score || 0,
+        score: item.score || item.usabilityScore || 0,
+        adoptionResponse: item.adoptionResponse as any,
+        finalDecision: item.finalDecision as any,
+        acknowledged: item.acknowledged || false,
+      });
+    }
+  };
+
+  const handleSaveUatRecord = () => {
+    setHumanUatList((prev) =>
+      prev.map((item) => {
+        if (item.code === selectedUatRoleCode) {
+          const userVal = editingUatForm.assignedTester || editingUatForm.user;
+          return {
+            ...item,
+            ...editingUatForm,
+            assignedTester: userVal,
+            user: userVal,
+            score: editingUatForm.usabilityScore,
+          };
+        }
+        return item;
+      })
+    );
+    showToast('UAT Session Record saved successfully.');
+  };
+
+  const handleAssignTester = (roleCode: string, name: string) => {
+    setUatTesterAccounts((prev) =>
+      prev.map((a) => (a.code === roleCode ? { ...a, assignedTester: name } : a))
+    );
+    setHumanUatList((prev) =>
+      prev.map((r) => (r.code === roleCode ? { ...r, assignedTester: name, user: name } : r))
+    );
+    showToast(`Tester '${name}' assigned to ${roleCode}.`);
+  };
+
+  const handleSubmitIssueReport = () => {
+    if (!issueReportForm.problem) return;
+    const defectId = 'DEF-' + Date.now().toString().slice(-4);
+    const roleItem = humanUatList.find((r) => r.code === selectedUatRoleCode);
+    const created = {
+      id: defectId,
+      role: selectedUatRoleCode,
+      roleTitle: roleItem?.role || selectedUatRoleCode,
+      screen: `Human UAT: ${roleItem?.role || 'Active View'}`,
+      route: `/admin/release/human-uat?role=${selectedUatRoleCode.replace(/_/g, '-')}`,
+      project: 'PRJ-QA-2026-DOH-01 (Qatar National Day)',
+      browser: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Chrome') ? 'Google Chrome 128+' : 'Safari / WebKit') : 'Chrome 128',
+      device: selectedUatRoleCode === 'field_supervisor' ? 'Mobile Tablet (iPad Air)' : 'Desktop Workstation',
+      timestamp: new Date().toISOString(),
+      problem: issueReportForm.problem,
+      description: issueReportForm.problem,
+      expectedBehavior: issueReportForm.expectedBehavior || 'Workflow progresses without error',
+      severity: issueReportForm.severity,
+      screenshot: issueReportForm.screenshot || '',
+      workaround: issueReportForm.workaround || 'None',
+      status: 'New',
+    };
+    setUatDefects((prev) => [created, ...prev]);
+
+    // Update role defect counts
+    const isP0 = issueReportForm.severity === 'P0';
+    const isP1 = issueReportForm.severity === 'P1';
+    const isP2P3 = issueReportForm.severity === 'P2' || issueReportForm.severity === 'P3';
+
+    setHumanUatList((prev) =>
+      prev.map((item) => {
+        if (item.code === selectedUatRoleCode) {
+          return {
+            ...item,
+            p0Defects: (item.p0Defects || 0) + (isP0 ? 1 : 0),
+            p1Defects: (item.p1Defects || 0) + (isP1 ? 1 : 0),
+            p2p3Defects: (item.p2p3Defects || 0) + (isP2P3 ? 1 : 0),
+            openDefects: (item.openDefects || 0) + 1,
+          };
+        }
+        return item;
+      })
+    );
+
+    setIssueReportForm({
+      problem: '',
+      expectedBehavior: '',
+      severity: 'P2',
+      screenshot: '',
+      workaround: '',
+    });
+    setIsReportIssueOpen(false);
+    showToast(`Issue ${defectId} successfully logged to UAT Defect Triage Board.`);
+  };
+
+  const handleMoveDefectStatus = (defectId: string, nextStatus: 'New' | 'Triaged' | 'Fixing' | 'Ready for Retest' | 'Closed') => {
+    setUatDefects((prev) =>
+      prev.map((d) => (d.id === defectId ? { ...d, status: nextStatus } : d))
+    );
+    showToast(`Defect ${defectId} moved to ${nextStatus}.`);
+  };
+
   const tabs: { id: RolloutTab; label: string; icon: string; badge?: string }[] = [
     { id: 'release-readiness', label: '1. Release Readiness', icon: '🚀' },
     { id: 'feature-flags', label: '2. Feature Flags', icon: '🚩', badge: '12 Flags' },
@@ -353,8 +1007,9 @@ export const ProductionRolloutView: React.FC = () => {
     { id: 'backup-status', label: '6. Backup Status', icon: '💾', badge: 'Active' },
     { id: 'restore-drill', label: '7. Restore Drill', icon: '🔄', badge: 'RPO 2.4m' },
     { id: 'security-findings', label: '8. Security Audit', icon: '🛡️', badge: '0 High' },
-    { id: 'uat-progress', label: '9. UAT Progress', icon: '👥', badge: '7/7 Signoffs' },
-    { id: 'training-adoption', label: '10. Training & Adoption', icon: '🎓', badge: '4 Modules' },
+    { id: 'uat-progress', label: '9. Human UAT Control Centre', icon: '👥', badge: '11 Roles Pending' },
+    { id: 'uat-defects', label: '10. UAT Defect Triage Board', icon: '🐞', badge: '0 P0/P1' },
+    { id: 'training-adoption', label: '11. Training & Adoption', icon: '🎓', badge: '4 Modules' },
     { id: 'support-health', label: '11. Support Runbooks', icon: '🩺', badge: 'RB01-RB12' },
     { id: 'exception-register', label: '12. Exception Register', icon: '📋', badge: '1 Governed' },
     { id: 'cutover-checklist', label: '13. Cutover Checklist', icon: '⏱️', badge: 'T-0 Ready' },
@@ -1026,37 +1681,684 @@ export const ProductionRolloutView: React.FC = () => {
         </div>
       )}
 
-      {/* Screen 9: UAT Progress */}
-      {activeTab === 'uat-progress' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <Card
-            title="Human UAT Persona Sign-Off Matrix"
-            subtitle="7 of 7 core role-based user journeys validated by nominated business champions"
-            action={<Badge variant="success">7 / 7 SIGNED OFF</Badge>}
-          >
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-              {[
-                { role: 'Managing Director / Executive', journey: 'Executive portfolio cockpit, multi-million QAR approvals, and financial margin view.', champion: 'E3 Managing Director', status: 'SIGNED OFF' },
-                { role: 'Project Director / PM', journey: 'Charter creation, milestone tracking, Gantt scheduling, and variations workflow.', champion: 'Senior Project Director', status: 'SIGNED OFF' },
-                { role: 'Finance Controller', journey: 'Commercial BOQ reconciliation, 3-way PO invoice matching, progress claims, and ZATCA/VAT.', champion: 'Head of Financial Control', status: 'SIGNED OFF' },
-                { role: 'Procurement Lead', journey: 'RFQ generation, multi-vendor quote comparison, PO issuance, and supplier portal.', champion: 'Procurement Operations Manager', status: 'SIGNED OFF' },
-                { role: 'Warehouse & Logistics Lead', journey: 'Asset barcode scanning, check-in/out dockets, and inventory valuation.', champion: 'Central Warehouse Supervisor', status: 'SIGNED OFF' },
-                { role: 'Site Operations Lead', journey: 'Mobile PWA offline field sync, RFID badge scan, HSE stop-work, and live run sheet.', champion: 'Lead Site Operations Manager', status: 'SIGNED OFF' },
-                { role: 'Client Representative', journey: 'Client Results Room view, variation change approval, and final event sign-off.', champion: 'Client Liaison Officer', status: 'SIGNED OFF' },
-              ].map((uat, idx) => (
-                <div key={idx} style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-                  <div>
-                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{uat.role}</div>
-                    <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>{uat.journey}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '6px' }}>Signatory: <strong>{uat.champion}</strong></div>
-                  </div>
-                  <Badge variant="success">✓ {uat.status}</Badge>
+      {/* Screen 9: Human UAT Control Centre & Workspace (Admin → Release → Human UAT) */}
+      {activeTab === 'uat-progress' && (() => {
+        const completedRolesCount = humanUatList.filter((r) => r.status === 'Passed' || r.status === 'Passed With Issues').length;
+        const passedCount = humanUatList.filter((r) => r.status === 'Passed').length;
+        const passedWithIssuesCount = humanUatList.filter((r) => r.status === 'Passed With Issues').length;
+        const failedCount = humanUatList.filter((r) => r.status === 'Failed').length;
+        const pendingCount = humanUatList.filter((r) => r.status === 'Pending' || r.status === 'In Progress' || r.status === 'Retest Required').length;
+        const totalP0 = uatDefects.filter((d) => d.severity === 'P0' && d.status !== 'Closed').length;
+        const totalP1 = uatDefects.filter((d) => d.severity === 'P1' && d.status !== 'Closed').length;
+        const totalP2P3 = uatDefects.filter((d) => (d.severity === 'P2' || d.severity === 'P3') && d.status !== 'Closed').length;
+        const adoptionYesCount = humanUatList.filter((r) => r.adoptionResponse === 'yes').length;
+        const adoptionYesWithImprovementsCount = humanUatList.filter((r) => r.adoptionResponse === 'yes_with_improvements').length;
+        const adoptionNoCount = humanUatList.filter((r) => r.adoptionResponse === 'no').length;
+        const adoptionUnansweredCount = humanUatList.filter((r) => r.adoptionResponse === 'unanswered').length;
+
+        const evaluatedScores = humanUatList.filter((r) => (r.usabilityScore || r.score) > 0);
+        const avgScore = evaluatedScores.length > 0
+          ? (evaluatedScores.reduce((sum, r) => sum + (r.usabilityScore || r.score), 0) / evaluatedScores.length).toFixed(1)
+          : '—';
+
+        const currentRole = humanUatList.find((r) => r.code === selectedUatRoleCode) || humanUatList[0];
+        const roleSteps = checkedSteps[currentRole.code] || {};
+        const currentRoleDefects = uatDefects.filter((d) => d.role === currentRole.code);
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Top Action Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  Human UAT Launch & Tester Enablement (Admin → Release → Human UAT)
+                </h2>
+                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
+                  Target Staging Environment: <strong>https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app</strong> | Commit: <strong>e1ee727</strong>
                 </div>
-              ))}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <Button variant="secondary" size="sm" onClick={() => setIsInvitationPackOpen(true)}>
+                  ✉️ UAT Invitation Pack (Section 22)
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => setIsAdminGuideOpen(true)}>
+                  📖 UAT Coordinator Guide (Section 23)
+                </Button>
+                <Button variant="danger" size="sm" onClick={() => setIsReportIssueOpen(true)}>
+                  🚨 Report Issue (Section 17)
+                </Button>
+              </div>
             </div>
-          </Card>
-        </div>
-      )}
+
+            {toastMessage && (
+              <div style={{ padding: '12px 16px', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px', color: '#065f46', fontSize: '13px', fontWeight: 600 }}>
+                ✓ {toastMessage}
+              </div>
+            )}
+
+            {/* Section 20: Tester Progress Dashboard */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+              <MetricCard
+                title="Human UAT Completion"
+                value={`${completedRolesCount} / 11`}
+                subtitle="All 11 operational personas required"
+                badge={{ label: completedRolesCount === 11 ? "All Completed" : "0 / 11 Complete", variant: completedRolesCount === 11 ? "success" : "warning" }}
+                accentColor="#2563eb"
+              />
+              <MetricCard
+                title="Status Breakdown"
+                value={`${passedCount} Pass | ${pendingCount} Pend`}
+                subtitle={`Passed w/ Issues: ${passedWithIssuesCount} | Failed: ${failedCount}`}
+                badge={{ label: failedCount > 0 ? "Defects Detected" : "Zero Failures", variant: failedCount > 0 ? "danger" : "neutral" }}
+                accentColor="#059669"
+              />
+              <MetricCard
+                title="Open Defects (P0 / P1 / P2-3)"
+                value={`${totalP0} / ${totalP1} / ${totalP2P3}`}
+                subtitle="Rule: Open P0=0, Open P1=0"
+                badge={{ label: (totalP0 === 0 && totalP1 === 0) ? "Gate Pass" : "Blocker Active", variant: (totalP0 === 0 && totalP1 === 0) ? "success" : "danger" }}
+                accentColor={totalP0 > 0 ? "#dc2626" : totalP1 > 0 ? "#ea580c" : "#059669"}
+              />
+              <MetricCard
+                title="Adoption & Usability"
+                value={`Avg: ${avgScore} / 5.0`}
+                subtitle={`Yes: ${adoptionYesCount} | Imp: ${adoptionYesWithImprovementsCount} | No: ${adoptionNoCount}`}
+                badge={{ label: `${adoptionUnansweredCount} Unanswered`, variant: "info" }}
+                accentColor="#7c3aed"
+              />
+            </div>
+
+            {/* Section 2: UAT Tester Accounts & Access Roster */}
+            <Card
+              title="UAT Tester Accounts & Role-Specific Start Links (Sections 2 & 3)"
+              subtitle="Pre-configured staging accounts for all 11 required roles. Initially marked 'Awaiting Assignment'. Share direct links with testers."
+              action={<Badge variant="primary">11 Roles Prepared</Badge>}
+            >
+              <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '8px 10px' }}>Role</th>
+                      <th style={{ padding: '8px 10px' }}>Account Email</th>
+                      <th style={{ padding: '8px 10px' }}>Assigned Tester</th>
+                      <th style={{ padding: '8px 10px' }}>Device Requirement</th>
+                      <th style={{ padding: '8px 10px' }}>Direct Role Start Link</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'center' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody style={{ color: '#334155' }}>
+                    {uatTesterAccounts.map((account) => {
+                      const matchedRole = humanUatList.find((r) => r.code === account.code);
+                      const currentAssigned = matchedRole?.assignedTester || account.assignedTester;
+                      const isAwaiting = !currentAssigned || currentAssigned === 'Awaiting Assignment';
+
+                      return (
+                        <tr key={account.code} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '8px 10px', fontWeight: 600, color: '#0f172a' }}>{account.role}</td>
+                          <td style={{ padding: '8px 10px', fontFamily: 'monospace', color: '#2563eb' }}>{account.email}</td>
+                          <td style={{ padding: '8px 10px' }}>
+                            <span style={{ color: isAwaiting ? '#94a3b8' : '#0f172a', fontWeight: isAwaiting ? 400 : 700 }}>
+                              {currentAssigned}
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 10px', color: '#64748b', fontSize: '11px' }}>{account.device}</td>
+                          <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontSize: '11px', color: '#059669' }}>
+                            {account.link}
+                          </td>
+                          <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                            <div style={{ display: 'inline-flex', gap: '6px' }}>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  const name = prompt(`Assign human tester name for ${account.role}:`, isAwaiting ? '' : currentAssigned);
+                                  if (name && name.trim()) handleAssignTester(account.code, name.trim());
+                                }}
+                              >
+                                ✏️ Assign
+                              </Button>
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => handleSelectUatRole(account.code)}
+                              >
+                                Open
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* Section 1: Human UAT Summary Table (9 Required Columns) */}
+            <Card
+              title="Human UAT Control Centre Summary Table (Section 1)"
+              subtitle="Track status, scenario, score, adoption answer, and open defects across all 11 operational personas."
+              action={<Badge variant={completedRolesCount === 11 ? "success" : "warning"}>{completedRolesCount} / 11 Complete</Badge>}
+            >
+              <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '10px' }}>Role</th>
+                      <th style={{ padding: '10px' }}>Assigned Tester</th>
+                      <th style={{ padding: '10px' }}>Status</th>
+                      <th style={{ padding: '10px' }}>Scenario</th>
+                      <th style={{ padding: '10px' }}>Start Date</th>
+                      <th style={{ padding: '10px' }}>Completion Date</th>
+                      <th style={{ padding: '10px' }}>Score</th>
+                      <th style={{ padding: '10px' }}>Adoption Answer</th>
+                      <th style={{ padding: '10px' }}>Open Defects</th>
+                      <th style={{ padding: '10px' }}>Final Decision</th>
+                      <th style={{ padding: '10px', textAlign: 'center' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody style={{ color: '#334155' }}>
+                    {humanUatList.map((item) => (
+                      <tr
+                        key={item.id}
+                        style={{
+                          borderBottom: '1px solid #f1f5f9',
+                          backgroundColor: selectedUatRoleCode === item.code ? '#eff6ff' : 'transparent',
+                        }}
+                      >
+                        <td style={{ padding: '10px', fontWeight: 700, color: '#0f172a' }}>{item.role}</td>
+                        <td style={{ padding: '10px', color: (item.assignedTester && item.assignedTester !== 'Awaiting Assignment') ? '#0f172a' : '#94a3b8', fontWeight: (item.assignedTester && item.assignedTester !== 'Awaiting Assignment') ? 600 : 400 }}>
+                          {item.assignedTester || item.user || 'Awaiting Assignment'}
+                        </td>
+                        <td style={{ padding: '10px' }}>
+                          <Badge
+                            variant={
+                              item.status === 'Passed'
+                                ? 'success'
+                                : item.status === 'Passed With Issues'
+                                ? 'info'
+                                : item.status === 'Failed'
+                                ? 'danger'
+                                : item.status === 'In Progress'
+                                ? 'warning'
+                                : 'neutral'
+                            }
+                          >
+                            {item.status}
+                          </Badge>
+                        </td>
+                        <td style={{ padding: '10px', maxWidth: '180px' }}>
+                          <span title={item.scenario} style={{ fontSize: '11px', color: '#64748b' }}>
+                            {item.scenario.length > 40 ? item.scenario.slice(0, 40) + '...' : item.scenario}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px', color: '#64748b', fontSize: '11px' }}>{item.startDate || '—'}</td>
+                        <td style={{ padding: '10px', color: '#64748b', fontSize: '11px' }}>{item.completionDate || '—'}</td>
+                        <td style={{ padding: '10px', fontWeight: 600, color: (item.score || item.usabilityScore) ? '#059669' : '#94a3b8' }}>
+                          {(item.score || item.usabilityScore) ? `${item.score || item.usabilityScore} / 5` : '—'}
+                        </td>
+                        <td style={{ padding: '10px' }}>
+                          <span style={{ fontWeight: 600, color: item.adoptionResponse === 'yes' ? '#059669' : item.adoptionResponse === 'yes_with_improvements' ? '#2563eb' : item.adoptionResponse === 'no' ? '#dc2626' : '#94a3b8' }}>
+                            {item.adoptionResponse === 'yes' ? 'Yes' : item.adoptionResponse === 'yes_with_improvements' ? 'Yes, with improvements' : item.adoptionResponse === 'no' ? 'No' : '[ Unanswered ]'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px', fontFamily: 'monospace', fontSize: '11px' }}>
+                          <span style={{ color: item.p0Defects > 0 ? '#dc2626' : '#64748b', fontWeight: item.p0Defects > 0 ? 700 : 400 }}>P0:{item.p0Defects || 0}</span>{' '}
+                          <span style={{ color: item.p1Defects > 0 ? '#ea580c' : '#64748b', fontWeight: item.p1Defects > 0 ? 700 : 400 }}>P1:{item.p1Defects || 0}</span>{' '}
+                          <span style={{ color: '#64748b' }}>P2/3:{item.p2p3Defects || 0}</span>
+                        </td>
+                        <td style={{ padding: '10px' }}>
+                          <Badge variant={item.finalDecision === 'approved' ? 'success' : item.finalDecision === 'approved_with_exceptions' ? 'warning' : item.finalDecision === 'rejected' ? 'danger' : 'neutral'}>
+                            {item.finalDecision.toUpperCase()}
+                          </Badge>
+                        </td>
+                        <td style={{ padding: '10px', textAlign: 'center' }}>
+                          <Button
+                            variant={selectedUatRoleCode === item.code ? 'primary' : 'secondary'}
+                            size="sm"
+                            onClick={() => handleSelectUatRole(item.code)}
+                          >
+                            {selectedUatRoleCode === item.code ? 'Selected' : 'Open'}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* Guided UAT Card for Selected Role (Sections 3 to 16) */}
+            <div style={{ padding: '24px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '14px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#2563eb', letterSpacing: '0.05em' }}>
+                    Guided Human UAT Card (Sections 3–16)
+                  </div>
+                  <h3 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
+                    {currentRole.role}
+                  </h3>
+                  <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
+                    Assigned Tester: <strong>{currentRole.assignedTester || currentRole.user || 'Awaiting Assignment'}</strong> | Champion: <strong>{currentRole.champion}</strong>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <Badge variant={currentRole.status === 'Passed' ? 'success' : currentRole.status === 'Passed With Issues' ? 'info' : currentRole.status === 'Failed' ? 'danger' : currentRole.status === 'In Progress' ? 'warning' : 'neutral'} size="md">
+                    {currentRole.status}
+                  </Badge>
+                  {currentRole.status === 'Pending' && (
+                    <Button variant="primary" size="sm" onClick={() => handleStartTest(currentRole.code)}>
+                      ▶️ Start Test Session
+                    </Button>
+                  )}
+                  <Button variant="secondary" size="sm" onClick={() => setIsReportIssueOpen(true)}>
+                    🚨 Report Issue
+                  </Button>
+                </div>
+              </div>
+
+              {/* Scenario & Expected Journey Banner */}
+              <div style={{ marginBottom: '16px', padding: '14px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
+                  Expected Operational Journey:
+                </div>
+                <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, marginTop: '4px' }}>
+                  {currentRole.scenario}
+                </div>
+              </div>
+
+              {/* Section 4: Guided Step-by-Step Scenario Checklist */}
+              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+                    📋 Step-by-Step Scenario Checklist (Interactive Guidance):
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600 }}>
+                    {Object.values(roleSteps).filter(Boolean).length} of {currentRole.scenarioSteps.length} Steps Completed
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {currentRole.scenarioSteps.map((step, idx) => {
+                    const isChecked = !!roleSteps[idx];
+                    return (
+                      <label
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          backgroundColor: isChecked ? '#f0fdf4' : '#ffffff',
+                          borderRadius: '6px',
+                          border: '1px solid',
+                          borderColor: isChecked ? '#bbf7d0' : '#e2e8f0',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          color: isChecked ? '#166534' : '#334155',
+                          fontWeight: isChecked ? 600 : 400,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleToggleStep(currentRole.code, idx)}
+                        />
+                        <span style={{ display: 'inline-block', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: isChecked ? '#bbf7d0' : '#eff6ff', color: isChecked ? '#166534' : '#1d4ed8', fontWeight: 700, textAlign: 'center', lineHeight: '20px', fontSize: '11px' }}>
+                          {idx + 1}
+                        </span>
+                        <span>{step}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                {/* Intermediate Understanding Check */}
+                <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#eff6ff', borderRadius: '6px', border: '1px solid #bfdbfe', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a8a' }}>
+                    Did you understand what required your attention during this workflow?
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {(['YES', 'PARTIALLY', 'NO'] as const).map((opt) => {
+                      const sel = roleUnderstanding[currentRole.code] === opt;
+                      return (
+                        <Button
+                          key={opt}
+                          variant={sel ? "primary" : "secondary"}
+                          size="sm"
+                          onClick={() => setRoleUnderstanding((prev) => ({ ...prev, [currentRole.code]: opt }))}
+                        >
+                          {opt}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Role-Specific Questions (Sections 5 to 15) */}
+              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#92400e', marginBottom: '6px' }}>
+                  🎯 Role-Specific Evaluation Inquiry (Sections 5–15):
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#78350f', lineHeight: 1.5 }}>
+                  "{currentRole.roleQuestion}"
+                </div>
+              </div>
+
+              {/* Mandatory Adoption Question (Section 14) */}
+              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#15803d', marginBottom: '4px' }}>
+                  ⭐ Mandatory Adoption Question (Section 14 — Required for Every Tester):
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#14532d', fontStyle: 'italic', marginBottom: '10px' }}>
+                  "Would you genuinely use EOS for this workflow instead of going back to Excel, WhatsApp, email chains or manual trackers?"
+                </div>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  {[
+                    { val: 'yes', label: 'Yes (Would genuinely use EOS)' },
+                    { val: 'yes_with_improvements', label: 'Yes, with improvements' },
+                    { val: 'no', label: 'No (Would return to Excel / WhatsApp)' },
+                  ].map((opt) => (
+                    <label
+                      key={opt.val}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 14px',
+                        backgroundColor: editingUatForm.adoptionResponse === opt.val ? '#dcfce7' : '#ffffff',
+                        border: '1px solid',
+                        borderColor: editingUatForm.adoptionResponse === opt.val ? '#16a34a' : '#cbd5e1',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                        color: editingUatForm.adoptionResponse === opt.val ? '#15803d' : '#334155',
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="adoptionResponse"
+                        value={opt.val}
+                        checked={editingUatForm.adoptionResponse === opt.val}
+                        onChange={() => setEditingUatForm({ ...editingUatForm, adoptionResponse: opt.val as any })}
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section 16: UAT Result Form */}
+              <div style={{ padding: '18px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', textTransform: 'uppercase' }}>
+                  UAT Completion & Result Sign-Off Form (Section 16)
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '14px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Human Practitioner Name *
+                    </label>
+                    <Input
+                      placeholder="e.g. Nasser Al-Kuwari"
+                      value={editingUatForm.assignedTester || editingUatForm.user}
+                      onChange={(e) => setEditingUatForm({ ...editingUatForm, assignedTester: e.target.value, user: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Overall Result (Section 16) *
+                    </label>
+                    <select
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#ffffff', fontWeight: 600 }}
+                      value={editingUatForm.status}
+                      onChange={(e) => setEditingUatForm({ ...editingUatForm, status: e.target.value as any, result: (e.target.value === 'Passed' ? 'pass' : e.target.value === 'Failed' ? 'fail' : 'pending') as any })}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Passed">Passed</option>
+                      <option value="Passed With Issues">Passed With Issues</option>
+                      <option value="Failed">Failed</option>
+                      <option value="Retest Required">Retest Required</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Usability Score (1 to 5) *
+                    </label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      {[1, 2, 3, 4, 5].map((num) => (
+                        <Button
+                          key={num}
+                          variant={(editingUatForm.usabilityScore === num || editingUatForm.score === num) ? "primary" : "secondary"}
+                          size="sm"
+                          onClick={() => setEditingUatForm({ ...editingUatForm, usabilityScore: num, score: num })}
+                          style={{ minWidth: '38px', fontWeight: 700 }}
+                        >
+                          {num} ★
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Device & Browser Tested
+                    </label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <Input
+                        value={editingUatForm.device}
+                        placeholder="Device"
+                        onChange={(e) => setEditingUatForm({ ...editingUatForm, device: e.target.value })}
+                      />
+                      <Input
+                        value={editingUatForm.browser}
+                        placeholder="Browser"
+                        onChange={(e) => setEditingUatForm({ ...editingUatForm, browser: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    Comments & Usability Feedback (Free Text)
+                  </label>
+                  <Textarea
+                    rows={3}
+                    placeholder="Provide any feedback on usability, screen clarity, speed, or observations..."
+                    value={editingUatForm.frictionNotes}
+                    onChange={(e) => setEditingUatForm({ ...editingUatForm, frictionNotes: e.target.value })}
+                  />
+                </div>
+
+                {currentRoleDefects.length > 0 && (
+                  <div style={{ marginBottom: '14px', padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#dc2626', marginBottom: '6px' }}>
+                      Logged Defects for this Persona ({currentRoleDefects.length}):
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {currentRoleDefects.map((d) => (
+                        <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 8px', backgroundColor: '#fef2f2', borderRadius: '4px' }}>
+                          <span><strong>{d.id}</strong> [{d.severity}]: {d.description}</span>
+                          <Badge variant="neutral" size="sm">{d.status}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#334155', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={editingUatForm.acknowledged}
+                      onChange={(e) => setEditingUatForm({ ...editingUatForm, acknowledged: e.target.checked })}
+                    />
+                    <span>I confirm that I am a nominated human practitioner and performed this scenario on staging without developer auto-filling.</span>
+                  </label>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={handleSaveUatRecord}
+                    disabled={!(editingUatForm.assignedTester || editingUatForm.user) || editingUatForm.assignedTester === 'Awaiting Assignment' || !editingUatForm.acknowledged || editingUatForm.adoptionResponse === 'unanswered'}
+                  >
+                    💾 Submit UAT Role Sign-Off
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Screen 10: Defect Triage Board (Section 18) */}
+      {activeTab === 'uat-defects' && (() => {
+        const statuses = ['New', 'Triaged', 'Fixing', 'Ready for Retest', 'Closed'] as const;
+        const filteredDefects = uatDefects.filter((d) => defectFilterSeverity === 'ALL' || d.severity === defectFilterSeverity);
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <Card
+              title="UAT Defect Triage Board (Section 18)"
+              subtitle="Admin → Release → UAT Defects | Multi-column Kanban triage for reported human UAT defects"
+              action={
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Button variant="danger" size="sm" onClick={() => setIsReportIssueOpen(true)}>
+                    🚨 Log New Defect
+                  </Button>
+                </div>
+              }
+            >
+              {/* Severity Filter Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Filter Severity:</span>
+                  {(['ALL', 'P0', 'P1', 'P2', 'P3'] as const).map((sev) => (
+                    <Button
+                      key={sev}
+                      variant={defectFilterSeverity === sev ? "primary" : "secondary"}
+                      size="sm"
+                      onClick={() => setDefectFilterSeverity(sev)}
+                    >
+                      {sev}
+                    </Button>
+                  ))}
+                </div>
+
+                <div style={{ fontSize: '12px', color: '#64748b' }}>
+                  Total Defects: <strong>{uatDefects.length}</strong> (P0: {uatDefects.filter(d => d.severity === 'P0' && d.status !== 'Closed').length}, P1: {uatDefects.filter(d => d.severity === 'P1' && d.status !== 'Closed').length})
+                </div>
+              </div>
+
+              {/* 5-Column Kanban Board */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                {statuses.map((status) => {
+                  const itemsInCol = filteredDefects.filter((d) => d.status === status);
+                  const isNew = status === 'New';
+                  const isClosed = status === 'Closed';
+
+                  return (
+                    <div
+                      key={status}
+                      style={{
+                        backgroundColor: '#f8fafc',
+                        borderRadius: '8px',
+                        border: '1px solid #e2e8f0',
+                        padding: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        minHeight: '350px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid', borderColor: isNew ? '#ef4444' : isClosed ? '#22c55e' : '#3b82f6', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{status}</span>
+                        <Badge variant={isNew ? "danger" : isClosed ? "success" : "neutral"} size="sm">
+                          {itemsInCol.length}
+                        </Badge>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
+                        {itemsInCol.length === 0 ? (
+                          <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '12px', padding: '24px 0' }}>
+                            No {status.toLowerCase()} defects
+                          </div>
+                        ) : (
+                          itemsInCol.map((d) => (
+                            <div
+                              key={d.id}
+                              style={{
+                                backgroundColor: '#ffffff',
+                                border: '1px solid #cbd5e1',
+                                borderRadius: '6px',
+                                padding: '10px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '6px',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '11px', color: '#2563eb' }}>{d.id}</span>
+                                <Badge variant={d.severity === 'P0' ? 'danger' : d.severity === 'P1' ? 'warning' : 'neutral'} size="sm">
+                                  {d.severity}
+                                </Badge>
+                              </div>
+
+                              <div style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>
+                                {d.description}
+                              </div>
+
+                              {d.expectedBehavior && (
+                                <div style={{ fontSize: '11px', color: '#475569' }}>
+                                  <strong>Expected:</strong> {d.expectedBehavior}
+                                </div>
+                              )}
+
+                              <div style={{ fontSize: '10px', color: '#64748b' }}>
+                                Role: {d.roleTitle || d.role}
+                              </div>
+
+                              {/* Action Buttons to Transition Status */}
+                              <div style={{ display: 'flex', gap: '4px', marginTop: '6px', flexWrap: 'wrap' }}>
+                                {status !== 'New' && (
+                                  <button
+                                    onClick={() => handleMoveDefectStatus(d.id, statuses[statuses.indexOf(status) - 1])}
+                                    style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', cursor: 'pointer' }}
+                                  >
+                                    ← Prev
+                                  </button>
+                                )}
+                                {status !== 'Closed' && (
+                                  <button
+                                    onClick={() => handleMoveDefectStatus(d.id, statuses[statuses.indexOf(status) + 1])}
+                                    style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', border: '1px solid #93c5fd', backgroundColor: '#eff6ff', color: '#1d4ed8', fontWeight: 600, cursor: 'pointer' }}
+                                  >
+                                    Advance →
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          </div>
+        );
+      })()}
 
       {/* Screen 10: Training & Adoption */}
       {activeTab === 'training-adoption' && (
@@ -1515,19 +2817,233 @@ export const ProductionRolloutView: React.FC = () => {
                 </div>
 
                 <div style={{ marginTop: '12px' }}>
-                  <Button
-                    variant="success"
-                    size="lg"
-                    onClick={handleAuthorizeGoLive}
-                    disabled={!ackExceptions || !ackDr || !signerName}
-                    style={{ width: '100%' }}
-                  >
-                    📜 Authorize Production Go-Live & Issue Certificate
-                  </Button>
+                  {(() => {
+                  const completedUatCount = humanUatList.filter((r) => r.status === 'Passed' || r.status === 'Passed With Issues').length;
+                  const openP0Count = uatDefects.filter((d) => d.severity === 'P0' && d.status !== 'Closed').length;
+                  const openP1Count = uatDefects.filter((d) => d.severity === 'P1' && d.status !== 'Closed').length;
+                  const isUatGateLocked = completedUatCount < 11 || openP0Count > 0 || openP1Count > 0;
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {isUatGateLocked && (
+                        <div style={{ padding: '12px 16px', backgroundColor: '#fef2f2', border: '2px solid #ef4444', borderRadius: '8px', color: '#991b1b', fontSize: '12px', lineHeight: 1.5 }}>
+                          <div style={{ fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            🔒 Executive Decision Screen Strictly Locked (Section 21 Gate)
+                          </div>
+                          <div>
+                            Human UAT Acceptance is <strong>NOT YET COMPLETE</strong>. Go-Live Authorization requires all 11 operational personas to record human sign-off with 0 Open P0 and 0 Open P1 defects.
+                          </div>
+                          <div style={{ marginTop: '6px', fontWeight: 600 }}>
+                            • Completed Roles: <strong>{completedUatCount} / 11</strong> (Pending: {11 - completedUatCount})<br />
+                            • Open P0 Defects: <strong>{openP0Count}</strong> (Must be 0)<br />
+                            • Open P1 Defects: <strong>{openP1Count}</strong> (Must be 0)
+                          </div>
+                        </div>
+                      )}
+                      <Button
+                        variant={isUatGateLocked ? "secondary" : "success"}
+                        size="lg"
+                        onClick={handleAuthorizeGoLive}
+                        disabled={!ackExceptions || !ackDr || !signerName || isUatGateLocked}
+                        style={{ width: '100%', cursor: isUatGateLocked ? 'not-allowed' : 'pointer' }}
+                      >
+                        {isUatGateLocked
+                          ? '🔒 Go-Live Locked — Awaiting 11/11 Human UAT & P0/P1 Resolution'
+                          : '📜 Authorize Production Go-Live & Issue Certificate'}
+                      </Button>
+                    </div>
+                  );
+                })()}
                 </div>
               </div>
             )}
           </Card>
+        </div>
+      )}
+      {/* Section 17: One-Click Issue Reporting Modal */}
+      {isReportIssueOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>🚨</span>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>Report UAT Issue (Section 17)</h3>
+              </div>
+              <button onClick={() => setIsReportIssueOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
+
+            {/* Automatically Captured Telemetry */}
+            <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '16px', fontSize: '11px', color: '#475569' }}>
+              <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>Automatically Captured Telemetry:</div>
+              <div>• <strong>UAT Role:</strong> {selectedUatRoleCode}</div>
+              <div>• <strong>Route:</strong> /admin/release/human-uat?role={selectedUatRoleCode.replace(/_/g, '-')}</div>
+              <div>• <strong>Project:</strong> PRJ-QA-2026-DOH-01 (Qatar National Day Production)</div>
+              <div>• <strong>Browser:</strong> {typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Chrome') ? 'Google Chrome 128+' : 'Safari / WebKit') : 'Chrome 128'}</div>
+              <div>• <strong>Device:</strong> {selectedUatRoleCode === 'field_supervisor' ? 'Mobile Phone / Tablet' : 'Desktop Workstation'}</div>
+              <div>• <strong>Timestamp:</strong> {new Date().toISOString()}</div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Problem Description *
+                </label>
+                <Textarea
+                  rows={3}
+                  placeholder="Describe exactly what failed, froze, or was ambiguous..."
+                  value={issueReportForm.problem}
+                  onChange={(e) => setIssueReportForm({ ...issueReportForm, problem: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Expected Behavior
+                </label>
+                <Input
+                  placeholder="What should have happened instead?"
+                  value={issueReportForm.expectedBehavior}
+                  onChange={(e) => setIssueReportForm({ ...issueReportForm, expectedBehavior: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Severity Suggestion (Section 19 Rules) *
+                </label>
+                <select
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#ffffff', fontWeight: 600 }}
+                  value={issueReportForm.severity}
+                  onChange={(e) => setIssueReportForm({ ...issueReportForm, severity: e.target.value as any })}
+                >
+                  <option value="P0">P0 — Launch Blocker (Data loss, auth bypass, calculation error, unsafe)</option>
+                  <option value="P1">P1 — Major Workflow Blocked (Required role unable to complete task)</option>
+                  <option value="P2">P2 — Important Usability / Functional Issue with Workaround</option>
+                  <option value="P3">P3 — Minor Usability / Cosmetic Polish</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Screenshot URL or Attachment Reference
+                </label>
+                <Input
+                  placeholder="Paste URL, ticket reference, or file name"
+                  value={issueReportForm.screenshot}
+                  onChange={(e) => setIssueReportForm({ ...issueReportForm, screenshot: e.target.value })}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <Button variant="secondary" size="md" onClick={() => setIsReportIssueOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="danger" size="md" onClick={handleSubmitIssueReport} disabled={!issueReportForm.problem}>
+                  Submit Issue to Triage
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Section 22: UAT Invitation Pack Modal */}
+      {isInvitationPackOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>✉️</span>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>UAT Invitation Pack (Section 22)</h3>
+              </div>
+              <button onClick={() => setIsInvitationPackOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
+
+            <div style={{ fontSize: '13px', color: '#475569', marginBottom: '16px' }}>
+              Copy and dispatch these pre-formatted invitations directly to the nominated E3 practitioners:
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {uatTesterAccounts.map((acc) => (
+                <div key={acc.code} style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <strong style={{ color: '#0f172a' }}>{acc.role}</strong>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        const text = `[E3-EOS v1.0 Human UAT Invitation]\\nRole: ${acc.role}\\nEnvironment: https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app\\nAccount: ${acc.email}\\nDirect Link: https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app${acc.link}\\nDuration: 15-25 minutes\\nInstructions: Follow the step-by-step checklist and record your adoption feedback.\\nReporting: Click 'Report Issue' for any blocker.`;
+                        navigator.clipboard?.writeText(text);
+                        showToast(`Invitation copied for ${acc.role}`);
+                      }}
+                    >
+                      📋 Copy Invitation
+                    </Button>
+                  </div>
+                  <div style={{ color: '#334155', lineHeight: 1.5 }}>
+                    <div>• <strong>Login:</strong> {acc.email} (Password distributed via secure channel)</div>
+                    <div>• <strong>Direct UAT Link:</strong> <span style={{ fontFamily: 'monospace', color: '#2563eb' }}>{acc.link}</span></div>
+                    <div>• <strong>Device Requirement:</strong> {acc.device}</div>
+                    <div>• <strong>Expected Duration:</strong> 15–25 minutes</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+              <Button variant="secondary" size="md" onClick={() => setIsInvitationPackOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Section 23: UAT Admin Instructions Modal */}
+      {isAdminGuideOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>📖</span>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>UAT Coordinator Guide (Section 23)</h3>
+              </div>
+              <button onClick={() => setIsAdminGuideOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
+              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+                <strong>1. Assign Tester:</strong> Nominate real human practitioner for each of the 11 roles in the roster.
+              </div>
+              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+                <strong>2. Send Test Link:</strong> Dispatch role-specific direct links (?role=...) from the Invitation Pack.
+              </div>
+              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+                <strong>3. Monitor Progress:</strong> Track live completion on the UAT Control Centre (0 / 11).
+              </div>
+              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+                <strong>4. Triage Defects:</strong> Inspect reported issues on the Defect Triage Board (New → Triaged → Fixing).
+              </div>
+              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+                <strong>5. Arrange Retest:</strong> Request tester to re-verify once defect is marked 'Ready for Retest'.
+              </div>
+              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+                <strong>6. Close P0/P1:</strong> Ensure Open P0 = 0 and Open P1 = 0 before presenting to Executive Owner.
+              </div>
+              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+                <strong>7. Review Adoption Answers:</strong> Verify all 11 testers answered the mandatory adoption question.
+              </div>
+              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+                <strong>8. Prepare Executive Go/No-Go:</strong> Unlock Executive Decision screen only when all gates pass.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+              <Button variant="secondary" size="md" onClick={() => setIsAdminGuideOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

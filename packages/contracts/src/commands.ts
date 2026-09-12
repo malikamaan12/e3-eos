@@ -2393,6 +2393,118 @@ export const ProductionSignoffSchema = z.object({
 });
 export type ProductionSignoffDto = z.infer<typeof ProductionSignoffSchema>;
 
+export const HumanUatRoleEnum = z.enum([
+  'executive_managing_director',
+  'project_director',
+  'project_manager',
+  'finance_controller',
+  'procurement',
+  'production_technical',
+  'warehouse_logistics',
+  'hse_operations',
+  'field_supervisor',
+  'client_user',
+  'super_admin',
+]);
+export type HumanUatRole = z.infer<typeof HumanUatRoleEnum>;
+
+export const HumanUatDefectSeverityEnum = z.enum(['P0', 'P1', 'P2', 'P3']);
+export type HumanUatDefectSeverity = z.infer<typeof HumanUatDefectSeverityEnum>;
+
+export const HumanUatStatusEnum = z.enum([
+  'Pending',
+  'In Progress',
+  'Passed',
+  'Passed With Issues',
+  'Failed',
+  'Retest Required',
+  'pending',
+  'pass',
+  'fail',
+  'blocked',
+]);
+export type HumanUatStatus = z.infer<typeof HumanUatStatusEnum>;
+
+export const HumanUatDefectSchema = z.object({
+  id: z.string(),
+  role: z.string().optional(),
+  screen: z.string().optional(),
+  description: z.string(),
+  severity: HumanUatDefectSeverityEnum,
+  screenshot: z.string().optional(),
+  reproductionSteps: z.string().optional(),
+  workaround: z.string().optional(),
+  owner: z.string().optional(),
+  status: z.enum(['open', 'resolved', 'accepted_as_backlog']).default('open'),
+});
+export type HumanUatDefect = z.infer<typeof HumanUatDefectSchema>;
+
+export const HumanUatRecordSchema = z.object({
+  id: z.string(),
+  role: HumanUatRoleEnum,
+  roleTitle: z.string(),
+  assignedTester: z.string().optional(),
+  user: z.string().default(''),
+  status: HumanUatStatusEnum.default('Pending'),
+  scenario: z.string(),
+  startDate: z.string().optional(),
+  completionDate: z.string().optional(),
+  date: z.string().default('2026-09-12'),
+  device: z.string().default(''),
+  browser: z.string().default(''),
+  startTime: z.string().default(''),
+  endTime: z.string().default(''),
+  score: z.number().min(0).max(100).default(0),
+  usabilityScore: z.number().min(0).max(100).default(0),
+  adoptionResponse: z.enum(['unanswered', 'yes', 'yes_with_improvements', 'no']).default('unanswered'),
+  openDefectsCount: z.number().default(0),
+  defects: z.array(HumanUatDefectSchema).default([]),
+  result: z.enum(['pending', 'pass', 'fail', 'blocked']).default('pending'),
+  frictionNotes: z.string().default(''),
+  finalDecision: z.enum(['pending', 'approved', 'rejected', 'approved_with_exceptions']).default('pending'),
+  acknowledged: z.boolean().default(false),
+  roleQuestion: z.string().optional(),
+  submittedAt: z.string().optional(),
+});
+export type HumanUatRecordDto = z.infer<typeof HumanUatRecordSchema>;
+
+export const SupportDrillExecutionSchema = z.object({
+  runbookId: z.enum(['RB01', 'RB03', 'RB06', 'RB07', 'RB12']),
+  title: z.string(),
+  participant: z.string(),
+  role: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  actionTaken: z.string(),
+  result: z.enum(['pending', 'pass', 'fail']),
+  recoveryTimeMinutes: z.number().nonnegative(),
+  developerAssistanceRequired: z.boolean(),
+  lessons: z.string(),
+});
+export type SupportDrillExecutionDto = z.infer<typeof SupportDrillExecutionSchema>;
+
+export const InfrastructureOwnershipItemSchema = z.object({
+  component: z.string(),
+  primaryOwner: z.string(),
+  backupOwner: z.string(),
+  accessVerified: z.boolean(),
+  verificationDate: z.string(),
+});
+export type InfrastructureOwnershipItemDto = z.infer<typeof InfrastructureOwnershipItemSchema>;
+
+export const RecoveryOwnerReviewSchema = z.object({
+  ownerName: z.string(),
+  role: z.string(),
+  acknowledgedAt: z.string(),
+  backupLocationConfirmed: z.boolean(),
+  restorationProcedureConfirmed: z.boolean(),
+  rpoConfirmed: z.boolean(),
+  rtoConfirmed: z.boolean(),
+  escalationPathConfirmed: z.boolean(),
+  comments: z.string(),
+});
+export type RecoveryOwnerReviewDto = z.infer<typeof RecoveryOwnerReviewSchema>;
+
 export interface CommandResult<T = any> {
   data: {
     id: string;
