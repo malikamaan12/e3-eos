@@ -3,19 +3,20 @@ import { useEosContext } from '../context/EosContext.js';
 import { MetricCard, Card, Badge, Button, AlertBanner, formatCurrency } from '../components/DesignSystem.js';
 
 export const HomeView: React.FC = () => {
-  const { currentUser, currentLanguage, navigate, apiClient, refreshTrigger } = useEosContext();
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { currentUser, currentLanguage, navigate, apiClient, refreshTrigger, projects: contextProjects } = useEosContext();
+  const [projects, setProjects] = useState<any[]>(() => contextProjects || []);
+  const [loading, setLoading] = useState<boolean>(!contextProjects || contextProjects.length === 0);
 
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
-      setLoading(true);
       try {
         const res = await apiClient.getProjects();
         if (isMounted) {
           const projectList = (res as any).data || (Array.isArray(res) ? res : []);
-          setProjects(projectList);
+          if (projectList && projectList.length > 0) {
+            setProjects(projectList);
+          }
         }
       } catch {
         // Handled
@@ -100,7 +101,7 @@ export const HomeView: React.FC = () => {
       >
         <MetricCard
           title={isRtl ? 'المشاريع النشطة' : 'Active Projects'}
-          value={loading ? '...' : projects.length}
+          value={projects.length > 0 ? projects.length : (loading ? '—' : 0)}
           subtitle={isRtl ? 'مشاريع خاضعة للتنفيذ والمراقبة' : 'Live staging projects'}
           accentColor="#2563eb"
         />
@@ -139,7 +140,13 @@ export const HomeView: React.FC = () => {
           }
           noPadding
         >
-          {projects.length === 0 ? (
+          {loading && projects.length === 0 ? (
+            <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600 }}>
+                {isRtl ? 'جارٍ تحميل بيانات المشاريع...' : 'Loading active projects...'}
+              </div>
+            </div>
+          ) : projects.length === 0 ? (
             <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
               {isRtl ? 'لا توجد مشاريع حالياً. انقر على "+ مشروع جديد" لإضافة أول فعالية.' : 'No projects found. Click "+ New Project" to onboard your first event.'}
             </div>

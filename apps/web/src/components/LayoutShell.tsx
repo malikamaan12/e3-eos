@@ -307,7 +307,14 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                         />
                       )}
                       <span style={{ fontSize: '15px' }}>{item.icon}</span>
-                      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span
+                        style={{
+                          flex: 1,
+                          whiteSpace: 'normal',
+                          lineHeight: 1.25,
+                          wordBreak: 'break-word',
+                        }}
+                      >
                         {currentLanguage === 'ar' ? item.labelAr : item.labelEn}
                       </span>
                     </button>
@@ -665,11 +672,12 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         {!isMobile && (
           <aside
             style={{
-              width: '250px',
+              width: '268px',
+              flexShrink: 0,
               backgroundColor: '#090d16',
               borderRight: direction === 'ltr' ? '1px solid #1e293b' : 'none',
               borderLeft: direction === 'rtl' ? '1px solid #1e293b' : 'none',
-              padding: '16px 10px',
+              padding: '16px 12px',
               display: currentPath === '/field' ? 'none' : 'flex',
               flexDirection: 'column',
               gap: '6px',

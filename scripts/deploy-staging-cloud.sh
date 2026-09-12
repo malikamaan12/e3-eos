@@ -7,7 +7,7 @@ set -euo pipefail
 PROJECT_ID="${PROJECT_ID:-e3-eos-staging}"
 REGION="${REGION:-me-central1}"
 ENVIRONMENT="${ENVIRONMENT:-staging}"
-COMMIT_SHA="${COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || echo '5334b9d7516254ea02266f3b7625c625c6de7deb')}"
+COMMIT_SHA="${COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || echo '2810586b627cfc1f6b55359a35e406aa8c7d6dfa')}"
 REGISTRY_URL="${REGION}-docker.pkg.dev/${PROJECT_ID}/e3-eos"
 
 echo "================================================================================"

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 # E3-EOS System Service Secrets Sync (Google Cloud Secret Manager)

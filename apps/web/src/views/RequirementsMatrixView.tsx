@@ -7,7 +7,8 @@ interface RequirementsMatrixViewProps {
 }
 
 export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ projectId }) => {
-  const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
+  const { apiClient, refreshTrigger, triggerRefresh, currentLanguage } = useEosContext();
+  const isRtl = currentLanguage === 'ar';
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -277,7 +278,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       <Card style={{ padding: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>Filter Requirements:</span>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>
+              {isRtl ? 'تصفية المتطلبات:' : 'Filter Requirements:'}
+            </span>
             <button
               id="btn-filter-all"
               onClick={() => setActiveFilter('all')}
@@ -292,7 +295,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 cursor: 'pointer',
               }}
             >
-              All ({evaluations.length})
+              {isRtl ? 'الكل' : 'All'} ({evaluations.length})
             </button>
             <button
               id="btn-filter-missing-owner"
@@ -308,7 +311,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 cursor: 'pointer',
               }}
             >
-              Missing Owner ({missingOwnerCount})
+              {isRtl ? 'دون مسؤول' : 'Missing Owner'} ({missingOwnerCount})
             </button>
             <button
               id="btn-filter-missing-boq"
@@ -324,7 +327,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 cursor: 'pointer',
               }}
             >
-              Missing BOQ ({missingBoqCount})
+              {isRtl ? 'دون تسعير BOQ' : 'Missing BOQ'} ({missingBoqCount})
             </button>
             <button
               id="btn-filter-missing-design"
@@ -340,7 +343,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 cursor: 'pointer',
               }}
             >
-              Missing Design ({missingDesignCount})
+              {isRtl ? 'دون تصميم CAD' : 'Missing Design'} ({missingDesignCount})
             </button>
             <button
               id="btn-filter-high-risk"
@@ -356,7 +359,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 cursor: 'pointer',
               }}
             >
-              High Risk ({highRiskCount})
+              {isRtl ? 'عالي المخاطر' : 'High Risk'} ({highRiskCount})
             </button>
             <button
               id="btn-filter-unapproved"
@@ -372,43 +375,67 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 cursor: 'pointer',
               }}
             >
-              Unapproved ({unapprovedCount})
+              {isRtl ? 'غير معتمد' : 'Unapproved'} ({unapprovedCount})
             </button>
           </div>
 
           <div style={{ fontSize: '12px', color: '#64748b' }}>
-            Showing <strong>{filteredEvaluations.length}</strong> of {evaluations.length} requirements
+            {isRtl ? 'عرض' : 'Showing'} <strong>{filteredEvaluations.length}</strong> {isRtl ? 'من أصل' : 'of'} {evaluations.length} {isRtl ? 'متطلب' : 'requirements'}
           </div>
         </div>
 
-        {/* 7-Point Matrix Table with Exact Specified Columns */}
+        {/* 7-Point Matrix Table with Robust Horizontal Scroll Container */}
         {filteredEvaluations.length === 0 ? (
           <div style={{ padding: '36px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px dashed #cbd5e1' }}>
             <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>No requirements match the active filter</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>
+              {isRtl ? 'لا توجد متطلبات مطابقة لمعيار التصفية الحالي' : 'No requirements match the active filter'}
+            </div>
             <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-              Switch to "All" or register a new scope requirement to populate the matrix.
+              {isRtl ? 'انتقل إلى "الكل" أو سجّل مطلباً جديداً في نطاق العمل لتغذية المصفوفة.' : 'Switch to "All" or register a new scope requirement to populate the matrix.'}
             </div>
             <Button variant="secondary" size="sm" onClick={() => setActiveFilter('all')} style={{ marginTop: '12px' }}>
-              Show All Requirements
+              {isRtl ? 'عرض جميع المتطلبات' : 'Show All Requirements'}
             </Button>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+            <table style={{ width: '100%', minWidth: '1420px', borderCollapse: 'collapse', fontSize: '12px', textAlign: isRtl ? 'right' : 'left' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
-                  <th style={{ padding: '10px 12px', fontWeight: 700, whiteSpace: 'nowrap' }}>Requirement ID</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Description</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Source</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Owner</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700, whiteSpace: 'nowrap' }}>Due Date</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Status</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap' }}>Coverage %</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked Design</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked BOQ</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked Document</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Risk</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '130px', minWidth: '130px', whiteSpace: 'nowrap' }}>
+                    {isRtl ? 'معرف المطلب' : 'Requirement ID'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, minWidth: '320px', maxWidth: '420px' }}>
+                    {isRtl ? 'الوصف والنطاق' : 'Description & Scope'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '130px', minWidth: '130px' }}>
+                    {isRtl ? 'المصدر' : 'Source'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '140px', minWidth: '140px' }}>
+                    {isRtl ? 'المسؤول' : 'Owner'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '110px', minWidth: '110px', whiteSpace: 'nowrap' }}>
+                    {isRtl ? 'تاريخ الاستحقاق' : 'Due Date'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '110px', minWidth: '110px', textAlign: 'center' }}>
+                    {isRtl ? 'الحالة' : 'Status'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '110px', minWidth: '110px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    {isRtl ? 'نسبة التغطية' : 'Coverage %'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '140px', minWidth: '140px' }}>
+                    {isRtl ? 'التصميم المرتبط' : 'Linked Design'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '140px', minWidth: '140px' }}>
+                    {isRtl ? 'جدول الكميات' : 'Linked BOQ'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '140px', minWidth: '140px' }}>
+                    {isRtl ? 'الوثيقة المعتمدة' : 'Linked Document'}
+                  </th>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '90px', minWidth: '90px', textAlign: 'center' }}>
+                    {isRtl ? 'المخاطرة' : 'Risk'}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -419,58 +446,58 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   return (
                     <tr key={ev.requirementId} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: ev.isFullyTraceable ? '#f0fdf4' : '#ffffff' }}>
                       {/* Column 1: Requirement ID */}
-                      <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#2563eb', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '12px 14px', fontFamily: 'monospace', fontWeight: 800, color: '#2563eb', whiteSpace: 'nowrap', width: '130px', minWidth: '130px' }}>
                         {ev.code || ev.requirementId}
                       </td>
 
                       {/* Column 2: Description */}
-                      <td style={{ padding: '12px', maxWidth: '280px' }}>
-                        <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '2px' }}>
+                      <td style={{ padding: '12px 14px', minWidth: '320px', maxWidth: '420px' }}>
+                        <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px', fontSize: '13px' }}>
                           {ev.title || 'Scope Deliverable'}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.4 }}>
+                        <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
                           {ev.description}
                         </div>
                         {ev.originalWording && (
-                          <div style={{ fontSize: '10px', color: '#475569', fontStyle: 'italic', marginTop: '2px' }}>
-                            Original: "{ev.originalWording}"
+                          <div style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic', marginTop: '4px', backgroundColor: '#f8fafc', padding: '4px 8px', borderRadius: '4px' }}>
+                            {isRtl ? 'النص الأصلي:' : 'Original:'} "{ev.originalWording}"
                           </div>
                         )}
                       </td>
 
                       {/* Column 3: Source */}
-                      <td style={{ padding: '12px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '12px 14px', width: '130px', minWidth: '130px' }}>
                         <div style={{ fontWeight: 600, color: '#334155' }}>
                           {ev.sourceType || 'Client RFP'}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
                           {ev.sourceReference || 'Tender Spec'}
                         </div>
                       </td>
 
                       {/* Column 4: Owner */}
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                         {ev.hasOwner ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span>
-                            <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '11px' }}>
+                            <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '12px' }}>
                               {ev.ownerName || 'Assigned Lead'}
                             </span>
                           </div>
                         ) : (
                           <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
-                            ⚠️ Missing Owner
+                            ⚠️ {isRtl ? 'دون مسؤول' : 'Missing Owner'}
                           </span>
                         )}
                       </td>
 
                       {/* Column 5: Due Date */}
-                      <td style={{ padding: '12px', whiteSpace: 'nowrap', color: ev.dueDate ? '#0f172a' : '#64748b' }}>
+                      <td style={{ padding: '12px 14px', whiteSpace: 'nowrap', width: '110px', minWidth: '110px', color: ev.dueDate ? '#0f172a' : '#64748b', fontFamily: 'monospace' }}>
                         {ev.dueDate ? new Date(ev.dueDate).toLocaleDateString() : '—'}
                       </td>
 
                       {/* Column 6: Status */}
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', width: '110px', minWidth: '110px' }}>
                         <Badge
                           variant={
                             reqStatus === 'approved' || reqStatus === 'delivered'
@@ -488,58 +515,58 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                       </td>
 
                       {/* Column 7: Coverage % */}
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', width: '110px', minWidth: '110px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                          <div style={{ fontWeight: 800, color: coveragePct >= 80 ? '#059669' : coveragePct >= 50 ? '#d97706' : '#dc2626', fontSize: '13px' }}>
+                          <div style={{ fontWeight: 800, color: coveragePct >= 80 ? '#059669' : coveragePct >= 50 ? '#d97706' : '#dc2626', fontSize: '13px', fontFamily: 'monospace' }}>
                             {coveragePct}%
                           </div>
                           <div style={{ fontSize: '10px', color: '#64748b' }}>
-                            {ev.completedPoints || 0}/7 points
+                            {ev.completedPoints || 0}/7 {isRtl ? 'نقاط' : 'pts'}
                           </div>
                         </div>
                       </td>
 
                       {/* Column 8: Linked Design */}
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                         {ev.hasDesignVersion ? (
-                          <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>
+                          <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                             ✓ {ev.linkedDesignVersion || 'CAD Linked'}
                           </span>
                         ) : (
-                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>
+                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                             ⚠️ No CAD
                           </span>
                         )}
                       </td>
 
                       {/* Column 9: Linked BOQ */}
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                         {ev.hasBoqCost ? (
-                          <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>
+                          <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                             ✓ {ev.linkedBoqLineCode || 'Priced'}
                           </span>
                         ) : (
-                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>
+                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                             ⚠️ Uncosted
                           </span>
                         )}
                       </td>
 
                       {/* Column 10: Linked Document */}
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                         {ev.hasControlledDocument ? (
-                          <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>
+                          <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                             ✓ {ev.linkedDocumentNumber || 'Controlled'}
                           </span>
                         ) : (
-                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>
+                          <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                             ⚠️ Unlinked
                           </span>
                         )}
                       </td>
 
                       {/* Column 11: Risk */}
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', width: '90px', minWidth: '90px' }}>
                         <Badge
                           variant={
                             ev.riskRating === 'low'

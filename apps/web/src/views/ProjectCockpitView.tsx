@@ -25,6 +25,7 @@ export const ProjectCockpitView: React.FC = () => {
     refreshTrigger,
     triggerRefresh,
   } = useEosContext();
+  const isRtl = currentLanguage === 'ar';
 
   const projectId = (typeof window !== 'undefined' && window.location.pathname.startsWith('/projects/') && window.location.pathname !== '/projects/new')
     ? window.location.pathname.split('/')[2]
@@ -336,9 +337,9 @@ export const ProjectCockpitView: React.FC = () => {
             </h1>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px', color: '#64748b' }}>
               <span>🏢 Client: <strong>{clientName}</strong></span>
-              <span>📍 Venue: <strong>{venue}</strong></span>
-              <span>👤 Lead PM: <strong>Zaid Mansour (pm@e3.qa)</strong></span>
-              <span>⏳ Move-in: <strong>{daysRemaining} days to live event</strong></span>
+              <span>📍 {isRtl ? 'المكان:' : 'Venue:'} <strong>{venue}</strong></span>
+              <span>👤 {isRtl ? 'مدير المشروع:' : 'Lead PM:'} <strong>Zaid Mansour (pm@e3.qa)</strong></span>
+              <span>⏳ {isRtl ? 'التركيب الميداني:' : 'Move-in:'} <strong>{isRtl ? `${daysRemaining} يوماً حتى انطلاق الفعالية` : `${daysRemaining} days to live event`}</strong></span>
             </div>
           </div>
 
@@ -349,7 +350,7 @@ export const ProjectCockpitView: React.FC = () => {
               size="md"
               onClick={() => setIsApprovalModalOpen(true)}
             >
-              ✍️ Request Approval
+              ✍️ {isRtl ? 'طلب اعتماد' : 'Request Approval'}
             </Button>
             <Button
               id="cockpit-add-task-btn"
@@ -357,7 +358,7 @@ export const ProjectCockpitView: React.FC = () => {
               size="md"
               onClick={() => setIsTaskModalOpen(true)}
             >
-              + Task
+              + {isRtl ? 'مهمة جديدة' : 'Task'}
             </Button>
             <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px', flexWrap: 'wrap' }}>
               <Button
@@ -366,7 +367,7 @@ export const ProjectCockpitView: React.FC = () => {
                 size="sm"
                 onClick={() => setIsLineageModalOpen(true)}
               >
-                🔗 Lineage
+                🔗 {isRtl ? 'سلسلة التتبع' : 'Lineage'}
               </Button>
               <Button
                 id="cockpit-live-cmd-btn"
@@ -374,7 +375,7 @@ export const ProjectCockpitView: React.FC = () => {
                 size="sm"
                 onClick={() => navigate('/live/command-center')}
               >
-                🛰️ Live Command
+                🛰️ {isRtl ? 'القيادة المباشرة' : 'Live Command'}
               </Button>
               <Button
                 id="cockpit-run-sheet-btn"
@@ -382,7 +383,7 @@ export const ProjectCockpitView: React.FC = () => {
                 size="sm"
                 onClick={() => navigate('/live/run-sheet')}
               >
-                ⏱️ Run Sheet
+                ⏱️ {isRtl ? 'جدول العرض' : 'Run Sheet'}
               </Button>
               <Button
                 id="cockpit-compliance-btn"
@@ -390,7 +391,7 @@ export const ProjectCockpitView: React.FC = () => {
                 size="sm"
                 onClick={() => navigate('/live/compliance')}
               >
-                ⚖️ Compliance
+                ⚖️ {isRtl ? 'الامتثال' : 'Compliance'}
               </Button>
               <Button
                 id="cockpit-closeout-btn"
@@ -398,7 +399,7 @@ export const ProjectCockpitView: React.FC = () => {
                 size="sm"
                 onClick={() => navigate('/closeout')}
               >
-                🏁 Closeout
+                🏁 {isRtl ? 'الإغلاق' : 'Closeout'}
               </Button>
               <Button
                 id="cockpit-audit-btn"
@@ -409,82 +410,193 @@ export const ProjectCockpitView: React.FC = () => {
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
-                📋 Audit
+                📋 {isRtl ? 'سجل التدقيق' : 'Audit'}
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Sprint 02 Module Navigation Tabs */}
+      {/* Cockpit Workstream Navigation Strip with Chevrons and Quick Jump Selector */}
       <div
-        id="cockpit-module-tabs"
         style={{
           display: 'flex',
-          gap: '4px',
+          alignItems: 'center',
+          gap: '8px',
           borderBottom: '2px solid #e2e8f0',
           marginBottom: '20px',
-          overflowX: 'auto',
           paddingBottom: '2px',
         }}
       >
-        {[
-          { id: 'overview', icon: '📊', label: 'Overview & Governance', badge: null },
-          { id: 'requirements', icon: '🎯', label: 'Requirements', badge: '4' },
-          { id: 'clarifications', icon: '❓', label: 'Clarifications / RFI', badge: '2 open' },
-          { id: 'documents', icon: '📑', label: 'Controlled Documents', badge: '3' },
-          { id: 'timeline', icon: '⏱️', label: 'Timeline / Gantt', badge: '72h CPM' },
-          { id: 'design', icon: '🎨', label: 'Design & Creative', badge: '4 pkgs' },
-          { id: 'commercial', icon: '💰', label: 'Commercial / BOQ', badge: 'QAR 1.52M' },
-          { id: 'procurement', icon: '🛒', label: 'Procurement & RFQ', badge: 'PO Released' },
-          { id: 'production', icon: '🏭', label: 'Production & QC', badge: 'QC Passed' },
-          { id: 'assets', icon: '📦', label: 'Assets & Depot', badge: '8 Locked' },
-          { id: 'logistics', icon: '🚚', label: 'Logistics & Fleet', badge: 'POD Signed' },
-          { id: 'crew', icon: '👷', label: 'Crew & Roster', badge: '11h Rest' },
-          { id: 'site', icon: '📝', label: 'Site & DSR', badge: 'DSR Logged' },
-          { id: 'readiness', icon: '🚦', label: 'Readiness Gate', badge: '100%' },
-        ].map((tab) => {
-          const isActive = cockpitModuleTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              id={`tab-cockpit-${tab.id}`}
-              onClick={() => setCockpitModuleTab(tab.id as any)}
-              style={{
-                padding: '8px 14px',
-                borderRadius: '6px 6px 0 0',
-                fontSize: '13px',
-                fontWeight: isActive ? 700 : 600,
-                border: 'none',
-                borderBottom: isActive ? '3px solid #d97706' : '3px solid transparent',
-                backgroundColor: isActive ? '#fffbeb' : 'transparent',
-                color: isActive ? '#92400e' : '#64748b',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span>{tab.icon}</span> {tab.label}
-              {tab.badge && (
-                <span
-                  style={{
-                    fontSize: '11px',
-                    backgroundColor: isActive ? '#fef3c7' : '#f1f5f9',
-                    color: isActive ? '#78350f' : '#475569',
-                    padding: '1px 6px',
-                    borderRadius: '10px',
-                    fontWeight: 700,
-                  }}
-                >
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
+        {/* Left Scroll Chevron */}
+        <button
+          type="button"
+          id="btn-cockpit-tabs-scroll-left"
+          title={isRtl ? 'التمرير لليمين' : 'Scroll left'}
+          onClick={() => {
+            const el = document.getElementById('cockpit-module-tabs');
+            if (el) el.scrollBy({ left: isRtl ? 260 : -260, behavior: 'smooth' });
+          }}
+          style={{
+            width: '28px',
+            height: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f1f5f9',
+            border: '1px solid #cbd5e1',
+            borderRadius: '4px',
+            color: '#334155',
+            fontWeight: 800,
+            fontSize: '16px',
+            cursor: 'pointer',
+            flexShrink: 0,
+            userSelect: 'none',
+          }}
+        >
+          {isRtl ? '›' : '‹'}
+        </button>
+
+        {/* Scrollable Workstream Tab Strip */}
+        <div
+          id="cockpit-module-tabs"
+          style={{
+            display: 'flex',
+            gap: '4px',
+            overflowX: 'auto',
+            flex: 1,
+            scrollbarWidth: 'thin',
+            scrollBehavior: 'smooth',
+          }}
+        >
+          {[
+            { id: 'overview', icon: '📊', label: isRtl ? 'نظرة عامة والحوكمة' : 'Overview & Governance', badge: null },
+            { id: 'requirements', icon: '🎯', label: isRtl ? 'المصفوفة والمتطلبات' : 'Requirements', badge: '4' },
+            { id: 'clarifications', icon: '❓', label: isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI', badge: isRtl ? '٢ مفتوح' : '2 open' },
+            { id: 'documents', icon: '📑', label: isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents', badge: '3' },
+            { id: 'timeline', icon: '⏱️', label: isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt', badge: '72h CPM' },
+            { id: 'design', icon: '🎨', label: isRtl ? 'التصميم والإبداع' : 'Design & Creative', badge: isRtl ? '٤ حزم' : '4 pkgs' },
+            { id: 'commercial', icon: '💰', label: isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ', badge: isRtl ? '١.٥٢ م ر.ق' : 'QAR 1.52M' },
+            { id: 'procurement', icon: '🛒', label: isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ', badge: isRtl ? 'أمر شراء صادر' : 'PO Released' },
+            { id: 'production', icon: '🏭', label: isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC', badge: isRtl ? 'تم اجتياز QC' : 'QC Passed' },
+            { id: 'assets', icon: '📦', label: isRtl ? 'الأصول والمستودع' : 'Assets & Depot', badge: isRtl ? '٨ مقفلة' : '8 Locked' },
+            { id: 'logistics', icon: '🚚', label: isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet', badge: isRtl ? 'تم التوقيع' : 'POD Signed' },
+            { id: 'crew', icon: '👷', label: isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster', badge: isRtl ? '١١ س راحة' : '11h Rest' },
+            { id: 'site', icon: '📝', label: isRtl ? 'تقارير الموقع DSR' : 'Site & DSR', badge: isRtl ? 'مسجل' : 'DSR Logged' },
+            { id: 'readiness', icon: '🚦', label: isRtl ? 'بوابة الجاهزية' : 'Readiness Gate', badge: '100%' },
+          ].map((tab) => {
+            const isActive = cockpitModuleTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                id={`tab-cockpit-${tab.id}`}
+                onClick={() => setCockpitModuleTab(tab.id as any)}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '6px 6px 0 0',
+                  fontSize: '13px',
+                  fontWeight: isActive ? 700 : 600,
+                  border: 'none',
+                  borderBottom: isActive ? '3px solid #d97706' : '3px solid transparent',
+                  backgroundColor: isActive ? '#fffbeb' : 'transparent',
+                  color: isActive ? '#92400e' : '#64748b',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0,
+                }}
+              >
+                <span>{tab.icon}</span> {tab.label}
+                {tab.badge && (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      backgroundColor: isActive ? '#fef3c7' : '#f1f5f9',
+                      color: isActive ? '#78350f' : '#475569',
+                      padding: '1px 6px',
+                      borderRadius: '10px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right Scroll Chevron */}
+        <button
+          type="button"
+          id="btn-cockpit-tabs-scroll-right"
+          title={isRtl ? 'التمرير لليسار' : 'Scroll right'}
+          onClick={() => {
+            const el = document.getElementById('cockpit-module-tabs');
+            if (el) el.scrollBy({ left: isRtl ? -260 : 260, behavior: 'smooth' });
+          }}
+          style={{
+            width: '28px',
+            height: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f1f5f9',
+            border: '1px solid #cbd5e1',
+            borderRadius: '4px',
+            color: '#334155',
+            fontWeight: 800,
+            fontSize: '16px',
+            cursor: 'pointer',
+            flexShrink: 0,
+            userSelect: 'none',
+          }}
+        >
+          {isRtl ? '‹' : '›'}
+        </button>
+
+        {/* Jump to Workstream Dropdown */}
+        <div style={{ flexShrink: 0, marginInlineStart: '4px' }}>
+          <select
+            id="cockpit-workstream-jump"
+            value={cockpitModuleTab}
+            onChange={(e) => {
+              const targetTab = e.target.value as any;
+              setCockpitModuleTab(targetTab);
+              const tabBtn = document.getElementById(`tab-cockpit-${targetTab}`);
+              if (tabBtn) tabBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            }}
+            style={{
+              padding: '6px 10px',
+              fontSize: '12px',
+              fontWeight: 600,
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#f8fafc',
+              color: '#1e293b',
+              cursor: 'pointer',
+            }}
+            title={isRtl ? 'الانتقال السريع إلى أي وحدة عمل' : 'Quick Jump to Any Workstream'}
+          >
+            <option value="overview">📊 {isRtl ? 'نظرة عامة والحوكمة' : 'Overview & Governance'}</option>
+            <option value="requirements">🎯 {isRtl ? 'المصفوفة والمتطلبات' : 'Requirements Matrix'}</option>
+            <option value="clarifications">❓ {isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI'}</option>
+            <option value="documents">📑 {isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents'}</option>
+            <option value="timeline">⏱️ {isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt'}</option>
+            <option value="design">🎨 {isRtl ? 'التصميم والإبداع' : 'Design & Creative'}</option>
+            <option value="commercial">💰 {isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ'}</option>
+            <option value="procurement">🛒 {isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ'}</option>
+            <option value="production">🏭 {isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC'}</option>
+            <option value="assets">📦 {isRtl ? 'الأصول والمستودع' : 'Assets & Depot'}</option>
+            <option value="logistics">🚚 {isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet'}</option>
+            <option value="crew">👷 {isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster'}</option>
+            <option value="site">📝 {isRtl ? 'تقارير الموقع DSR' : 'Site & DSR'}</option>
+            <option value="readiness">🚦 {isRtl ? 'بوابة الجاهزية' : 'Readiness Gate'}</option>
+          </select>
+        </div>
       </div>
 
       {cockpitModuleTab === 'requirements' && <RequirementsMatrixView projectId={projectId} />}

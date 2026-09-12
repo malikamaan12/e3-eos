@@ -20,6 +20,7 @@ import { FieldOpsView } from './views/FieldOpsView.js';
 import { ClientPortalView } from './views/ClientPortalView.js';
 import { SupplierPortalView } from './views/SupplierPortalView.js';
 import { LeadershipView } from './views/LeadershipView.js';
+import { MasterCalendarView } from './views/MasterCalendarView.js';
 import { AdminStudioView } from './views/AdminStudioView.js';
 import { VendorDirectoryView } from './views/VendorDirectoryView.js';
 import { WarehouseOperationsView } from './views/WarehouseOperationsView.js';
@@ -142,6 +143,9 @@ const AppRouter: React.FC = () => {
       return <SupplierPortalView />;
     }
     if (currentPath === '/calendar') {
+      return <MasterCalendarView />;
+    }
+    if (currentPath === '/leadership' || currentPath === '/executive') {
       return <LeadershipView />;
     }
     if (currentPath === '/reports') {

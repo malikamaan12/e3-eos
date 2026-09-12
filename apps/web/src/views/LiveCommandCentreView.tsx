@@ -4,6 +4,7 @@ import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Select } from 
 
 export const LiveCommandCentreView: React.FC = () => {
   const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
+  const isRtl = currentLanguage === 'ar';
   const projectId = selectedProjectId || 'PRJ-QND-2026';
 
   const [data, setData] = useState<any>(null);
@@ -62,27 +63,19 @@ export const LiveCommandCentreView: React.FC = () => {
     }
   };
 
-  const handleReportIncident = async () => {
-    if (!incidentDesc) return;
+  const handleCreateIncident = async () => {
     try {
-      await apiClient.reportIncident({
-        projectId,
-        location: 'Corniche Waterfront Site',
-        zone: incidentZone,
-        reporterId: 'usr-lead-01',
-        reporterName: 'Omar Soliman (Control Room Lead)',
-        incidentType,
+      await apiClient.createLiveIncident(projectId, {
+        type: incidentType,
         severity: incidentSeverity,
-        description: incidentDesc,
-        peopleInvolved: [],
-        assetsInvolved: [],
-        protectiveAction: 'none',
+        zone: incidentZone,
+        description: incidentDesc || 'Operator raised emergency event via command center',
       });
       setIsIncidentModalOpen(false);
       setIncidentDesc('');
       await loadCommandCenter();
     } catch (err: any) {
-      alert(err.message || 'Failed to report incident');
+      alert(err.message || 'Failed to submit incident');
     }
   };
 
@@ -96,13 +89,13 @@ export const LiveCommandCentreView: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
-              🔴 {currentLanguage === 'ar' ? 'مركز القيادة والعمليات الميدانية الحية' : 'Live Operations Command Centre'}
+              🔴 {isRtl ? 'مركز القيادة والعمليات الميدانية الحية' : 'Live Operations Command Centre'}
             </h1>
-            <Badge variant="danger">LIVE AUDIT FEED</Badge>
+            <Badge variant="danger">{isRtl ? 'تغذية تدقيق مباشرة' : 'LIVE AUDIT FEED'}</Badge>
             <Badge variant="neutral">ISO 20121 ACTIVE</Badge>
           </div>
           <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>
-            Qatar National Day Main Stage & Royal Pavilion — Real-time telemetry, protective controls, and event intelligence.
+            {isRtl ? 'مسرح اليوم الوطني لدولة قطر وجناح كبار الشخصيات — القياس الفوري، تدابير الحماية الوقائية، وذكاء إدارة الفعاليات.' : 'Qatar National Day Main Stage & Royal Pavilion — Real-time telemetry, protective controls, and event intelligence.'}
           </p>
         </div>
 
@@ -112,21 +105,21 @@ export const LiveCommandCentreView: React.FC = () => {
             onClick={() => setActiveTab('panels')}
             id="tab-8panels"
           >
-            8 Operations Panels
+            {isRtl ? '8 لوحات عملياتية' : '8 Operations Panels'}
           </Button>
           <Button
             variant={activeTab === 'audience' ? 'primary' : 'outline'}
             onClick={() => setActiveTab('audience')}
             id="tab-audience"
           >
-            Audience Density & Projection
+            {isRtl ? 'كثافة الجمهور والتوقعات' : 'Audience Density & Projection'}
           </Button>
           <Button
             variant="danger"
             onClick={() => setIsIncidentModalOpen(true)}
             id="btn-report-incident-top"
           >
-            + Report Live Incident
+            {isRtl ? '+ تسجيل حادث فوري' : '+ Report Live Incident'}
           </Button>
         </div>
       </div>
@@ -134,28 +127,40 @@ export const LiveCommandCentreView: React.FC = () => {
       {/* Top Status Strip */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         <MetricCard
-          label="Live Attendance"
+          title={isRtl ? 'حضور طاقم العمل المباشر' : 'Live Attendance'}
+          label={isRtl ? 'حضور طاقم العمل المباشر' : 'Live Attendance'}
           value={`${panels?.crewDuty?.checkedInWorkers || 38} / ${panels?.crewDuty?.rosteredWorkers || 42}`}
+          subtitle={isRtl ? `${panels?.crewDuty?.attendancePercentage || 90}% في الموقع` : `${panels?.crewDuty?.attendancePercentage || 90}% on site`}
           change={`${panels?.crewDuty?.attendancePercentage || 90}% on site`}
           trend="positive"
+          accentColor="#059669"
         />
         <MetricCard
-          label="Regulatory Gate"
-          value={panels?.compliance?.canOperate ? 'PERMITTED' : 'BLOCKED'}
+          title={isRtl ? 'بوابة الامتثال التنظيمي' : 'Regulatory Gate'}
+          label={isRtl ? 'بوابة الامتثال التنظيمي' : 'Regulatory Gate'}
+          value={panels?.compliance?.canOperate ? (isRtl ? 'مسموح التشغيل' : 'PERMITTED') : (isRtl ? 'محظور' : 'BLOCKED')}
+          subtitle={isRtl ? `${panels?.compliance?.activeObligations || 3} التزامات محققة` : `${panels?.compliance?.activeObligations || 3} verified active`}
           change={`${panels?.compliance?.activeObligations || 3} verified active`}
           trend={panels?.compliance?.canOperate ? 'positive' : 'negative'}
+          accentColor={panels?.compliance?.canOperate ? '#059669' : '#dc2626'}
         />
         <MetricCard
-          label="Show Cue Schedule"
-          value={`+${panels?.runSheet?.cumulativeDelayMinutes || 10}m delay`}
+          title={isRtl ? 'جدول إشارات العرض' : 'Show Cue Schedule'}
+          label={isRtl ? 'جدول إشارات العرض' : 'Show Cue Schedule'}
+          value={isRtl ? `تأخير +${panels?.runSheet?.cumulativeDelayMinutes || 10} دقيقة` : `+${panels?.runSheet?.cumulativeDelayMinutes || 10}m delay`}
+          subtitle={isRtl ? `${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} إشارات منجزة` : `${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} cues done`}
           change={`${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} cues done`}
           trend="neutral"
+          accentColor="#d97706"
         />
         <MetricCard
-          label="Venue Ingress Headcount"
+          title={isRtl ? 'تعداد دخول الجمهور' : 'Venue Ingress Headcount'}
+          label={isRtl ? 'تعداد دخول الجمهور' : 'Venue Ingress Headcount'}
           value={`${audience?.currentInside?.toLocaleString() || '10,850'}`}
+          subtitle={isRtl ? `${audience?.occupancyPercentage || 72}% نسبة الإشغال` : `${audience?.occupancyPercentage || 72}% venue occupancy`}
           change={`${audience?.occupancyPercentage || 72}% venue occupancy`}
           trend="positive"
+          accentColor="#2563eb"
         />
       </div>
 

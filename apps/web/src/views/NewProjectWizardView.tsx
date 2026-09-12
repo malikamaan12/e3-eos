@@ -103,15 +103,15 @@ export const NewProjectWizardView: React.FC = () => {
   const [stages, setStages] = useState<ConfigurableStage[]>(DEFAULT_STAGES);
 
   const steps = [
-    { num: 1, title: 'Origin Route' },
-    { num: 2, title: 'Project Identity' },
-    { num: 3, title: 'Client & Stakeholders' },
-    { num: 4, title: 'Dates & Deadlines' },
-    { num: 5, title: 'Venue Context' },
-    { num: 6, title: 'Commercials' },
-    { num: 7, title: 'Team Assignment' },
-    { num: 8, title: 'Stage Workflow' },
-    { num: 9, title: 'Review & Create' },
+    { num: 1, title: currentLanguage === 'ar' ? 'مسار المصدر' : 'Origin Route' },
+    { num: 2, title: currentLanguage === 'ar' ? 'هوية المشروع' : 'Project Identity' },
+    { num: 3, title: currentLanguage === 'ar' ? 'العميل والمعنيون' : 'Client & Stakeholders' },
+    { num: 4, title: currentLanguage === 'ar' ? 'المواعيد والجدول' : 'Dates & Deadlines' },
+    { num: 5, title: currentLanguage === 'ar' ? 'سياق الموقع' : 'Venue Context' },
+    { num: 6, title: currentLanguage === 'ar' ? 'البيانات التجارية' : 'Commercials' },
+    { num: 7, title: currentLanguage === 'ar' ? 'تعيين الفريق' : 'Team Assignment' },
+    { num: 8, title: currentLanguage === 'ar' ? 'سير عمل المراحل' : 'Stage Workflow' },
+    { num: 9, title: currentLanguage === 'ar' ? 'المراجعة والإنشاء' : 'Review & Create' },
   ];
 
   const handleToggleStageOptional = (index: number) => {
@@ -303,13 +303,14 @@ export const NewProjectWizardView: React.FC = () => {
       <div
         style={{
           display: 'flex',
-          gap: '4px',
+          gap: '6px',
           marginBottom: '24px',
           backgroundColor: '#ffffff',
-          padding: '10px 14px',
+          padding: '10px 12px',
           borderRadius: '8px',
           border: '1px solid #e2e8f0',
           overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {steps.map((s) => {
@@ -320,20 +321,26 @@ export const NewProjectWizardView: React.FC = () => {
               key={s.num}
               onClick={() => setCurrentStep(s.num)}
               style={{
-                flex: 1,
-                minWidth: '85px',
-                padding: '6px 4px',
-                borderRadius: '4px',
-                border: isCurrent ? '1px solid #3b82f6' : '1px solid transparent',
+                flex: '1 0 95px',
+                minWidth: '95px',
+                padding: '8px 4px',
+                borderRadius: '6px',
+                border: isCurrent ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                 backgroundColor: isCurrent ? '#eff6ff' : isDone ? '#f0fdf4' : '#f8fafc',
                 cursor: 'pointer',
                 textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '3px',
+                transition: 'all 0.15s ease',
               }}
             >
               <div
                 style={{
                   fontSize: '11px',
-                  fontWeight: 700,
+                  fontWeight: 800,
                   color: isCurrent ? '#2563eb' : isDone ? '#16a34a' : '#94a3b8',
                 }}
               >
@@ -341,11 +348,12 @@ export const NewProjectWizardView: React.FC = () => {
               </div>
               <div
                 style={{
-                  fontSize: '10px',
-                  color: isCurrent ? '#1e40af' : isDone ? '#15803d' : '#64748b',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
+                  fontSize: '11px',
+                  fontWeight: isCurrent ? 700 : 500,
+                  color: isCurrent ? '#1e40af' : isDone ? '#15803d' : '#475569',
+                  whiteSpace: 'normal',
+                  lineHeight: 1.25,
+                  wordBreak: 'normal',
                 }}
               >
                 {s.title}

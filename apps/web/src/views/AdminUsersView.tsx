@@ -159,15 +159,15 @@ export const AdminUsersView: React.FC = () => {
                   {u.email}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Badge variant={u.role === 'super_admin' ? 'purple' : u.role === 'client_user' ? 'warning' : 'info'}>
-                    {u.role}
+                  <Badge variant={(u.role === 'super_admin' || u.isSuperAdmin) ? 'purple' : u.role === 'client_user' ? 'warning' : 'info'}>
+                    {u.isSuperAdmin && (!u.role || u.role === 'unassigned') ? 'super_admin' : u.role}
                   </Badge>
-                  {CANONICAL_ROLE_EXPLANATIONS[u.role] && (
+                  {CANONICAL_ROLE_EXPLANATIONS[u.isSuperAdmin && (!u.role || u.role === 'unassigned') ? 'super_admin' : u.role] && (
                     <button
                       type="button"
                       id={`inspect-role-btn-${u.id}`}
                       title="View plain-English capabilities and governance boundaries"
-                      onClick={() => setInspectingRole(u.role)}
+                      onClick={() => setInspectingRole(u.isSuperAdmin && (!u.role || u.role === 'unassigned') ? 'super_admin' : u.role)}
                       style={{
                         background: 'none',
                         border: 'none',
@@ -206,8 +206,13 @@ export const AdminUsersView: React.FC = () => {
                         cursor: 'pointer',
                       }}
                     >
-                      Audit as Role
+                      {currentLanguage === 'ar' ? 'معاينة كـ دور' : 'Audit as Role'}
                     </button>
+                  )}
+                  {currentUser && u.email === currentUser.email && (
+                    <Badge variant="neutral">
+                      {currentLanguage === 'ar' ? 'الجلسة الحالية' : 'Active Session'}
+                    </Badge>
                   )}
                 </div>
               </div>

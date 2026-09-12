@@ -25,7 +25,7 @@ const MIME_TYPES = {
   '.wasm': 'application/wasm',
 };
 
-let resolvedCommit = 'e1ee72771a7443c6bda23dc7724c96d0d54d15c6';
+let resolvedCommit = '2810586b627cfc1f6b55359a35e406aa8c7d6dfa';
 try {
   const { execSync } = require('child_process');
   const rev = execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();

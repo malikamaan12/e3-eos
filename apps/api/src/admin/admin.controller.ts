@@ -239,7 +239,7 @@ export class AdminController {
         name: r.name,
         email: r.email,
         isSuperAdmin: r.is_super_admin,
-        role: r.role || 'unassigned',
+        role: r.is_super_admin ? 'super_admin' : (r.role || 'unassigned'),
         audience: r.audience || 'internal',
         organisationName: r.org_name || 'E3 Events',
         organisationId: r.org_id,

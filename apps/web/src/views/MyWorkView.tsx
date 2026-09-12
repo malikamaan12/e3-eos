@@ -4,13 +4,20 @@ import { Tabs, Card, Badge, Button, EmptyState, Modal, Textarea } from '../compo
 import { RequestApprovalModal } from '../components/RequestApprovalModal.js';
 
 export const MyWorkView: React.FC = () => {
-  const { currentUser, currentLanguage, apiClient, selectedProjectId, navigate, refreshTrigger, triggerRefresh } = useEosContext();
-  const [activeTab, setActiveTab] = useState<string>('action');
+  const { currentUser, currentLanguage, apiClient, selectedProjectId, navigate, refreshTrigger, triggerRefresh, currentPath } = useEosContext();
+  const isApprovalsRoute = currentPath === '/approvals' || (typeof window !== 'undefined' && window.location.pathname === '/approvals');
+  const [activeTab, setActiveTab] = useState<string>(() => (isApprovalsRoute ? 'approvals' : 'action'));
   const [tasks, setTasks] = useState<any[]>([]);
   const [approvals, setApprovals] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [taskFilter, setTaskFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [approvalFilter, setApprovalFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+
+  useEffect(() => {
+    if (isApprovalsRoute) {
+      setActiveTab('approvals');
+    }
+  }, [isApprovalsRoute]);
 
   // Decision Modal State
   const [decidingApproval, setDecidingApproval] = useState<any | null>(null);
@@ -126,23 +133,33 @@ export const MyWorkView: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
-              {currentLanguage === 'ar' ? 'مهامي ومسؤولياتي' : 'My Work'}
+              {isApprovalsRoute
+                ? (currentLanguage === 'ar' ? 'قائمة موافقات الحوكمة والاعتماد' : 'Governance Approvals Queue')
+                : (currentLanguage === 'ar' ? 'مهامي ومسؤولياتي' : 'My Work')}
             </h1>
-            <Badge variant="neutral">Qatar Live Operations</Badge>
+            <Badge variant={isApprovalsRoute ? 'purple' : 'neutral'}>
+              {isApprovalsRoute
+                ? (currentLanguage === 'ar' ? 'حوكمة رباعية' : 'Four-Eyes Governance')
+                : 'Qatar Live Operations'}
+            </Badge>
           </div>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
-            {currentLanguage === 'ar'
-              ? `المهام والموافقات والقرارات المسندة إلى: ${currentUser.name}`
-              : `Tasks, governance approvals, and milestone deliverables assigned to ${currentUser.name}`}
+            {isApprovalsRoute
+              ? (currentLanguage === 'ar'
+                ? 'قائمة مراجعة وتوقيع قرارات الحوكمة، اعتمادات بوابات المراحل، وأوامر الشراء المرفوعة للصلاحيات.'
+                : 'Four-Eyes governance approvals, stage-gate signoffs, and commercial decision queue.')
+              : (currentLanguage === 'ar'
+                ? `المهام والموافقات والقرارات المسندة إلى: ${currentUser.name}`
+                : `Tasks, governance approvals, and milestone deliverables assigned to ${currentUser.name}`)}
           </p>
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button variant="secondary" size="sm" onClick={triggerRefresh}>
-            🔄 Refresh
+            {currentLanguage === 'ar' ? '🔄 تحديث' : '🔄 Refresh'}
           </Button>
           <Button variant="primary" size="sm" onClick={() => navigate(`/projects/${selectedProjectId}`)}>
-            Open Cockpit
+            {currentLanguage === 'ar' ? 'فتح لوحة التحكم للمشروع' : 'Open Cockpit'}
           </Button>
         </div>
       </div>
@@ -505,27 +522,35 @@ export const MyWorkView: React.FC = () => {
       {activeTab === 'approvals' && (
         <div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-            {(['all', 'pending', 'approved', 'rejected'] as const).map((filter) => (
-              <button
-                key={filter}
-                id={`approval-filter-${filter}`}
-                onClick={() => setApprovalFilter(filter)}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '20px',
-                  border: '1px solid',
-                  borderColor: approvalFilter === filter ? '#2563eb' : '#cbd5e1',
-                  backgroundColor: approvalFilter === filter ? '#eff6ff' : '#ffffff',
-                  color: approvalFilter === filter ? '#1d4ed8' : '#64748b',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textTransform: 'capitalize',
-                }}
-              >
-                {filter === 'all' ? `All (${approvals.length})` : filter}
-              </button>
-            ))}
+            {(['all', 'pending', 'approved', 'rejected'] as const).map((filter) => {
+              const label = {
+                all: currentLanguage === 'ar' ? `الكل (${approvals.length})` : `All (${approvals.length})`,
+                pending: currentLanguage === 'ar' ? 'معلق' : 'Pending',
+                approved: currentLanguage === 'ar' ? 'معتمد' : 'Approved',
+                rejected: currentLanguage === 'ar' ? 'مرفوض' : 'Rejected',
+              }[filter];
+              return (
+                <button
+                  key={filter}
+                  id={`approval-filter-${filter}`}
+                  onClick={() => setApprovalFilter(filter)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    border: '1px solid',
+                    borderColor: approvalFilter === filter ? '#2563eb' : '#cbd5e1',
+                    backgroundColor: approvalFilter === filter ? '#eff6ff' : '#ffffff',
+                    color: approvalFilter === filter ? '#1d4ed8' : '#64748b',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           {filteredApprovals.length === 0 ? (
