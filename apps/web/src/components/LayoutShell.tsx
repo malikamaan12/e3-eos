@@ -110,6 +110,24 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
       ],
     },
     {
+      titleEn: 'Intelligence & Scale',
+      titleAr: 'الذكاء الاصطناعي والمحفظة المؤسسية',
+      items: [
+        { path: '/ai/copilot', labelEn: 'EOS AI Copilot', labelAr: 'المساعد الذكي لمشاريع EOS', icon: '🤖', id: 'nav-ai-copilot' },
+        { path: '/estimating/historical', labelEn: 'Historical Estimating', labelAr: 'التقدير التاريخي والتسعير', icon: '📊', id: 'nav-estimating' },
+        { path: '/portfolio/intelligence', labelEn: 'Portfolio Risk & Scale', labelAr: 'مخاطر المحفظة وسجل الموردين', icon: '🌐', id: 'nav-portfolio-intel' },
+      ],
+    },
+    {
+      titleEn: 'Configurable Logic & Jurisdictions',
+      titleAr: 'بناء تدفق العمل والتشريعات الإقليمية',
+      items: [
+        { path: '/governance/workflows', labelEn: 'Visual Workflow Builder', labelAr: 'مصمم تدفق العمل والمراحل', icon: '🛠️', id: 'nav-workflows' },
+        { path: '/governance/simulator', labelEn: 'Policy Simulation Sandbox', labelAr: 'محاكاة السياسات والقرارات', icon: '🧪', id: 'nav-simulator' },
+        { path: '/compliance/country-packs', labelEn: 'Country Packs (QA / SA / AE)', labelAr: 'الحزم الوطنية والامتثال', icon: '🌍', id: 'nav-country-packs' },
+      ],
+    },
+    {
       titleEn: 'Portals',
       titleAr: 'البوابات المتخصصة',
       items: [

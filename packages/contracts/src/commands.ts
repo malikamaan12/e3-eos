@@ -2084,6 +2084,210 @@ export const PeriodLockCreateSchema = z.object({
 });
 export type PeriodLockCreateDto = z.infer<typeof PeriodLockCreateSchema>;
 
+// ============================================================================
+// SPRINT 06: ENTERPRISE INTELLIGENCE, ESTIMATING, WORKFLOWS & COUNTRY PACKS
+// ============================================================================
+
+export const AiCopilotQuerySchema = z.object({
+  query: z.string().min(2),
+  classification: z.enum(['public', 'internal', 'confidential', 'restricted']).default('internal'),
+  includeDomains: z.array(z.string()).optional(),
+});
+export type AiCopilotQueryDto = z.infer<typeof AiCopilotQuerySchema>;
+
+export interface AiCopilotRecommendation {
+  domain: string;
+  recommendation: string;
+  urgency: 'low' | 'medium' | 'high' | 'critical';
+  confidenceScore: number;
+  sourceReference?: string;
+  actionType: 'advisory' | 'checklist' | 'prerequisite_check' | 'risk_warning';
+}
+
+export interface AiCopilotResponseDto {
+  query: string;
+  classification: string;
+  sanitized: boolean;
+  neutralizedPromptInjectionsFound: number;
+  answeringDomains: string[];
+  recommendations: AiCopilotRecommendation[];
+  nextActions: string[];
+  disclaimer: string;
+}
+
+export const SimilarProjectSearchSchema = z.object({
+  eventType: z.string().min(2),
+  venueType: z.string().min(2),
+  targetCapacity: z.number().min(1),
+  durationDays: z.number().min(1),
+  targetCountry: z.string().optional(),
+});
+export type SimilarProjectSearchDto = z.infer<typeof SimilarProjectSearchSchema>;
+
+export const ParametricEstimateRequestSchema = z.object({
+  eventType: z.string().min(2),
+  venueType: z.string().min(2),
+  targetCapacity: z.number().min(1),
+  durationDays: z.number().min(1),
+  currency: z.string().default('QAR'),
+});
+export type ParametricEstimateRequestDto = z.infer<typeof ParametricEstimateRequestSchema>;
+
+export interface CategorySpendBreakdown {
+  category: string;
+  percentage: number;
+  benchmarkAmount: string;
+}
+
+export interface ParametricEstimateResultDto {
+  currency: string;
+  targetCapacity: number;
+  durationDays: number;
+  sampleSize: number;
+  evidenceAgeDays: number;
+  p25LowCost: string;
+  p50MedianCost: string;
+  p75HighCost: string;
+  costPerCapacityUnit: string;
+  categorySpendBreakdown: CategorySpendBreakdown[];
+  marginErosionRiskIndexPercent: string;
+  riskDrivers: string[];
+}
+
+export const WorkflowDefinitionSchema = z.object({
+  workflowCode: z.string().min(2),
+  name: z.string().min(2),
+  description: z.string().optional(),
+  stages: z.array(
+    z.object({
+      stageCode: z.string(),
+      name: z.string(),
+      order: z.number(),
+      requiredActivities: z.array(z.string()),
+      requiredGateApprovals: z.array(z.string()),
+    })
+  ),
+  isDefault: z.boolean().default(false),
+});
+export type WorkflowDefinitionCreateDto = z.infer<typeof WorkflowDefinitionSchema>;
+
+export const WorkflowTransitionEvaluateSchema = z.object({
+  projectId: z.string(),
+  currentStage: z.string(),
+  targetStage: z.string(),
+  completedActivities: z.array(z.string()),
+  completedSignoffs: z.array(z.string()),
+});
+export type WorkflowTransitionEvaluateDto = z.infer<typeof WorkflowTransitionEvaluateSchema>;
+
+export interface WorkflowTransitionResultDto {
+  isPermitted: boolean;
+  currentStage: string;
+  targetStage: string;
+  missingActivities: string[];
+  missingSignoffs: string[];
+  status: 'permitted' | 'blocked' | 'exception_required';
+  reason: string;
+}
+
+export const PolicySimulationRequestSchema = z.object({
+  policyName: z.string().min(2),
+  proposedThresholds: z.object({
+    soleSourceSpendThreshold: z.number().optional(),
+    variationDualApprovalThreshold: z.number().optional(),
+    maxDailyCrewHours: z.number().optional(),
+    minimumGrossMarginPercent: z.number().optional(),
+  }),
+  sampleProjectCount: z.number().default(10),
+});
+export type PolicySimulationRequestDto = z.infer<typeof PolicySimulationRequestSchema>;
+
+export interface PolicySimulationResultDto {
+  simulationId: string;
+  policyName: string;
+  sampleProjectsEvaluated: number;
+  baselineExceptionRatePercent: string;
+  simulatedExceptionRatePercent: string;
+  projectedAdditionalApprovalsRequired: number;
+  projectedAverageScheduleDelayHours: number;
+  recommendedDisposition: 'recommend_adoption' | 'requires_committee_refinement' | 'reject_severe_bottleneck';
+  summary: string;
+}
+
+export const CountryPackConfigSchema = z.object({
+  countryCode: z.string().length(2),
+  jurisdiction: z.string().min(2),
+  primaryCurrency: z.string().length(3),
+  vatRatePercent: z.number().min(0).max(100),
+  labourMaxDailyHours: z.number().min(4).max(16),
+  summerOutdoorWorkRestriction: z.object({
+    enabled: z.boolean(),
+    startTime: z.string(),
+    endTime: z.string(),
+    startMonth: z.number(),
+    endMonth: z.number(),
+  }),
+  zatcaComplianceEnabled: z.boolean().default(false),
+});
+export type CountryPackConfigDto = z.infer<typeof CountryPackConfigSchema>;
+
+export const CountryComplianceCheckSchema = z.object({
+  projectId: z.string(),
+  countryCode: z.string().length(2),
+  shiftHours: z.number().optional(),
+  outdoorWorkTime: z.string().optional(),
+  outdoorWorkDate: z.string().optional(),
+  invoiceTotal: z.number().optional(),
+  taxAmount: z.number().optional(),
+  sellerName: z.string().optional(),
+  vatNumber: z.string().optional(),
+});
+export type CountryComplianceCheckDto = z.infer<typeof CountryComplianceCheckSchema>;
+
+export interface CountryComplianceResultDto {
+  countryCode: string;
+  jurisdiction: string;
+  isCompliant: boolean;
+  violations: string[];
+  zatcaQrCodeBase64?: string;
+  vatValidationStatus: 'valid' | 'invalid_rate' | 'exempt' | 'not_applicable';
+  labourValidationStatus: 'compliant' | 'fatigue_breach' | 'summer_work_ban_violation';
+}
+
+export interface EnterpriseRiskSummaryDto {
+  totalProjectsTracked: number;
+  highRiskProjectsCount: number;
+  mediumRiskProjectsCount: number;
+  healthyProjectsCount: number;
+  averagePortfolioMarginPercent: string;
+  criticalCrossProjectSnagsCount: number;
+  projectsRiskList: Array<{
+    projectId: string;
+    projectCode: string;
+    title: string;
+    riskScore: number;
+    riskLevel: 'low' | 'medium' | 'high';
+    cpi: string;
+    spi: string;
+    marginErosionRisk: string;
+    dominantRiskFactor: string;
+  }>;
+}
+
+export interface VendorPerformanceRankingDto {
+  vendorId: string;
+  vendorName: string;
+  discipline: string;
+  compositeScore: number;
+  projectsCompleted: number;
+  recommendationRatePercent: string;
+  averageQualityScore: number;
+  averageDeliveryScore: number;
+  averageHseScore: number;
+  statusTier: 'preferred_partner' | 'standard' | 'conditional_review' | 'restricted';
+}
+
+
 
 export interface CommandResult<T = any> {
   data: {

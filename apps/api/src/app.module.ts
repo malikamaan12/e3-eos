@@ -31,6 +31,12 @@ import {
   EnterpriseIntegrationsController,
 } from './commercial/commercial-finance.controller.js';
 import { OpenApiController } from './common/openapi.controller.js';
+import { AiCopilotController } from './ai/ai-copilot.controller.js';
+import { HistoricalEstimatingController } from './portfolio/historical-estimating.controller.js';
+import { WorkflowBuilderController } from './governance/workflow-builder.controller.js';
+import { PolicySimulatorController } from './governance/policy-simulator.controller.js';
+import { CountryPacksController } from './compliance/country-packs.controller.js';
+import { PortfolioIntelligenceController } from './portfolio/portfolio-intelligence.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
 import { IdempotencyGuard } from './common/idempotency.guard.js';
 import { TenantIsolationGuard } from './common/tenant.guard.js';
@@ -69,6 +75,12 @@ import { DbService } from './common/db.service.js';
     PortfolioController,
     AiController,
     RolloutController,
+    AiCopilotController,
+    HistoricalEstimatingController,
+    WorkflowBuilderController,
+    PolicySimulatorController,
+    CountryPacksController,
+    PortfolioIntelligenceController,
   ],
   providers: [DbService, DocumentQuarantineService, IdempotencyGuard, TenantIsolationGuard],
   exports: [DbService],

@@ -20,6 +20,7 @@ export * from './schema/portfolio.js';
 export * from './schema/rollout.js';
 export * from './schema/constraints.js';
 export * from './schema/documents.js';
+export * from './schema/enterprise.js';
 export * from './rls.js';
 export * from './seed.js';
 export * from './migrate.js';

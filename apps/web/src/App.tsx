@@ -39,6 +39,14 @@ import { PostEventReportBuilderView } from './views/PostEventReportBuilderView.j
 import { PerformanceKnowledgeView } from './views/PerformanceKnowledgeView.js';
 import { IntegrationsControlCenterView } from './views/IntegrationsControlCenterView.js';
 
+// Sprint 06 Intelligence, Estimating, Workflows & Country Views
+import { AiCopilotView } from './views/AiCopilotView.js';
+import { HistoricalEstimatorView } from './views/HistoricalEstimatorView.js';
+import { WorkflowBuilderView } from './views/WorkflowBuilderView.js';
+import { PolicySimulatorView } from './views/PolicySimulatorView.js';
+import { CountryPacksView } from './views/CountryPacksView.js';
+import { EnterprisePortfolioIntelligenceView } from './views/EnterprisePortfolioIntelligenceView.js';
+
 const AppRouter: React.FC = () => {
   const { currentPath } = useEosContext();
 
@@ -135,6 +143,24 @@ const AppRouter: React.FC = () => {
     }
     if (currentPath === '/reports') {
       return <AdminStudioView />;
+    }
+    if (currentPath === '/ai/copilot' || currentPath === '/copilot') {
+      return <AiCopilotView />;
+    }
+    if (currentPath === '/estimating/historical' || currentPath === '/estimating') {
+      return <HistoricalEstimatorView />;
+    }
+    if (currentPath === '/governance/workflows' || currentPath === '/workflows') {
+      return <WorkflowBuilderView />;
+    }
+    if (currentPath === '/governance/simulator' || currentPath === '/simulator') {
+      return <PolicySimulatorView />;
+    }
+    if (currentPath === '/compliance/country-packs' || currentPath === '/country-packs') {
+      return <CountryPacksView />;
+    }
+    if (currentPath === '/portfolio/intelligence') {
+      return <EnterprisePortfolioIntelligenceView />;
     }
     // Default route: Home View
     return <HomeView />;
