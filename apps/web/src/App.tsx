@@ -47,6 +47,9 @@ import { PolicySimulatorView } from './views/PolicySimulatorView.js';
 import { CountryPacksView } from './views/CountryPacksView.js';
 import { EnterprisePortfolioIntelligenceView } from './views/EnterprisePortfolioIntelligenceView.js';
 
+// Sprint 07 Production Rollout & Go-Live Console
+import { ProductionRolloutView } from './views/ProductionRolloutView.js';
+
 const AppRouter: React.FC = () => {
   const { currentPath } = useEosContext();
 
@@ -161,6 +164,18 @@ const AppRouter: React.FC = () => {
     }
     if (currentPath === '/portfolio/intelligence') {
       return <EnterprisePortfolioIntelligenceView />;
+    }
+    if (
+      currentPath === '/admin/rollout' ||
+      currentPath === '/rollout' ||
+      currentPath === '/admin/release/feature-flags' ||
+      currentPath === '/admin/release/go-live' ||
+      currentPath === '/admin/release/certificate' ||
+      currentPath === '/admin/operations/support' ||
+      currentPath.startsWith('/admin/rollout') ||
+      currentPath.startsWith('/admin/release')
+    ) {
+      return <ProductionRolloutView />;
     }
     // Default route: Home View
     return <HomeView />;

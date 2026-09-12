@@ -137,6 +137,17 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         { path: '/supplier', labelEn: 'Supplier Portal (RFQ)', labelAr: 'بوابة الموردين والشركاء', icon: '🏢', id: 'nav-supplier' },
       ],
     },
+    {
+      titleEn: 'Production Rollout & Go-Live',
+      titleAr: 'إطلاق الإنتاج والحوكمة',
+      items: [
+        { path: '/admin/rollout', labelEn: 'Production Go-Live Console', labelAr: 'لوحة إطلاق الإنتاج الشاملة', icon: '🚀', id: 'nav-rollout-console' },
+        { path: '/admin/release/feature-flags', labelEn: 'Feature Flag Register', labelAr: 'سجل ميزات التشغيل والتحكم', icon: '🚩', id: 'nav-feature-flags' },
+        { path: '/admin/operations/support', labelEn: 'Support Health & Runbooks', labelAr: 'صحة الدعم وكتيبات الطوارئ', icon: '🩺', id: 'nav-support-health' },
+        { path: '/admin/release/go-live', labelEn: 'Go / No-Go Decision Board', labelAr: 'لوحة قرار الإطلاق النهائي', icon: '⚖️', id: 'nav-go-live-board' },
+        { path: '/admin/release/certificate', labelEn: 'Production Acceptance Sign-Off', labelAr: 'شهادة قبول واعتماد الإنتاج', icon: '📜', id: 'nav-prod-certificate' },
+      ],
+    },
   ];
 
   return (

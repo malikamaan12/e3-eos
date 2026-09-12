@@ -2287,7 +2287,111 @@ export interface VendorPerformanceRankingDto {
   statusTier: 'preferred_partner' | 'standard' | 'conditional_review' | 'restricted';
 }
 
+// --- SPRINT 07: PRODUCTION ROLLOUT, FEATURE FLAGS, MIGRATION RECONCILIATION & GO-LIVE ---
 
+export const FeatureFlagScopeEnum = z.enum(['system', 'organisation', 'country', 'project']);
+export type FeatureFlagScope = z.infer<typeof FeatureFlagScopeEnum>;
+
+export const FeatureFlagSchema = z.object({
+  key: z.string().min(2),
+  name: z.string().min(2),
+  description: z.string().min(5),
+  category: z.enum(['core_platform', 'ai_intelligence', 'integrations', 'country_packs', 'experimental']),
+  enabled: z.boolean(),
+  scope: FeatureFlagScopeEnum.default('system'),
+  scopeValue: z.string().optional(),
+  isCore: z.boolean().default(false), // Core flags cannot be disabled in production
+  requiresRestart: z.boolean().default(false),
+  lastModifiedBy: z.string().optional(),
+  lastModifiedAt: z.string().optional(),
+});
+export type FeatureFlagDto = z.infer<typeof FeatureFlagSchema>;
+
+export const FeatureFlagToggleSchema = z.object({
+  enabled: z.boolean(),
+  reason: z.string().min(5),
+  scopeValue: z.string().optional(),
+});
+export type FeatureFlagToggleDto = z.infer<typeof FeatureFlagToggleSchema>;
+
+export const MigrationReconciliationItemSchema = z.object({
+  entityType: z.string().min(2),
+  sourceSystem: z.string().min(2),
+  sourceOwner: z.string().min(2),
+  sourceCount: z.number().int().nonnegative(),
+  eosCount: z.number().int().nonnegative(),
+  sourceTotalValue: z.string(),
+  eosTotalValue: z.string(),
+  currency: z.string().default('QAR'),
+  discrepancyCount: z.number().int().nonnegative(),
+  discrepancyValue: z.string(),
+  status: z.enum(['reconciled', 'variance_investigation', 'approved_exception']),
+  lastReconciledAt: z.string(),
+  authoritySignoff: z.string(),
+});
+export type MigrationReconciliationItemDto = z.infer<typeof MigrationReconciliationItemSchema>;
+
+export const MigrationReconciliationReportSchema = z.object({
+  overallStatus: z.enum(['fully_reconciled', 'discrepancies_detected', 'pending_approval']),
+  totalSourceEntities: z.number().int().nonnegative(),
+  totalEosEntities: z.number().int().nonnegative(),
+  totalDiscrepancies: z.number().int().nonnegative(),
+  reconciliationItems: z.array(MigrationReconciliationItemSchema),
+  sourceAuthorityVerified: z.boolean(),
+  legacyIdentifierPreservationPercent: z.number().min(0).max(100),
+});
+export type MigrationReconciliationReportDto = z.infer<typeof MigrationReconciliationReportSchema>;
+
+export const GoLivePillarEvaluationSchema = z.object({
+  pillarId: z.enum([
+    'product_scope',
+    'data_migration',
+    'security_compliance',
+    'disaster_recovery',
+    'performance_scale',
+    'support_operations',
+    'human_uat',
+    'ownership_sovereignty',
+    'governance_legal',
+  ]),
+  pillarName: z.string(),
+  status: z.enum(['ready', 'ready_with_exceptions', 'blocked']),
+  score: z.number().min(0).max(100),
+  mandatoryInvariantsMet: z.boolean(),
+  evidenceSummary: z.string(),
+  owner: z.string(),
+  signedOff: z.boolean(),
+});
+export type GoLivePillarEvaluationDto = z.infer<typeof GoLivePillarEvaluationSchema>;
+
+export const GoLiveBoardEvaluationSchema = z.object({
+  releaseTag: z.string(),
+  gitCommit: z.string(),
+  environment: z.enum(['production', 'staging', 'development']),
+  canGoLive: z.boolean(),
+  overallVerdict: z.enum(['GO', 'NO_GO', 'CONDITIONAL_GO']),
+  blockersCount: z.number().int().nonnegative(),
+  exceptionsCount: z.number().int().nonnegative(),
+  blockers: z.array(z.string()),
+  pillars: z.array(GoLivePillarEvaluationSchema),
+  evaluatedAt: z.string(),
+  evaluatedBy: z.string(),
+});
+export type GoLiveBoardEvaluationDto = z.infer<typeof GoLiveBoardEvaluationSchema>;
+
+export const ProductionSignoffSchema = z.object({
+  releaseTag: z.string().min(2),
+  gitCommit: z.string().min(7),
+  environment: z.enum(['production', 'staging']),
+  decision: z.enum(['approved_for_go_live', 'rejected_remediation_required']),
+  authorizedBy: z.string().min(2),
+  signerRole: z.string().min(2),
+  signoffComments: z.string().min(10),
+  activeExceptionsAcknowledged: z.boolean(),
+  disasterRecoveryVerified: z.boolean(),
+  tamperProofAuditHash: z.string().optional(),
+});
+export type ProductionSignoffDto = z.infer<typeof ProductionSignoffSchema>;
 
 export interface CommandResult<T = any> {
   data: {
