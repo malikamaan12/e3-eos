@@ -221,7 +221,7 @@ export const FieldOpsView: React.FC = () => {
     : ViewStateFactory.ready(checklists);
 
   return (
-    <div data-testid="field-ops-workspace" style={{ maxWidth: isMobileFrame ? '460px' : '1080px', margin: '0 auto', transition: 'max-width 0.3s ease' }}>
+    <div data-testid="field-ops-workspace" style={{ maxWidth: isMobileFrame ? '460px' : '1080px', width: '100%', margin: '0 auto', transition: 'max-width 0.3s ease' }}>
       {/* Viewport Width Controller Banner */}
       <div
         style={{
@@ -253,7 +253,7 @@ export const FieldOpsView: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            Mobile (390px)
+            Mobile Frame
           </button>
           <button
             onClick={() => setIsMobileFrame(false)}
@@ -312,10 +312,10 @@ export const FieldOpsView: React.FC = () => {
 
         {/* Quick Network & Safety Action Bar */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-          <Button size="sm" variant={isOffline ? 'primary' : 'secondary'} onClick={toggleOffline} style={{ flex: 1, fontSize: '11px' }}>
+          <Button size="md" variant={isOffline ? 'accent' : 'secondary'} onClick={toggleOffline} style={{ flex: 1, fontSize: '12px', minHeight: '44px' }}>
             {isOffline ? '⚡ Sync Offline Queue' : '📶 Simulate Offline'}
           </Button>
-          <Button size="sm" variant="danger" onClick={handleLogIncident} style={{ flex: 1, fontSize: '11px' }}>
+          <Button size="md" variant="danger" onClick={handleLogIncident} style={{ flex: 1, fontSize: '12px', minHeight: '44px' }}>
             🚨 HSE Incident
           </Button>
         </div>
@@ -336,7 +336,7 @@ export const FieldOpsView: React.FC = () => {
         <div
           style={{
             display: 'flex',
-            gap: '4px',
+            gap: '6px',
             overflowX: 'auto',
             paddingBottom: '8px',
             marginBottom: '14px',
@@ -351,35 +351,49 @@ export const FieldOpsView: React.FC = () => {
             { id: 'qc', label: '🔬 QC Inspect', badge: 0 },
             { id: 'crew', label: '👷 Crew Checkin', badge: 0 },
             { id: 'checklist', label: '📋 Readiness Chk', badge: checklists.filter(c => !c.completed).length },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              id={`mobile-tab-${tab.id}`}
-              onClick={() => setMobileTab(tab.id as any)}
-              style={{
-                padding: '6px 10px',
-                borderRadius: '6px',
-                fontSize: '11px',
-                fontWeight: 700,
-                whiteSpace: 'nowrap',
-                border: 'none',
-                backgroundColor: mobileTab === tab.id ? '#2563eb' : '#ffffff',
-                color: mobileTab === tab.id ? '#ffffff' : '#475569',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-              }}
-            >
-              <span>{tab.label}</span>
-              {tab.badge > 0 && (
-                <span style={{ backgroundColor: mobileTab === tab.id ? 'rgba(255,255,255,0.3)' : '#fee2e2', color: mobileTab === tab.id ? '#ffffff' : '#b91c1c', padding: '0 5px', borderRadius: '8px', fontSize: '10px' }}>
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          ))}
+          ].map((tab) => {
+            const isActive = mobileTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                id={`mobile-tab-${tab.id}`}
+                onClick={() => setMobileTab(tab.id as any)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  border: isActive ? '1px solid #0f172a' : '1px solid #cbd5e1',
+                  backgroundColor: isActive ? '#0f172a' : '#ffffff',
+                  color: isActive ? '#ffffff' : '#334155',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  minHeight: '40px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>{tab.label}</span>
+                {tab.badge > 0 && (
+                  <span
+                    style={{
+                      backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : '#fee2e2',
+                      color: isActive ? '#ffffff' : '#b91c1c',
+                      padding: '1px 6px',
+                      borderRadius: '8px',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                    }}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* 1. WORKFLOW: POD SIGN-OFF (PROOF OF DELIVERY) */}

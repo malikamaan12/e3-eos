@@ -93,10 +93,10 @@ export const ClientPortalView: React.FC = () => {
           marginBottom: '20px',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <Badge variant="purple">{currentLanguage === 'ar' ? 'بوابة العميل المعتمدة' : 'Verified Client Portal'}</Badge>
+              <Badge variant="accent">{currentLanguage === 'ar' ? 'بوابة العميل المعتمدة' : 'Verified Client Portal'}</Badge>
               <span style={{ fontSize: '13px', color: '#64748b' }}>{clientView.projectCode}</span>
             </div>
             <h1 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>

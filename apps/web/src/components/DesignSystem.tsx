@@ -1,7 +1,74 @@
 import React from 'react';
 
+// ==========================================
+// E3 CORPORATE COLOR SYSTEM & TOKENS
+// ==========================================
+export const E3_THEME = {
+  chrome: {
+    sidebarBg: '#090d16',
+    sidebarBorder: '#1e293b',
+    sidebarText: '#94a3b8',
+    sidebarTextHover: '#f8fafc',
+    sidebarActiveBg: '#1e293b',
+    sidebarActiveText: '#ffffff',
+    topbarBg: '#090d16',
+    topbarBorder: '#1e293b',
+  },
+  accent: {
+    primary: '#d97706',      // Warm metallic gold/amber
+    hover: '#b45309',
+    subtle: '#fef3c7',
+    border: '#f59e0b',
+  },
+  surface: {
+    pageBg: '#f8fafc',
+    cardBg: '#ffffff',
+    cardBorder: '#e2e8f0',
+    cardHeaderBg: '#ffffff',
+    tableBorder: '#e2e8f0',
+    tableRowHover: '#f8fafc',
+  },
+  text: {
+    primary: '#0f172a',
+    secondary: '#475569',
+    muted: '#64748b',
+    inverted: '#ffffff',
+  },
+  semantic: {
+    healthy: { bg: '#ecfdf5', text: '#065f46', border: '#a7f3d0' },
+    warning: { bg: '#fffbeb', text: '#92400e', border: '#fde68a' },
+    blocked: { bg: '#fef2f2', text: '#991b1b', border: '#fecaca' },
+    info: { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
+  },
+};
+
+// ==========================================
+// FINANCIAL & NUMERIC FORMATTING UTILITIES
+// ==========================================
+export function formatCurrency(amount: number | string, currency: string = 'QAR'): string {
+  const num = typeof amount === 'string' ? parseFloat(amount.replace(/[^0-9.-]+/g, '')) : amount;
+  if (isNaN(num)) return `${currency} 0`;
+  
+  const isNegative = num < 0;
+  const absFormatted = Math.abs(num).toLocaleString('en-US', {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  });
+
+  return isNegative ? `−${currency} ${absFormatted}` : `${currency} ${absFormatted}`;
+}
+
+export function formatCompactNumber(num: number): string {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+  return num.toString();
+}
+
+// ==========================================
+// BUTTON COMPONENT
+// ==========================================
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'ghost' | 'outline';
+  variant?: 'primary' | 'secondary' | 'accent' | 'danger' | 'success' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -25,42 +92,54 @@ export const Button: React.FC<ButtonProps> = ({
     border: '1px solid transparent',
     cursor: disabled || isLoading ? 'not-allowed' : 'pointer',
     opacity: disabled || isLoading ? 0.6 : 1,
-    transition: 'all 0.15s ease-in-out',
+    transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
     fontFamily: 'inherit',
     lineHeight: 1,
+    whiteSpace: 'nowrap',
+    outline: 'none',
   };
 
   const sizeStyles: Record<string, React.CSSProperties> = {
-    sm: { padding: '6px 12px', fontSize: '12px' },
-    md: { padding: '8px 16px', fontSize: '14px' },
-    lg: { padding: '12px 24px', fontSize: '16px' },
+    sm: { padding: '6px 12px', fontSize: '12px', height: '32px' },
+    md: { padding: '8px 16px', fontSize: '13px', height: '38px' },
+    lg: { padding: '12px 22px', fontSize: '15px', height: '46px' },
   };
 
   const variantStyles: Record<string, React.CSSProperties> = {
     primary: {
-      backgroundColor: '#2563eb',
+      backgroundColor: '#0f172a',
       color: '#ffffff',
-      borderColor: '#1d4ed8',
+      borderColor: '#0f172a',
+      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.08)',
+    },
+    accent: {
+      backgroundColor: '#d97706',
+      color: '#ffffff',
+      borderColor: '#b45309',
+      boxShadow: '0 1px 2px rgba(217, 119, 6, 0.2)',
     },
     secondary: {
-      backgroundColor: '#f1f5f9',
-      color: '#0f172a',
+      backgroundColor: '#ffffff',
+      color: '#1e293b',
       borderColor: '#cbd5e1',
+      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
     },
     danger: {
       backgroundColor: '#dc2626',
       color: '#ffffff',
       borderColor: '#b91c1c',
+      boxShadow: '0 1px 2px rgba(220, 38, 38, 0.15)',
     },
     success: {
       backgroundColor: '#059669',
       color: '#ffffff',
       borderColor: '#047857',
+      boxShadow: '0 1px 2px rgba(5, 150, 105, 0.15)',
     },
     outline: {
       backgroundColor: 'transparent',
-      color: '#2563eb',
-      borderColor: '#2563eb',
+      color: '#0f172a',
+      borderColor: '#94a3b8',
     },
     ghost: {
       backgroundColor: 'transparent',
@@ -98,8 +177,11 @@ export const Button: React.FC<ButtonProps> = ({
   );
 };
 
+// ==========================================
+// SEMANTIC BADGE COMPONENT (NO CONFETTI)
+// ==========================================
 export interface BadgeProps {
-  variant?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'purple' | 'secondary' | 'primary';
+  variant?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'purple' | 'secondary' | 'primary' | 'accent';
   children: React.ReactNode;
   size?: 'sm' | 'md';
   style?: React.CSSProperties;
@@ -107,14 +189,15 @@ export interface BadgeProps {
 
 export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', children, style: customStyle }) => {
   const variantStyles: Record<string, { bg: string; text: string; border: string }> = {
-    neutral: { bg: '#f1f5f9', text: '#334155', border: '#e2e8f0' },
+    neutral: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
     secondary: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
-    primary: { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
-    info: { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
-    success: { bg: '#ecfdf5', text: '#047857', border: '#a7f3d0' },
-    warning: { bg: '#fffbeb', text: '#b45309', border: '#fde68a' },
-    danger: { bg: '#fef2f2', text: '#b91c1c', border: '#fecaca' },
+    primary: { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
+    info: { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
+    success: { bg: '#ecfdf5', text: '#065f46', border: '#a7f3d0' },
+    warning: { bg: '#fffbeb', text: '#92400e', border: '#fde68a' },
+    danger: { bg: '#fef2f2', text: '#991b1b', border: '#fecaca' },
     purple: { bg: '#faf5ff', text: '#6b21a8', border: '#e9d5ff' },
+    accent: { bg: '#fef3c7', text: '#92400e', border: '#f59e0b' },
   };
 
   const style = variantStyles[variant] || variantStyles.neutral;
@@ -124,14 +207,15 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', 
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        padding: size === 'sm' ? '2px 8px' : '4px 12px',
-        fontSize: size === 'sm' ? '11px' : '13px',
+        padding: size === 'sm' ? '2px 8px' : '4px 10px',
+        fontSize: size === 'sm' ? '11px' : '12px',
         fontWeight: 600,
-        borderRadius: '9999px',
+        borderRadius: '4px',
         backgroundColor: style.bg,
         color: style.text,
         border: `1px solid ${style.border}`,
         whiteSpace: 'nowrap',
+        lineHeight: 1.3,
         ...customStyle,
       }}
     >
@@ -140,33 +224,56 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', 
   );
 };
 
+// ==========================================
+// METRIC CARD / KPI CARD (ENTERPRISE STANDARD)
+// ==========================================
 export interface MetricCardProps {
-  title: string;
+  title?: string;
+  label?: string;
   value: string | number;
   subtitle?: string;
+  subtext?: string;
+  change?: string;
   delta?: { text: string; isPositive: boolean };
+  trend?: 'positive' | 'negative' | 'neutral' | 'up' | 'down' | string;
+  trendDirection?: 'up' | 'down';
   badge?: { label: string; variant: BadgeProps['variant'] };
   accentColor?: string;
+  onClick?: () => void;
 }
 
 export const MetricCard: React.FC<MetricCardProps> = ({
   title,
+  label,
   value,
   subtitle,
+  subtext,
+  change,
   delta,
+  trend,
+  trendDirection,
   badge,
-  accentColor = '#2563eb',
+  accentColor = '#d97706',
+  onClick,
 }) => {
+  const displayTitle = title || label || '';
+  const displaySubtitle = subtitle || subtext || change || '';
+  const isTrendPositive = trend === 'positive' || trend === 'up' || trendDirection === 'up';
+  const isTrendNegative = trend === 'negative' || trend === 'down' || trendDirection === 'down';
+
   return (
     <div
+      onClick={onClick}
       style={{
         backgroundColor: '#ffffff',
         borderRadius: '8px',
         border: '1px solid #e2e8f0',
-        padding: '16px 20px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        padding: '16px 18px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
         position: 'relative',
         overflow: 'hidden',
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'transform 0.1s ease, box-shadow 0.1s ease',
       }}
     >
       <div
@@ -179,33 +286,45 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           backgroundColor: accentColor,
         }}
       />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', color: '#64748b' }}>
-          {title}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#64748b' }}>
+          {displayTitle}
         </span>
         {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
       </div>
-      <div style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>
+      <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '4px', fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
         {delta && (
           <span
             style={{
-              fontSize: '12px',
-              fontWeight: 600,
+              fontWeight: 700,
               color: delta.isPositive ? '#059669' : '#dc2626',
             }}
           >
             {delta.isPositive ? '▲' : '▼'} {delta.text}
           </span>
         )}
-        {subtitle && <span style={{ fontSize: '12px', color: '#64748b' }}>{subtitle}</span>}
+        {!delta && trend && (
+          <span
+            style={{
+              fontWeight: 700,
+              color: isTrendPositive ? '#059669' : isTrendNegative ? '#dc2626' : '#64748b',
+            }}
+          >
+            {isTrendPositive ? '▲ ' : isTrendNegative ? '▼ ' : ''}
+          </span>
+        )}
+        {displaySubtitle && <span style={{ color: '#64748b' }}>{displaySubtitle}</span>}
       </div>
     </div>
   );
 };
 
+// ==========================================
+// ALERT BANNER COMPONENT
+// ==========================================
 export interface AlertBannerProps {
   type?: 'info' | 'warning' | 'error' | 'success';
   title?: string;
@@ -240,12 +359,12 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
         border: `1px solid ${conf.border}`,
         color: conf.text,
         marginBottom: '16px',
-        fontSize: '14px',
+        fontSize: '13px',
       }}
     >
-      <span style={{ fontSize: '16px' }}>{conf.icon}</span>
+      <span style={{ fontSize: '16px', marginTop: '1px' }}>{conf.icon}</span>
       <div style={{ flex: 1 }}>
-        {title && <div style={{ fontWeight: 700, marginBottom: '4px' }}>{title}</div>}
+        {title && <div style={{ fontWeight: 700, marginBottom: '2px' }}>{title}</div>}
         <div style={{ lineHeight: 1.5 }}>{children}</div>
       </div>
       {action && (
@@ -257,6 +376,9 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
   );
 };
 
+// ==========================================
+// TABS COMPONENT
+// ==========================================
 export interface TabItem {
   id: string;
   label: string;
@@ -276,11 +398,10 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
         display: 'flex',
         gap: '4px',
         borderBottom: '1px solid #e2e8f0',
-        marginBottom: '20px',
+        marginBottom: '18px',
         overflowX: 'auto',
         overflowY: 'hidden',
         scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
       }}
     >
       {tabs.map((tab) => {
@@ -292,12 +413,12 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '10px 16px',
-              fontSize: '14px',
-              fontWeight: isActive ? 600 : 500,
-              color: isActive ? '#2563eb' : '#64748b',
-              borderBottom: isActive ? '2px solid #2563eb' : '2px solid transparent',
+              gap: '6px',
+              padding: '10px 14px',
+              fontSize: '13px',
+              fontWeight: isActive ? 700 : 500,
+              color: isActive ? '#0f172a' : '#64748b',
+              borderBottom: isActive ? '2px solid #d97706' : '2px solid transparent',
               background: 'none',
               borderTop: 'none',
               borderLeft: 'none',
@@ -306,6 +427,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
               whiteSpace: 'nowrap',
               fontFamily: 'inherit',
               marginBottom: '-1px',
+              outline: 'none',
             }}
           >
             {tab.label}
@@ -313,11 +435,11 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
               <span
                 style={{
                   fontSize: '11px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   padding: '1px 6px',
                   borderRadius: '9999px',
-                  backgroundColor: isActive ? '#dbeafe' : '#f1f5f9',
-                  color: isActive ? '#1d4ed8' : '#64748b',
+                  backgroundColor: isActive ? '#fef3c7' : '#f1f5f9',
+                  color: isActive ? '#92400e' : '#64748b',
                 }}
               >
                 {tab.badge}
@@ -330,6 +452,9 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
   );
 };
 
+// ==========================================
+// MODAL COMPONENT
+// ==========================================
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -349,7 +474,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        backgroundColor: 'rgba(15, 23, 42, 0.65)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -364,30 +489,32 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           borderRadius: '10px',
           width: '100%',
           maxWidth,
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15)',
           overflow: 'hidden',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div
           style={{
-            padding: '16px 20px',
+            padding: '14px 20px',
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            backgroundColor: '#f8fafc',
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#0f172a' }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>{title}</h3>
           <button
             onClick={onClose}
             style={{
               border: 'none',
               background: 'none',
-              fontSize: '20px',
-              color: '#94a3b8',
+              fontSize: '18px',
+              color: '#64748b',
               cursor: 'pointer',
               padding: '4px',
+              lineHeight: 1,
             }}
           >
             ✕
@@ -413,6 +540,95 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   );
 };
 
+// ==========================================
+// DRAWER COMPONENT (SLIDE-OVER FOR CONTEXT)
+// ==========================================
+export interface DrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  width?: string;
+  position?: 'right' | 'left';
+}
+
+export const Drawer: React.FC<DrawerProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  footer,
+  width = '420px',
+  position = 'right',
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+        zIndex: 9999,
+        display: 'flex',
+        justifyContent: position === 'right' ? 'flex-end' : 'flex-start',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          width,
+          maxWidth: '90vw',
+          height: '100%',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundColor: '#f8fafc',
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>{title}</h3>
+          <button
+            onClick={onClose}
+            style={{ border: 'none', background: 'none', fontSize: '18px', color: '#64748b', cursor: 'pointer' }}
+          >
+            ✕
+          </button>
+        </div>
+        <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>{children}</div>
+        {footer && (
+          <div
+            style={{
+              padding: '14px 20px',
+              borderTop: '1px solid #e2e8f0',
+              backgroundColor: '#f8fafc',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '10px',
+            }}
+          >
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// FORM CONTROLS WITH ACCESSIBLE FOCUS
+// ==========================================
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
@@ -424,7 +640,7 @@ export const Input: React.FC<InputProps> = ({ label, error, hint, style, id, ...
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
       {label && (
-        <label htmlFor={inputId} style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+        <label htmlFor={inputId} style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
           {label}
         </label>
       )}
@@ -439,13 +655,14 @@ export const Input: React.FC<InputProps> = ({ label, error, hint, style, id, ...
           backgroundColor: '#ffffff',
           color: '#0f172a',
           fontFamily: 'inherit',
-          transition: 'border-color 0.15s ease',
+          height: '38px',
+          boxSizing: 'border-box',
           ...style,
         }}
         {...props}
       />
       {hint && !error && <span style={{ fontSize: '11px', color: '#64748b' }}>{hint}</span>}
-      {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 500 }}>{error}</span>}
+      {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600 }}>{error}</span>}
     </div>
   );
 };
@@ -462,7 +679,7 @@ export const Select: React.FC<SelectProps> = ({ label, error, hint, options, chi
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
       {label && (
-        <label htmlFor={selectId} style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+        <label htmlFor={selectId} style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
           {label}
         </label>
       )}
@@ -477,7 +694,9 @@ export const Select: React.FC<SelectProps> = ({ label, error, hint, options, chi
           backgroundColor: '#ffffff',
           color: '#0f172a',
           fontFamily: 'inherit',
+          height: '38px',
           cursor: 'pointer',
+          boxSizing: 'border-box',
           ...style,
         }}
         {...props}
@@ -489,7 +708,7 @@ export const Select: React.FC<SelectProps> = ({ label, error, hint, options, chi
         )) : children}
       </select>
       {hint && !error && <span style={{ fontSize: '11px', color: '#64748b' }}>{hint}</span>}
-      {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 500 }}>{error}</span>}
+      {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600 }}>{error}</span>}
     </div>
   );
 };
@@ -505,7 +724,7 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, hint, style, i
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
       {label && (
-        <label htmlFor={textareaId} style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+        <label htmlFor={textareaId} style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
           {label}
         </label>
       )}
@@ -522,16 +741,20 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, hint, style, i
           fontFamily: 'inherit',
           resize: 'vertical',
           minHeight: '80px',
+          boxSizing: 'border-box',
           ...style,
         }}
         {...props}
       />
       {hint && !error && <span style={{ fontSize: '11px', color: '#64748b' }}>{hint}</span>}
-      {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 500 }}>{error}</span>}
+      {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600 }}>{error}</span>}
     </div>
   );
 };
 
+// ==========================================
+// CARD COMPONENT
+// ==========================================
 export interface CardProps {
   title?: string;
   subtitle?: string;
@@ -562,6 +785,7 @@ export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, s
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            backgroundColor: '#ffffff',
           }}
         >
           <div>
@@ -576,6 +800,84 @@ export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, s
   );
 };
 
+// ==========================================
+// COMPACT PERSISTENT PROJECT CONTEXT HEADER
+// ==========================================
+export interface ProjectContextHeaderProps {
+  projectCode: string;
+  projectName: string;
+  clientName: string;
+  currentStage: string;
+  status: string;
+  venue: string;
+  eventDate: string;
+  leadPm: string;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  primaryAction?: React.ReactNode;
+  secondaryActions?: React.ReactNode;
+}
+
+export const ProjectContextHeader: React.FC<ProjectContextHeaderProps> = ({
+  projectCode,
+  projectName,
+  clientName,
+  currentStage,
+  status,
+  venue,
+  eventDate,
+  leadPm,
+  riskLevel,
+  primaryAction,
+  secondaryActions,
+}) => {
+  const riskBadge = riskLevel === 'CRITICAL' || riskLevel === 'HIGH' ? 'danger' : riskLevel === 'MEDIUM' ? 'warning' : 'success';
+
+  return (
+    <div
+      style={{
+        backgroundColor: '#0f172a',
+        color: '#ffffff',
+        borderRadius: '8px',
+        padding: '12px 18px',
+        marginBottom: '16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '12px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 700, backgroundColor: '#1e293b', padding: '3px 8px', borderRadius: '4px', color: '#d97706', border: '1px solid #334155' }}>
+          {projectCode}
+        </span>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+          {projectName}
+        </h2>
+        <span style={{ fontSize: '12px', color: '#94a3b8' }}>• {clientName}</span>
+        <Badge variant="neutral" size="sm">{currentStage}</Badge>
+        <Badge variant={riskBadge} size="sm">Risk: {riskLevel}</Badge>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        <div style={{ fontSize: '11px', color: '#cbd5e1', display: 'flex', gap: '12px' }}>
+          <span>📍 {venue}</span>
+          <span>📅 {eventDate}</span>
+          <span>👤 {leadPm}</span>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {secondaryActions}
+          {primaryAction}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// EMPTY STATE & SKELETON
+// ==========================================
 export interface EmptyStateProps {
   icon?: string;
   title: string;
@@ -587,7 +889,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon = '📂', title, de
   return (
     <div
       style={{
-        padding: '40px 20px',
+        padding: '36px 20px',
         textAlign: 'center',
         backgroundColor: '#ffffff',
         borderRadius: '8px',
@@ -595,9 +897,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon = '📂', title, de
         margin: '16px 0',
       }}
     >
-      <div style={{ fontSize: '36px', marginBottom: '12px' }}>{icon}</div>
-      <h4 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>{title}</h4>
-      <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#64748b', maxWidth: '400px', marginInline: 'auto' }}>
+      <div style={{ fontSize: '32px', marginBottom: '10px' }}>{icon}</div>
+      <h4 style={{ margin: '0 0 6px', fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>{title}</h4>
+      <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#64748b', maxWidth: '380px', marginInline: 'auto' }}>
         {description}
       </p>
       {action && <div>{action}</div>}
@@ -623,4 +925,3 @@ export const Skeleton: React.FC<{ width?: string | number; height?: string | num
     />
   );
 };
-

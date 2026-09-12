@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { MetricCard, Card, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { MetricCard, Card, Badge, Button, Modal, Input, Textarea, Select, formatCurrency } from '../components/DesignSystem.js';
 import { RequirementsMatrixView } from './RequirementsMatrixView.js';
 import { ClarificationsView } from './ClarificationsView.js';
 import { DocumentRegisterView } from './DocumentRegisterView.js';
@@ -299,12 +299,12 @@ export const ProjectCockpitView: React.FC = () => {
           boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
               <span
                 id="cockpit-project-code"
-                style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 800, color: '#2563eb', backgroundColor: '#eff6ff', padding: '2px 8px', borderRadius: '4px' }}
+                style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 800, color: '#d97706', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: '4px' }}
               >
                 {projectCode}
               </span>
@@ -326,7 +326,7 @@ export const ProjectCockpitView: React.FC = () => {
                   ⚠️ Onboarding Incomplete ({onboardingPct}%)
                 </span>
               )}
-              <Badge variant="info">{cockpitData?.maturity || 'delivery'}</Badge>
+              <Badge variant="neutral">{cockpitData?.maturity || 'delivery'}</Badge>
               <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700 }}>
                 ● Doha Cell (me-central1)
               </span>
@@ -342,7 +342,15 @@ export const ProjectCockpitView: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Button
+              id="cockpit-request-approval-btn"
+              variant="accent"
+              size="md"
+              onClick={() => setIsApprovalModalOpen(true)}
+            >
+              ✍️ Request Approval
+            </Button>
             <Button
               id="cockpit-add-task-btn"
               variant="secondary"
@@ -351,415 +359,132 @@ export const ProjectCockpitView: React.FC = () => {
             >
               + Task
             </Button>
-            <Button
-              id="cockpit-request-approval-btn"
-              variant="primary"
-              size="md"
-              onClick={() => setIsApprovalModalOpen(true)}
-            >
-              ✍️ Request Approval
-            </Button>
-            <Button
-              id="cockpit-lineage-btn"
-              variant="secondary"
-              size="md"
-              onClick={() => setIsLineageModalOpen(true)}
-            >
-              🔗 Delivery Lineage
-            </Button>
-            <Button
-              id="cockpit-live-cmd-btn"
-              variant="primary"
-              size="md"
-              style={{ backgroundColor: '#0f172a', borderColor: '#334155' }}
-              onClick={() => navigate('/live/command-center')}
-            >
-              🛰️ Live Command
-            </Button>
-            <Button
-              id="cockpit-run-sheet-btn"
-              variant="secondary"
-              size="md"
-              onClick={() => navigate('/live/run-sheet')}
-            >
-              ⏱️ Run Sheet
-            </Button>
-            <Button
-              id="cockpit-compliance-btn"
-              variant="secondary"
-              size="md"
-              onClick={() => navigate('/live/compliance')}
-            >
-              ⚖️ Compliance
-            </Button>
-            <Button
-              id="cockpit-closeout-btn"
-              variant="secondary"
-              size="md"
-              onClick={() => navigate('/closeout')}
-            >
-              🏁 Closeout
-            </Button>
-            <Button
-              id="cockpit-audit-btn"
-              variant="ghost"
-              size="md"
-              onClick={() => {
-                const el = document.getElementById('audit-history-list');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              📋 Audit Lineage
-            </Button>
+            <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px', flexWrap: 'wrap' }}>
+              <Button
+                id="cockpit-lineage-btn"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsLineageModalOpen(true)}
+              >
+                🔗 Lineage
+              </Button>
+              <Button
+                id="cockpit-live-cmd-btn"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/live/command-center')}
+              >
+                🛰️ Live Command
+              </Button>
+              <Button
+                id="cockpit-run-sheet-btn"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/live/run-sheet')}
+              >
+                ⏱️ Run Sheet
+              </Button>
+              <Button
+                id="cockpit-compliance-btn"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/live/compliance')}
+              >
+                ⚖️ Compliance
+              </Button>
+              <Button
+                id="cockpit-closeout-btn"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/closeout')}
+              >
+                🏁 Closeout
+              </Button>
+              <Button
+                id="cockpit-audit-btn"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const el = document.getElementById('audit-history-list');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                📋 Audit
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Sprint 02 Module Navigation Tabs (7 Core Modules) */}
+      {/* Sprint 02 Module Navigation Tabs */}
       <div
         id="cockpit-module-tabs"
         style={{
           display: 'flex',
-          gap: '8px',
+          gap: '4px',
           borderBottom: '2px solid #e2e8f0',
           marginBottom: '20px',
           overflowX: 'auto',
           paddingBottom: '2px',
         }}
       >
-        <button
-          id="tab-cockpit-overview"
-          onClick={() => setCockpitModuleTab('overview')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'overview' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'overview' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'overview' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>📊</span> Overview & Governance
-        </button>
-
-        <button
-          id="tab-cockpit-requirements"
-          onClick={() => setCockpitModuleTab('requirements')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'requirements' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'requirements' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'requirements' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>🎯</span> Requirements
-          <span style={{ fontSize: '11px', backgroundColor: '#dbeafe', color: '#1e40af', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            4
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-clarifications"
-          onClick={() => setCockpitModuleTab('clarifications')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'clarifications' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'clarifications' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'clarifications' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>❓</span> Clarifications / RFI
-          <span style={{ fontSize: '11px', backgroundColor: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            2 open
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-documents"
-          onClick={() => setCockpitModuleTab('documents')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'documents' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'documents' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'documents' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>📑</span> Controlled Documents
-          <span style={{ fontSize: '11px', backgroundColor: '#e2e8f0', color: '#334155', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            3
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-timeline"
-          onClick={() => setCockpitModuleTab('timeline')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'timeline' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'timeline' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'timeline' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>⏱️</span> Timeline / Gantt
-          <span style={{ fontSize: '11px', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            72h CPM
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-design"
-          onClick={() => setCockpitModuleTab('design')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'design' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'design' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'design' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>🎨</span> Design & Creative
-          <span style={{ fontSize: '11px', backgroundColor: '#fce7f3', color: '#be185d', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            4 pkgs
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-commercial"
-          onClick={() => setCockpitModuleTab('commercial')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'commercial' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'commercial' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'commercial' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>💰</span> Commercial / BOQ
-          <span style={{ fontSize: '11px', backgroundColor: '#dcfce7', color: '#15803d', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            QAR 1.52M
-          </span>
-        </button>
-
-        {/* --- SPRINT 03 PHYSICAL DELIVERY MODULES --- */}
-        <button
-          id="tab-cockpit-procurement"
-          onClick={() => setCockpitModuleTab('procurement')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'procurement' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'procurement' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'procurement' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>🛒</span> Procurement & RFQ
-          <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            PO Released
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-production"
-          onClick={() => setCockpitModuleTab('production')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'production' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'production' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'production' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>🏭</span> Production & QC
-          <span style={{ fontSize: '11px', backgroundColor: '#f3e8ff', color: '#7e22ce', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            QC Passed
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-assets"
-          onClick={() => setCockpitModuleTab('assets')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'assets' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'assets' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'assets' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>📦</span> Assets & Depot
-          <span style={{ fontSize: '11px', backgroundColor: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            8 Locked
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-logistics"
-          onClick={() => setCockpitModuleTab('logistics')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'logistics' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'logistics' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'logistics' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>🚚</span> Logistics & Fleet
-          <span style={{ fontSize: '11px', backgroundColor: '#dcfce7', color: '#15803d', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            POD Signed
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-crew"
-          onClick={() => setCockpitModuleTab('crew')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'crew' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'crew' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'crew' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>👷</span> Crew & Roster
-          <span style={{ fontSize: '11px', backgroundColor: '#e2e8f0', color: '#334155', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            11h Rest Ok
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-site"
-          onClick={() => setCockpitModuleTab('site')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'site' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'site' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'site' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>📝</span> Site & DSR
-          <span style={{ fontSize: '11px', backgroundColor: '#dbeafe', color: '#1e40af', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            DSR Logged
-          </span>
-        </button>
-
-        <button
-          id="tab-cockpit-readiness"
-          onClick={() => setCockpitModuleTab('readiness')}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px 6px 0 0',
-            fontSize: '13px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: cockpitModuleTab === 'readiness' ? '3px solid #2563eb' : '3px solid transparent',
-            backgroundColor: cockpitModuleTab === 'readiness' ? '#eff6ff' : 'transparent',
-            color: cockpitModuleTab === 'readiness' ? '#1d4ed8' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>🚦</span> Readiness Gate
-          <span style={{ fontSize: '11px', backgroundColor: '#16a34a', color: '#ffffff', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
-            100% READY
-          </span>
-        </button>
+        {[
+          { id: 'overview', icon: '📊', label: 'Overview & Governance', badge: null },
+          { id: 'requirements', icon: '🎯', label: 'Requirements', badge: '4' },
+          { id: 'clarifications', icon: '❓', label: 'Clarifications / RFI', badge: '2 open' },
+          { id: 'documents', icon: '📑', label: 'Controlled Documents', badge: '3' },
+          { id: 'timeline', icon: '⏱️', label: 'Timeline / Gantt', badge: '72h CPM' },
+          { id: 'design', icon: '🎨', label: 'Design & Creative', badge: '4 pkgs' },
+          { id: 'commercial', icon: '💰', label: 'Commercial / BOQ', badge: 'QAR 1.52M' },
+          { id: 'procurement', icon: '🛒', label: 'Procurement & RFQ', badge: 'PO Released' },
+          { id: 'production', icon: '🏭', label: 'Production & QC', badge: 'QC Passed' },
+          { id: 'assets', icon: '📦', label: 'Assets & Depot', badge: '8 Locked' },
+          { id: 'logistics', icon: '🚚', label: 'Logistics & Fleet', badge: 'POD Signed' },
+          { id: 'crew', icon: '👷', label: 'Crew & Roster', badge: '11h Rest' },
+          { id: 'site', icon: '📝', label: 'Site & DSR', badge: 'DSR Logged' },
+          { id: 'readiness', icon: '🚦', label: 'Readiness Gate', badge: '100%' },
+        ].map((tab) => {
+          const isActive = cockpitModuleTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              id={`tab-cockpit-${tab.id}`}
+              onClick={() => setCockpitModuleTab(tab.id as any)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: '6px 6px 0 0',
+                fontSize: '13px',
+                fontWeight: isActive ? 700 : 600,
+                border: 'none',
+                borderBottom: isActive ? '3px solid #d97706' : '3px solid transparent',
+                backgroundColor: isActive ? '#fffbeb' : 'transparent',
+                color: isActive ? '#92400e' : '#64748b',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span>{tab.icon}</span> {tab.label}
+              {tab.badge && (
+                <span
+                  style={{
+                    fontSize: '11px',
+                    backgroundColor: isActive ? '#fef3c7' : '#f1f5f9',
+                    color: isActive ? '#78350f' : '#475569',
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {cockpitModuleTab === 'requirements' && <RequirementsMatrixView projectId={projectId} />}
@@ -904,38 +629,38 @@ export const ProjectCockpitView: React.FC = () => {
       >
         <MetricCard
           title="Baseline Cost"
-          value={baselineCost !== null ? `${baselineCost.toLocaleString()} QAR` : 'To Be Confirmed'}
+          value={baselineCost !== null ? formatCurrency(baselineCost, 'QAR') : 'To Be Confirmed'}
           subtitle="Approved Budget Baseline"
           accentColor="#2563eb"
         />
         <MetricCard
           title="Committed Cost"
-          value={committedCost !== null ? `${committedCost.toLocaleString()} QAR` : 'To Be Confirmed'}
+          value={committedCost !== null ? formatCurrency(committedCost, 'QAR') : 'To Be Confirmed'}
           subtitle="Contracted POs & Orders"
           accentColor="#64748b"
         />
         <MetricCard
           title="Actual Cost"
-          value={actualCost !== null ? `${actualCost.toLocaleString()} QAR` : '0 QAR'}
+          value={actualCost !== null ? formatCurrency(actualCost, 'QAR') : formatCurrency(0, 'QAR')}
           subtitle="Invoiced / Spent to Date"
           accentColor="#0f172a"
         />
         <MetricCard
           title="Forecast to Complete"
-          value={forecastToComplete !== null ? `${forecastToComplete.toLocaleString()} QAR` : 'To Be Confirmed'}
+          value={forecastToComplete !== null ? formatCurrency(forecastToComplete, 'QAR') : 'To Be Confirmed'}
           subtitle="Estimated Remaining Scope"
           accentColor="#d97706"
         />
         <MetricCard
           title="EAC — Projected Final Cost"
-          value={eac !== null ? `${eac.toLocaleString()} QAR` : 'To Be Confirmed'}
+          value={eac !== null ? formatCurrency(eac, 'QAR') : 'To Be Confirmed'}
           subtitle="EAC = Actual + Forecast to Complete"
           badge={
             costVariance !== null
               ? {
                   label: isSaving
-                    ? `Forecast Saving: QAR ${varianceAmount.toLocaleString()}`
-                    : `Forecast Overrun: QAR ${varianceAmount.toLocaleString()}`,
+                    ? `Forecast Saving: ${formatCurrency(varianceAmount, 'QAR')}`
+                    : `Forecast Overrun: ${formatCurrency(varianceAmount, 'QAR')}`,
                   variant: isSaving ? 'success' : 'danger',
                 }
               : undefined
@@ -981,44 +706,44 @@ export const ProjectCockpitView: React.FC = () => {
         >
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Contract Value</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
-              {isDraft ? 'Not yet available' : '3,500,000 QAR'}
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+              {isDraft ? 'Not yet available' : formatCurrency(3500000, 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Invoiced to Client</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb', marginTop: '2px' }}>
-              {isDraft ? 'Not yet available' : '1,050,000 QAR'}
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+              {isDraft ? 'Not yet available' : formatCurrency(1050000, 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Collected (Cash In)</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#16a34a', marginTop: '2px' }}>
-              {isDraft ? 'Not yet available' : '1,050,000 QAR'}
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+              {isDraft ? 'Not yet available' : formatCurrency(1050000, 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Outstanding Receivables</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
-              {isDraft ? 'Not yet available' : '0 QAR'}
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+              {isDraft ? 'Not yet available' : formatCurrency(0, 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Supplier Committed</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#d97706', marginTop: '2px' }}>
-              {isDraft ? 'Not yet available' : '1,420,000 QAR'}
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#d97706', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+              {isDraft ? 'Not yet available' : formatCurrency(1420000, 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Supplier Paid</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', marginTop: '2px' }}>
-              {isDraft ? 'Not yet available' : '580,000 QAR'}
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+              {isDraft ? 'Not yet available' : formatCurrency(580000, 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Net Cash Exposure</div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#16a34a', marginTop: '2px' }}>
-              {isDraft ? 'Not yet available' : '+470,000 QAR'}
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+              {isDraft ? 'Not yet available' : `+${formatCurrency(470000, 'QAR')}`}
             </div>
           </div>
         </div>

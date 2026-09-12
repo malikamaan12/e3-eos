@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEosContext, CANONICAL_E3_USERS } from '../context/EosContext.js';
 import { WorkspaceType } from '../routes.js';
 import {
@@ -9,9 +9,26 @@ import { NewProjectWizardModal } from './NewProjectWizardModal.js';
 import { CreateTaskModal } from './CreateTaskModal.js';
 import { RequestApprovalModal } from './RequestApprovalModal.js';
 import { AuditHistoryDrawer } from './AuditHistoryDrawer.js';
+import { E3_THEME } from './DesignSystem.js';
 
 export interface LayoutShellProps {
   children: React.ReactNode;
+}
+
+interface NavItem {
+  path: string;
+  labelEn: string;
+  labelAr: string;
+  icon: string;
+  id: string;
+  roles?: string[]; // Allowed roles (if omitted, visible to all internal)
+}
+
+interface NavSection {
+  id: string;
+  titleEn: string;
+  titleAr: string;
+  items: NavItem[];
 }
 
 export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
@@ -53,25 +70,89 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
   const [createMenuOpen, setCreateMenuOpen] = useState<boolean>(false);
   const [notificationsOpen, setNotificationsOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
-  const organisations = Object.values(SYNTHETIC_ORGANISATIONS) as SyntheticOrganisation[];
+  // Responsive breakpoint tracking
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    return typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  });
 
-  const navSections = [
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) setMobileMenuOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Collapsible section state persistence
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('eos_nav_collapsed');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return { closeout: true }; // Default Closeout collapsed for cleaner view
+  });
+
+  const toggleSection = (sectionId: string) => {
+    setCollapsedSections((prev) => {
+      const next = { ...prev, [sectionId]: !prev[sectionId] };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('eos_nav_collapsed', JSON.stringify(next));
+        } catch {}
+      }
+      return next;
+    });
+  };
+
+  const userRole = (currentUser as any)?.role || 'super_admin';
+  const isClientUser = userRole === 'client' || currentUser.email.includes('client');
+  const isFieldUser = userRole === 'field_supervisor' || currentUser.email.includes('field');
+
+  // ==========================================
+  // 7 CANONICAL NAVIGATION GROUPS (SECTION 10)
+  // ==========================================
+  const rawNavSections: NavSection[] = [
     {
-      titleEn: 'Control',
-      titleAr: 'التحكم والحوكمة',
+      id: 'home',
+      titleEn: 'Home',
+      titleAr: 'الرئيسية والمحفظة',
       items: [
-        { path: '/', labelEn: 'Home Dashboard', labelAr: 'الرئيسية', icon: '🏠', id: 'nav-home' },
-        { path: '/my-work', labelEn: 'My Work', labelAr: 'مهامي الشخصية', icon: '📋', id: 'nav-my-work' },
-        { path: '/projects', labelEn: 'Projects Directory', labelAr: 'دليل المشاريع', icon: '🎪', id: 'nav-projects' },
-        { path: '/approvals', labelEn: 'Governance Approvals', labelAr: 'الموافقات والحوكمة', icon: '✍️', id: 'nav-approvals' },
-        { path: '/calendar', labelEn: 'Master Calendar', labelAr: 'التقويم العام', icon: '📅', id: 'nav-calendar' },
-        { path: '/portfolio', labelEn: 'Portfolio Financials', labelAr: 'المحفظة المالية', icon: '📊', id: 'nav-portfolio' },
-        { path: '/reports', labelEn: 'Reports & Audits', labelAr: 'التقارير وسجلات التدقيق', icon: '📈', id: 'nav-reports' },
-        { path: '/admin/users', labelEn: 'Administration & RBAC', labelAr: 'الإدارة والصلاحيات', icon: '⚙️', id: 'nav-admin' },
+        { path: '/', labelEn: 'Home Dashboard', labelAr: 'لوحة المتابعة', icon: '🏠', id: 'nav-home' },
+        { path: '/my-work', labelEn: 'My Work Queue', labelAr: 'مهامي الشخصية', icon: '📋', id: 'nav-my-work' },
+        { path: '/portfolio', labelEn: 'Portfolio Financials', labelAr: 'المحفظة المؤسسية', icon: '📊', id: 'nav-portfolio' },
       ],
     },
     {
+      id: 'control',
+      titleEn: 'Control',
+      titleAr: 'التحكم والحوكمة',
+      items: [
+        { path: '/projects', labelEn: 'Projects Directory', labelAr: 'دليل المشاريع', icon: '🎪', id: 'nav-projects' },
+        { path: '/projects/f1111111-1111-4111-8111-111111111111', labelEn: 'Project Cockpit', labelAr: 'قمرة القيادة للمشروع', icon: '🎯', id: 'nav-cockpit' },
+        { path: '/approvals', labelEn: 'Governance Approvals', labelAr: 'الموافقات والحوكمة', icon: '✍️', id: 'nav-approvals' },
+        { path: '/calendar', labelEn: 'Master Calendar', labelAr: 'التقويم العام', icon: '📅', id: 'nav-calendar' },
+      ],
+    },
+    {
+      id: 'commercial',
+      titleEn: 'Commercial',
+      titleAr: 'المالية والمطابقة',
+      items: [
+        { path: '/commercial/financial-control', labelEn: 'Financial Control Center', labelAr: 'مركز الرقابة المالية', icon: '💰', id: 'nav-fin-control' },
+        { path: '/commercial/supplier-invoices', labelEn: 'Supplier Invoices (3-Way Match)', labelAr: 'فواتير الموردين والمطابقة', icon: '🧾', id: 'nav-sup-invoices' },
+        { path: '/commercial/client-billing', labelEn: 'Client Billing & Collections', labelAr: 'فوترة العميل والتحصيل', icon: '💳', id: 'nav-client-billing' },
+        { path: '/commercial/closeout', labelEn: 'Commercial Closeout (10 Pillars)', labelAr: 'الإغلاق التجاري المالي', icon: '🔒', id: 'nav-comm-closeout' },
+        { path: '/estimating/historical', labelEn: 'Historical Estimating', labelAr: 'التقدير التاريخي والتسعير', icon: '📈', id: 'nav-estimating' },
+      ],
+    },
+    {
+      id: 'delivery',
       titleEn: 'Delivery',
       titleAr: 'التوريد والمستودعات',
       items: [
@@ -80,75 +161,165 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
       ],
     },
     {
+      id: 'live',
       titleEn: 'Live Operations',
       titleAr: 'العمليات المباشرة',
       items: [
-        { path: '/live/command-center', labelEn: 'Command Centre', labelAr: 'مركز القيادة الميداني', icon: '🛰️', id: 'nav-command-center' },
+        { path: '/field', labelEn: 'Field Ops Mobile PWA', labelAr: 'عمليات الموقع الميدانية', icon: '📱', id: 'nav-field' },
         { path: '/live/run-sheet', labelEn: 'Master Run Sheet', labelAr: 'جدول العرض المباشر', icon: '⏱️', id: 'nav-run-sheet' },
+        { path: '/live/command-center', labelEn: 'Live Command Centre', labelAr: 'مركز القيادة الميداني', icon: '🛰️', id: 'nav-command-center' },
         { path: '/live/compliance', labelEn: 'Compliance Register', labelAr: 'سجل الامتثال والتراخيص', icon: '⚖️', id: 'nav-compliance' },
         { path: '/live/roster', labelEn: 'Live Roster & Crew', labelAr: 'سجل الحضور والإجهاد', icon: '👥', id: 'nav-roster' },
-        { path: '/field', labelEn: 'Field Ops Mobile PWA', labelAr: 'عمليات الموقع الميدانية', icon: '📱', id: 'nav-field' },
       ],
     },
     {
-      titleEn: 'Closeout & Settlement',
-      titleAr: 'الإغلاق والتسوية',
+      id: 'closeout',
+      titleEn: 'Closeout',
+      titleAr: 'الإغلاق والتسليم',
       items: [
-        { path: '/closeout', labelEn: 'Bump-Out & Closeout', labelAr: 'التفكيك والإغلاق التشغيلي', icon: '🏁', id: 'nav-closeout' },
-      ],
-    },
-    {
-      titleEn: 'Commercial & Reconciliation',
-      titleAr: 'المالية والمطابقة التجارية',
-      items: [
-        { path: '/commercial/financial-control', labelEn: 'Financial Control Center', labelAr: 'مركز الرقابة المالية', icon: '💰', id: 'nav-fin-control' },
-        { path: '/commercial/supplier-invoices', labelEn: 'Supplier Invoices (3-Way Match)', labelAr: 'فواتير الموردين والمطابقة', icon: '🧾', id: 'nav-sup-invoices' },
-        { path: '/commercial/client-billing', labelEn: 'Client Billing & Collections', labelAr: 'فوترة العميل والتحصيل', icon: '💳', id: 'nav-client-billing' },
-        { path: '/commercial/closeout', labelEn: 'Commercial Closeout (10 Pillars)', labelAr: 'الإغلاق التجاري المالي', icon: '🔒', id: 'nav-comm-closeout' },
-        { path: '/closeout/performance', labelEn: 'Performance & Knowledge Base', labelAr: 'الأداء والدروس المستفادة', icon: '🧠', id: 'nav-knowledge' },
-        { path: '/admin/integrations', labelEn: 'Enterprise Integrations (ERP)', labelAr: 'تكامل النظم المؤسسية', icon: '🔌', id: 'nav-integrations' },
-      ],
-    },
-    {
-      titleEn: 'Intelligence & Scale',
-      titleAr: 'الذكاء الاصطناعي والمحفظة المؤسسية',
-      items: [
-        { path: '/ai/copilot', labelEn: 'EOS AI Copilot', labelAr: 'المساعد الذكي لمشاريع EOS', icon: '🤖', id: 'nav-ai-copilot' },
-        { path: '/estimating/historical', labelEn: 'Historical Estimating', labelAr: 'التقدير التاريخي والتسعير', icon: '📊', id: 'nav-estimating' },
-        { path: '/portfolio/intelligence', labelEn: 'Portfolio Risk & Scale', labelAr: 'مخاطر المحفظة وسجل الموردين', icon: '🌐', id: 'nav-portfolio-intel' },
-      ],
-    },
-    {
-      titleEn: 'Configurable Logic & Jurisdictions',
-      titleAr: 'بناء تدفق العمل والتشريعات الإقليمية',
-      items: [
-        { path: '/governance/workflows', labelEn: 'Visual Workflow Builder', labelAr: 'مصمم تدفق العمل والمراحل', icon: '🛠️', id: 'nav-workflows' },
-        { path: '/governance/simulator', labelEn: 'Policy Simulation Sandbox', labelAr: 'محاكاة السياسات والقرارات', icon: '🧪', id: 'nav-simulator' },
-        { path: '/compliance/country-packs', labelEn: 'Country Packs (QA / SA / AE)', labelAr: 'الحزم الوطنية والامتثال', icon: '🌍', id: 'nav-country-packs' },
-      ],
-    },
-    {
-      titleEn: 'Portals',
-      titleAr: 'البوابات المتخصصة',
-      items: [
-        { path: '/client/results', labelEn: 'Client Results Room', labelAr: 'غرفة نتائج العميل', icon: '🏆', id: 'nav-client-results' },
+        { path: '/bump-out', labelEn: 'Bump-Out Closeout', labelAr: 'التفكيك والإغلاق التشغيلي', icon: '🏁', id: 'nav-bumpout' },
         { path: '/reports/post-event', labelEn: 'Post-Event Closeout Report', labelAr: 'تقرير ما بعد الفعالية', icon: '📜', id: 'nav-post-event' },
-        { path: '/client', labelEn: 'Client Collaboration', labelAr: 'بوابة تعاون العميل', icon: '🤝', id: 'nav-client' },
-        { path: '/supplier', labelEn: 'Supplier Portal (RFQ)', labelAr: 'بوابة الموردين والشركاء', icon: '🏢', id: 'nav-supplier' },
+        { path: '/closeout/performance', labelEn: 'Performance & Knowledge', labelAr: 'الأداء والدروس المستفادة', icon: '🧠', id: 'nav-knowledge' },
       ],
     },
     {
-      titleEn: 'Production Rollout & Go-Live',
-      titleAr: 'إطلاق الإنتاج والحوكمة',
+      id: 'admin',
+      titleEn: 'Admin & Rollout',
+      titleAr: 'الإدارة والإطلاق',
       items: [
-        { path: '/admin/rollout', labelEn: 'Production Go-Live Console', labelAr: 'لوحة إطلاق الإنتاج الشاملة', icon: '🚀', id: 'nav-rollout-console' },
-        { path: '/admin/release/feature-flags', labelEn: 'Feature Flag Register', labelAr: 'سجل ميزات التشغيل والتحكم', icon: '🚩', id: 'nav-feature-flags' },
-        { path: '/admin/operations/support', labelEn: 'Support Health & Runbooks', labelAr: 'صحة الدعم وكتيبات الطوارئ', icon: '🩺', id: 'nav-support-health' },
-        { path: '/admin/release/go-live', labelEn: 'Go / No-Go Decision Board', labelAr: 'لوحة قرار الإطلاق النهائي', icon: '⚖️', id: 'nav-go-live-board' },
-        { path: '/admin/release/certificate', labelEn: 'Production Acceptance Sign-Off', labelAr: 'شهادة قبول واعتماد الإنتاج', icon: '📜', id: 'nav-prod-certificate' },
+        { path: '/admin/release/human-uat', labelEn: 'Human UAT Control Centre', labelAr: 'مساحة اختبار قبول المستخدمين', icon: '🧑‍💼', id: 'nav-human-uat' },
+        { path: '/admin/release/uat-defects', labelEn: 'UAT Defect Triage Board', labelAr: 'لوحة فرز عيوب UAT', icon: '🐞', id: 'nav-uat-defects' },
+        { path: '/admin/rollout', labelEn: 'Production Rollout Console', labelAr: 'لوحة إطلاق الإنتاج', icon: '🚀', id: 'nav-rollout-console' },
+        { path: '/admin/users', labelEn: 'Administration & RBAC', labelAr: 'الإدارة والمستخدمين', icon: '⚙️', id: 'nav-admin' },
+        { path: '/governance/workflows', labelEn: 'Visual Workflow Builder', labelAr: 'مصمم تدفق العمل', icon: '🛠️', id: 'nav-workflows' },
+        { path: '/governance/simulator', labelEn: 'Policy Simulation Sandbox', labelAr: 'محاكاة السياسات', icon: '🧪', id: 'nav-simulator' },
+        { path: '/compliance/country-packs', labelEn: 'Country Packs (QA / SA / AE)', labelAr: 'الحزم الوطنية والامتثال', icon: '🌍', id: 'nav-country-packs' },
+        { path: '/admin/integrations', labelEn: 'Enterprise Integrations (ERP)', labelAr: 'تكامل النظم المؤسسية', icon: '🔌', id: 'nav-integrations' },
+        { path: '/client', labelEn: 'Client Collaboration Portal', labelAr: 'بوابة تعاون العميل', icon: '🤝', id: 'nav-client' },
+        { path: '/client/results', labelEn: 'Client Results Room', labelAr: 'غرفة نتائج العميل', icon: '🏆', id: 'nav-client-results' },
       ],
     },
   ];
+
+  // Role-based navigation filtering (Section 11)
+  const navSections = rawNavSections
+    .map((sec) => {
+      if (isClientUser) {
+        // Client only sees Home and Client Portal items
+        if (sec.id === 'home') {
+          return { ...sec, items: sec.items.filter((i) => i.path === '/') };
+        }
+        if (sec.id === 'admin') {
+          return { ...sec, titleEn: 'Client Portal', titleAr: 'بوابة العميل', items: sec.items.filter((i) => i.path.startsWith('/client')) };
+        }
+        return null;
+      }
+
+      if (isFieldUser) {
+        // Field Supervisor focuses on Live Operations and basic work queue
+        if (sec.id === 'commercial' || sec.id === 'admin') return null;
+        return sec;
+      }
+
+      return sec;
+    })
+    .filter(Boolean) as NavSection[];
+
+  // Render navigation list
+  const renderNavList = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {navSections.map((section) => {
+        const isCollapsed = !!collapsedSections[section.id];
+        return (
+          <div key={section.id} style={{ display: 'flex', flexDirection: 'column' }}>
+            {/* Collapsible Section Header */}
+            <button
+              onClick={() => toggleSection(section.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#64748b',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                outline: 'none',
+                transition: 'color 0.15s ease',
+              }}
+            >
+              <span>{currentLanguage === 'ar' ? section.titleAr : section.titleEn}</span>
+              <span style={{ fontSize: '9px', opacity: 0.8 }}>{isCollapsed ? (direction === 'rtl' ? '◀' : '▶') : '▼'}</span>
+            </button>
+
+            {/* Section Items */}
+            {!isCollapsed && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingLeft: direction === 'ltr' ? '4px' : 0, paddingRight: direction === 'rtl' ? '4px' : 0 }}>
+                {section.items.map((item) => {
+                  const isActive = item.path === '/'
+                    ? currentPath === '/'
+                    : currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
+                  return (
+                    <button
+                      key={item.id}
+                      id={item.id}
+                      onClick={() => {
+                        navigate(item.path);
+                        if (isMobile) setMobileMenuOpen(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: isActive ? '#1e293b' : 'transparent',
+                        color: isActive ? '#ffffff' : '#94a3b8',
+                        fontWeight: isActive ? 700 : 500,
+                        fontSize: '13px',
+                        textAlign: direction === 'rtl' ? 'right' : 'left',
+                        cursor: 'pointer',
+                        transition: 'all 0.12s ease',
+                        fontFamily: 'inherit',
+                        width: '100%',
+                        position: 'relative',
+                        outline: 'none',
+                      }}
+                    >
+                      {/* Active Metallic Accent Indicator */}
+                      {isActive && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            [direction === 'rtl' ? 'right' : 'left']: 0,
+                            top: '4px',
+                            bottom: '4px',
+                            width: '3px',
+                            backgroundColor: '#d97706',
+                            borderRadius: '2px',
+                          }}
+                        />
+                      )}
+                      <span style={{ fontSize: '15px' }}>{item.icon}</span>
+                      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {currentLanguage === 'ar' ? item.labelAr : item.labelEn}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div
@@ -169,7 +340,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             backgroundColor: '#fef3c7',
             color: '#92400e',
             borderBottom: '1px solid #f59e0b',
-            padding: '8px 24px',
+            padding: '8px 20px',
             fontSize: '12px',
             fontWeight: 600,
             display: 'flex',
@@ -203,94 +374,128 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         </div>
       )}
 
-      {/* Top Application Header */}
+      {/* Top Application Header (E3 Charcoal / Near-Black Chrome) */}
       <header
         style={{
-          height: '60px',
-          backgroundColor: '#0f172a',
+          height: '56px',
+          backgroundColor: '#090d16',
           color: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 24px',
+          padding: isMobile ? '0 12px' : '0 20px',
           borderBottom: '1px solid #1e293b',
           zIndex: 100,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => navigate('/')}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Mobile Hamburger Menu Button */}
+          {isMobile && (
+            <button
+              id="btn-mobile-menu"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open Navigation Menu"
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: '#ffffff',
+                fontSize: '20px',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              ☰
+            </button>
+          )}
+
+          {/* Logo Brand */}
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+          >
             <span
               style={{
-                backgroundColor: '#2563eb',
+                backgroundColor: '#d97706',
                 color: '#ffffff',
                 fontWeight: 900,
-                fontSize: '14px',
-                padding: '4px 8px',
+                fontSize: '13px',
+                padding: '3px 7px',
                 borderRadius: '4px',
-                letterSpacing: '1px',
+                letterSpacing: '0.8px',
               }}
             >
               E3
             </span>
-            <span style={{ fontWeight: 700, fontSize: '16px', letterSpacing: '0.5px' }}>EOS</span>
+            <span style={{ fontWeight: 800, fontSize: '15px', letterSpacing: '0.5px', color: '#ffffff' }}>EOS</span>
           </div>
 
-          {/* Staging Environment Badge */}
+          {/* Staging Badge */}
           <span
             id="staging-env-badge"
             style={{
-              backgroundColor: '#d97706',
-              color: '#ffffff',
+              backgroundColor: '#1e293b',
+              color: '#d97706',
+              border: '1px solid #d97706',
               fontWeight: 800,
               fontSize: '10px',
-              padding: '2px 7px',
+              padding: '2px 6px',
               borderRadius: '4px',
-              letterSpacing: '0.8px',
+              letterSpacing: '0.5px',
               textTransform: 'uppercase',
-              boxShadow: '0 0 8px rgba(217, 119, 6, 0.4)',
             }}
             title="Google Cloud Doha (me-central1)"
           >
             STAGING
           </span>
 
-          <span style={{ color: '#475569', fontSize: '13px' }}>|</span>
-          <span style={{ fontSize: '13px', color: '#94a3b8' }}>
-            {currentLanguage === 'ar' ? 'نظام تشغيل الفعاليات المؤسسي' : 'Enterprise Event Operating System'}
-          </span>
+          {/* Desktop Subtitle */}
+          {!isMobile && (
+            <>
+              <span style={{ color: '#334155', fontSize: '13px' }}>|</span>
+              <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                {currentLanguage === 'ar' ? 'نظام تشغيل الفعاليات المؤسسي' : 'Enterprise Event Operating System'}
+              </span>
+            </>
+          )}
         </div>
 
-        {/* Global Search Bar */}
-        <div style={{ flex: 1, maxWidth: '340px', margin: '0 20px' }}>
-          <input
-            type="text"
-            placeholder={currentLanguage === 'ar' ? 'بحث في المشاريع والمهام وأوامر الشراء...' : 'Search projects, tasks, approvals, POs...'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              backgroundColor: '#1e293b',
-              color: '#f8fafc',
-              border: '1px solid #334155',
-              borderRadius: '6px',
-              padding: '6px 12px',
-              fontSize: '12px',
-              outline: 'none',
-            }}
-          />
-        </div>
+        {/* Global Search Bar (Desktop) */}
+        {!isMobile && (
+          <div style={{ flex: 1, maxWidth: '340px', margin: '0 20px' }}>
+            <input
+              type="text"
+              placeholder={currentLanguage === 'ar' ? 'بحث في المشاريع والمهام وأوامر الشراء...' : 'Search projects, tasks, approvals, POs...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                backgroundColor: '#131b2e',
+                color: '#f8fafc',
+                border: '1px solid #1e293b',
+                borderRadius: '6px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+        )}
 
         {/* Header Right Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {/* + Create Dropdown */}
           <div style={{ position: 'relative' }}>
             <button
               id="btn-create-menu"
               onClick={() => setCreateMenuOpen(!createMenuOpen)}
               style={{
-                backgroundColor: '#16a34a',
+                backgroundColor: '#1e293b',
                 color: '#ffffff',
-                border: 'none',
+                border: '1px solid #334155',
                 borderRadius: '6px',
                 padding: '6px 12px',
                 fontSize: '12px',
@@ -302,7 +507,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               }}
             >
               <span>+ Create</span>
-              <span style={{ fontSize: '10px' }}>▼</span>
+              <span style={{ fontSize: '9px' }}>▼</span>
             </button>
 
             {createMenuOpen && (
@@ -347,7 +552,6 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                 </div>
 
                 <div
-                  id="menu-item-new-task"
                   onClick={() => {
                     setCreateMenuOpen(false);
                     setIsTaskModalOpen(true);
@@ -363,15 +567,14 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                     borderBottom: '1px solid #f1f5f9',
                   }}
                 >
-                  <span>📝</span>
+                  <span>📋</span>
                   <div>
-                    <div style={{ fontWeight: 600 }}>New Task</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>Assign WBS deliverable</div>
+                    <div style={{ fontWeight: 600 }}>Quick Task</div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>Assigned deliverable</div>
                   </div>
                 </div>
 
                 <div
-                  id="menu-item-new-approval"
                   onClick={() => {
                     setCreateMenuOpen(false);
                     setIsApprovalModalOpen(true);
@@ -388,167 +591,37 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                 >
                   <span>✍️</span>
                   <div>
-                    <div style={{ fontWeight: 600 }}>Request Sign-off</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>Submit governance decision</div>
+                    <div style={{ fontWeight: 600 }}>Request Approval</div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>Governance sign-off</div>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* In-App Notifications Bell */}
-          <div style={{ position: 'relative' }}>
-            <button
-              id="btn-notifications-bell"
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
+          {/* User Profile Info */}
+          {!isMobile && (
+            <div
               style={{
-                backgroundColor: '#1e293b',
-                color: '#f8fafc',
-                border: '1px solid #334155',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '4px 10px',
                 borderRadius: '6px',
-                padding: '5px 9px',
-                fontSize: '13px',
-                cursor: 'pointer',
-                position: 'relative',
+                backgroundColor: '#131b2e',
+                border: '1px solid #1e293b',
+                fontSize: '12px',
               }}
-              title="Notifications"
             >
-              <span>🔔</span>
-              {unreadNotificationCount > 0 && (
-                <span
-                  id="notification-count-badge"
-                  style={{
-                    position: 'absolute',
-                    top: '-4px',
-                    right: '-4px',
-                    backgroundColor: '#ef4444',
-                    color: '#ffffff',
-                    fontSize: '10px',
-                    fontWeight: 800,
-                    borderRadius: '10px',
-                    padding: '1px 5px',
-                    lineHeight: 1,
-                  }}
-                >
-                  {unreadNotificationCount}
-                </span>
-              )}
-            </button>
+              <span style={{ fontSize: '13px' }}>👤</span>
+              <span style={{ fontWeight: 700, color: '#f8fafc' }}>
+                <span dir="ltr">{currentUser.name}</span>
+              </span>
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>({currentUser.role})</span>
+            </div>
+          )}
 
-            {notificationsOpen && (
-              <div
-                id="notifications-flyout"
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: direction === 'ltr' ? 0 : 'auto',
-                  left: direction === 'rtl' ? 0 : 'auto',
-                  marginTop: '8px',
-                  backgroundColor: '#ffffff',
-                  borderRadius: '8px',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-                  border: '1px solid #cbd5e1',
-                  width: '320px',
-                  zIndex: 250,
-                  overflow: 'hidden',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
-                  <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>Notifications</span>
-                  {unreadNotificationCount > 0 && (
-                    <button
-                      onClick={() => markAllNotificationsRead()}
-                      style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      Mark all read
-                    </button>
-                  )}
-                </div>
-
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {notifications.length === 0 ? (
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
-                      No notifications
-                    </div>
-                  ) : (
-                    notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        onClick={() => {
-                          markNotificationRead(n.id);
-                          if (n.link) {
-                            navigate(n.link);
-                            setNotificationsOpen(false);
-                          }
-                        }}
-                        style={{
-                          padding: '10px 14px',
-                          borderBottom: '1px solid #f8fafc',
-                          backgroundColor: n.isRead ? '#ffffff' : '#f0f9ff',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '2px',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: n.isRead ? 500 : 700, fontSize: '12px', color: '#0f172a' }}>
-                            {n.title}
-                          </span>
-                          {!n.isRead && (
-                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2563eb' }} />
-                          )}
-                        </div>
-                        <span style={{ fontSize: '11px', color: '#64748b' }}>{n.message}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* User Persona & Role Badge */}
-          <div
-            id="current-user-badge"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              backgroundColor: '#1e293b',
-              border: '1px solid #334155',
-              borderRadius: '6px',
-              padding: '4px 8px',
-              fontSize: '12px',
-              color: '#f8fafc',
-            }}
-          >
-            <span>👤</span>
-            <span style={{ fontWeight: 600 }}>{currentUser.name}</span>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>({currentUser.role || 'viewer'})</span>
-          </div>
-
-          {/* User Account / Profile */}
-          <button
-            id="btn-account-profile"
-            onClick={() => navigate('/account')}
-            style={{
-              backgroundColor: '#1e293b',
-              color: '#f8fafc',
-              border: '1px solid #334155',
-              borderRadius: '6px',
-              padding: '4px 10px',
-              fontSize: '12px',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <span>Profile</span>
-          </button>
-
-          {/* Logout */}
+          {/* Sign Out */}
           <button
             id="btn-logout"
             onClick={logout}
@@ -557,12 +630,13 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               color: '#f87171',
               border: '1px solid #7f1d1d',
               borderRadius: '6px',
-              padding: '4px 8px',
+              padding: '6px 10px',
               fontSize: '12px',
               cursor: 'pointer',
+              fontWeight: 600,
             }}
           >
-            Sign Out
+            {currentLanguage === 'ar' ? 'خروج' : 'Sign Out'}
           </button>
 
           {/* Language / RTL Toggle */}
@@ -570,11 +644,11 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             id="btn-toggle-language"
             onClick={toggleLanguage}
             style={{
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              border: 'none',
+              backgroundColor: '#1e293b',
+              color: '#d97706',
+              border: '1px solid #d97706',
               borderRadius: '6px',
-              padding: '4px 12px',
+              padding: '6px 10px',
               fontSize: '12px',
               fontWeight: 700,
               cursor: 'pointer',
@@ -586,97 +660,174 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
       </header>
 
       {/* Main Body with Sidebar + Content */}
-      <div style={{ display: 'flex', flex: 1 }}>
-        {/* Sidebar */}
-        <aside
-          style={{
-            width: '240px',
-            backgroundColor: '#ffffff',
-            borderRight: direction === 'ltr' ? '1px solid #e2e8f0' : 'none',
-            borderLeft: direction === 'rtl' ? '1px solid #e2e8f0' : 'none',
-            padding: '16px 12px',
-            display: currentPath === '/field' ? 'none' : 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-          }}
-        >
-          {navSections.map((section, sIdx) => (
-            <div key={section.titleEn} style={{ marginTop: sIdx > 0 ? '12px' : 0 }}>
-              <div
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  color: '#94a3b8',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.6px',
-                  padding: '6px 8px 4px 8px',
-                  borderTop: sIdx > 0 ? '1px solid #f1f5f9' : 'none',
-                  paddingTop: sIdx > 0 ? '10px' : '4px',
-                }}
-              >
-                {currentLanguage === 'ar' ? section.titleAr : section.titleEn}
-              </div>
+      <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+        {/* Desktop Sidebar (Deep Charcoal / Obsidian Chrome) */}
+        {!isMobile && (
+          <aside
+            style={{
+              width: '250px',
+              backgroundColor: '#090d16',
+              borderRight: direction === 'ltr' ? '1px solid #1e293b' : 'none',
+              borderLeft: direction === 'rtl' ? '1px solid #1e293b' : 'none',
+              padding: '16px 10px',
+              display: currentPath === '/field' ? 'none' : 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              boxSizing: 'border-box',
+              minHeight: 'calc(100vh - 56px)',
+            }}
+          >
+            {renderNavList()}
+          </aside>
+        )}
 
-              {section.items.map((item) => {
-                const isActive = item.path === '/'
-                  ? currentPath === '/'
-                  : currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
-                return (
-                  <button
-                    key={item.id}
-                    id={item.id}
-                    onClick={() => navigate(item.path)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '7px 10px',
-                      borderRadius: '6px',
-                      border: 'none',
-                      backgroundColor: isActive ? '#eff6ff' : 'transparent',
-                      color: isActive ? '#1d4ed8' : '#334155',
-                      fontWeight: isActive ? 700 : 500,
-                      fontSize: '12px',
-                      textAlign: direction === 'rtl' ? 'right' : 'left',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.15s ease',
-                      fontFamily: 'inherit',
-                      width: '100%',
-                    }}
-                  >
-                    <span style={{ fontSize: '14px' }}>{item.icon}</span>
-                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {currentLanguage === 'ar' ? item.labelAr : item.labelEn}
-                    </span>
-                    {isActive && (
-                      <span
-                        style={{
-                          width: '6px',
-                          height: '6px',
-                          borderRadius: '50%',
-                          backgroundColor: '#2563eb',
-                        }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
+        {/* Mobile Slide-Over Drawer Navigation */}
+        {isMobile && mobileMenuOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(9, 13, 22, 0.7)',
+              zIndex: 9999,
+              display: 'flex',
+              justifyContent: direction === 'rtl' ? 'flex-end' : 'flex-start',
+            }}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <div
+              style={{
+                width: '280px',
+                height: '100%',
+                backgroundColor: '#090d16',
+                padding: '20px 14px',
+                overflowY: 'auto',
+                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ backgroundColor: '#d97706', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontWeight: 800, fontSize: '12px' }}>E3</span>
+                  <span style={{ color: '#fff', fontWeight: 700 }}>Menu</span>
+                </div>
+                <button onClick={() => setMobileMenuOpen(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+              </div>
+              {renderNavList()}
             </div>
-          ))}
-        </aside>
+          </div>
+        )}
 
         {/* Content Viewport */}
         <main
           style={{
             flex: 1,
-            padding: '24px 32px',
+            padding: isMobile ? '16px 12px 70px 12px' : '24px 32px',
             overflowY: 'auto',
             maxWidth: '1440px',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Thumb Reach on < 768px) */}
+      {isMobile && (
+        <nav
+          aria-label="Mobile Navigation"
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '56px',
+            backgroundColor: '#090d16',
+            borderTop: '1px solid #1e293b',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            zIndex: 999,
+            padding: '0 8px',
+          }}
+        >
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: currentPath === '/' ? '#d97706' : '#94a3b8',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+              fontSize: '10px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>🏠</span>
+            <span>{currentLanguage === 'ar' ? 'الرئيسية' : 'Home'}</span>
+          </button>
+
+          <button
+            onClick={() => navigate('/my-work')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: currentPath === '/my-work' ? '#d97706' : '#94a3b8',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+              fontSize: '10px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>📋</span>
+            <span>{currentLanguage === 'ar' ? 'مهامي' : 'My Work'}</span>
+          </button>
+
+          <button
+            onClick={() => navigate('/field')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: currentPath === '/field' ? '#d97706' : '#94a3b8',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+              fontSize: '10px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>📱</span>
+            <span>{currentLanguage === 'ar' ? 'الميدان' : 'Field'}</span>
+          </button>
+
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: mobileMenuOpen ? '#d97706' : '#94a3b8',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+              fontSize: '10px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>☰</span>
+            <span>{currentLanguage === 'ar' ? 'القائمة' : 'Menu'}</span>
+          </button>
+        </nav>
+      )}
 
       {/* Modals & Drawers */}
       <NewProjectWizardModal
@@ -710,4 +861,3 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     </div>
   );
 };
-

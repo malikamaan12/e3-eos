@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { MetricCard, Card, Badge, Button, AlertBanner } from '../components/DesignSystem.js';
+import { MetricCard, Card, Badge, Button, AlertBanner, formatCurrency } from '../components/DesignSystem.js';
 
 export const HomeView: React.FC = () => {
   const { currentUser, currentLanguage, navigate, apiClient, refreshTrigger } = useEosContext();
@@ -27,6 +27,8 @@ export const HomeView: React.FC = () => {
     return () => { isMounted = false; };
   }, [apiClient, refreshTrigger]);
 
+  const isRtl = currentLanguage === 'ar';
+
   return (
     <div style={{ paddingBottom: '32px' }}>
       {/* Welcome Banner */}
@@ -40,31 +42,35 @@ export const HomeView: React.FC = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
             <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
-              {currentLanguage === 'ar'
-                ? `مرحباً، ${currentUser.name}`
-                : `Good morning, ${currentUser.name}`}
+              {isRtl ? (
+                <>مرحباً، <span dir="ltr" style={{ unicodeBidi: 'isolate' }}>{currentUser.name}</span></>
+              ) : (
+                `Good morning, ${currentUser.name}`
+              )}
             </h1>
-            <Badge variant="purple">{currentUser.role || 'Super Admin'}</Badge>
+            <Badge variant="accent">{currentUser.role || 'Super Admin'}</Badge>
           </div>
           <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
-            {currentLanguage === 'ar'
+            {isRtl
               ? 'إليك ملخص العمليات الحرجة والموافقات المطلوبة اليوم عبر محفظة فعاليات E3.'
               : 'Here is your operational situational awareness and urgent items across the E3 event portfolio today.'}
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <Button variant="secondary" size="md" onClick={() => navigate('/my-work')}>
-            📋 {currentLanguage === 'ar' ? 'مهامي' : 'My Work'}
+            📋 {isRtl ? 'مهامي' : 'My Work'}
           </Button>
           <Button id="home-create-project-btn" variant="primary" size="md" onClick={() => navigate('/projects/new')}>
-            + {currentLanguage === 'ar' ? 'مشروع جديد' : 'New Project'}
+            + {isRtl ? 'مشروع جديد' : 'New Project'}
           </Button>
         </div>
       </div>
@@ -72,13 +78,13 @@ export const HomeView: React.FC = () => {
       {/* Urgent Operational Alerts */}
       <AlertBanner
         type="warning"
-        title={currentLanguage === 'ar' ? 'تنبيه حرج يتطلب تدخلاً فورياً' : 'Urgent Operational Action Required'}
+        title={isRtl ? 'تنبيه حرج يتطلب تدخلاً فورياً' : 'Urgent Operational Action Required'}
         action={{
-          label: currentLanguage === 'ar' ? 'مراجعة الآن' : 'Review Cockpit',
+          label: isRtl ? 'مراجعة الآن' : 'Review Cockpit',
           onClick: () => navigate(projects[0] ? `/projects/${projects[0].id}` : '/projects'),
         }}
       >
-        {currentLanguage === 'ar'
+        {isRtl
           ? 'الموافقة على المواصفات الفنية ومحركات الرفع (Rigging Motors) لفعالية اليوم الوطني معلقة بانتظار توقيع المدير التنفيذي.'
           : 'Qatar National Day 2026 kinetic truss motor approval is pending Four-Eyes executive sign-off before vendor PO release.'}
       </AlertBanner>
@@ -93,49 +99,49 @@ export const HomeView: React.FC = () => {
         }}
       >
         <MetricCard
-          title={currentLanguage === 'ar' ? 'المشاريع النشطة' : 'Active Projects'}
+          title={isRtl ? 'المشاريع النشطة' : 'Active Projects'}
           value={loading ? '...' : projects.length}
-          subtitle={currentLanguage === 'ar' ? 'مشاريع خاضعة للتنفيذ والمراقبة' : 'Live staging projects'}
+          subtitle={isRtl ? 'مشاريع خاضعة للتنفيذ والمراقبة' : 'Live staging projects'}
           accentColor="#2563eb"
         />
         <MetricCard
-          title={currentLanguage === 'ar' ? 'الموافقات المعلقة' : 'Pending Approvals'}
+          title={isRtl ? 'الموافقات المعلقة' : 'Pending Approvals'}
           value="2"
-          subtitle={currentLanguage === 'ar' ? 'تتطلب توقيع الشريك التنفيذي' : 'Waiting on governance sign-off'}
-          badge={{ label: 'Action Needed', variant: 'danger' }}
+          subtitle={isRtl ? 'تتطلب توقيع الشريك التنفيذي' : 'Waiting on governance sign-off'}
+          badge={{ label: isRtl ? 'إجراء مطلوب' : 'Action Needed', variant: 'danger' }}
           accentColor="#dc2626"
         />
         <MetricCard
-          title={currentLanguage === 'ar' ? 'المهام الحرجة اليوم' : 'Critical Tasks Today'}
+          title={isRtl ? 'المهام الحرجة اليوم' : 'Critical Tasks Today'}
           value="4"
-          subtitle={currentLanguage === 'ar' ? 'مهام على المسار الحرج' : 'On critical path timeline'}
-          delta={{ text: '2 due today', isPositive: false }}
+          subtitle={isRtl ? 'مهام على المسار الحرج' : 'On critical path timeline'}
+          delta={{ text: isRtl ? '٢ مستحقة اليوم' : '2 due today', isPositive: false }}
           accentColor="#d97706"
         />
         <MetricCard
-          title={currentLanguage === 'ar' ? 'العد التنازلي للفعالية' : 'Next Event Move-in'}
+          title={isRtl ? 'العد التنازلي للفعالية' : 'Next Event Move-in'}
           value="67d"
-          subtitle="Doha Exhibition & Conv. Center"
+          subtitle={isRtl ? 'مركز الدوحة للمعارض والمؤتمرات' : 'Doha Exhibition & Conv. Center'}
           accentColor="#059669"
         />
       </div>
 
-      {/* Two Column Grid: Projects & What Needs My Attention Today */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px' }}>
+      {/* Responsive Grid: Projects & What Needs My Attention Today */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
         {/* Active Projects Summary */}
         <Card
-          title={currentLanguage === 'ar' ? 'دليل المشاريع النشطة' : 'Active Projects Directory'}
-          subtitle={currentLanguage === 'ar' ? 'أحدث المشاريع وحالتها التشغيلية' : 'Latest event deliveries and governance maturity'}
+          title={isRtl ? 'دليل المشاريع النشطة' : 'Active Projects Directory'}
+          subtitle={isRtl ? 'أحدث المشاريع وحالتها التشغيلية' : 'Latest event deliveries and governance maturity'}
           action={
             <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
-              View All ({projects.length}) →
+              {isRtl ? `عرض الكل (${projects.length}) ←` : `View All (${projects.length}) →`}
             </Button>
           }
           noPadding
         >
           {projects.length === 0 ? (
             <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
-              No projects found. Click "+ New Project" to onboard your first event.
+              {isRtl ? 'لا توجد مشاريع حالياً. انقر على "+ مشروع جديد" لإضافة أول فعالية.' : 'No projects found. Click "+ New Project" to onboard your first event.'}
             </div>
           ) : (
             <div>
@@ -165,14 +171,14 @@ export const HomeView: React.FC = () => {
                       </span>
                     </div>
                     <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                      {p.clientName || 'Qatar Tourism Authority'} • Origin: {p.originCode || 'Tender'}
+                      {p.clientName || 'Qatar Tourism Authority'} • {isRtl ? 'المصدر:' : 'Origin:'} {p.originCode || 'Tender'}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Badge variant={p.maturity === 'delivery' ? 'success' : 'info'}>
                       {p.maturity || 'Onboarding'}
                     </Badge>
-                    <span style={{ color: '#94a3b8', fontSize: '14px' }}>➔</span>
+                    <span style={{ color: '#94a3b8', fontSize: '14px' }}>{isRtl ? '←' : '→'}</span>
                   </div>
                 </div>
               ))}
@@ -183,52 +189,66 @@ export const HomeView: React.FC = () => {
         {/* What Needs Attention Today */}
         <div>
           <Card
-            title={currentLanguage === 'ar' ? 'ما يتطلب انتباهك اليوم' : 'What Needs My Attention Today?'}
-            subtitle={currentLanguage === 'ar' ? 'قرارات واختناقات تتطلب إجراءً' : 'Blocked items, decisions & milestone deadlines'}
+            title={isRtl ? 'ما يتطلب انتباهك اليوم' : 'What Needs My Attention Today?'}
+            subtitle={isRtl ? 'قرارات واختناقات تتطلب إجراءً عاجلاً' : 'Blocked items, decisions & milestone deadlines'}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div
                 style={{
-                  padding: '12px',
+                  padding: '14px',
                   borderRadius: '6px',
                   border: '1px solid #fde68a',
                   backgroundColor: '#fffbeb',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#92400e' }}>Dual Sign-Off Gate</span>
-                  <Badge variant="warning" size="sm">Executive</Badge>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#92400e' }}>
+                    {isRtl ? 'بوابة الموافقة الثنائية' : 'Dual Sign-Off Gate'}
+                  </span>
+                  <Badge variant="warning" size="sm">
+                    {isRtl ? 'موافقة تنفيذية' : 'Executive'}
+                  </Badge>
                 </div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '4px' }}>
-                  Approval of Qatar Tourism Tender Submission Package
+                  {isRtl ? 'اعتماد حزمة تقديم مناقصة قطر للسياحة' : 'Approval of Qatar Tourism Tender Submission Package'}
                 </div>
-                <div style={{ fontSize: '11px', color: '#78350f', marginTop: '4px' }}>
-                  Requested by Zaid Mansour (PM) • Target Value: 3,500,000 QAR
+                <div style={{ fontSize: '12px', color: '#78350f', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
+                  {isRtl
+                    ? `مطلوبة من: زيد منصور (مدير المشروع) • القيمة المستهدفة: ${formatCurrency(3500000, 'QAR')}`
+                    : `Requested by Zaid Mansour (PM) • Target Value: ${formatCurrency(3500000, 'QAR')}`}
                 </div>
-                <div style={{ marginTop: '8px' }}>
+                <div style={{ marginTop: '10px' }}>
                   <Button size="sm" variant="primary" onClick={() => navigate(projects[0] ? `/projects/${projects[0].id}` : '/approvals')}>
-                    Open Approval Review
+                    {isRtl ? 'مراجعة طلب الموافقة' : 'Open Approval Review'}
                   </Button>
                 </div>
               </div>
 
               <div
                 style={{
-                  padding: '12px',
+                  padding: '14px',
                   borderRadius: '6px',
                   border: '1px solid #e2e8f0',
                   backgroundColor: '#ffffff',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Upcoming Milestone</span>
-                  <Badge variant="neutral" size="sm">In 3 Days</Badge>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                    {isRtl ? 'معلم تسليم قادم' : 'Upcoming Milestone'}
+                  </span>
+                  <Badge variant="neutral" size="sm">
+                    {isRtl ? 'خلال ٣ أيام' : 'In 3 Days'}
+                  </Badge>
                 </div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '4px' }}>
-                  DECC Venue Technical Walkthrough & Rigging Access Check
+                  {isRtl
+                    ? 'الجولة الفنية الميدانية وتصريح تعليق الهياكل في مركز الدوحة للمعارض'
+                    : 'DECC Venue Technical Walkthrough & Rigging Access Check'}
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-                  Assigned to Salem Al-Marri (Head of Live Ops)
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                  {isRtl
+                    ? 'مُسندة إلى: سالم المري (رئيس العمليات الميدانية)'
+                    : 'Assigned to Salem Al-Marri (Head of Live Ops)'}
                 </div>
               </div>
             </div>
