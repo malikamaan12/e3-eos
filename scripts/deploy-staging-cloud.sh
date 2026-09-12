@@ -38,32 +38,55 @@ EOF_DOCKERIGNORE
 
 # Step 2: Build and push immutable container images
 echo "[2/5] Building & Pushing Immutable Container Images (${COMMIT_SHA})..."
-docker build \
-    --build-arg GIT_COMMIT="${COMMIT_SHA}" \
-    --build-arg BUILD_SHA="${COMMIT_SHA}" \
-    -t "${REGISTRY_URL}/api:${COMMIT_SHA}" \
-    -t "${REGISTRY_URL}/api:latest" \
-    -f apps/api/Dockerfile .
-docker push "${REGISTRY_URL}/api:${COMMIT_SHA}"
-docker push "${REGISTRY_URL}/api:latest"
 
-docker build \
-    --build-arg GIT_COMMIT="${COMMIT_SHA}" \
-    --build-arg BUILD_SHA="${COMMIT_SHA}" \
-    -t "${REGISTRY_URL}/web:${COMMIT_SHA}" \
-    -t "${REGISTRY_URL}/web:latest" \
-    -f apps/web/Dockerfile .
-docker push "${REGISTRY_URL}/web:${COMMIT_SHA}"
-docker push "${REGISTRY_URL}/web:latest"
+USE_CLOUD_BUILD=false
+if ! docker push "${REGISTRY_URL}/api:${COMMIT_SHA}" 2>/dev/null; then
+    echo "Notice: Direct docker push failed (connection refused in Cloud Shell environment)."
+    echo "Switching to Google Cloud Build (gcloud builds submit)..."
+    USE_CLOUD_BUILD=true
+fi
 
-docker build \
-    --build-arg GIT_COMMIT="${COMMIT_SHA}" \
-    --build-arg BUILD_SHA="${COMMIT_SHA}" \
-    -t "${REGISTRY_URL}/worker:${COMMIT_SHA}" \
-    -t "${REGISTRY_URL}/worker:latest" \
-    -f apps/worker/Dockerfile .
-docker push "${REGISTRY_URL}/worker:${COMMIT_SHA}"
-docker push "${REGISTRY_URL}/worker:latest"
+if [ "$USE_CLOUD_BUILD" = true ]; then
+    gcloud services enable cloudbuild.googleapis.com --quiet || true
+
+    echo "Building API container via Cloud Build..."
+    gcloud builds submit \
+        --tag "${REGISTRY_URL}/api:${COMMIT_SHA}" \
+        --tag "${REGISTRY_URL}/api:latest" \
+        -f apps/api/Dockerfile .
+
+    echo "Building Web frontend via Cloud Build..."
+    gcloud builds submit \
+        --tag "${REGISTRY_URL}/web:${COMMIT_SHA}" \
+        --tag "${REGISTRY_URL}/web:latest" \
+        -f apps/web/Dockerfile .
+
+    echo "Building Worker container via Cloud Build..."
+    gcloud builds submit \
+        --tag "${REGISTRY_URL}/worker:${COMMIT_SHA}" \
+        --tag "${REGISTRY_URL}/worker:latest" \
+        -f apps/worker/Dockerfile .
+else
+    docker push "${REGISTRY_URL}/api:latest"
+
+    docker build \
+        --build-arg GIT_COMMIT="${COMMIT_SHA}" \
+        --build-arg BUILD_SHA="${COMMIT_SHA}" \
+        -t "${REGISTRY_URL}/web:${COMMIT_SHA}" \
+        -t "${REGISTRY_URL}/web:latest" \
+        -f apps/web/Dockerfile .
+    docker push "${REGISTRY_URL}/web:${COMMIT_SHA}"
+    docker push "${REGISTRY_URL}/web:latest"
+
+    docker build \
+        --build-arg GIT_COMMIT="${COMMIT_SHA}" \
+        --build-arg BUILD_SHA="${COMMIT_SHA}" \
+        -t "${REGISTRY_URL}/worker:${COMMIT_SHA}" \
+        -t "${REGISTRY_URL}/worker:latest" \
+        -f apps/worker/Dockerfile .
+    docker push "${REGISTRY_URL}/worker:${COMMIT_SHA}"
+    docker push "${REGISTRY_URL}/worker:latest"
+fi
 
 echo ">>> Container images built and pushed successfully."
 echo ""
