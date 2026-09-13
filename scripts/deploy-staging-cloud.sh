@@ -49,23 +49,9 @@ fi
 if [ "$USE_CLOUD_BUILD" = true ]; then
     gcloud services enable cloudbuild.googleapis.com --quiet || true
 
-    echo "Building API container via Cloud Build..."
-    gcloud builds submit \
-        --tag "${REGISTRY_URL}/api:${COMMIT_SHA}" \
-        --tag "${REGISTRY_URL}/api:latest" \
-        -f apps/api/Dockerfile .
+    echo "Building API, Web, and Worker containers in parallel via Cloud Build..."
+    gcloud builds submit --config=cloudbuild.yaml --substitutions=_TAG="${COMMIT_SHA:0:7}" .
 
-    echo "Building Web frontend via Cloud Build..."
-    gcloud builds submit \
-        --tag "${REGISTRY_URL}/web:${COMMIT_SHA}" \
-        --tag "${REGISTRY_URL}/web:latest" \
-        -f apps/web/Dockerfile .
-
-    echo "Building Worker container via Cloud Build..."
-    gcloud builds submit \
-        --tag "${REGISTRY_URL}/worker:${COMMIT_SHA}" \
-        --tag "${REGISTRY_URL}/worker:latest" \
-        -f apps/worker/Dockerfile .
 else
     docker push "${REGISTRY_URL}/api:latest"
 
