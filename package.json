@@ -18,7 +18,9 @@
     "test:biz-regression": "tsx scripts/execute-business-regression.ts",
     "deploy:gcp": "pwsh -File scripts/deploy-gcp.ps1",
     "dev": "pnpm --filter @e3-eos/web dev",
-    "dev:api": "pnpm --filter @e3-eos/api dev"
+    "dev:api": "pnpm --filter @e3-eos/api dev",
+    "build:api": "pnpm --filter @e3-eos/api... build",
+    "start:api": "node apps/api/dist/main.js"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
