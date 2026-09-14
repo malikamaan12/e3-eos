@@ -688,9 +688,9 @@ export async function runSeed(): Promise<SeedDataManifest> {
 
     await client.query(`
       INSERT INTO snags (id, organisation_id, project_id, package_id, inspection_id, title, description, severity, status, assigned_to, blocks_dispatch, blocks_readiness, resolved_at, created_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, 'Edge banding touch-up on Counter #14', 'Minor vinyl film peel on rear cable grommet', 'minor', 'resolved', $5, false, false, NOW(), NOW())
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, 'Edge banding touch-up on Counter #14', 'Minor vinyl film peel on rear cable grommet', 'minor', 'resolved', '10000000-0000-4000-8000-000000000010', false, false, NOW(), NOW())
       ON CONFLICT DO NOTHING;
-    `, [e3OrgId, feeProjectId, feePkgId, feeInspId, abcJoineryId]);
+    `, [e3OrgId, feeProjectId, feePkgId, feeInspId]);
 
     // Packing List (30 counters: 8 internal + 22 fabricated) & Logistics
     const feePackingListId = '00000000-0000-4000-f000-000000000006';
