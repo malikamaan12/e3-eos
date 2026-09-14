@@ -1,4 +1,7 @@
 {
+  "buildCommand": "node scripts/build-web-vercel.cjs",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
