@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm --filter @e3-eos/web build",
-  "outputDirectory": "apps/web/dist",
+  "buildCommand": "node scripts/build-web-vercel.cjs",
+  "outputDirectory": "dist",
   "framework": "vite",
   "installCommand": "pnpm install",
   "rewrites": [
