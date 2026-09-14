@@ -145,8 +145,12 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ? CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === saved.toLowerCase()) || CANONICAL_E3_USERS[0]
       : CANONICAL_E3_USERS[0];
     const savedToken = typeof window !== 'undefined' ? localStorage.getItem('eos_session_token') || undefined : undefined;
+    const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
+    const apiBase = metaEnv && metaEnv.VITE_API_URL
+      ? `${metaEnv.VITE_API_URL}/api/v1`
+      : '/api/v1';
     const client = new EosApiClient({
-      baseUrl: '/api/v1',
+      baseUrl: apiBase,
       organisationId: initialUser.organisationId,
       userId: initialUser.id,
       userRoles: [initialUser.role],
