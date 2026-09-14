@@ -181,15 +181,16 @@ export const Button: React.FC<ButtonProps> = ({
 // SEMANTIC BADGE COMPONENT (NO CONFETTI)
 // ==========================================
 export interface BadgeProps {
-  variant?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'purple' | 'secondary' | 'primary' | 'accent';
+  variant?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'purple' | 'secondary' | 'primary' | 'accent' | 'default';
   children: React.ReactNode;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   style?: React.CSSProperties;
 }
 
 export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', children, style: customStyle }) => {
   const variantStyles: Record<string, { bg: string; text: string; border: string }> = {
     neutral: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
+    default: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
     secondary: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
     primary: { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
     info: { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
@@ -207,8 +208,8 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', 
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        padding: size === 'sm' ? '2px 8px' : '4px 10px',
-        fontSize: size === 'sm' ? '11px' : '12px',
+        padding: size === 'sm' ? '2px 8px' : size === 'lg' ? '6px 14px' : '4px 10px',
+        fontSize: size === 'sm' ? '11px' : size === 'lg' ? '13px' : '12px',
         fontWeight: 600,
         borderRadius: '4px',
         backgroundColor: style.bg,
@@ -225,12 +226,36 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', 
 };
 
 // ==========================================
+// SKELETON COMPONENT
+// ==========================================
+export const Skeleton: React.FC<{ width?: string | number; height?: string | number; style?: React.CSSProperties }> = ({
+  width = '100%',
+  height = '16px',
+  style,
+}) => {
+  return (
+    <div
+      style={{
+        width,
+        height,
+        backgroundColor: '#e2e8f0',
+        borderRadius: '4px',
+        animation: 'pulse 1.5s ease-in-out infinite',
+        display: 'inline-block',
+        ...style,
+      }}
+    />
+  );
+};
+
+// ==========================================
 // METRIC CARD / KPI CARD (ENTERPRISE STANDARD)
 // ==========================================
 export interface MetricCardProps {
   title?: string;
   label?: string;
-  value: string | number;
+  value?: string | number | null;
+  unit?: string;
   subtitle?: string;
   subtext?: string;
   change?: string;
@@ -240,12 +265,14 @@ export interface MetricCardProps {
   badge?: { label: string; variant: BadgeProps['variant'] };
   accentColor?: string;
   onClick?: () => void;
+  isLoading?: boolean;
 }
 
 export const MetricCard: React.FC<MetricCardProps> = ({
   title,
   label,
   value,
+  unit,
   subtitle,
   subtext,
   change,
@@ -255,11 +282,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   badge,
   accentColor = '#d97706',
   onClick,
+  isLoading = false,
 }) => {
   const displayTitle = title || label || '';
   const displaySubtitle = subtitle || subtext || change || '';
   const isTrendPositive = trend === 'positive' || trend === 'up' || trendDirection === 'up';
   const isTrendNegative = trend === 'negative' || trend === 'down' || trendDirection === 'down';
+  const isValueLoading = isLoading || value === '…' || value === '...' || value === undefined || value === null;
 
   return (
     <div
@@ -274,6 +303,11 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         overflow: 'hidden',
         cursor: onClick ? 'pointer' : 'default',
         transition: 'transform 0.1s ease, box-shadow 0.1s ease',
+        minHeight: '110px',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
       }}
     >
       <div
@@ -286,37 +320,52 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           backgroundColor: accentColor,
         }}
       />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#64748b' }}>
-          {displayTitle}
-        </span>
-        {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
-      </div>
-      <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '4px', fontVariantNumeric: 'tabular-nums' }}>
-        {value}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
-        {delta && (
-          <span
-            style={{
-              fontWeight: 700,
-              color: delta.isPositive ? '#059669' : '#dc2626',
-            }}
-          >
-            {delta.isPositive ? '▲' : '▼'} {delta.text}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#64748b' }}>
+            {displayTitle}
           </span>
+          {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
+        </div>
+        <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '4px', fontVariantNumeric: 'tabular-nums', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+          {isValueLoading ? (
+            <Skeleton width="90px" height="26px" style={{ margin: '2px 0' }} />
+          ) : (
+            <>
+              <span>{value}</span>
+              {unit && <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>{unit}</span>}
+            </>
+          )}
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', minHeight: '18px' }}>
+        {isValueLoading ? (
+          <Skeleton width="130px" height="14px" />
+        ) : (
+          <>
+            {delta && (
+              <span
+                style={{
+                  fontWeight: 700,
+                  color: delta.isPositive ? '#059669' : '#dc2626',
+                }}
+              >
+                {delta.isPositive ? '▲' : '▼'} {delta.text}
+              </span>
+            )}
+            {!delta && trend && (
+              <span
+                style={{
+                  fontWeight: 700,
+                  color: isTrendPositive ? '#059669' : isTrendNegative ? '#dc2626' : '#64748b',
+                }}
+              >
+                {isTrendPositive ? '▲ ' : isTrendNegative ? '▼ ' : ''}
+              </span>
+            )}
+            {displaySubtitle && <span style={{ color: '#64748b' }}>{displaySubtitle}</span>}
+          </>
         )}
-        {!delta && trend && (
-          <span
-            style={{
-              fontWeight: 700,
-              color: isTrendPositive ? '#059669' : isTrendNegative ? '#dc2626' : '#64748b',
-            }}
-          >
-            {isTrendPositive ? '▲ ' : isTrendNegative ? '▼ ' : ''}
-          </span>
-        )}
-        {displaySubtitle && <span style={{ color: '#64748b' }}>{displaySubtitle}</span>}
       </div>
     </div>
   );
@@ -383,17 +432,22 @@ export interface TabItem {
   id: string;
   label: string;
   badge?: string | number;
+  icon?: string;
 }
 
 export interface TabsProps {
   tabs: TabItem[];
   activeTab: string;
   onChange: (tabId: string) => void;
+  style?: React.CSSProperties;
+  ariaLabel?: string;
 }
 
-export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
+export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, style, ariaLabel = 'Navigation Tabs' }) => {
   return (
     <div
+      role="tablist"
+      aria-label={ariaLabel}
       style={{
         display: 'flex',
         gap: '4px',
@@ -401,7 +455,9 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
         marginBottom: '18px',
         overflowX: 'auto',
         overflowY: 'hidden',
-        scrollbarWidth: 'none',
+        scrollbarWidth: 'thin',
+        WebkitOverflowScrolling: 'touch',
+        ...style,
       }}
     >
       {tabs.map((tab) => {
@@ -409,6 +465,9 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
         return (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={isActive}
+            id={`tab-${tab.id}`}
             onClick={() => onChange(tab.id)}
             style={{
               display: 'inline-flex',
@@ -428,9 +487,12 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange }) => {
               fontFamily: 'inherit',
               marginBottom: '-1px',
               outline: 'none',
+              minHeight: '44px',
+              transition: 'color 0.15s ease, border-color 0.15s ease',
             }}
           >
-            {tab.label}
+            {tab.icon && <span style={{ fontSize: '15px' }}>{tab.icon}</span>}
+            <span>{tab.label}</span>
             {tab.badge !== undefined && (
               <span
                 style={{
@@ -633,12 +695,13 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   label?: string;
   error?: string;
   hint?: string;
+  containerStyle?: React.CSSProperties;
 }
 
-export const Input: React.FC<InputProps> = ({ label, error, hint, style, id, ...props }) => {
+export const Input: React.FC<InputProps> = ({ label, error, hint, style, id, containerStyle, ...props }) => {
   const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: label ? '12px' : '0px', ...containerStyle }}>
       {label && (
         <label htmlFor={inputId} style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
           {label}
@@ -907,21 +970,3 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon = '📂', title, de
   );
 };
 
-export const Skeleton: React.FC<{ width?: string | number; height?: string | number; style?: React.CSSProperties }> = ({
-  width = '100%',
-  height = '16px',
-  style,
-}) => {
-  return (
-    <div
-      style={{
-        width,
-        height,
-        backgroundColor: '#e2e8f0',
-        borderRadius: '4px',
-        animation: 'pulse 1.5s ease-in-out infinite',
-        ...style,
-      }}
-    />
-  );
-};

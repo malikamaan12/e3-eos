@@ -33,6 +33,8 @@ export interface EosContextValue {
   currentPath: string;
   selectedProjectId: string;
   projects: SyntheticProject[];
+  currentProject?: SyntheticProject;
+  userRole?: string;
   pendingMutations: PendingOfflineMutation[];
   isNewProjectModalOpen: boolean;
   isTaskModalOpen: boolean;
@@ -95,6 +97,8 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const params = new URLSearchParams(window.location.search);
       const langParam = params.get('lang') as SupportedLocale;
       if (langParam === 'ar' || langParam === 'en') return langParam;
+      const saved = (localStorage.getItem('e3_eos_lang') || localStorage.getItem('eos_lang')) as SupportedLocale;
+      if (saved === 'ar' || saved === 'en') return saved;
     }
     return 'en';
   };
@@ -313,10 +317,21 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setLanguage = (lang: SupportedLocale) => {
     setLanguageState(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('e3_eos_lang', lang);
+      localStorage.setItem('eos_lang', lang);
+    }
   };
 
   const toggleLanguage = () => {
-    setLanguageState((prev) => (prev === 'en' ? 'ar' : 'en'));
+    setLanguageState((prev) => {
+      const next = prev === 'en' ? 'ar' : 'en';
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('e3_eos_lang', next);
+        localStorage.setItem('eos_lang', next);
+      }
+      return next;
+    });
   };
 
   const toggleOffline = () => {
@@ -360,6 +375,8 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentPath,
         selectedProjectId,
         projects,
+        currentProject: projects.find((p) => p.id === selectedProjectId) || projects[0],
+        userRole: currentUser?.role,
         pendingMutations,
         isNewProjectModalOpen,
         isTaskModalOpen,

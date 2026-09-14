@@ -6,7 +6,7 @@ export const WorkflowBuilderView: React.FC = () => {
   const { currentLanguage } = useEosContext();
   const isRtl = currentLanguage === 'ar';
 
-  const [selectedWorkflow, setSelectedWorkflow] = useState<string>('WF-STANDARD-COMMERCIAL');
+  const [selectedWorkflow, setSelectedWorkflow] = useState<string>('WF-CANONICAL-13-STAGE');
   const [layoutMode, setLayoutMode] = useState<'pipeline' | 'linear'>('pipeline');
   const [testCurrentStage, setTestCurrentStage] = useState<string>('site_ops');
   const [testTargetStage, setTestTargetStage] = useState<string>('live_event');
@@ -14,30 +14,48 @@ export const WorkflowBuilderView: React.FC = () => {
   const [completedApprovals, setCompletedApprovals] = useState<string[]>(['hse_director']);
   const [transitionVerdict, setTransitionVerdict] = useState<any>(null);
 
-  const workflows = {
+  const workflows: Record<string, { name: string; stages: any[] }> = {
+    'WF-CANONICAL-13-STAGE': {
+      name: isRtl ? 'دورة حياة الفعاليات المؤسسية الكاملة (١٣ مرحلة قياسية)' : 'Canonical Enterprise 13-Stage Lifecycle (Complete)',
+      stages: [
+        { code: 'intake', num: 1, phase: 'Phase 1: Initiation', name: isRtl ? 'المرحلة 01: التسجيل والجدوى' : 'Stage 01: Strategic Intake & Feasibility', isGate: false, activities: ['client_brief_intake', 'feasibility_assessment'], approvals: ['project_manager'] },
+        { code: 'proposal', num: 2, phase: 'Phase 1: Initiation', name: isRtl ? 'المرحلة 02: العرض التجاري والتسعير' : 'Stage 02: Commercial Proposal & Bid Pricing', isGate: false, activities: ['boq_rate_verification', 'margin_floor_check'], approvals: ['finance'] },
+        { code: 'executive_gate', num: 3, phase: 'Phase 1: Initiation', name: isRtl ? 'المرحلة 03: اعتماد البوابة التنفيذية الثنائية' : 'Stage 03: Four-Eyes Executive Gate Sign-off', isGate: true, activities: ['executive_briefing', 'commercial_risk_review'], approvals: ['executive_partner'] },
+        { code: 'contracting', num: 4, phase: 'Phase 1: Initiation', name: isRtl ? 'المرحلة 04: توقيع العقد وأمر التكليف' : 'Stage 04: Client Contracting & PO Issuance', isGate: false, activities: ['contract_signature', 'client_advance_payment'], approvals: ['commercial_director'] },
+        { code: 'design_concept', num: 5, phase: 'Phase 2: Technical Production', name: isRtl ? 'المرحلة 05: المفهوم الإبداعي وتصاميم 3D' : 'Stage 05: Creative Concept & 3D Spatial Renders', isGate: false, activities: ['scenography_concept', '3d_visual_renders'], approvals: ['design_production'] },
+        { code: 'cad_rigging', num: 6, phase: 'Phase 2: Technical Production', name: isRtl ? 'المرحلة 06: الإنتاج الفني وهياكل التعليق CAD' : 'Stage 06: Technical Production & Structural CAD Rigging', isGate: false, activities: ['structural_cad_drawings', 'load_bearing_calc'], approvals: ['design_production'] },
+        { code: 'procurement', num: 7, phase: 'Phase 2: Technical Production', name: isRtl ? 'المرحلة 07: حزم المشتريات ومناقصات الموردين' : 'Stage 07: Procurement Packages & Contractor Call-offs', isGate: false, activities: ['rfq_dispatch', 'bidder_evaluation', 'subcontractor_pos'], approvals: ['procurement'] },
+        { code: 'logistics_assets', num: 8, phase: 'Phase 2: Technical Production', name: isRtl ? 'المرحلة 08: تخصيص الأصول وجدولة الأسطول' : 'Stage 08: Logistics Dispatch & Asset Allocation', isGate: false, activities: ['inventory_depot_lock', 'fleet_manifest_generation'], approvals: ['logistics'] },
+        { code: 'civil_defence', num: 9, phase: 'Phase 3: Live Delivery', name: isRtl ? 'المرحلة 09: تصريح الدفاع المدني والسلامة المهنية' : 'Stage 09: Civil Defence & HSE Zone Safety Clearance', isGate: true, activities: ['civil_defence_inspection', 'flame_retardant_certs', 'structural_safety_signoff'], approvals: ['hse_quality'] },
+        { code: 'rehearsals', num: 10, phase: 'Phase 3: Live Delivery', name: isRtl ? 'المرحلة 10: الجاهزية الفنية والبروفات الشاملة' : 'Stage 10: Technical Readiness & Rehearsals', isGate: true, activities: ['av_failover_check', 'show_cue_sheet_lock', 'comms_test'], approvals: ['operations'] },
+        { code: 'live_event', num: 11, phase: 'Phase 3: Live Delivery', name: isRtl ? 'المرحلة 11: التنفيذ التشغيلي للفعالية' : 'Stage 11: Live Event Operational Delivery', isGate: false, activities: ['show_execution', 'dsr_daily_site_reports', 'vip_protocol'], approvals: ['operations'] },
+        { code: 'bump_out', num: 12, phase: 'Phase 3: Live Delivery', name: isRtl ? 'المرحلة 12: تفكيك الهياكل وتسليم الموقع' : 'Stage 12: Strike, Bump-out & Venue Handover', isGate: false, activities: ['rigging_strike', 'venue_damage_inspection', 'asset_return_manifest'], approvals: ['operations'] },
+        { code: 'financial_closeout', num: 13, phase: 'Phase 4: Closeout', name: isRtl ? 'المرحلة 13: الإغلاق المالي واعتماد EAC النهائي' : 'Stage 13: Financial Closeout, EAC Finalization & Debrief', isGate: true, activities: ['supplier_invoice_reconciliation', 'eac_final_audit', 'client_retention_release'], approvals: ['finance'] },
+      ],
+    },
     'WF-STANDARD-COMMERCIAL': {
       name: isRtl ? 'تسليم الفعاليات التجارية المعياري (١٠ مراحل)' : 'Standard Commercial Event Delivery (10 Stages)',
       stages: [
-        { code: 'opportunity', name: isRtl ? 'الفرصة والتسجيل' : 'Opportunity & Intake', activities: ['intake_brief'], approvals: ['commercial_lead'] },
-        { code: 'requirements', name: isRtl ? 'المتطلبات ونطاق العمل' : 'Requirements & Scope', activities: ['tender_document_extraction'], approvals: ['head_of_production'] },
-        { code: 'design', name: isRtl ? 'التصميم ورسومات CAD' : 'Design & Spatial CAD', activities: ['technical_drawings'], approvals: ['lead_architect'] },
-        { code: 'commercial', name: isRtl ? 'التسعير وجدول الكميات' : 'Commercial BOQ & Baseline', activities: ['boq_rate_verification'], approvals: ['commercial_director'] },
-        { code: 'procurement', name: isRtl ? 'المشتريات وأوامر الشراء' : 'Procurement & POs', activities: ['rfq_bid_matrix'], approvals: ['procurement_manager'] },
-        { code: 'production', name: isRtl ? 'تصنيع الورشة والنجارة' : 'Workshop Fabrication', activities: ['material_sample_signoff'], approvals: ['workshop_manager'] },
-        { code: 'site_ops', name: isRtl ? 'البناء وعمليات الموقع' : 'Site Delivery & Build', activities: ['site_permit_cleared', 'safety_induction_complete', 'rigging_snag_cleared'], approvals: ['hse_director', 'venue_manager'] },
-        { code: 'live_event', name: isRtl ? 'تنفيذ العرض المباشر' : 'Live Show Execution', activities: ['opening_authorization_gate'], approvals: ['show_caller', 'event_director'] },
-        { code: 'bump_out', name: isRtl ? 'إغلاق التفكيك والإرجاع' : 'Bump-Out Closeout', activities: ['venue_handover_inspection'], approvals: ['logistics_lead'] },
-        { code: 'financial_closeout', name: isRtl ? 'الإغلاق التجاري المالي' : 'Commercial Closeout', activities: ['supplier_invoices_reconciled'], approvals: ['managing_director'] },
+        { code: 'opportunity', num: 1, name: isRtl ? 'الفرصة والتسجيل' : 'Opportunity & Intake', activities: ['intake_brief'], approvals: ['commercial_lead'] },
+        { code: 'requirements', num: 2, name: isRtl ? 'المتطلبات ونطاق العمل' : 'Requirements & Scope', activities: ['tender_document_extraction'], approvals: ['head_of_production'] },
+        { code: 'design', num: 3, name: isRtl ? 'التصميم ورسومات CAD' : 'Design & Spatial CAD', activities: ['technical_drawings'], approvals: ['lead_architect'] },
+        { code: 'commercial', num: 4, name: isRtl ? 'التسعير وجدول الكميات' : 'Commercial BOQ & Baseline', activities: ['boq_rate_verification'], approvals: ['commercial_director'] },
+        { code: 'procurement', num: 5, name: isRtl ? 'المشتريات وأوامر الشراء' : 'Procurement & POs', activities: ['rfq_bid_matrix'], approvals: ['procurement_manager'] },
+        { code: 'production', num: 6, name: isRtl ? 'تصنيع الورشة والنجارة' : 'Workshop Fabrication', activities: ['material_sample_signoff'], approvals: ['workshop_manager'] },
+        { code: 'site_ops', num: 7, name: isRtl ? 'البناء وعمليات الموقع' : 'Site Delivery & Build', activities: ['site_permit_cleared', 'safety_induction_complete', 'rigging_snag_cleared'], approvals: ['hse_director', 'venue_manager'] },
+        { code: 'live_event', num: 8, name: isRtl ? 'تنفيذ العرض المباشر' : 'Live Show Execution', activities: ['opening_authorization_gate'], approvals: ['show_caller', 'event_director'] },
+        { code: 'bump_out', num: 9, name: isRtl ? 'إغلاق التفكيك والإرجاع' : 'Bump-Out Closeout', activities: ['venue_handover_inspection'], approvals: ['logistics_lead'] },
+        { code: 'financial_closeout', num: 10, name: isRtl ? 'الإغلاق التجاري المالي' : 'Commercial Closeout', activities: ['supplier_invoices_reconciled'], approvals: ['managing_director'] },
       ],
     },
     'WF-FAST-TRACK-VIP': {
       name: isRtl ? 'المسار السريع لكبار الشخصيات (٥ مراحل)' : 'Fast-Track Turnkey VIP Activation (5 Stages)',
       stages: [
-        { code: 'rapid_intake', name: isRtl ? 'التسجيل السريع' : 'Rapid Intake', activities: ['executive_brief'], approvals: ['managing_director'] },
-        { code: 'combined_design_commercial', name: isRtl ? 'التصميم والتسعير الفوري' : 'Concept & Commercial', activities: ['rapid_boq'], approvals: ['commercial_director'] },
-        { code: 'parallel_delivery', name: isRtl ? 'التنفيذ المتوازي' : 'Parallel Delivery', activities: ['emergency_po_authorizations'], approvals: ['event_director'] },
-        { code: 'live_execution', name: isRtl ? 'تنفيذ بروتوكول VIP' : 'Live VIP Activation', activities: ['vip_protocol_signoff'], approvals: ['protocol_lead'] },
-        { code: 'commercial_settlement', name: isRtl ? 'التسوية التجارية' : 'Commercial Settlement', activities: ['three_way_match_completion'], approvals: ['managing_director'] },
+        { code: 'rapid_intake', num: 1, name: isRtl ? 'التسجيل السريع' : 'Rapid Intake', activities: ['executive_brief'], approvals: ['managing_director'] },
+        { code: 'combined_design_commercial', num: 2, name: isRtl ? 'التصميم والتسعير الفوري' : 'Concept & Commercial', activities: ['rapid_boq'], approvals: ['commercial_director'] },
+        { code: 'parallel_delivery', num: 3, name: isRtl ? 'التنفيذ المتوازي' : 'Parallel Delivery', activities: ['emergency_po_authorizations'], approvals: ['event_director'] },
+        { code: 'live_execution', num: 4, name: isRtl ? 'تنفيذ بروتوكول VIP' : 'Live VIP Activation', activities: ['vip_protocol_signoff'], approvals: ['protocol_lead'] },
+        { code: 'commercial_settlement', num: 5, name: isRtl ? 'التسوية التجارية' : 'Commercial Settlement', activities: ['three_way_match_completion'], approvals: ['managing_director'] },
       ],
     },
   };
@@ -98,6 +116,7 @@ export const WorkflowBuilderView: React.FC = () => {
               color: '#0f172a',
             }}
           >
+            <option value="WF-CANONICAL-13-STAGE">{isRtl ? 'دورة حياة الفعاليات المؤسسية الكاملة (١٣ مرحلة)' : 'Canonical Enterprise Lifecycle (13 Stages)'}</option>
             <option value="WF-STANDARD-COMMERCIAL">{isRtl ? 'تسليم الفعاليات المعياري (١٠ مراحل)' : 'Standard Commercial Delivery (10 Stages)'}</option>
             <option value="WF-FAST-TRACK-VIP">{isRtl ? 'المسار السريع VIP (٥ مراحل)' : 'Fast-Track Turnkey VIP (5 Stages)'}</option>
           </select>
@@ -148,7 +167,7 @@ export const WorkflowBuilderView: React.FC = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
               gap: '16px',
             }}
           >
@@ -159,7 +178,7 @@ export const WorkflowBuilderView: React.FC = () => {
                 <div
                   key={idx}
                   style={{
-                    border: `1px solid ${isCurrent ? '#3b82f6' : isTarget ? '#d97706' : '#e2e8f0'}`,
+                    border: `1.5px solid ${isCurrent ? '#3b82f6' : isTarget ? '#d97706' : st.isGate ? '#f59e0b' : '#e2e8f0'}`,
                     borderRadius: '8px',
                     padding: '14px',
                     backgroundColor: isCurrent ? '#eff6ff' : isTarget ? '#fffbeb' : '#f8fafc',
@@ -170,14 +189,22 @@ export const WorkflowBuilderView: React.FC = () => {
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '4px' }}>
                       <span style={{ fontSize: '11px', fontWeight: 800, color: isCurrent ? '#2563eb' : '#64748b' }}>
-                        {isRtl ? `المرحلة ${(idx + 1).toString().padStart(2, '0')}` : `STAGE ${(idx + 1).toString().padStart(2, '0')}`}
+                        {isRtl ? `المرحلة ${(st.num || idx + 1).toString().padStart(2, '0')}` : `STAGE ${(st.num || idx + 1).toString().padStart(2, '0')}`}
                       </span>
-                      {isCurrent && <Badge variant="primary">{isRtl ? 'الحالية' : 'Current'}</Badge>}
-                      {isTarget && <Badge variant="warning">{isRtl ? 'المستهدفة' : 'Target'}</Badge>}
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        {st.isGate && <Badge variant="accent" size="sm">{isRtl ? 'بوابة ملزمة' : 'Gate'}</Badge>}
+                        {isCurrent && <Badge variant="primary" size="sm">{isRtl ? 'الحالية' : 'Current'}</Badge>}
+                        {isTarget && <Badge variant="warning" size="sm">{isRtl ? 'المستهدفة' : 'Target'}</Badge>}
+                      </div>
                     </div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>
+                    {st.phase && (
+                      <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                        {st.phase}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>
                       {st.name}
                     </div>
 

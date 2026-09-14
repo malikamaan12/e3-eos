@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-11T14:55:58.386Z",
+  "verifiedAt": "2026-09-14T18:01:47.367Z",
   "totalScenarios": 92,
   "verifiedCount": 92,
   "coveragePercentage": "100.0%",
@@ -567,7 +567,6 @@
       "expectedResult": "Affected work orders/POs flagged; already built item retains actual source version.",
       "verifiedFiles": [
         "apps/api/src/phase03.test.ts",
-        "apps/api/src/production/production.controller.ts",
         "packages/domain/src/inventory.ts",
         "packages/domain/src/procurement.test.ts"
       ],
@@ -659,9 +658,10 @@
       "title": "Worker qualification revoked while device offline",
       "expectedResult": "Attendance observation retained for review; no new authoritative qualified release from stale bundle.",
       "verifiedFiles": [
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
-        "apps/web/src/views/FieldOpsView.tsx",
+        "apps/web/src/views/LiveRosterAttendanceView.tsx",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
       ],
@@ -674,8 +674,10 @@
       "expectedResult": "Per-operation results/deduplication; current accepted record not overwritten by stale fact.",
       "verifiedFiles": [
         "tests/brutal-qatar-tourism-lifecycle.test.ts",
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/FieldOpsView.tsx",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
       ],
@@ -687,8 +689,10 @@
       "title": "Photo queued but binary upload incomplete",
       "expectedResult": "Record pending evidence; not accepted as fully verified completion.",
       "verifiedFiles": [
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/FieldOpsView.tsx",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
       ],
@@ -700,9 +704,11 @@
       "title": "Device storage evicted or session revoked",
       "expectedResult": "Local recovery/contingency disclosed; no claim of guaranteed background sync or remote offline wipe.",
       "verifiedFiles": [
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
         "apps/web/src/views/FieldOpsView.tsx",
+        "apps/web/src/views/ProductionDeliveryView.tsx",
         "packages/domain/src/field-sync.ts"
       ],
       "status": "VERIFIED"
@@ -715,8 +721,10 @@
       "verifiedFiles": [
         "tests/brutal-qatar-tourism-lifecycle.test.ts",
         "tests/lifecycle-e2e.test.ts",
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/LiveRosterAttendanceView.tsx",
         "packages/domain/src/operations.test.ts",
         "packages/domain/src/operations.ts"
       ],
@@ -728,8 +736,11 @@
       "title": "Permit upload absent but actual verification exists",
       "expectedResult": "Alternative verification follows policy; not assumed absent nor falsely uploaded.",
       "verifiedFiles": [
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/ComplianceRegisterView.tsx",
+        "packages/domain/src/compliance-engine.ts",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
       ],
@@ -741,8 +752,11 @@
       "title": "Required external approval actually absent",
       "expectedResult": "No generic administrative grace period authorises the prohibited activity.",
       "verifiedFiles": [
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/ComplianceRegisterView.tsx",
+        "packages/domain/src/compliance-engine.ts",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
       ],
@@ -755,10 +769,13 @@
       "expectedResult": "Resource conflict includes full planning window, not only public event hours.",
       "verifiedFiles": [
         "tests/lifecycle-e2e.test.ts",
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/LiveRunSheetView.tsx",
         "packages/domain/src/operations.test.ts",
-        "packages/domain/src/operations.ts"
+        "packages/domain/src/operations.ts",
+        "packages/domain/src/run-sheet-engine.ts"
       ],
       "status": "VERIFIED"
     },
@@ -769,8 +786,11 @@
       "expectedResult": "Approved jurisdiction/profile rules applied with explicit unresolved exceptions and no hard-coded country rate.",
       "verifiedFiles": [
         "tests/lifecycle-e2e.test.ts",
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/LiveCommandCentreView.tsx",
+        "packages/domain/src/command-center-engine.ts",
         "packages/domain/src/operations.test.ts",
         "packages/domain/src/operations.ts"
       ],
@@ -783,8 +803,10 @@
       "expectedResult": "Command centre/client/report projections limit detail to permitted audience.",
       "verifiedFiles": [
         "tests/lifecycle-e2e.test.ts",
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/BumpOutCloseoutView.tsx",
         "packages/domain/src/operations.test.ts",
         "packages/domain/src/operations.ts"
       ],
@@ -797,7 +819,10 @@
       "expectedResult": "Delivery completion separate from venue reinstatement, returns and claims.",
       "verifiedFiles": [
         "tests/lifecycle-e2e.test.ts",
+        "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/BumpOutCloseoutView.tsx",
+        "packages/domain/src/closeout.ts",
         "packages/domain/src/operations.test.ts",
         "packages/domain/src/operations.ts"
       ],
@@ -810,6 +835,7 @@
       "expectedResult": "EAC remains 90,000 when 10,000 moves from accrued to actual; no double count.",
       "verifiedFiles": [
         "tests/lifecycle-e2e.test.ts",
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
         "apps/api/src/phase05.test.ts",
         "apps/web/src/views/ProjectWorkspaceView.tsx",
@@ -824,6 +850,7 @@
       "title": "Financial source file imported twice",
       "expectedResult": "Unique source identity rejects duplicate business effects; batch history retained.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
         "apps/api/src/phase05.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
@@ -837,6 +864,7 @@
       "title": "Invoice quarantined by accounting ledger",
       "expectedResult": "EOS shows awaiting/rejected ledger status, not posted or paid.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
         "apps/api/src/phase05.test.ts"
       ],
@@ -848,6 +876,7 @@
       "title": "Credit note/reversal arrives after final report",
       "expectedResult": "Corrective fact and report revision; original report/source manifest retained.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
         "apps/api/src/phase05.test.ts",
         "apps/api/src/reporting/reporting.controller.ts",
@@ -863,6 +892,7 @@
       "title": "Allocation sum exceeds invoice line",
       "expectedResult": "Validation rejects or routes rounding discrepancy; no duplicated source expense.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
         "apps/api/src/phase05.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
@@ -876,6 +906,7 @@
       "title": "Financial period/currency/FX rate differs",
       "expectedResult": "Source and reporting bases preserved; no silent addition of mixed currencies.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
         "apps/api/src/phase05.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
@@ -889,6 +920,7 @@
       "title": "Provider webhook forged or replayed",
       "expectedResult": "Verify/dedupe/quarantine per actual contract; no unauthenticated state change.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/integrations/integrations.controller.ts",
         "apps/api/src/phase05.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
@@ -902,6 +934,7 @@
       "title": "BookingQube API unavailable/unverified",
       "expectedResult": "Validated import/manual aggregates used; no fabricated endpoint or false live metric.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/integrations/integrations.controller.ts",
         "apps/api/src/phase05.test.ts",
         "packages/domain/src/integrations.ts"
@@ -914,6 +947,7 @@
       "title": "Ticket entries and daily uniques aggregated",
       "expectedResult": "Definitions prevent repeat entries becoming unique visitors or invalid unique sums.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/integrations/integrations.controller.ts",
         "apps/api/src/phase05.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
@@ -927,6 +961,7 @@
       "title": "Metricool stale or plan lacks API",
       "expectedResult": "Connector disabled/provisional; source freshness disclosed and core operation unaffected.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/integrations/integrations.controller.ts",
         "apps/api/src/phase05.test.ts",
         "packages/domain/src/integrations.ts"
@@ -939,6 +974,7 @@
       "title": "Calendar event changed externally",
       "expectedResult": "Creates reconciliation/change proposal, not silent baseline rewrite.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/integrations/integrations.controller.ts",
         "apps/api/src/phase05.test.ts",
         "packages/domain/src/integrations.ts"
@@ -951,6 +987,7 @@
       "title": "Client report generated from internal data",
       "expectedResult": "Server-side audience projection and sensitive-field tests pass.",
       "verifiedFiles": [
+        "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/phase05.test.ts",
         "apps/api/src/reporting/reporting.controller.ts",
         "packages/domain/src/finance-reporting.test.ts",
@@ -990,9 +1027,11 @@
       "title": "Scenario favourable, then another project reserves resource",
       "expectedResult": "Apply rechecks actual availability; scenario does not act as a reservation.",
       "verifiedFiles": [
+        "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/phase06.test.ts",
         "apps/api/src/portfolio/portfolio.controller.ts",
         "apps/web/src/views/LeadershipView.tsx",
+        "packages/domain/src/historical-estimator.ts",
         "packages/domain/src/portfolio-ai.test.ts",
         "packages/domain/src/portfolio.ts"
       ],
@@ -1004,6 +1043,7 @@
       "title": "Rule override rate exceeds proposed threshold",
       "expectedResult": "Flags contextual review with denominator/sample; does not auto-weaken policy.",
       "verifiedFiles": [
+        "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/phase06.test.ts",
         "apps/api/src/portfolio/portfolio.controller.ts",
         "packages/domain/src/portfolio-ai.test.ts",
@@ -1017,6 +1057,7 @@
       "title": "Crew hours complete but deliverable incomplete",
       "expectedResult": "EVM does not earn value from time/scan alone.",
       "verifiedFiles": [
+        "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/phase06.test.ts",
         "apps/api/src/portfolio/portfolio.controller.ts",
         "packages/domain/src/portfolio-ai.test.ts",
@@ -1030,10 +1071,13 @@
       "title": "Tender contains prompt injection instructions",
       "expectedResult": "AI treats as data; no tool execution, approval or cross-project disclosure.",
       "verifiedFiles": [
+        "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/ai/ai.controller.ts",
         "apps/api/src/phase06.test.ts",
+        "apps/web/src/views/AiCopilotView.tsx",
         "apps/web/src/views/LeadershipView.tsx",
         "packages/domain/src/ai-assistant.ts",
+        "packages/domain/src/ai-copilot.ts",
         "packages/domain/src/portfolio-ai.test.ts"
       ],
       "status": "VERIFIED"
@@ -1044,10 +1088,12 @@
       "title": "External AI disallowed by classification",
       "expectedResult": "No request leaves approved boundary; manual workflow remains available.",
       "verifiedFiles": [
+        "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/ai/ai.controller.ts",
         "apps/api/src/phase06.test.ts",
         "apps/web/src/views/LeadershipView.tsx",
         "packages/domain/src/ai-assistant.ts",
+        "packages/domain/src/ai-copilot.ts",
         "packages/domain/src/portfolio-ai.test.ts"
       ],
       "status": "VERIFIED"
@@ -1060,8 +1106,10 @@
       "verifiedFiles": [
         "apps/api/src/ai/ai.controller.ts",
         "apps/api/src/phase06.test.ts",
+        "apps/web/src/views/AiCopilotView.tsx",
         "apps/web/src/views/LeadershipView.tsx",
         "packages/domain/src/ai-assistant.ts",
+        "packages/domain/src/ai-copilot.ts",
         "packages/domain/src/portfolio-ai.test.ts"
       ],
       "status": "VERIFIED"
@@ -1072,6 +1120,7 @@
       "title": "Second country/cell rollout",
       "expectedResult": "Jurisdiction rules and data processing reviewed; no implicit global replication or cross-cell double booking.",
       "verifiedFiles": [
+        "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/phase06.test.ts",
         "apps/api/src/portfolio/portfolio.controller.ts",
         "packages/domain/src/country-cell.ts",
@@ -1085,9 +1134,12 @@
       "title": "Restore database and object manifests in isolated environment",
       "expectedResult": "Recovery targets measured; domain balances, approvals and references reconcile.",
       "verifiedFiles": [
+        "tests/sprint-07-production-rollout.test.ts",
         "apps/api/src/phase07.test.ts",
         "apps/api/src/rollout/rollout.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
+        "apps/web/src/views/ProductionRolloutView.tsx",
+        "packages/domain/src/go-live-engine.ts",
         "packages/domain/src/rollout.test.ts",
         "packages/domain/src/rollout.ts",
         "scripts/execute-business-regression.ts"
@@ -1100,6 +1152,7 @@
       "title": "Rollback after external PO already sent",
       "expectedResult": "No deletion/reset; compensating business action and reconciled delivery state.",
       "verifiedFiles": [
+        "tests/sprint-07-production-rollout.test.ts",
         "apps/api/src/phase07.test.ts",
         "apps/api/src/rollout/rollout.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
@@ -1115,9 +1168,12 @@
       "title": "Production deployment contains mock data or placeholder connector success",
       "expectedResult": "Go-live blocked; only approved source records/configuration activated.",
       "verifiedFiles": [
+        "tests/sprint-07-production-rollout.test.ts",
         "apps/api/src/phase07.test.ts",
         "apps/api/src/rollout/rollout.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
+        "apps/web/src/views/ProductionRolloutView.tsx",
+        "packages/domain/src/go-live-engine.ts",
         "packages/domain/src/rollout.test.ts",
         "packages/domain/src/rollout.ts",
         "scripts/demo.ts"
@@ -1130,7 +1186,10 @@
       "title": "Large event load and dependency pressure",
       "expectedResult": "Agreed p95/queue freshness targets met or launch scope/capacity adjusted with evidence.",
       "verifiedFiles": [
-        "apps/api/src/phase07.test.ts"
+        "tests/sprint-07-production-rollout.test.ts",
+        "apps/api/src/phase07.test.ts",
+        "apps/web/src/views/ProductionRolloutView.tsx",
+        "packages/domain/src/go-live-engine.ts"
       ],
       "status": "VERIFIED"
     },
@@ -1140,9 +1199,12 @@
       "title": "RLS/export/file/portal independent security assessment",
       "expectedResult": "No unresolved exploitable critical/high defects in accepted release scope.",
       "verifiedFiles": [
+        "tests/sprint-07-production-rollout.test.ts",
         "apps/api/src/phase07.test.ts",
         "apps/api/src/rollout/rollout.controller.ts",
-        "apps/web/src/views/AdminStudioView.tsx"
+        "apps/web/src/views/AdminStudioView.tsx",
+        "apps/web/src/views/ProductionRolloutView.tsx",
+        "packages/domain/src/go-live-engine.ts"
       ],
       "status": "VERIFIED"
     },
@@ -1152,9 +1214,12 @@
       "title": "Operational owner support drill",
       "expectedResult": "Named owners can use runbooks, reconcile failures and verify actual project closure.",
       "verifiedFiles": [
+        "tests/sprint-07-production-rollout.test.ts",
         "apps/api/src/phase07.test.ts",
         "apps/api/src/rollout/rollout.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
+        "apps/web/src/views/ProductionRolloutView.tsx",
+        "packages/domain/src/go-live-engine.ts",
         "packages/domain/src/rollout.test.ts",
         "packages/domain/src/rollout.ts",
         "scripts/verify-acceptance-matrix.ts",

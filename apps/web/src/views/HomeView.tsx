@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { MetricCard, Card, Badge, Button, AlertBanner, formatCurrency } from '../components/DesignSystem.js';
+import { MetricCard, Card, Badge, Button, AlertBanner, Skeleton, formatCurrency } from '../components/DesignSystem.js';
 
 export const HomeView: React.FC = () => {
   const { currentUser, currentLanguage, navigate, apiClient, refreshTrigger, projects: contextProjects } = useEosContext();
@@ -101,7 +101,8 @@ export const HomeView: React.FC = () => {
       >
         <MetricCard
           title={isRtl ? 'المشاريع النشطة' : 'Active Projects'}
-          value={projects.length > 0 ? projects.length : (loading ? '—' : 0)}
+          isLoading={loading}
+          value={projects.length}
           subtitle={isRtl ? 'مشاريع خاضعة للتنفيذ والمراقبة' : 'Live staging projects'}
           accentColor="#2563eb"
         />
@@ -135,16 +136,24 @@ export const HomeView: React.FC = () => {
           subtitle={isRtl ? 'أحدث المشاريع وحالتها التشغيلية' : 'Latest event deliveries and governance maturity'}
           action={
             <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
-              {isRtl ? `عرض الكل (${projects.length}) ←` : `View All (${projects.length}) →`}
+              {loading
+                ? (isRtl ? 'عرض الكل ←' : 'View All →')
+                : (isRtl ? `عرض الكل (${projects.length}) ←` : `View All (${projects.length}) →`)}
             </Button>
           }
           noPadding
         >
           {loading && projects.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
-              <div style={{ fontSize: '13px', fontWeight: 600 }}>
-                {isRtl ? 'جارٍ تحميل بيانات المشاريع...' : 'Loading active projects...'}
-              </div>
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '60%' }}>
+                    <Skeleton width="180px" height="16px" />
+                    <Skeleton width="120px" height="12px" />
+                  </div>
+                  <Skeleton width="70px" height="22px" style={{ borderRadius: '12px' }} />
+                </div>
+              ))}
             </div>
           ) : projects.length === 0 ? (
             <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>

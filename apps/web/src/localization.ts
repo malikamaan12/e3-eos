@@ -94,6 +94,18 @@ export const TRANSLATIONS: Record<SupportedLocale, Record<string, string>> = {
     'status.blocked': 'Blocked',
     'status.overdue': 'Overdue',
     'status.permitted': 'Permitted',
+    // Calendar & Views
+    'calendar.month': 'Month',
+    'calendar.week': 'Week',
+    'calendar.agenda': 'Agenda',
+    'calendar.all_venues': 'All Venues (Doha)',
+    'calendar.all_phases': 'All Phases',
+    'calendar.move_in': 'Move-in & Rigging',
+    'calendar.rehearsal': 'Rehearsal',
+    'calendar.show': 'Live Show',
+    'calendar.bump_out': 'Bump-out & Teardown',
+    'view.matrix': 'Comparison Matrix',
+    'view.cards': 'Card View',
   },
   ar: {
     'app.title': 'نظام إدارة فعاليات إي 3 للمؤسسات',
@@ -165,6 +177,18 @@ export const TRANSLATIONS: Record<SupportedLocale, Record<string, string>> = {
     'status.blocked': 'معطل / محظور',
     'status.overdue': 'متأخر',
     'status.permitted': 'مسموح التشغيل',
+    // Calendar & Views
+    'calendar.month': 'عرض الشهر',
+    'calendar.week': 'عرض الأسبوع',
+    'calendar.agenda': 'جدول الأعمال',
+    'calendar.all_venues': 'جميع الأماكن (الدوحة)',
+    'calendar.all_phases': 'جميع المراحل',
+    'calendar.move_in': 'تركيب وبناء',
+    'calendar.rehearsal': 'بروفات وتجارب',
+    'calendar.show': 'عرض مباشر',
+    'calendar.bump_out': 'تفكيك وإرجاع',
+    'view.matrix': 'مصفوفة المقارنة',
+    'view.cards': 'عرض البطاقات',
   },
 };
 

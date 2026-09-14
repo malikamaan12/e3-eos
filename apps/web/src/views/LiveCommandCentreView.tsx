@@ -25,11 +25,14 @@ export const LiveCommandCentreView: React.FC = () => {
   const [incidentZone, setIncidentZone] = useState<string>('MAIN_STAGE');
   const [incidentDesc, setIncidentDesc] = useState<string>('');
 
+  const [lastUpdated, setLastUpdated] = useState<string>('09:15:00');
+
   const loadCommandCenter = async () => {
     setLoading(true);
     try {
       const res = await apiClient.getLiveCommandCenter(projectId);
       setData(res);
+      setLastUpdated(new Date().toLocaleTimeString('en-GB'));
     } catch (err) {
       console.error('Failed to load command center data', err);
     } finally {
@@ -63,9 +66,10 @@ export const LiveCommandCentreView: React.FC = () => {
     }
   };
 
-  const handleCreateIncident = async () => {
+  const handleReportIncident = async () => {
     try {
-      await apiClient.createLiveIncident(projectId, {
+      await (apiClient as any).reportIncident({
+        projectId,
         type: incidentType,
         severity: incidentSeverity,
         zone: incidentZone,
@@ -87,19 +91,23 @@ export const LiveCommandCentreView: React.FC = () => {
       {/* Top Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
               🔴 {isRtl ? 'مركز القيادة والعمليات الميدانية الحية' : 'Live Operations Command Centre'}
             </h1>
             <Badge variant="danger">{isRtl ? 'تغذية تدقيق مباشرة' : 'LIVE AUDIT FEED'}</Badge>
             <Badge variant="neutral">ISO 20121 ACTIVE</Badge>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748b', padding: '2px 8px', backgroundColor: '#f1f5f9', borderRadius: '4px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />
+              <span>{isRtl ? 'آخر نبض للاتصال:' : 'Telemetry Heartbeat:'} <strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{lastUpdated} AST</strong></span>
+            </div>
           </div>
           <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>
             {isRtl ? 'مسرح اليوم الوطني لدولة قطر وجناح كبار الشخصيات — القياس الفوري، تدابير الحماية الوقائية، وذكاء إدارة الفعاليات.' : 'Qatar National Day Main Stage & Royal Pavilion — Real-time telemetry, protective controls, and event intelligence.'}
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <Button
             variant={activeTab === 'panels' ? 'primary' : 'outline'}
             onClick={() => setActiveTab('panels')}
@@ -130,7 +138,8 @@ export const LiveCommandCentreView: React.FC = () => {
           title={isRtl ? 'حضور طاقم العمل المباشر' : 'Live Attendance'}
           label={isRtl ? 'حضور طاقم العمل المباشر' : 'Live Attendance'}
           value={`${panels?.crewDuty?.checkedInWorkers || 38} / ${panels?.crewDuty?.rosteredWorkers || 42}`}
-          subtitle={isRtl ? `${panels?.crewDuty?.attendancePercentage || 90}% في الموقع` : `${panels?.crewDuty?.attendancePercentage || 90}% on site`}
+          unit={isRtl ? 'فنيين' : 'Workers'}
+          subtitle={isRtl ? `${panels?.crewDuty?.attendancePercentage || 90}% نسبة التواجد الميداني` : `${panels?.crewDuty?.attendancePercentage || 90}% on site (Rostered: 42)`}
           change={`${panels?.crewDuty?.attendancePercentage || 90}% on site`}
           trend="positive"
           accentColor="#059669"
@@ -139,7 +148,8 @@ export const LiveCommandCentreView: React.FC = () => {
           title={isRtl ? 'بوابة الامتثال التنظيمي' : 'Regulatory Gate'}
           label={isRtl ? 'بوابة الامتثال التنظيمي' : 'Regulatory Gate'}
           value={panels?.compliance?.canOperate ? (isRtl ? 'مسموح التشغيل' : 'PERMITTED') : (isRtl ? 'محظور' : 'BLOCKED')}
-          subtitle={isRtl ? `${panels?.compliance?.activeObligations || 3} التزامات محققة` : `${panels?.compliance?.activeObligations || 3} verified active`}
+          unit={isRtl ? 'حالة الاعتماد' : 'QCDD Gate'}
+          subtitle={isRtl ? `${panels?.compliance?.activeObligations || 3} تصاريح نظامية نشطة` : `${panels?.compliance?.activeObligations || 3} verified active permits`}
           change={`${panels?.compliance?.activeObligations || 3} verified active`}
           trend={panels?.compliance?.canOperate ? 'positive' : 'negative'}
           accentColor={panels?.compliance?.canOperate ? '#059669' : '#dc2626'}
@@ -147,8 +157,9 @@ export const LiveCommandCentreView: React.FC = () => {
         <MetricCard
           title={isRtl ? 'جدول إشارات العرض' : 'Show Cue Schedule'}
           label={isRtl ? 'جدول إشارات العرض' : 'Show Cue Schedule'}
-          value={isRtl ? `تأخير +${panels?.runSheet?.cumulativeDelayMinutes || 10} دقيقة` : `+${panels?.runSheet?.cumulativeDelayMinutes || 10}m delay`}
-          subtitle={isRtl ? `${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} إشارات منجزة` : `${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} cues done`}
+          value={`+${panels?.runSheet?.cumulativeDelayMinutes || 10}`}
+          unit={isRtl ? 'دقائق تأخير' : 'Minutes Delay'}
+          subtitle={isRtl ? `${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} إشارات منجزة` : `${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} cues done (CUE-02 Active)`}
           change={`${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} cues done`}
           trend="neutral"
           accentColor="#d97706"
@@ -157,7 +168,8 @@ export const LiveCommandCentreView: React.FC = () => {
           title={isRtl ? 'تعداد دخول الجمهور' : 'Venue Ingress Headcount'}
           label={isRtl ? 'تعداد دخول الجمهور' : 'Venue Ingress Headcount'}
           value={`${audience?.currentInside?.toLocaleString() || '10,850'}`}
-          subtitle={isRtl ? `${audience?.occupancyPercentage || 72}% نسبة الإشغال` : `${audience?.occupancyPercentage || 72}% venue occupancy`}
+          unit={isRtl ? 'زائر' : 'Attendees'}
+          subtitle={isRtl ? `${audience?.occupancyPercentage || 72}% نسبة الإشغال (السعة: ١٥,٠٠٠)` : `${audience?.occupancyPercentage || 72}% venue occupancy (15,000 Capacity)`}
           change={`${audience?.occupancyPercentage || 72}% venue occupancy`}
           trend="positive"
           accentColor="#2563eb"

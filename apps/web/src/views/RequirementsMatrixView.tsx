@@ -17,6 +17,14 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
   // Filter state
   const [activeFilter, setActiveFilter] = useState<'all' | 'missing_owner' | 'missing_boq' | 'missing_design' | 'high_risk' | 'unapproved'>('all');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Modals
   const [isAddReqModalOpen, setIsAddReqModalOpen] = useState<boolean>(false);
@@ -379,12 +387,30 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </button>
           </div>
 
-          <div style={{ fontSize: '12px', color: '#64748b' }}>
-            {isRtl ? 'عرض' : 'Showing'} <strong>{filteredEvaluations.length}</strong> {isRtl ? 'من أصل' : 'of'} {evaluations.length} {isRtl ? 'متطلب' : 'requirements'}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              id="btn-req-view-mode"
+              onClick={() => setViewMode(viewMode === 'table' ? 'cards' : 'table')}
+              style={{
+                padding: '5px 10px',
+                fontSize: '12px',
+                fontWeight: 600,
+                backgroundColor: '#ffffff',
+                color: '#475569',
+                border: '1px solid #cbd5e1',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              {(isMobile ? 'cards' : viewMode) === 'table' ? (isRtl ? '⊞ عرض البطاقات' : '⊞ Cards View') : (isRtl ? '☰ عرض الجدول' : '☰ Table View')}
+            </button>
+            <div style={{ fontSize: '12px', color: '#64748b' }}>
+              {isRtl ? 'عرض' : 'Showing'} <strong>{filteredEvaluations.length}</strong> {isRtl ? 'من أصل' : 'of'} {evaluations.length} {isRtl ? 'متطلب' : 'requirements'}
+            </div>
           </div>
         </div>
 
-        {/* 7-Point Matrix Table with Robust Horizontal Scroll Container */}
+        {/* 7-Point Matrix Table / Responsive Cards with Sticky Requirement ID Column */}
         {filteredEvaluations.length === 0 ? (
           <div style={{ padding: '36px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px dashed #cbd5e1' }}>
             <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
@@ -398,15 +424,111 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               {isRtl ? 'عرض جميع المتطلبات' : 'Show All Requirements'}
             </Button>
           </div>
+        ) : (isMobile || viewMode === 'cards') ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '14px' }}>
+            {filteredEvaluations.map((ev: any) => {
+              const coveragePct = ev.currentStageMaturityPct ?? ev.overallTraceabilityPct ?? ev.traceabilityScorePct ?? 0;
+              const reqStatus = ev.status || (ev.isApproved ? 'approved' : 'active');
+              return (
+                <div
+                  key={ev.requirementId}
+                  style={{
+                    backgroundColor: ev.isFullyTraceable ? '#f0fdf4' : '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#2563eb', fontSize: '13px' }}>
+                      <span dir="ltr">{ev.code || ev.requirementId}</span>
+                    </span>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <Badge variant={reqStatus === 'approved' ? 'success' : 'info'} size="sm">
+                        {String(reqStatus).toUpperCase().replace('_', ' ')}
+                      </Badge>
+                      <Badge variant={ev.riskRating === 'critical' || ev.riskRating === 'high' ? 'danger' : 'warning'} size="sm">
+                        {ev.riskRating?.toUpperCase() || 'LOW'}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                      {ev.title || 'Scope Deliverable'}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.4, wordBreak: 'normal', overflowWrap: 'break-word' }}>
+                      {ev.description}
+                    </p>
+                  </div>
+
+                  {/* 7-Point Progress Bar */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>
+                      <span style={{ color: '#475569' }}>{isRtl ? 'اكتمال التتبع (٧ نقاط):' : '7-Point Traceability:'}</span>
+                      <span style={{ color: coveragePct >= 80 ? '#059669' : '#d97706' }}>{coveragePct}% ({ev.completedPoints || 0}/7)</span>
+                    </div>
+                    <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${coveragePct}%`, height: '100%', backgroundColor: coveragePct >= 80 ? '#10b981' : '#f59e0b', borderRadius: '3px' }} />
+                    </div>
+                  </div>
+
+                  {/* Attributes Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                    <div>
+                      <span style={{ color: '#64748b' }}>{isRtl ? 'المسؤول: ' : 'Owner: '}</span>
+                      <strong style={{ color: ev.hasOwner ? '#0f172a' : '#dc2626' }}>
+                        {ev.hasOwner ? ev.ownerName : (isRtl ? 'غير محدد' : 'Missing')}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b' }}>{isRtl ? 'الاستحقاق: ' : 'Due: '}</span>
+                      <strong style={{ color: '#0f172a' }}>{ev.dueDate ? new Date(ev.dueDate).toLocaleDateString() : '—'}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b' }}>CAD: </span>
+                      <strong style={{ color: ev.hasDesignVersion ? '#16a34a' : '#dc2626' }}>
+                        {ev.hasDesignVersion ? '✓ Linked' : '✗ No CAD'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b' }}>BOQ: </span>
+                      <strong style={{ color: ev.hasBoqCost ? '#16a34a' : '#dc2626' }}>
+                        {ev.hasBoqCost ? '✓ Costed' : '✗ Missing'}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
             <table style={{ width: '100%', minWidth: '1420px', borderCollapse: 'collapse', fontSize: '12px', textAlign: isRtl ? 'right' : 'left' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
-                  <th style={{ padding: '12px 14px', fontWeight: 700, width: '130px', minWidth: '130px', whiteSpace: 'nowrap' }}>
+                  <th
+                    style={{
+                      padding: '12px 14px',
+                      fontWeight: 700,
+                      width: '140px',
+                      minWidth: '140px',
+                      whiteSpace: 'nowrap',
+                      position: 'sticky',
+                      left: isRtl ? undefined : 0,
+                      right: isRtl ? 0 : undefined,
+                      backgroundColor: '#f8fafc',
+                      zIndex: 2,
+                      boxShadow: isRtl ? '-2px 0 4px rgba(0,0,0,0.06)' : '2px 0 4px rgba(0,0,0,0.06)',
+                    }}
+                  >
                     {isRtl ? 'معرف المطلب' : 'Requirement ID'}
                   </th>
-                  <th style={{ padding: '12px 14px', fontWeight: 700, minWidth: '320px', maxWidth: '420px' }}>
+                  <th style={{ padding: '12px 14px', fontWeight: 700, minWidth: '320px', maxWidth: '440px' }}>
                     {isRtl ? 'الوصف والنطاق' : 'Description & Scope'}
                   </th>
                   <th style={{ padding: '12px 14px', fontWeight: 700, width: '130px', minWidth: '130px' }}>
@@ -445,17 +567,33 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
                   return (
                     <tr key={ev.requirementId} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: ev.isFullyTraceable ? '#f0fdf4' : '#ffffff' }}>
-                      {/* Column 1: Requirement ID */}
-                      <td style={{ padding: '12px 14px', fontFamily: 'monospace', fontWeight: 800, color: '#2563eb', whiteSpace: 'nowrap', width: '130px', minWidth: '130px' }}>
-                        {ev.code || ev.requirementId}
+                      {/* Column 1: Requirement ID (Sticky) */}
+                      <td
+                        style={{
+                          padding: '12px 14px',
+                          fontFamily: 'monospace',
+                          fontWeight: 800,
+                          color: '#2563eb',
+                          whiteSpace: 'nowrap',
+                          width: '140px',
+                          minWidth: '140px',
+                          position: 'sticky',
+                          left: isRtl ? undefined : 0,
+                          right: isRtl ? 0 : undefined,
+                          backgroundColor: ev.isFullyTraceable ? '#f0fdf4' : '#ffffff',
+                          zIndex: 1,
+                          boxShadow: isRtl ? '-2px 0 4px rgba(0,0,0,0.06)' : '2px 0 4px rgba(0,0,0,0.06)',
+                        }}
+                      >
+                        <span dir="ltr">{ev.code || ev.requirementId}</span>
                       </td>
 
-                      {/* Column 2: Description */}
-                      <td style={{ padding: '12px 14px', minWidth: '320px', maxWidth: '420px' }}>
+                      {/* Column 2: Description & Scope */}
+                      <td style={{ padding: '12px 14px', minWidth: '320px', maxWidth: '440px', wordBreak: 'normal', overflowWrap: 'break-word' }}>
                         <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px', fontSize: '13px' }}>
                           {ev.title || 'Scope Deliverable'}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                        <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5, wordBreak: 'normal', overflowWrap: 'break-word' }}>
                           {ev.description}
                         </div>
                         {ev.originalWording && (

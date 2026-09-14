@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal } from '../components/DesignSystem.js';
 
@@ -138,10 +138,33 @@ export const MasterCalendarView: React.FC = () => {
   const { currentLanguage, navigate } = useEosContext();
   const isRtl = currentLanguage === 'ar';
 
-  const [viewMode, setViewMode] = useState<'grid' | 'timeline'>('grid');
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'agenda'>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return 'agenda';
+    }
+    return 'month';
+  });
+
   const [selectedVenue, setSelectedVenue] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<number>(3); // Default Week 3 (Sep 14-20)
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Operational Window: September 2026
   const monthName = isRtl ? 'سبتمبر ٢٠٢٦' : 'September 2026';
@@ -180,6 +203,14 @@ export const MasterCalendarView: React.FC = () => {
     ? ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
     : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  const weeksList = [
+    { num: 1, label: isRtl ? 'الأسبوع ١ (١ - ٦ سبتمبر)' : 'Week 1 (Sep 1–6)', days: [1, 2, 3, 4, 5, 6] },
+    { num: 2, label: isRtl ? 'الأسبوع ٢ (٧ - ١٣ سبتمبر)' : 'Week 2 (Sep 7–13)', days: [7, 8, 9, 10, 11, 12, 13] },
+    { num: 3, label: isRtl ? 'الأسبوع ٣ (١٤ - ٢٠ سبتمبر)' : 'Week 3 (Sep 14–20)', days: [14, 15, 16, 17, 18, 19, 20] },
+    { num: 4, label: isRtl ? 'الأسبوع ٤ (٢١ - ٢٧ سبتمبر)' : 'Week 4 (Sep 21–27)', days: [21, 22, 23, 24, 25, 26, 27] },
+    { num: 5, label: isRtl ? 'الأسبوع ٥ (٢٨ - ٣٠ سبتمبر)' : 'Week 5 (Sep 28–30)', days: [28, 29, 30] },
+  ];
+
   return (
     <div style={{ paddingBottom: '40px' }}>
       {/* Header Banner */}
@@ -216,36 +247,58 @@ export const MasterCalendarView: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
             <button
-              onClick={() => setViewMode('grid')}
+              id="btn-calendar-view-month"
+              onClick={() => setViewMode('month')}
               style={{
                 padding: '6px 14px',
                 fontSize: '12px',
-                fontWeight: viewMode === 'grid' ? 700 : 500,
-                backgroundColor: viewMode === 'grid' ? '#ffffff' : 'transparent',
-                color: viewMode === 'grid' ? '#0f172a' : '#64748b',
+                fontWeight: viewMode === 'month' ? 700 : 500,
+                backgroundColor: viewMode === 'month' ? '#ffffff' : 'transparent',
+                color: viewMode === 'month' ? '#0f172a' : '#64748b',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
-                boxShadow: viewMode === 'grid' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                boxShadow: viewMode === 'month' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                minHeight: '36px',
               }}
             >
-              📅 {isRtl ? 'شبكة الشهر' : 'Month Grid'}
+              📅 {isRtl ? 'عرض الشهر' : 'Month'}
             </button>
             <button
-              onClick={() => setViewMode('timeline')}
+              id="btn-calendar-view-week"
+              onClick={() => setViewMode('week')}
               style={{
                 padding: '6px 14px',
                 fontSize: '12px',
-                fontWeight: viewMode === 'timeline' ? 700 : 500,
-                backgroundColor: viewMode === 'timeline' ? '#ffffff' : 'transparent',
-                color: viewMode === 'timeline' ? '#0f172a' : '#64748b',
+                fontWeight: viewMode === 'week' ? 700 : 500,
+                backgroundColor: viewMode === 'week' ? '#ffffff' : 'transparent',
+                color: viewMode === 'week' ? '#0f172a' : '#64748b',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
-                boxShadow: viewMode === 'timeline' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                boxShadow: viewMode === 'week' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                minHeight: '36px',
               }}
             >
-              📋 {isRtl ? 'المخطط الزمني' : 'Timeline Schedule'}
+              📆 {isRtl ? 'عرض الأسبوع' : 'Week'}
+            </button>
+            <button
+              id="btn-calendar-view-agenda"
+              onClick={() => setViewMode('agenda')}
+              style={{
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: viewMode === 'agenda' ? 700 : 500,
+                backgroundColor: viewMode === 'agenda' ? '#ffffff' : 'transparent',
+                color: viewMode === 'agenda' ? '#0f172a' : '#64748b',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                boxShadow: viewMode === 'agenda' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                minHeight: '36px',
+              }}
+            >
+              📋 {isRtl ? 'جدول الأعمال' : 'Agenda'}
             </button>
           </div>
         </div>
@@ -362,9 +415,9 @@ export const MasterCalendarView: React.FC = () => {
       </Card>
 
       {/* VIEW MODE 1: Month Grid */}
-      {viewMode === 'grid' && (
+      {viewMode === 'month' && (
         <Card style={{ padding: '16px' }} noPadding>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
               {monthName}
             </h2>
@@ -373,143 +426,419 @@ export const MasterCalendarView: React.FC = () => {
             </div>
           </div>
 
-          {/* Days of Week Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
-            {weekdays.map((wd, i) => (
-              <div key={i} style={{ padding: '10px 4px', fontSize: '12px', fontWeight: 700, color: '#475569' }}>
-                {wd}
+          {isMobile && (
+            <div style={{ margin: '12px 16px 0', padding: '8px 12px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '12px', color: '#1e40af', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>💡 {isRtl ? 'عرض جدول الأعمال (Agenda) مُحسّن لشاشات الجوال بدون ضغط للخلايا.' : 'Agenda view is optimized for mobile touchscreens with zero squashing.'}</span>
+              <Button size="sm" variant="ghost" onClick={() => setViewMode('agenda')} style={{ fontSize: '11px', height: '28px' }}>
+                {isRtl ? 'تبديل إلى جدول الأعمال' : 'Switch to Agenda'}
+              </Button>
+            </div>
+          )}
+
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ minWidth: '760px' }}>
+              {/* Days of Week Header */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
+                {weekdays.map((wd, i) => (
+                  <div key={i} style={{ padding: '10px 4px', fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                    {wd}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* Month Calendar Cells */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #e2e8f0' }}>
-            {Array.from({ length: firstDayWeekday }).map((_, i) => (
-              <div key={`blank-${i}`} style={{ minHeight: '110px', backgroundColor: '#fafbfc', borderRight: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }} />
-            ))}
+              {/* Month Calendar Cells */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #e2e8f0' }}>
+                {Array.from({ length: firstDayWeekday }).map((_, i) => (
+                  <div key={`blank-${i}`} style={{ minHeight: '110px', backgroundColor: '#fafbfc', borderRight: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }} />
+                ))}
 
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const dayNum = i + 1;
-              const evts = getDayEvents(dayNum);
-              const isToday = dayNum === 13;
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const dayNum = i + 1;
+                  const evts = getDayEvents(dayNum);
+                  const isToday = dayNum === 14;
 
-              return (
-                <div
-                  key={`day-${dayNum}`}
-                  style={{
-                    minHeight: '110px',
-                    padding: '8px',
-                    borderRight: '1px solid #f1f5f9',
-                    borderBottom: '1px solid #f1f5f9',
-                    backgroundColor: isToday ? '#fffbeb' : '#ffffff',
-                    transition: 'background-color 0.15s',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span
+                  return (
+                    <div
+                      key={`day-${dayNum}`}
                       style={{
-                        fontSize: '12px',
-                        fontWeight: isToday ? 800 : 600,
-                        color: isToday ? '#d97706' : '#334155',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '22px',
-                        height: '22px',
-                        borderRadius: '50%',
-                        backgroundColor: isToday ? '#fef3c7' : 'transparent',
+                        minHeight: '110px',
+                        padding: '8px',
+                        borderRight: '1px solid #f1f5f9',
+                        borderBottom: '1px solid #f1f5f9',
+                        backgroundColor: isToday ? '#fffbeb' : '#ffffff',
+                        transition: 'background-color 0.15s',
                       }}
                     >
-                      {dayNum}
-                    </span>
-                    {evts.length > 0 && (
-                      <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b' }}>
-                        {evts.length} {evts.length === 1 ? (isRtl ? 'فعالية' : 'item') : (isRtl ? 'فعاليات' : 'items')}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Event Chips */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {evts.map((evt) => {
-                      const col = getTypeColor(evt.type);
-                      return (
-                        <div
-                          key={evt.id}
-                          onClick={() => setSelectedEvent(evt)}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span
                           style={{
-                            padding: '4px 6px',
-                            borderRadius: '4px',
-                            backgroundColor: col.bg,
-                            border: `1px solid ${col.border}`,
-                            color: col.text,
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'flex',
+                            fontSize: '12px',
+                            fontWeight: isToday ? 800 : 600,
+                            color: isToday ? '#d97706' : '#334155',
+                            display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            lineHeight: 1.2,
+                            justifyContent: 'center',
+                            width: '22px',
+                            height: '22px',
+                            borderRadius: '50%',
+                            backgroundColor: isToday ? '#fef3c7' : 'transparent',
                           }}
-                          title={`${evt.startTime} - ${evt.title}`}
                         >
-                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: col.dot, flexShrink: 0 }} />
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                            {evt.title}
+                          {dayNum}
+                        </span>
+                        {evts.length > 0 && (
+                          <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b' }}>
+                            {evts.length} {evts.length === 1 ? (isRtl ? 'فعالية' : 'item') : (isRtl ? 'فعاليات' : 'items')}
                           </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+                        )}
+                      </div>
+
+                      {/* Event Chips */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {evts.map((evt) => {
+                          const col = getTypeColor(evt.type);
+                          return (
+                            <div
+                              key={evt.id}
+                              onClick={() => setSelectedEvent(evt)}
+                              style={{
+                                padding: '4px 6px',
+                                borderRadius: '4px',
+                                backgroundColor: col.bg,
+                                border: `1px solid ${col.border}`,
+                                color: col.text,
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                lineHeight: 1.2,
+                              }}
+                              title={`${evt.startTime} - ${evt.title}`}
+                            >
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: col.dot, flexShrink: 0 }} />
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                                {evt.title}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </Card>
       )}
 
-      {/* VIEW MODE 2: Timeline Schedule */}
-      {viewMode === 'timeline' && (
-        <Card title={isRtl ? 'قائمة الفعاليات والمحطات الزمنية' : 'Event Milestones Schedule'} noPadding>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '11px', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'التاريخ والوقت' : 'Date & Window'}</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'العملية والمشروع' : 'Milestone & Project'}</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'المكان والقاعة' : 'Venue & Hall'}</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'المرحلة' : 'Phase'}</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'المسؤول' : 'Team Lead'}</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'center' }}>{isRtl ? 'الحالة' : 'Status'}</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'center' }}>{isRtl ? 'إجراء' : 'Action'}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEvents.map((evt) => {
-                  const col = getTypeColor(evt.type);
-                  return (
-                    <tr key={evt.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s' }}>
-                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
-                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{evt.date}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>{evt.startTime} – {evt.endTime}</div>
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{evt.title}</div>
-                        <div style={{ fontSize: '11px', color: '#2563eb', fontFamily: 'monospace' }}>
-                          {evt.projectCode} • {evt.projectTitle}
+      {/* VIEW MODE 2: Week View */}
+      {viewMode === 'week' && (
+        <Card noPadding>
+          <div
+            style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid #f1f5f9',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            <div>
+              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                {isRtl ? 'جدول تسليم الأسبوع' : 'Weekly Milestone View'}
+              </h2>
+              <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
+                {isRtl ? 'عرض مفصل لمحطات وأعمال الأسبوع الميدانية' : 'Operational breakdown by day for the selected delivery week'}
+              </p>
+            </div>
+
+            {/* Week Selector Tabs */}
+            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', maxWidth: '100%' }}>
+              {weeksList.map((w) => {
+                const isSelected = selectedWeek === w.num;
+                return (
+                  <button
+                    key={w.num}
+                    onClick={() => setSelectedWeek(w.num)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: isSelected ? 700 : 500,
+                      backgroundColor: isSelected ? '#0f172a' : '#f1f5f9',
+                      color: isSelected ? '#ffffff' : '#475569',
+                      border: isSelected ? '1px solid #0f172a' : '1px solid #e2e8f0',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      minHeight: '36px',
+                    }}
+                  >
+                    {w.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Week Content */}
+          {(() => {
+            const currentWeekData = weeksList.find((w) => w.num === selectedWeek) || weeksList[2];
+
+            if (isMobile) {
+              // Mobile Stacked Days
+              return (
+                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {currentWeekData.days.map((dayNum) => {
+                    const evts = getDayEvents(dayNum);
+                    const isToday = dayNum === 14;
+                    const dateObj = new Date(2026, 8, dayNum);
+                    const dayOfWeekName = weekdays[dateObj.getDay()];
+
+                    return (
+                      <div
+                        key={`m-day-${dayNum}`}
+                        style={{
+                          backgroundColor: isToday ? '#fffbeb' : '#ffffff',
+                          border: `1px solid ${isToday ? '#fde68a' : '#e2e8f0'}`,
+                          borderRadius: '8px',
+                          padding: '12px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '50%',
+                                backgroundColor: isToday ? '#d97706' : '#0f172a',
+                                color: '#ffffff',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 800,
+                                fontSize: '13px',
+                              }}
+                            >
+                              {dayNum}
+                            </span>
+                            <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                              {dayOfWeekName}
+                            </span>
+                            {isToday && (
+                              <Badge variant="warning">{isRtl ? 'اليوم' : 'Today'}</Badge>
+                            )}
+                          </div>
+                          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                            {evts.length} {evts.length === 1 ? (isRtl ? 'فعالية' : 'cue') : (isRtl ? 'فعاليات' : 'cues')}
+                          </span>
                         </div>
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ color: '#334155', fontWeight: 600 }}>{evt.venue}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>{evt.hall}</div>
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
+
+                        {evts.length === 0 ? (
+                          <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic', padding: '6px 0' }}>
+                            {isRtl ? 'لا توجد فعاليات مجدولة لهذا اليوم' : 'No operational deliveries scheduled for this day.'}
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {evts.map((evt) => {
+                              const col = getTypeColor(evt.type);
+                              return (
+                                <div
+                                  key={evt.id}
+                                  onClick={() => setSelectedEvent(evt)}
+                                  style={{
+                                    backgroundColor: col.bg,
+                                    border: `1px solid ${col.border}`,
+                                    borderRadius: '6px',
+                                    padding: '10px 12px',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
+                                    <span style={{ fontWeight: 700, fontSize: '13px', color: col.text }}>
+                                      {evt.title}
+                                    </span>
+                                    <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: col.text, whiteSpace: 'nowrap' }}>
+                                      {evt.startTime} - {evt.endTime}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '11px', color: '#475569', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>📍 {evt.venue} ({evt.hall})</span>
+                                    <span style={{ fontWeight: 600 }}>👤 {evt.lead.split(' ')[0]}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+
+            // Desktop 7-day Column Grid
+            return (
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ minWidth: '840px', display: 'grid', gridTemplateColumns: `repeat(${currentWeekData.days.length}, 1fr)`, borderBottom: '1px solid #e2e8f0' }}>
+                  {currentWeekData.days.map((dayNum) => {
+                    const evts = getDayEvents(dayNum);
+                    const isToday = dayNum === 14;
+                    const dateObj = new Date(2026, 8, dayNum);
+                    const dayOfWeekName = weekdays[dateObj.getDay()];
+
+                    return (
+                      <div
+                        key={`w-col-${dayNum}`}
+                        style={{
+                          minHeight: '260px',
+                          padding: '12px 10px',
+                          borderRight: '1px solid #e2e8f0',
+                          backgroundColor: isToday ? '#fffbeb' : '#ffffff',
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}
+                      >
+                        <div style={{ textAlign: 'center', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
+                          <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                            {dayOfWeekName}
+                          </div>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '50%',
+                              backgroundColor: isToday ? '#d97706' : '#f1f5f9',
+                              color: isToday ? '#ffffff' : '#0f172a',
+                              fontWeight: 800,
+                              fontSize: '13px',
+                              marginTop: '2px',
+                            }}
+                          >
+                            {dayNum}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                          {evts.map((evt) => {
+                            const col = getTypeColor(evt.type);
+                            return (
+                              <div
+                                key={evt.id}
+                                onClick={() => setSelectedEvent(evt)}
+                                style={{
+                                  padding: '8px',
+                                  borderRadius: '6px',
+                                  backgroundColor: col.bg,
+                                  border: `1px solid ${col.border}`,
+                                  color: col.text,
+                                  fontSize: '11px',
+                                  cursor: 'pointer',
+                                  transition: 'transform 0.1s ease',
+                                }}
+                                title={`${evt.startTime} - ${evt.title}`}
+                              >
+                                <div style={{ fontSize: '10px', fontWeight: 700, marginBottom: '2px', color: col.text }}>
+                                  {evt.startTime} – {evt.endTime}
+                                </div>
+                                <div style={{ fontWeight: 700, lineHeight: 1.3, marginBottom: '4px' }}>
+                                  {evt.title}
+                                </div>
+                                <div style={{ fontSize: '10px', color: '#64748b' }}>
+                                  📍 {evt.hall}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+        </Card>
+      )}
+
+      {/* VIEW MODE 3: Agenda View */}
+      {viewMode === 'agenda' && (
+        <Card title={isRtl ? 'جدول الأعمال والمحطات التنفيذية' : 'Milestones & Operational Agenda'} noPadding>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>
+                {isRtl ? 'المحطات المجدولة لشهر سبتمبر ٢٠٢٦' : 'Chronological Agenda — September 2026'}
+              </span>
+              <span style={{ marginInlineStart: '8px', fontSize: '11px', color: '#64748b' }}>
+                ({filteredEvents.length} {isRtl ? 'محطة مسجلة' : 'deliveries scheduled'})
+              </span>
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>
+              {isRtl ? 'مرتبة تصاعدياً حسب التوقيت الميداني' : 'Sorted chronologically by field window'}
+            </div>
+          </div>
+
+          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {filteredEvents.map((evt) => {
+              const col = getTypeColor(evt.type);
+              return (
+                <div
+                  key={evt.id}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '16px 20px',
+                    display: 'flex',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    justifyContent: 'space-between',
+                    alignItems: isMobile ? 'stretch' : 'center',
+                    gap: '14px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: '16px', flex: 1 }}>
+                    {/* Date pill */}
+                    <div
+                      style={{
+                        backgroundColor: '#f8fafc',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '6px',
+                        padding: '8px 14px',
+                        minWidth: isMobile ? 'auto' : '130px',
+                        textAlign: isMobile ? 'start' : 'center',
+                      }}
+                    >
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+                        {evt.date}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                        {evt.startTime} – {evt.endTime}
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
+                          {evt.projectCode}
+                        </span>
                         <span
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            padding: '3px 8px',
+                            padding: '2px 8px',
                             borderRadius: '4px',
                             backgroundColor: col.bg,
                             border: `1px solid ${col.border}`,
@@ -521,25 +850,35 @@ export const MasterCalendarView: React.FC = () => {
                           <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: col.dot }} />
                           {col.label}
                         </span>
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#334155', fontSize: '12px' }}>
-                        {evt.lead}
-                      </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                         <Badge variant={evt.status === 'in_progress' ? 'warning' : 'success'}>
                           {evt.status.replace('_', ' ').toUpperCase()}
                         </Badge>
-                      </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <Button size="sm" variant="ghost" onClick={() => setSelectedEvent(evt)}>
-                          {isRtl ? 'تفاصيل' : 'Details'}
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+
+                      <h3 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                        {evt.title}
+                      </h3>
+
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#475569' }}>
+                        <span>📍 {evt.venue} — <strong>{evt.hall}</strong></span>
+                        <span>👤 {isRtl ? 'المسؤول:' : 'Lead:'} <strong>{evt.lead}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: isMobile ? 'flex-end' : 'center' }}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setSelectedEvent(evt)}
+                      style={{ minHeight: '38px', minWidth: '100px' }}
+                    >
+                      {isRtl ? 'التفاصيل ←' : 'Details →'}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Card>
       )}

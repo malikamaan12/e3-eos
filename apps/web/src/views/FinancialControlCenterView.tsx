@@ -179,21 +179,24 @@ export const FinancialControlCenterView: React.FC = () => {
         <MetricCard
           title={isRtl ? 'أساس إيراد العقد' : 'Contract Revenue Basis'}
           label={isRtl ? 'أساس إيراد العقد' : 'Contract Revenue Basis'}
-          value={formatCurrency(finControl?.approvedRevenueBasis || 2450000, 'QAR')}
+          value={(finControl?.approvedRevenueBasis || 2450000).toLocaleString('en-US')}
+          unit={isRtl ? 'ر.ق' : 'QAR'}
           subtitle={isRtl ? '٨٠٪ مفوتر حتى الآن' : '80% Billed to Date'}
           accentColor="#3b82f6"
         />
         <MetricCard
           title={isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorized Budget'}
           label={isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorized Budget'}
-          value={formatCurrency(finControl?.currentAuthorisedBudget || 2000000, 'QAR')}
-          subtitle={isRtl ? `الأساس: ${formatCurrency(finControl?.originalBudget || 1850000, 'QAR')} + أوامر: ١٥٠ ألف ر.ق` : `Orig: ${formatCurrency(finControl?.originalBudget || 1850000, 'QAR')} + Vo: QAR 150k`}
+          value={(finControl?.currentAuthorisedBudget || 2000000).toLocaleString('en-US')}
+          unit={isRtl ? 'ر.ق' : 'QAR'}
+          subtitle={isRtl ? `الأساس: ${formatCurrency(finControl?.originalBudget || 1850000, 'QAR')} • التغييرات: ${formatCurrency(finControl?.approvedBudgetChanges || 150000, 'QAR')}` : `Baseline: ${formatCurrency(finControl?.originalBudget || 1850000, 'QAR')} • Variations: ${formatCurrency(finControl?.approvedBudgetChanges || 150000, 'QAR')}`}
           accentColor="#d97706"
         />
         <MetricCard
           title={isRtl ? 'التكلفة المقدرة عند الاكتمال (EAC)' : 'Estimate at Completion (EAC)'}
           label={isRtl ? 'التكلفة المقدرة عند الاكتمال (EAC)' : 'Estimate at Completion (EAC)'}
-          value={formatCurrency(finControl?.estimateAtCompletion || 1800000, 'QAR')}
+          value={(finControl?.estimateAtCompletion || 1800000).toLocaleString('en-US')}
+          unit={isRtl ? 'ر.ق' : 'QAR'}
           subtitle={isRtl ? `التكلفة الفعلية المنفقة: ${formatCurrency(1300000, 'QAR')}` : `Cost Incurred: ${formatCurrency(1300000, 'QAR')}`}
           badge={{ label: isRtl ? 'معتمد' : 'Verified', variant: 'success' }}
           accentColor="#10b981"
@@ -201,8 +204,9 @@ export const FinancialControlCenterView: React.FC = () => {
         <MetricCard
           title={isRtl ? 'وفر الميزانية الإيجابي (VAC)' : 'Variance at Completion (VAC)'}
           label={isRtl ? 'وفر الميزانية الإيجابي (VAC)' : 'Variance at Completion (VAC)'}
-          value={`+${formatCurrency(finControl?.budgetVariance || 200000, 'QAR')}`}
-          subtitle={isRtl ? `هامش المساهمة المتوقع: ${finControl?.forecastContributionMarginPercent || '26.53%'}` : `Margin: ${finControl?.forecastContributionMarginPercent || '26.53%'}`}
+          value={`+${(finControl?.budgetVariance || 200000).toLocaleString('en-US')}`}
+          unit={isRtl ? 'ر.ق' : 'QAR'}
+          subtitle={isRtl ? `هامش المساهمة المتوقع: ${finControl?.forecastContributionMarginPercent || '26.53%'}` : `Forecast Margin: ${finControl?.forecastContributionMarginPercent || '26.53%'}`}
           delta={{ text: isRtl ? 'وفر إيجابي دون الميزانية' : 'Under budget saving', isPositive: true }}
           accentColor="#059669"
         />
@@ -458,18 +462,22 @@ export const FinancialControlCenterView: React.FC = () => {
                   </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', fontSize: '12px', marginBottom: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', fontSize: '12px', marginBottom: '12px' }}>
                   <div>
                     <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'الميزانية الحالية:' : 'Current Budget:'}</span>
                     <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>{formatCurrency(snap.currentBudget, 'QAR')}</span>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'التكلفة الفعلية:' : 'Actual Cost:'}</span>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'التكلفة الفعلية المنفقة:' : 'Actual Cost:'}</span>
                     <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>{formatCurrency(snap.actualCost, 'QAR')}</span>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'التكلفة المقدرة / الوفر:' : 'EAC / VAC:'}</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#059669' }}>{formatCurrency(snap.eac, 'QAR')} / +{formatCurrency(snap.vac, 'QAR')}</span>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'التكلفة المقدرة (EAC):' : 'Estimate at Completion (EAC):'}</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{formatCurrency(snap.eac, 'QAR')}</span>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'وفر الميزانية (VAC):' : 'Budget Variance (VAC):'}</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#059669' }}>+{formatCurrency(snap.vac, 'QAR')}</span>
                   </div>
                   <div>
                     <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'الهامش ٪:' : 'Margin %:'}</span>

@@ -36,6 +36,13 @@ export const ProjectCockpitView: React.FC = () => {
   const [approvals, setApprovals] = useState<any[]>([]);
   const [auditHistory, setAuditHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState<boolean>(false);
@@ -417,6 +424,74 @@ export const ProjectCockpitView: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Workstream Selector Dropdown (<768px) */}
+      {isMobile && (
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            padding: '12px 14px',
+            marginBottom: '14px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          }}
+        >
+          <label
+            htmlFor="cockpit-workstream-mobile-select"
+            style={{
+              display: 'block',
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#64748b',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              marginBottom: '6px',
+            }}
+          >
+            {isRtl ? 'وحدة العمل النشطة (١٤ مساراً):' : 'Active Workstream (14 Workstreams):'}
+          </label>
+          <select
+            id="cockpit-workstream-mobile-select"
+            value={cockpitModuleTab}
+            onChange={(e) => {
+              const targetTab = e.target.value as any;
+              setCockpitModuleTab(targetTab);
+              const tabBtn = document.getElementById(`tab-cockpit-${targetTab}`);
+              if (tabBtn) tabBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            }}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              fontSize: '13px',
+              fontWeight: 700,
+              borderRadius: '6px',
+              border: '1.5px solid #d97706',
+              backgroundColor: '#fffbeb',
+              color: '#92400e',
+              outline: 'none',
+              cursor: 'pointer',
+              boxSizing: 'border-box',
+              minHeight: '44px',
+            }}
+          >
+            <option value="overview">📊 {isRtl ? 'نظرة عامة والحوكمة' : 'Overview & Governance'}</option>
+            <option value="requirements">🎯 {isRtl ? 'المصفوفة والمتطلبات' : 'Requirements Matrix'}</option>
+            <option value="clarifications">❓ {isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI'}</option>
+            <option value="documents">📑 {isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents'}</option>
+            <option value="timeline">⏱️ {isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt'}</option>
+            <option value="design">🎨 {isRtl ? 'التصميم والإبداع' : 'Design & Creative'}</option>
+            <option value="commercial">💰 {isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ'}</option>
+            <option value="procurement">🛒 {isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ'}</option>
+            <option value="production">🏭 {isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC'}</option>
+            <option value="assets">📦 {isRtl ? 'الأصول والمستودع' : 'Assets & Depot'}</option>
+            <option value="logistics">🚚 {isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet'}</option>
+            <option value="crew">👷 {isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster'}</option>
+            <option value="site">📝 {isRtl ? 'تقارير الموقع DSR' : 'Site & DSR'}</option>
+            <option value="readiness">🚦 {isRtl ? 'بوابة الجاهزية' : 'Readiness Gate'}</option>
+          </select>
+        </div>
+      )}
+
       {/* Cockpit Workstream Navigation Strip with Chevrons and Quick Jump Selector */}
       <div
         style={{
@@ -428,34 +503,36 @@ export const ProjectCockpitView: React.FC = () => {
           paddingBottom: '2px',
         }}
       >
-        {/* Left Scroll Chevron */}
-        <button
-          type="button"
-          id="btn-cockpit-tabs-scroll-left"
-          title={isRtl ? 'التمرير لليمين' : 'Scroll left'}
-          onClick={() => {
-            const el = document.getElementById('cockpit-module-tabs');
-            if (el) el.scrollBy({ left: isRtl ? 260 : -260, behavior: 'smooth' });
-          }}
-          style={{
-            width: '28px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#f1f5f9',
-            border: '1px solid #cbd5e1',
-            borderRadius: '4px',
-            color: '#334155',
-            fontWeight: 800,
-            fontSize: '16px',
-            cursor: 'pointer',
-            flexShrink: 0,
-            userSelect: 'none',
-          }}
-        >
-          {isRtl ? '›' : '‹'}
-        </button>
+        {/* Left Scroll Chevron (Desktop Only) */}
+        {!isMobile && (
+          <button
+            type="button"
+            id="btn-cockpit-tabs-scroll-left"
+            title={isRtl ? 'التمرير لليمين' : 'Scroll left'}
+            onClick={() => {
+              const el = document.getElementById('cockpit-module-tabs');
+              if (el) el.scrollBy({ left: isRtl ? 260 : -260, behavior: 'smooth' });
+            }}
+            style={{
+              width: '28px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f1f5f9',
+              border: '1px solid #cbd5e1',
+              borderRadius: '4px',
+              color: '#334155',
+              fontWeight: 800,
+              fontSize: '16px',
+              cursor: 'pointer',
+              flexShrink: 0,
+              userSelect: 'none',
+            }}
+          >
+            {isRtl ? '›' : '‹'}
+          </button>
+        )}
 
         {/* Scrollable Workstream Tab Strip */}
         <div
@@ -529,74 +606,78 @@ export const ProjectCockpitView: React.FC = () => {
           })}
         </div>
 
-        {/* Right Scroll Chevron */}
-        <button
-          type="button"
-          id="btn-cockpit-tabs-scroll-right"
-          title={isRtl ? 'التمرير لليسار' : 'Scroll right'}
-          onClick={() => {
-            const el = document.getElementById('cockpit-module-tabs');
-            if (el) el.scrollBy({ left: isRtl ? -260 : 260, behavior: 'smooth' });
-          }}
-          style={{
-            width: '28px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#f1f5f9',
-            border: '1px solid #cbd5e1',
-            borderRadius: '4px',
-            color: '#334155',
-            fontWeight: 800,
-            fontSize: '16px',
-            cursor: 'pointer',
-            flexShrink: 0,
-            userSelect: 'none',
-          }}
-        >
-          {isRtl ? '‹' : '›'}
-        </button>
-
-        {/* Jump to Workstream Dropdown */}
-        <div style={{ flexShrink: 0, marginInlineStart: '4px' }}>
-          <select
-            id="cockpit-workstream-jump"
-            value={cockpitModuleTab}
-            onChange={(e) => {
-              const targetTab = e.target.value as any;
-              setCockpitModuleTab(targetTab);
-              const tabBtn = document.getElementById(`tab-cockpit-${targetTab}`);
-              if (tabBtn) tabBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        {/* Right Scroll Chevron (Desktop Only) */}
+        {!isMobile && (
+          <button
+            type="button"
+            id="btn-cockpit-tabs-scroll-right"
+            title={isRtl ? 'التمرير لليسار' : 'Scroll right'}
+            onClick={() => {
+              const el = document.getElementById('cockpit-module-tabs');
+              if (el) el.scrollBy({ left: isRtl ? -260 : 260, behavior: 'smooth' });
             }}
             style={{
-              padding: '6px 10px',
-              fontSize: '12px',
-              fontWeight: 600,
-              borderRadius: '6px',
+              width: '28px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f1f5f9',
               border: '1px solid #cbd5e1',
-              backgroundColor: '#f8fafc',
-              color: '#1e293b',
+              borderRadius: '4px',
+              color: '#334155',
+              fontWeight: 800,
+              fontSize: '16px',
               cursor: 'pointer',
+              flexShrink: 0,
+              userSelect: 'none',
             }}
-            title={isRtl ? 'الانتقال السريع إلى أي وحدة عمل' : 'Quick Jump to Any Workstream'}
           >
-            <option value="overview">📊 {isRtl ? 'نظرة عامة والحوكمة' : 'Overview & Governance'}</option>
-            <option value="requirements">🎯 {isRtl ? 'المصفوفة والمتطلبات' : 'Requirements Matrix'}</option>
-            <option value="clarifications">❓ {isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI'}</option>
-            <option value="documents">📑 {isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents'}</option>
-            <option value="timeline">⏱️ {isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt'}</option>
-            <option value="design">🎨 {isRtl ? 'التصميم والإبداع' : 'Design & Creative'}</option>
-            <option value="commercial">💰 {isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ'}</option>
-            <option value="procurement">🛒 {isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ'}</option>
-            <option value="production">🏭 {isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC'}</option>
-            <option value="assets">📦 {isRtl ? 'الأصول والمستودع' : 'Assets & Depot'}</option>
-            <option value="logistics">🚚 {isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet'}</option>
-            <option value="crew">👷 {isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster'}</option>
-            <option value="site">📝 {isRtl ? 'تقارير الموقع DSR' : 'Site & DSR'}</option>
-            <option value="readiness">🚦 {isRtl ? 'بوابة الجاهزية' : 'Readiness Gate'}</option>
-          </select>
-        </div>
+            {isRtl ? '‹' : '›'}
+          </button>
+        )}
+
+        {/* Jump to Workstream Dropdown (Desktop) */}
+        {!isMobile && (
+          <div style={{ flexShrink: 0, marginInlineStart: '4px' }}>
+            <select
+              id="cockpit-workstream-jump"
+              value={cockpitModuleTab}
+              onChange={(e) => {
+                const targetTab = e.target.value as any;
+                setCockpitModuleTab(targetTab);
+                const tabBtn = document.getElementById(`tab-cockpit-${targetTab}`);
+                if (tabBtn) tabBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+              }}
+              style={{
+                padding: '6px 10px',
+                fontSize: '12px',
+                fontWeight: 600,
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#f8fafc',
+                color: '#1e293b',
+                cursor: 'pointer',
+              }}
+              title={isRtl ? 'الانتقال السريع إلى أي وحدة عمل' : 'Quick Jump to Any Workstream'}
+            >
+              <option value="overview">📊 {isRtl ? 'نظرة عامة والحوكمة' : 'Overview & Governance'}</option>
+              <option value="requirements">🎯 {isRtl ? 'المصفوفة والمتطلبات' : 'Requirements Matrix'}</option>
+              <option value="clarifications">❓ {isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI'}</option>
+              <option value="documents">📑 {isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents'}</option>
+              <option value="timeline">⏱️ {isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt'}</option>
+              <option value="design">🎨 {isRtl ? 'التصميم والإبداع' : 'Design & Creative'}</option>
+              <option value="commercial">💰 {isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ'}</option>
+              <option value="procurement">🛒 {isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ'}</option>
+              <option value="production">🏭 {isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC'}</option>
+              <option value="assets">📦 {isRtl ? 'الأصول والمستودع' : 'Assets & Depot'}</option>
+              <option value="logistics">🚚 {isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet'}</option>
+              <option value="crew">👷 {isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster'}</option>
+              <option value="site">📝 {isRtl ? 'تقارير الموقع DSR' : 'Site & DSR'}</option>
+              <option value="readiness">🚦 {isRtl ? 'بوابة الجاهزية' : 'Readiness Gate'}</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {cockpitModuleTab === 'requirements' && <RequirementsMatrixView projectId={projectId} />}

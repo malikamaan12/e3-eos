@@ -77,6 +77,29 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     return typeof window !== 'undefined' ? window.innerWidth < 768 : false;
   });
 
+  // Desktop sidebar collapsed state (expanded 268px vs collapsed 72px icon rail)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('eos_sidebar_collapsed');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return false;
+  });
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('eos_sidebar_collapsed', JSON.stringify(next));
+        } catch {}
+      }
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleResize = () => {
@@ -86,6 +109,20 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Keyboard accessibility: Escape key closes drawers and menus
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (mobileMenuOpen) setMobileMenuOpen(false);
+        if (createMenuOpen) setCreateMenuOpen(false);
+        if (notificationsOpen) setNotificationsOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen, createMenuOpen, notificationsOpen]);
 
   // Collapsible section state persistence
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
@@ -226,48 +263,67 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     .filter(Boolean) as NavSection[];
 
   // Render navigation list
-  const renderNavList = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {navSections.map((section) => {
-        const isCollapsed = !!collapsedSections[section.id];
+  const renderNavList = (isRail: boolean = false) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isRail ? '4px' : '8px' }}>
+      {navSections.map((section, secIdx) => {
+        const isCollapsed = !isRail && !!collapsedSections[section.id];
+        const sectionTitle = currentLanguage === 'ar' ? section.titleAr : section.titleEn;
         return (
           <div key={section.id} style={{ display: 'flex', flexDirection: 'column' }}>
-            {/* Collapsible Section Header */}
-            <button
-              onClick={() => toggleSection(section.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 10px',
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#64748b',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                borderRadius: '4px',
-                outline: 'none',
-                transition: 'color 0.15s ease',
-              }}
-            >
-              <span>{currentLanguage === 'ar' ? section.titleAr : section.titleEn}</span>
-              <span style={{ fontSize: '9px', opacity: 0.8 }}>{isCollapsed ? (direction === 'rtl' ? '◀' : '▶') : '▼'}</span>
-            </button>
+            {/* Collapsible Section Header (hidden or divider in rail mode) */}
+            {isRail ? (
+              secIdx > 0 ? (
+                <div
+                  style={{
+                    height: '1px',
+                    backgroundColor: '#1e293b',
+                    margin: '8px 4px',
+                  }}
+                  title={sectionTitle}
+                />
+              ) : null
+            ) : (
+              <button
+                onClick={() => toggleSection(section.id)}
+                aria-expanded={!isCollapsed}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 10px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  outline: 'none',
+                  transition: 'color 0.15s ease',
+                  minHeight: '32px',
+                }}
+              >
+                <span>{sectionTitle}</span>
+                <span style={{ fontSize: '9px', opacity: 0.8 }}>{isCollapsed ? (direction === 'rtl' ? '◀' : '▶') : '▼'}</span>
+              </button>
+            )}
 
             {/* Section Items */}
-            {!isCollapsed && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingLeft: direction === 'ltr' ? '4px' : 0, paddingRight: direction === 'rtl' ? '4px' : 0 }}>
+            {(!isCollapsed || isRail) && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingLeft: (!isRail && direction === 'ltr') ? '4px' : 0, paddingRight: (!isRail && direction === 'rtl') ? '4px' : 0 }}>
                 {section.items.map((item) => {
                   const isActive = item.path === '/'
                     ? currentPath === '/'
                     : currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
+                  const itemLabel = currentLanguage === 'ar' ? item.labelAr : item.labelEn;
                   return (
                     <button
                       key={item.id}
                       id={item.id}
+                      title={isRail ? `${itemLabel} (${sectionTitle})` : undefined}
+                      aria-label={itemLabel}
                       onClick={() => {
                         navigate(item.path);
                         if (isMobile) setMobileMenuOpen(false);
@@ -275,10 +331,11 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '10px',
-                        padding: '8px 12px',
+                        justifyContent: isRail ? 'center' : 'flex-start',
+                        gap: isRail ? 0 : '10px',
+                        padding: isRail ? '8px 4px' : '9px 12px',
                         borderRadius: '6px',
-                        border: 'none',
+                        border: isRail && isActive ? '1px solid #d97706' : 'none',
                         backgroundColor: isActive ? '#1e293b' : 'transparent',
                         color: isActive ? '#ffffff' : '#94a3b8',
                         fontWeight: isActive ? 700 : 500,
@@ -290,10 +347,12 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                         width: '100%',
                         position: 'relative',
                         outline: 'none',
+                        minHeight: isMobile ? '44px' : '38px',
+                        boxSizing: 'border-box',
                       }}
                     >
                       {/* Active Metallic Accent Indicator */}
-                      {isActive && (
+                      {isActive && !isRail && (
                         <div
                           style={{
                             position: 'absolute',
@@ -306,17 +365,19 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                           }}
                         />
                       )}
-                      <span style={{ fontSize: '15px' }}>{item.icon}</span>
-                      <span
-                        style={{
-                          flex: 1,
-                          whiteSpace: 'normal',
-                          lineHeight: 1.25,
-                          wordBreak: 'break-word',
-                        }}
-                      >
-                        {currentLanguage === 'ar' ? item.labelAr : item.labelEn}
-                      </span>
+                      <span style={{ fontSize: isRail ? '18px' : '15px' }}>{item.icon}</span>
+                      {!isRail && (
+                        <span
+                          style={{
+                            flex: 1,
+                            whiteSpace: 'normal',
+                            lineHeight: 1.25,
+                            wordBreak: 'break-word',
+                          }}
+                        >
+                          {itemLabel}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -672,26 +733,62 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         {!isMobile && (
           <aside
             style={{
-              width: '268px',
+              width: isSidebarCollapsed ? '72px' : '268px',
               flexShrink: 0,
               backgroundColor: '#090d16',
               borderRight: direction === 'ltr' ? '1px solid #1e293b' : 'none',
               borderLeft: direction === 'rtl' ? '1px solid #1e293b' : 'none',
-              padding: '16px 12px',
+              padding: isSidebarCollapsed ? '16px 8px' : '16px 12px',
               display: currentPath === '/field' ? 'none' : 'flex',
               flexDirection: 'column',
               gap: '6px',
               boxSizing: 'border-box',
               minHeight: 'calc(100vh - 56px)',
+              transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
-            {renderNavList()}
+            <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+              {renderNavList(isSidebarCollapsed)}
+            </div>
+
+            {/* Sidebar Collapse Toggle Button */}
+            <div style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid #1e293b' }}>
+              <button
+                id="btn-toggle-sidebar"
+                onClick={toggleSidebarCollapse}
+                title={isSidebarCollapsed ? (direction === 'rtl' ? 'توسيع القائمة' : 'Expand Sidebar') : (direction === 'rtl' ? 'طي القائمة' : 'Collapse Sidebar')}
+                aria-label={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  backgroundColor: '#131b2e',
+                  border: '1px solid #1e293b',
+                  color: '#94a3b8',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  minHeight: '38px',
+                }}
+              >
+                {!isSidebarCollapsed && (
+                  <span>{currentLanguage === 'ar' ? 'طي القائمة الجانبية' : 'Collapse Sidebar'}</span>
+                )}
+                <span>{isSidebarCollapsed ? (direction === 'rtl' ? '◀' : '▶') : (direction === 'rtl' ? '▶' : '◀')}</span>
+              </button>
+            </div>
           </aside>
         )}
 
         {/* Mobile Slide-Over Drawer Navigation */}
         {isMobile && mobileMenuOpen && (
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile Navigation Menu"
             style={{
               position: 'fixed',
               inset: 0,
@@ -716,11 +813,29 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ backgroundColor: '#d97706', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontWeight: 800, fontSize: '12px' }}>E3</span>
-                  <span style={{ color: '#fff', fontWeight: 700 }}>Menu</span>
+                  <span style={{ color: '#fff', fontWeight: 700 }}>{currentLanguage === 'ar' ? 'القائمة' : 'Navigation Menu'}</span>
                 </div>
-                <button onClick={() => setMobileMenuOpen(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Close Navigation"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    padding: '8px',
+                    minWidth: '44px',
+                    minHeight: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  ✕
+                </button>
               </div>
-              {renderNavList()}
+              {renderNavList(false)}
             </div>
           </div>
         )}

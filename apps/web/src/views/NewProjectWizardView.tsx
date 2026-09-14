@@ -57,6 +57,17 @@ export const NewProjectWizardView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isFastTrackOpen, setIsFastTrackOpen] = useState<boolean>(false);
   const [activeGateExplanation, setActiveGateExplanation] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isRtl = currentLanguage === 'ar';
 
   // Form State
   const [originRoute, setOriginRoute] = useState<string>('TENDER');
@@ -300,68 +311,102 @@ export const NewProjectWizardView: React.FC = () => {
       />
 
       {/* Step Indicator Bar with Completed / Active / Pending state */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '6px',
-          marginBottom: '24px',
-          backgroundColor: '#ffffff',
-          padding: '10px 12px',
-          borderRadius: '8px',
-          border: '1px solid #e2e8f0',
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch',
-        }}
-      >
-        {steps.map((s) => {
-          const isCurrent = s.num === currentStep;
-          const isDone = s.num < currentStep;
-          return (
-            <button
-              key={s.num}
-              onClick={() => setCurrentStep(s.num)}
+      {isMobile ? (
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            padding: '12px 16px',
+            marginBottom: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
+              {isRtl ? `الخطوة ${currentStep} من 9: ` : `Step ${currentStep} of 9: `}
+              <span style={{ color: '#2563eb' }}>{steps[currentStep - 1].title}</span>
+            </span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#2563eb' }}>
+              {Math.round((currentStep / 9) * 100)}%
+            </span>
+          </div>
+          <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+            <div
               style={{
-                flex: '1 0 95px',
-                minWidth: '95px',
-                padding: '8px 4px',
-                borderRadius: '6px',
-                border: isCurrent ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
-                backgroundColor: isCurrent ? '#eff6ff' : isDone ? '#f0fdf4' : '#f8fafc',
-                cursor: 'pointer',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '3px',
-                transition: 'all 0.15s ease',
+                width: `${(currentStep / 9) * 100}%`,
+                height: '100%',
+                backgroundColor: '#2563eb',
+                borderRadius: '3px',
+                transition: 'width 0.25s ease',
               }}
-            >
-              <div
+            />
+          </div>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(9, 1fr)',
+            gap: '6px',
+            marginBottom: '24px',
+            backgroundColor: '#ffffff',
+            padding: '10px 12px',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+          }}
+        >
+          {steps.map((s) => {
+            const isCurrent = s.num === currentStep;
+            const isDone = s.num < currentStep;
+            return (
+              <button
+                key={s.num}
+                onClick={() => setCurrentStep(s.num)}
                 style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  color: isCurrent ? '#2563eb' : isDone ? '#16a34a' : '#94a3b8',
+                  padding: '8px 4px',
+                  borderRadius: '6px',
+                  border: isCurrent ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                  backgroundColor: isCurrent ? '#eff6ff' : isDone ? '#f0fdf4' : '#f8fafc',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.15s ease',
+                  minHeight: '56px',
                 }}
               >
-                {isDone ? `✓ ${s.num}` : `${s.num}`}
-              </div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  fontWeight: isCurrent ? 700 : 500,
-                  color: isCurrent ? '#1e40af' : isDone ? '#15803d' : '#475569',
-                  whiteSpace: 'normal',
-                  lineHeight: 1.25,
-                  wordBreak: 'normal',
-                }}
-              >
-                {s.title}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: isCurrent ? '#2563eb' : isDone ? '#16a34a' : '#94a3b8',
+                  }}
+                >
+                  {isDone ? `✓ ${s.num}` : `${s.num}`}
+                </div>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: isCurrent ? 700 : 500,
+                    color: isCurrent ? '#1e40af' : isDone ? '#15803d' : '#475569',
+                    whiteSpace: 'normal',
+                    lineHeight: 1.25,
+                    wordBreak: 'normal',
+                    textAlign: 'center',
+                  }}
+                >
+                  {s.title}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {error && (
         <div style={{ marginBottom: '16px' }}>
@@ -1088,41 +1133,54 @@ export const NewProjectWizardView: React.FC = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
           }}
         >
-          {currentStep > 1 ? (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {currentStep > 1 && (
+              <Button
+                id="wizard-prev-btn"
+                variant="secondary"
+                size="md"
+                onClick={() => setCurrentStep(currentStep - 1)}
+              >
+                {isRtl ? 'السابق ←' : '← Previous Step'}
+              </Button>
+            )}
             <Button
-              id="wizard-prev-btn"
-              variant="secondary"
+              id="wizard-footer-draft-btn"
+              variant="ghost"
               size="md"
-              onClick={() => setCurrentStep(currentStep - 1)}
-            >
-              ← Previous Step
-            </Button>
-          ) : (
-            <div />
-          )}
-
-          {currentStep < 9 ? (
-            <Button
-              id="wizard-next-btn"
-              variant="primary"
-              size="md"
-              onClick={() => setCurrentStep(currentStep + 1)}
-            >
-              Next Step →
-            </Button>
-          ) : (
-            <Button
-              id="wizard-create-btn"
-              variant="success"
-              size="lg"
+              onClick={() => handleSaveProject(true)}
               isLoading={isSubmitting}
-              onClick={() => handleSaveProject(false)}
             >
-              🚀 Create & Launch Project Cockpit
+              💾 {isRtl ? 'حفظ كمسودة' : 'Save Draft'}
             </Button>
-          )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {currentStep < 9 ? (
+              <Button
+                id="wizard-next-btn"
+                variant="primary"
+                size="md"
+                onClick={() => setCurrentStep(currentStep + 1)}
+              >
+                {isRtl ? 'التالي →' : 'Next Step →'}
+              </Button>
+            ) : (
+              <Button
+                id="wizard-create-btn"
+                variant="success"
+                size="lg"
+                isLoading={isSubmitting}
+                onClick={() => handleSaveProject(false)}
+              >
+                🚀 {isRtl ? 'إنشاء وتفعيل المشروع' : 'Create & Launch Project Cockpit'}
+              </Button>
+            )}
+          </div>
         </div>
       </Card>
     </div>

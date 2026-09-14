@@ -45,6 +45,22 @@ export const FieldOpsView: React.FC = () => {
   // Viewport mode: mobile frame (<480px) vs desktop responsive
   const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
 
+  // Screen width detection for 390px mobile viewport stacking
+  const [isNarrowScreen, setIsNarrowScreen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 420;
+    }
+    return false;
+  });
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsNarrowScreen(window.innerWidth <= 420);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Active mobile tab
   const [mobileTab, setMobileTab] = useState<'pod' | 'snag' | 'scanner' | 'qc' | 'crew' | 'dsr' | 'checklist' | 'queue'>('checklist');
 
@@ -182,7 +198,7 @@ export const FieldOpsView: React.FC = () => {
     setSnags([newSnag, ...snags]);
     setSnagTitle('');
     if (isOffline) {
-      queueMutation('create_snag', 'FieldSnag', newSnag);
+      queueMutation('create_snag', 'FieldSnag', newSnag as unknown as Record<string, unknown>);
     }
   };
 
@@ -221,7 +237,7 @@ export const FieldOpsView: React.FC = () => {
     : ViewStateFactory.ready(checklists);
 
   return (
-    <div data-testid="field-ops-workspace" style={{ maxWidth: isMobileFrame ? '460px' : '1080px', width: '100%', margin: '0 auto', transition: 'max-width 0.3s ease' }}>
+    <div data-testid="field-ops-workspace" style={{ maxWidth: isMobileFrame ? '460px' : '1080px', width: '100%', margin: '0 auto', transition: 'max-width 0.3s ease', overflowX: 'hidden', boxSizing: 'border-box' }}>
       {/* Viewport Width Controller Banner */}
       <div
         style={{
@@ -279,8 +295,11 @@ export const FieldOpsView: React.FC = () => {
           backgroundColor: '#f8fafc',
           border: '2px solid #cbd5e1',
           borderRadius: '0 0 12px 12px',
-          padding: '16px',
+          padding: isNarrowScreen ? '12px' : '16px',
           boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
+          overflowX: 'hidden',
+          boxSizing: 'border-box',
+          width: '100%',
         }}
       >
         {/* Mobile Header */}
@@ -311,11 +330,11 @@ export const FieldOpsView: React.FC = () => {
         </div>
 
         {/* Quick Network & Safety Action Bar */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-          <Button size="md" variant={isOffline ? 'accent' : 'secondary'} onClick={toggleOffline} style={{ flex: 1, fontSize: '12px', minHeight: '44px' }}>
+        <div style={{ display: 'flex', flexDirection: isNarrowScreen ? 'column' : 'row', gap: '8px', marginBottom: '14px', width: '100%' }}>
+          <Button size="md" variant={isOffline ? 'accent' : 'secondary'} onClick={toggleOffline} style={{ flex: 1, fontSize: '12px', minHeight: '44px', width: '100%' }}>
             {isOffline ? '⚡ Sync Offline Queue' : '📶 Simulate Offline'}
           </Button>
-          <Button size="md" variant="danger" onClick={handleLogIncident} style={{ flex: 1, fontSize: '12px', minHeight: '44px' }}>
+          <Button size="md" variant="danger" onClick={handleLogIncident} style={{ flex: 1, fontSize: '12px', minHeight: '44px', width: '100%' }}>
             🚨 HSE Incident
           </Button>
         </div>
@@ -427,7 +446,7 @@ export const FieldOpsView: React.FC = () => {
                 />
 
                 <div style={{ backgroundColor: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #f1f5f9' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isNarrowScreen ? '1fr' : '1fr 1fr', gap: '6px', fontSize: '11px' }}>
                     <div><strong>Carrier:</strong> {selectedPod.carrier}</div>
                     <div><strong>Truck Reg:</strong> {selectedPod.truckPlate}</div>
                     <div><strong>Manifest:</strong> {selectedPod.itemsCount} Items Offloaded</div>
@@ -446,7 +465,7 @@ export const FieldOpsView: React.FC = () => {
                   ]}
                 />
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isNarrowScreen ? '1fr' : '1fr 1fr', gap: '8px' }}>
                   <Input
                     label="Recipient Signatory"
                     value={podRecipient}
@@ -533,7 +552,7 @@ export const FieldOpsView: React.FC = () => {
                   required
                 />
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isNarrowScreen ? '1fr' : '1fr 1fr', gap: '8px' }}>
                   <Input
                     label="Zone / Location"
                     value={snagLocation}
@@ -571,7 +590,7 @@ export const FieldOpsView: React.FC = () => {
                     Attach Site Photos ({snagPhotos.length} Attached)
                   </label>
 
-                  <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: isNarrowScreen ? 'column' : 'row', gap: '6px', marginBottom: '8px' }}>
                     <input
                       type="text"
                       value={newPhotoName}
@@ -583,9 +602,11 @@ export const FieldOpsView: React.FC = () => {
                         border: '1px solid #cbd5e1',
                         borderRadius: '4px',
                         fontSize: '11px',
+                        minHeight: '38px',
+                        boxSizing: 'border-box',
                       }}
                     />
-                    <Button type="button" size="sm" variant="secondary" onClick={handleAddPhoto}>
+                    <Button type="button" size="sm" variant="secondary" onClick={handleAddPhoto} style={{ minHeight: '38px' }}>
                       📷 Snap Photo
                     </Button>
                   </div>
@@ -708,14 +729,14 @@ export const FieldOpsView: React.FC = () => {
               </div>
 
               {/* Preset Scan Triggers */}
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
-                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-SCN-001')} style={{ flex: 1, fontSize: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: isNarrowScreen ? 'column' : 'row', gap: '6px', marginBottom: '10px' }}>
+                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-SCN-001')} style={{ flex: 1, fontSize: '11px', minHeight: '36px' }}>
                   Scan Scenic Wall
                 </Button>
-                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-LGT-002')} style={{ flex: 1, fontSize: '10px' }}>
+                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-LGT-002')} style={{ flex: 1, fontSize: '11px', minHeight: '36px' }}>
                   Scan Viper Light
                 </Button>
-                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-AV-003')} style={{ flex: 1, fontSize: '10px' }}>
+                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-AV-003')} style={{ flex: 1, fontSize: '11px', minHeight: '36px' }}>
                   Scan Shure Mic
                 </Button>
               </div>

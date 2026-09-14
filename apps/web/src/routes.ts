@@ -75,6 +75,15 @@ export const EOS_ROUTES: AppRoute[] = [
     description: 'Track exception rates, sample sizes, and policy override analytics',
     supportsRtl: true,
   },
+  {
+    path: '/calendar',
+    pattern: compilePath('/calendar'),
+    audience: 'internal',
+    workspace: 'leadership',
+    title: 'Master Event Calendar',
+    description: 'Portfolio event timelines, venue commitments, rehearsals and move-in schedules',
+    supportsRtl: true,
+  },
 
   // --- 2. Personal Work Workspace ---
   {

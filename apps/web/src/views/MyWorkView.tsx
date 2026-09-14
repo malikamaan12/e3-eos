@@ -5,8 +5,9 @@ import { RequestApprovalModal } from '../components/RequestApprovalModal.js';
 
 export const MyWorkView: React.FC = () => {
   const { currentUser, currentLanguage, apiClient, selectedProjectId, navigate, refreshTrigger, triggerRefresh, currentPath } = useEosContext();
+  const isRtl = currentLanguage === 'ar';
   const isApprovalsRoute = currentPath === '/approvals' || (typeof window !== 'undefined' && window.location.pathname === '/approvals');
-  const [activeTab, setActiveTab] = useState<string>(() => (isApprovalsRoute ? 'approvals' : 'action'));
+  const [activeTab, setActiveTab] = useState<string>(() => (isApprovalsRoute ? 'pending' : 'action'));
   const [tasks, setTasks] = useState<any[]>([]);
   const [approvals, setApprovals] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -14,8 +15,8 @@ export const MyWorkView: React.FC = () => {
   const [approvalFilter, setApprovalFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   useEffect(() => {
-    if (isApprovalsRoute) {
-      setActiveTab('approvals');
+    if (isApprovalsRoute && !['pending', 'approved', 'rejected', 'returned'].includes(activeTab)) {
+      setActiveTab('pending');
     }
   }, [isApprovalsRoute]);
 
@@ -84,7 +85,9 @@ export const MyWorkView: React.FC = () => {
 
   // Filtered lists
   const pendingApprovals = useMemo(() => approvals.filter(a => a.status === 'pending'), [approvals]);
+  const approvedApprovals = useMemo(() => approvals.filter(a => a.status === 'approved'), [approvals]);
   const rejectedApprovals = useMemo(() => approvals.filter(a => a.status === 'rejected'), [approvals]);
+  const returnedApprovals = useMemo(() => approvals.filter(a => a.status === 'returned' || a.status === 'rework' || a.status === 'revision_requested'), [approvals]);
   const activeTasks = useMemo(() => tasks.filter(t => !(t.isCompleted || t.state === 'completed' || t.status === 'completed')), [tasks]);
   const completedTasks = useMemo(() => tasks.filter(t => t.isCompleted || t.state === 'completed' || t.status === 'completed'), [tasks]);
 
@@ -99,32 +102,125 @@ export const MyWorkView: React.FC = () => {
     return approvals.filter(a => a.status === approvalFilter);
   }, [approvals, approvalFilter]);
 
-  const tabs = [
+  const standardTabs = [
     {
       id: 'action',
-      label: currentLanguage === 'ar' ? 'يتطلب إجراءً' : 'Needs Action',
+      label: isRtl ? 'يتطلب إجراءً' : 'Needs Action',
       badge: pendingApprovals.length + (activeTasks.length > 0 ? activeTasks.length : 0) + rejectedApprovals.length,
     },
     {
       id: 'assigned',
-      label: currentLanguage === 'ar' ? 'مسندة إليّ' : 'Assigned to Me',
+      label: isRtl ? 'مسندة إليّ' : 'Assigned to Me',
       badge: activeTasks.length,
     },
     {
       id: 'approvals',
-      label: currentLanguage === 'ar' ? 'الموافقات' : 'Approvals',
+      label: isRtl ? 'الموافقات' : 'Approvals',
       badge: approvals.length,
     },
     {
       id: 'blocked',
-      label: currentLanguage === 'ar' ? 'معطّلة / معلقة' : 'Blocked',
+      label: isRtl ? 'معطّلة / معلقة' : 'Blocked',
       badge: rejectedApprovals.length,
     },
     {
       id: 'upcoming',
-      label: currentLanguage === 'ar' ? 'المواعيد القادمة' : 'Upcoming',
+      label: isRtl ? 'المواعيد القادمة' : 'Upcoming',
     },
   ];
+
+  const approvalsTabs = [
+    {
+      id: 'pending',
+      label: isRtl ? 'بانتظار التوقيع' : 'Pending Sign-offs',
+      badge: pendingApprovals.length,
+    },
+    {
+      id: 'approved',
+      label: isRtl ? 'السجلات المعتمدة' : 'Approved Records',
+      badge: approvedApprovals.length,
+    },
+    {
+      id: 'rejected',
+      label: isRtl ? 'مرفوضة / إجراء مطلوب' : 'Rejected / Action Required',
+      badge: rejectedApprovals.length,
+    },
+    {
+      id: 'returned',
+      label: isRtl ? 'قرارات معادة للتعديل' : 'Returned Decisions',
+      badge: returnedApprovals.length,
+    },
+  ];
+
+  const renderApprovalCard = (appr: any) => (
+    <Card key={appr.id} style={{ borderLeft: `4px solid ${appr.status === 'approved' ? '#10b981' : appr.status === 'rejected' ? '#ef4444' : '#f59e0b'}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontWeight: 700, fontSize: '13px', fontFamily: 'monospace', color: '#2563eb' }}>
+              <span dir="ltr">{appr.id}</span>
+            </span>
+            <Badge variant={appr.status === 'approved' ? 'success' : appr.status === 'rejected' ? 'danger' : 'warning'}>
+              {appr.status?.toUpperCase()}
+            </Badge>
+            <Badge variant="neutral">{appr.requiredRole || 'Executive'}</Badge>
+          </div>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '4px' }}>
+            {appr.reason || `Sign-off for ${appr.targetType}`}
+          </div>
+          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+            Target: {appr.targetType} ({appr.targetId}) • Role: {appr.requiredRole}
+          </div>
+          {appr.comment && (
+            <div
+              style={{
+                fontSize: '12px',
+                color: appr.status === 'rejected' ? '#b91c1c' : '#15803d',
+                backgroundColor: appr.status === 'rejected' ? '#fef2f2' : '#f0fdf4',
+                border: `1px solid ${appr.status === 'rejected' ? '#fecaca' : '#bbf7d0'}`,
+                padding: '6px 12px',
+                borderRadius: '4px',
+                marginTop: '8px',
+              }}
+            >
+              <strong>Reviewer Feedback:</strong> "{appr.comment}"
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {appr.status === 'pending' && (
+            <>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => {
+                  setDecidingApproval(appr);
+                  setDecisionOutcome('rejected');
+                  setDecisionComment('Clarification required on scope.');
+                }}
+              >
+                {isRtl ? 'رفض' : 'Reject'}
+              </Button>
+              <Button
+                size="sm"
+                variant="success"
+                onClick={() => {
+                  setDecidingApproval(appr);
+                  setDecisionOutcome('approved');
+                  setDecisionComment('Approved as submitted.');
+                }}
+              >
+                {isRtl ? 'اعتماد' : 'Approve'}
+              </Button>
+            </>
+          )}
+          <Button variant="secondary" size="sm" onClick={() => navigate(`/projects/${selectedProjectId}`)}>
+            {isRtl ? 'لوحة القيادة' : 'Cockpit'}
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
 
   return (
     <div>
@@ -134,21 +230,21 @@ export const MyWorkView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
               {isApprovalsRoute
-                ? (currentLanguage === 'ar' ? 'قائمة موافقات الحوكمة والاعتماد' : 'Governance Approvals Queue')
-                : (currentLanguage === 'ar' ? 'مهامي ومسؤولياتي' : 'My Work')}
+                ? (isRtl ? 'موافقات الحوكمة والاعتماد' : 'Governance Approvals')
+                : (isRtl ? 'مهامي ومسؤولياتي' : 'My Work')}
             </h1>
             <Badge variant={isApprovalsRoute ? 'purple' : 'neutral'}>
               {isApprovalsRoute
-                ? (currentLanguage === 'ar' ? 'حوكمة رباعية' : 'Four-Eyes Governance')
-                : 'Qatar Live Operations'}
+                ? (isRtl ? 'حوكمة رباعية' : 'Four-Eyes Governance')
+                : (isRtl ? 'العمليات المباشرة' : 'Qatar Live Operations')}
             </Badge>
           </div>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
             {isApprovalsRoute
-              ? (currentLanguage === 'ar'
+              ? (isRtl
                 ? 'قائمة مراجعة وتوقيع قرارات الحوكمة، اعتمادات بوابات المراحل، وأوامر الشراء المرفوعة للصلاحيات.'
                 : 'Four-Eyes governance approvals, stage-gate signoffs, and commercial decision queue.')
-              : (currentLanguage === 'ar'
+              : (isRtl
                 ? `المهام والموافقات والقرارات المسندة إلى: ${currentUser.name}`
                 : `Tasks, governance approvals, and milestone deliverables assigned to ${currentUser.name}`)}
           </p>
@@ -156,16 +252,73 @@ export const MyWorkView: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button variant="secondary" size="sm" onClick={triggerRefresh}>
-            {currentLanguage === 'ar' ? '🔄 تحديث' : '🔄 Refresh'}
+            {isRtl ? '🔄 تحديث' : '🔄 Refresh'}
           </Button>
           <Button variant="primary" size="sm" onClick={() => navigate(`/projects/${selectedProjectId}`)}>
-            {currentLanguage === 'ar' ? 'فتح لوحة التحكم للمشروع' : 'Open Cockpit'}
+            {isRtl ? 'فتح لوحة التحكم للمشروع' : 'Open Cockpit'}
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
-      <Tabs tabs={tabs} activeTab={activeTab === 'tasks' ? 'assigned' : activeTab} onChange={setActiveTab} />
+      <Tabs
+        tabs={isApprovalsRoute ? approvalsTabs : standardTabs}
+        activeTab={activeTab === 'tasks' ? 'assigned' : activeTab}
+        onChange={setActiveTab}
+      />
+
+      {/* Dedicated Governance Route Tabs */}
+      {isApprovalsRoute && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+          {activeTab === 'pending' && (
+            pendingApprovals.length === 0 ? (
+              <EmptyState
+                icon="✅"
+                title={isRtl ? 'لا توجد توقيعات معلقة' : 'No Pending Sign-offs'}
+                description={isRtl ? 'تمت مراجعة وتوقيع كافة الطلبات المعلقة.' : 'All stage gates and commercial requests are up to date.'}
+              />
+            ) : (
+              pendingApprovals.map(renderApprovalCard)
+            )
+          )}
+
+          {activeTab === 'approved' && (
+            approvedApprovals.length === 0 ? (
+              <EmptyState
+                icon="📑"
+                title={isRtl ? 'لا توجد سجلات معتمدة بعد' : 'No Approved Records'}
+                description={isRtl ? 'لم يتم تسجيل قرارات اعتماد مكتملة حتى الآن.' : 'No historical approvals recorded yet.'}
+              />
+            ) : (
+              approvedApprovals.map(renderApprovalCard)
+            )
+          )}
+
+          {activeTab === 'rejected' && (
+            rejectedApprovals.length === 0 ? (
+              <EmptyState
+                icon="🎉"
+                title={isRtl ? 'لا توجد طلبات مرفوضة' : 'No Rejected Requests'}
+                description={isRtl ? 'جميع قرارات الحوكمة سليمة ولا تتطلب تعديلاً.' : 'No items currently rejected or requiring revision.'}
+              />
+            ) : (
+              rejectedApprovals.map(renderApprovalCard)
+            )
+          )}
+
+          {activeTab === 'returned' && (
+            returnedApprovals.length === 0 ? (
+              <EmptyState
+                icon="↩️"
+                title={isRtl ? 'لا توجد قرارات معادة' : 'No Returned Decisions'}
+                description={isRtl ? 'لا توجد طلبات معادة لإعادة الصياغة حالياً.' : 'No decisions returned for rework.'}
+              />
+            ) : (
+              returnedApprovals.map(renderApprovalCard)
+            )
+          )}
+        </div>
+      )}
 
       {/* Tab 1: Needs Action */}
       {activeTab === 'action' && (

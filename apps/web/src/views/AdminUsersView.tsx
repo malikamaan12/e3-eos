@@ -117,106 +117,132 @@ export const AdminUsersView: React.FC = () => {
             Querying users directly from Cloud SQL PostgreSQL...
           </div>
         ) : (
-          <div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1.4fr 1.6fr 120px 100px 110px 120px',
-                padding: '12px 18px',
-                backgroundColor: '#f8fafc',
-                borderBottom: '1px solid #e2e8f0',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#64748b',
-                textTransform: 'uppercase',
-              }}
-            >
-              <span>User Name</span>
-              <span>Email</span>
-              <span>Role</span>
-              <span>Audience</span>
-              <span>Organization</span>
-              <span>Actions</span>
-            </div>
-
-            {users.map((u) => (
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ minWidth: '760px' }}>
               <div
-                key={u.id}
-                id={`user-row-${u.email}`}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '1.4fr 1.6fr 120px 100px 110px 120px',
-                  alignItems: 'center',
                   padding: '12px 18px',
-                  borderBottom: '1px solid #f1f5f9',
+                  backgroundColor: '#f8fafc',
+                  borderBottom: '1px solid #e2e8f0',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: '#64748b',
+                  textTransform: 'uppercase',
                 }}
               >
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{u.name}</div>
-                  {u.isSuperAdmin && <span style={{ fontSize: '10px', color: '#7c3aed', fontWeight: 700 }}>Root Governance</span>}
-                </div>
-                <div style={{ fontSize: '13px', color: '#475569', fontFamily: 'monospace' }}>
-                  {u.email}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Badge variant={(u.role === 'super_admin' || u.isSuperAdmin) ? 'purple' : u.role === 'client_user' ? 'warning' : 'info'}>
-                    {u.isSuperAdmin && (!u.role || u.role === 'unassigned') ? 'super_admin' : u.role}
-                  </Badge>
-                  {CANONICAL_ROLE_EXPLANATIONS[u.isSuperAdmin && (!u.role || u.role === 'unassigned') ? 'super_admin' : u.role] && (
-                    <button
-                      type="button"
-                      id={`inspect-role-btn-${u.id}`}
-                      title="View plain-English capabilities and governance boundaries"
-                      onClick={() => setInspectingRole(u.isSuperAdmin && (!u.role || u.role === 'unassigned') ? 'super_admin' : u.role)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        color: '#64748b',
-                        padding: '2px',
-                      }}
-                    >
-                      ℹ️
-                    </button>
-                  )}
-                </div>
-                <div>
-                  <Badge variant={u.audience === 'internal' ? 'neutral' : 'warning'}>
-                    {u.audience || 'internal'}
-                  </Badge>
-                </div>
-                <div style={{ fontSize: '12px', color: '#64748b' }}>
-                  {u.organisationName || 'E3 Events'}
-                </div>
-                <div>
-                  {currentUser?.isSuperAdmin && u.email !== currentUser.email && (
-                    <button
-                      id={`btn-impersonate-${u.id}`}
-                      type="button"
-                      onClick={() => switchPersona(u.email)}
-                      style={{
-                        padding: '4px 8px',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        backgroundColor: '#f8fafc',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '4px',
-                        color: '#475569',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {currentLanguage === 'ar' ? 'معاينة كـ دور' : 'Audit as Role'}
-                    </button>
-                  )}
-                  {currentUser && u.email === currentUser.email && (
-                    <Badge variant="neutral">
-                      {currentLanguage === 'ar' ? 'الجلسة الحالية' : 'Active Session'}
-                    </Badge>
-                  )}
-                </div>
+                <span>{currentLanguage === 'ar' ? 'المستخدم' : 'User Name'}</span>
+                <span>{currentLanguage === 'ar' ? 'البريد الإلكتروني' : 'Email'}</span>
+                <span>{currentLanguage === 'ar' ? 'الدور' : 'Role'}</span>
+                <span>{currentLanguage === 'ar' ? 'النطاق' : 'Audience'}</span>
+                <span>{currentLanguage === 'ar' ? 'الجهة' : 'Organization'}</span>
+                <span>{currentLanguage === 'ar' ? 'الإجراءات' : 'Actions'}</span>
               </div>
-            ))}
+
+              {users.map((u) => {
+                const effectiveRole = u.isSuperAdmin && (!u.role || u.role === 'unassigned') ? 'super_admin' : (u.role || 'project_manager');
+                const effectiveAudience = (!u.audience || u.audience === 'unassigned') ? 'internal' : u.audience;
+
+                return (
+                  <div
+                    key={u.id}
+                    id={`user-row-${u.email}`}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1.4fr 1.6fr 120px 100px 110px 120px',
+                      alignItems: 'center',
+                      padding: '12px 18px',
+                      borderBottom: '1px solid #f1f5f9',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{u.name}</div>
+                      {u.isSuperAdmin && <span style={{ fontSize: '10px', color: '#7c3aed', fontWeight: 700 }}>Root Governance</span>}
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#475569', fontFamily: 'monospace' }}>
+                      {u.email}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Badge variant={(effectiveRole === 'super_admin' || u.isSuperAdmin) ? 'purple' : effectiveRole === 'client_user' ? 'warning' : 'info'}>
+                        {effectiveRole}
+                      </Badge>
+                      {CANONICAL_ROLE_EXPLANATIONS[effectiveRole] && (
+                        <button
+                          type="button"
+                          id={`inspect-role-btn-${u.id}`}
+                          title="View plain-English capabilities and governance boundaries"
+                          onClick={() => setInspectingRole(effectiveRole)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            color: '#64748b',
+                            padding: '2px',
+                          }}
+                        >
+                          ℹ️
+                        </button>
+                      )}
+                    </div>
+                    <div>
+                      <Badge variant={effectiveAudience === 'internal' ? 'neutral' : 'warning'}>
+                        {effectiveAudience}
+                      </Badge>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      {u.organisationName || 'E3 Events'}
+                    </div>
+                    <div>
+                      {currentUser?.isSuperAdmin && u.email !== currentUser.email ? (
+                        <button
+                          id={`btn-impersonate-${u.id}`}
+                          type="button"
+                          onClick={() => switchPersona(u.email)}
+                          style={{
+                            padding: '4px 8px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            backgroundColor: '#f8fafc',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '4px',
+                            color: '#475569',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {currentLanguage === 'ar' ? 'معاينة كـ دور' : 'Audit as Role'}
+                        </button>
+                      ) : currentUser && u.email === currentUser.email ? (
+                        <Badge variant="neutral">
+                          {currentLanguage === 'ar' ? 'الجلسة الحالية' : 'Active Session'}
+                        </Badge>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAccessUserId(u.id);
+                            setIsAccessOpen(true);
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            backgroundColor: '#f8fafc',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '4px',
+                            color: '#2563eb',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {currentLanguage === 'ar' ? 'إدارة الوصول' : 'Manage Access'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </Card>
