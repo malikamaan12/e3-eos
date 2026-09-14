@@ -51,17 +51,28 @@ let dbInstance: EosDatabase | null = null;
 
 export function getDbPool(): pg.Pool {
   if (!poolInstance) {
-    poolInstance = new Pool({
-      host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT) || 5432,
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-      database: process.env.DB_NAME || 'postgres',
-      max: Number(process.env.DB_POOL_MAX) || 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
-      ssl: process.env.DB_SSL === 'false' ? false : (process.env.DB_SSL === 'true' || (process.env.DB_HOST && !['localhost', '127.0.0.1'].includes(process.env.DB_HOST))) ? { rejectUnauthorized: false } : false,
-    });
+    const connectionString = process.env.DATABASE_URL;
+    if (connectionString) {
+      poolInstance = new Pool({
+        connectionString,
+        max: Number(process.env.DB_POOL_MAX) || 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+        ssl: { rejectUnauthorized: false },
+      });
+    } else {
+      poolInstance = new Pool({
+        host: process.env.DB_HOST || 'localhost',
+        port: Number(process.env.DB_PORT) || 5432,
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres',
+        database: process.env.DB_NAME || 'postgres',
+        max: Number(process.env.DB_POOL_MAX) || 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+        ssl: process.env.DB_SSL === 'false' ? false : (process.env.DB_SSL === 'true' || (process.env.DB_HOST && !['localhost', '127.0.0.1'].includes(process.env.DB_HOST))) ? { rejectUnauthorized: false } : false,
+      });
+    }
 
     poolInstance.on('error', (err) => {
       console.error('[PostgreSQL Pool Error]', err);

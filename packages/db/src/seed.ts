@@ -130,14 +130,16 @@ export async function runSeed(): Promise<SeedDataManifest> {
   const manifest = generateSeedManifest();
   console.log(`[E3-EOS DB Seed] Synthetic manifest generated (${manifest.projectsCount} projects, ${manifest.stageInstancesCount} stages).`);
 
-  // Attempt real database insert if database is reachable
-  const pool = new pg.Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT) || 5432,
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-    database: process.env.DB_NAME || 'postgres',
-  });
+  const connectionString = process.env.DATABASE_URL;
+  const pool = connectionString
+    ? new pg.Pool({ connectionString, ssl: { rejectUnauthorized: false } })
+    : new pg.Pool({
+        host: process.env.DB_HOST || 'localhost',
+        port: Number(process.env.DB_PORT) || 5432,
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres',
+        database: process.env.DB_NAME || 'postgres',
+      });
 
   try {
     const client = await pool.connect();
