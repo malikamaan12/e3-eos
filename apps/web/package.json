@@ -14,14 +14,14 @@
     "@e3-eos/domain": "workspace:*",
     "@e3-eos/policy": "workspace:*",
     "@e3-eos/test-fixtures": "workspace:*",
+    "@vitejs/plugin-react": "^6.1.1",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "vite": "^8.2.2"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
-    "@vitejs/plugin-react": "^6.1.1",
-    "typescript": "^5.7.3",
-    "vite": "^8.2.2"
+    "typescript": "^5.7.3"
   }
 }

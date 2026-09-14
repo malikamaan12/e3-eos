@@ -2,6 +2,7 @@
   "buildCommand": "pnpm --filter @e3-eos/web build",
   "outputDirectory": "apps/web/dist",
   "framework": "vite",
+  "installCommand": "pnpm install",
   "rewrites": [
     {
       "source": "/(.*)",
