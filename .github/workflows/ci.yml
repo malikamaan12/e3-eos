@@ -26,6 +26,11 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://postgres:devpassword123@localhost:5432/e3_eos_dev
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: devpassword123
+      PGDATABASE: e3_eos_dev
       JWT_SECRET: super-secret-jwt-key-for-e3-eos-testing-minimum-32-chars-long!
       NODE_ENV: test
     steps:
