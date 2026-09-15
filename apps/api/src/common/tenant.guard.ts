@@ -36,7 +36,7 @@ export class TenantIsolationGuard implements CanActivate {
     );
 
     // Extract caller identity and scope from headers or session
-    let callerOrgId = (request.headers['x-organisation-id'] as string) || (request as any).organisationId;
+    let callerOrgId = (request.headers['x-organisation-id'] as string) || (request.headers['x-organization-id'] as string) || (request as any).organisationId;
     let callerAudience = ((request.headers['x-audience'] as string) || (request as any).audience || 'internal') as 'internal' | 'client' | 'supplier';
     let callerUserId = (request.headers['x-user-id'] as string) || (request as any).userId;
     let callerRole = (request.headers['x-user-roles'] as string) || (request as any).role;

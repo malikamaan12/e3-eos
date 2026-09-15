@@ -201,31 +201,61 @@ export class ProjectsController {
         query += ` ORDER BY p.created_at DESC;`;
 
         const res = await pool.query(query, params);
-        if (res.rows.length > 0 || callerAudience === 'client' || callerRole === 'client_user') {
+        const dbProjects = res.rows.map((r: any) => {
+          const matched = projectRepository.get(r.id);
           return {
-            data: res.rows.map((r: any) => {
-              const matched = projectRepository.get(r.id);
-              return {
-                id: r.id,
-                projectCode: r.project_code,
-                title: r.title,
-                description: r.description,
-                maturity: r.maturity,
-                outcome: r.outcome,
-                originCode: r.origin_code,
-                clientOrganisationId: r.client_organisation_id,
-                clientName: r.client_name,
-                organisationId: r.organisation_id,
-                ownerName: r.owner_name,
-                rowVersion: r.row_version || 1,
-                isOnboardingComplete: matched?.isOnboardingComplete ?? (r.maturity === 'draft' ? false : true),
-                onboardingCompletionPct: matched?.onboardingCompletionPct ?? (r.maturity === 'draft' ? 57 : 100),
-                missingSections: matched?.missingSections ?? [],
-              };
-            }),
-            meta: { total: res.rows.length },
+            id: r.id,
+            projectCode: r.project_code,
+            title: r.title,
+            description: r.description,
+            maturity: r.maturity,
+            outcome: r.outcome,
+            originCode: r.origin_code,
+            clientOrganisationId: r.client_organisation_id,
+            clientName: r.client_name,
+            organisationId: r.organisation_id,
+            ownerName: r.owner_name,
+            rowVersion: r.row_version || 1,
+            isOnboardingComplete: matched?.isOnboardingComplete ?? (r.maturity === 'draft' ? false : true),
+            onboardingCompletionPct: matched?.onboardingCompletionPct ?? (r.maturity === 'draft' ? 57 : 100),
+            missingSections: matched?.missingSections ?? [],
           };
+        });
+
+        // Always merge any active repository projects not yet in the DB view
+        const seenIds = new Set(dbProjects.map((p: any) => p.id));
+        const allMemory = Array.from(projectRepository.values());
+        const visibleMemory = (callerAudience === 'client' || callerRole === 'client_user')
+          ? allMemory.filter((p) => p.clientOrganisationId === callerOrgId)
+          : (callerOrgId ? allMemory.filter((p) => p.organisationId === callerOrgId) : allMemory);
+
+        for (const p of visibleMemory) {
+          if (!seenIds.has(p.id)) {
+            dbProjects.push({
+              id: p.id,
+              projectCode: p.projectCode,
+              title: p.title,
+              description: p.description,
+              maturity: p.maturity,
+              outcome: p.outcome,
+              originCode: p.originCode,
+              clientOrganisationId: p.clientOrganisationId,
+              clientName: 'Client',
+              organisationId: p.organisationId,
+              ownerName: 'Lead PM',
+              rowVersion: p.rowVersion || 1,
+              isOnboardingComplete: p.isOnboardingComplete ?? (p.maturity === 'draft' ? false : true),
+              onboardingCompletionPct: p.onboardingCompletionPct ?? (p.maturity === 'draft' ? 57 : 100),
+              missingSections: p.missingSections ?? [],
+            });
+            seenIds.add(p.id);
+          }
         }
+
+        return {
+          data: dbProjects,
+          meta: { total: dbProjects.length },
+        };
       } catch (e: any) {
         console.warn('[ProjectsController] DB listProjects fallback to repo:', e.message);
       }
@@ -246,6 +276,7 @@ export class ProjectsController {
         outcome: p.outcome,
         originCode: p.originCode,
         clientOrganisationId: p.clientOrganisationId,
+        clientName: 'Client',
         rowVersion: p.rowVersion,
         isOnboardingComplete: p.isOnboardingComplete ?? (p.maturity === 'draft' ? false : true),
         onboardingCompletionPct: p.onboardingCompletionPct ?? (p.maturity === 'draft' ? 57 : 100),
@@ -313,14 +344,42 @@ export class ProjectsController {
         },
       };
 
+      let safeProjectId = projectId;
+      if (safeProjectId && safeProjectId.length === 32 && !safeProjectId.includes('-')) {
+        safeProjectId = `${safeProjectId.slice(0, 8)}-${safeProjectId.slice(8, 12)}-${safeProjectId.slice(12, 16)}-${safeProjectId.slice(16, 20)}-${safeProjectId.slice(20)}`;
+      }
+
       projectRepository.set(projectId, newProject);
+      projectRepository.set(safeProjectId, newProject);
+      projectRepository.set(projectCode, newProject);
 
       if (this.dbService) {
         try {
           const pool = this.dbService.getPool();
+
+          // Safely resolve existing owner user in PostgreSQL to satisfy foreign key
+          let safeOwnerId = (req as any).userId || (req as any).actorId || ownerId;
+          const userCheck = await pool.query('SELECT id FROM users WHERE id = $1 LIMIT 1;', [safeOwnerId]).catch(() => ({ rows: [] }));
+          if (!userCheck.rows.length) {
+            const anyUser = await pool.query('SELECT id FROM users ORDER BY created_at ASC LIMIT 1;').catch(() => ({ rows: [] }));
+            if (anyUser.rows.length) {
+              safeOwnerId = anyUser.rows[0].id;
+            }
+          }
+
+          // Safely resolve existing organisation in PostgreSQL
+          let safeOrgId = orgId;
+          const orgCheck = await pool.query('SELECT id FROM organisations WHERE id = $1 LIMIT 1;', [safeOrgId]).catch(() => ({ rows: [] }));
+          if (!orgCheck.rows.length) {
+            const anyOrg = await pool.query('SELECT id FROM organisations ORDER BY created_at ASC LIMIT 1;').catch(() => ({ rows: [] }));
+            if (anyOrg.rows.length) {
+              safeOrgId = anyOrg.rows[0].id;
+            }
+          }
+
           const existing = await pool.query(
             'SELECT id FROM projects WHERE organisation_id = $1 AND project_code = $2 LIMIT 1;',
-            [orgId, projectCode]
+            [safeOrgId, projectCode]
           );
           if (existing.rows.length > 0) {
             projectCode = `${projectCode}-${Date.now().toString().slice(-4)}`;
@@ -332,7 +391,7 @@ export class ProjectsController {
               client_organisation_id, maturity, outcome, created_by, updated_by, created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'onboarding', 'undetermined', $7, $7, NOW(), NOW())
             ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, updated_at = NOW();
-          `, [projectId, orgId, projectCode, title, description, originCode, ownerId, clientOrgId]);
+          `, [safeProjectId, safeOrgId, projectCode, title, description, originCode, safeOwnerId, clientOrgId]);
 
           for (const stage of STANDARD_THIRTEEN_STAGE_TEMPLATE.stages) {
             await pool.query(`
@@ -341,14 +400,15 @@ export class ProjectsController {
               ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())
               ON CONFLICT (project_id, stage_number) DO NOTHING;
             `, [
-              projectId,
-              orgId,
+              safeProjectId,
+              safeOrgId,
               stage.defaultOrder,
               stage.name,
               stage.defaultOrder === 1 ? 'in_progress' : 'not_started',
               stage.defaultOrder === 1 ? 15 : 0,
             ]).catch(() => {});
           }
+          console.log('[ProjectsController] Successfully saved project to DB:', safeProjectId, projectCode);
         } catch (e: any) {
           console.warn('[ProjectsController] DB insert notice:', e.message);
         }

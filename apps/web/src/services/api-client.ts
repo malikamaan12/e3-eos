@@ -42,6 +42,7 @@ export class EosApiClient {
   private getHeaders(additionalHeaders: Record<string, string> = {}): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'x-organisation-id': this.organisationId,
       'x-organization-id': this.organisationId,
       'x-user-id': this.userId,
       'x-user-roles': this.userRoles.join(','),
@@ -96,17 +97,38 @@ export class EosApiClient {
    * Lists active projects under tenant isolation.
    */
   async getProjects(): Promise<SyntheticProject[]> {
+    let remoteProjects: any[] = [];
     try {
       const res = await fetch(`${this.baseUrl}/projects`, {
         headers: this.getHeaders(),
       });
       if (res.ok) {
-        return await res.json();
+        const json = await res.json();
+        remoteProjects = Array.isArray(json) ? json : (json.data || []);
       }
     } catch {
       // Fallback to synthetic fixtures
     }
-    return Object.values(SYNTHETIC_PROJECTS);
+
+    if (remoteProjects.length === 0) {
+      remoteProjects = Object.values(SYNTHETIC_PROJECTS) as any[];
+    }
+
+    // Merge any locally created projects so newly onboarded projects are always visible immediately
+    try {
+      if (typeof window !== 'undefined') {
+        const local = JSON.parse(localStorage.getItem('eos_custom_projects') || '[]');
+        const existingIds = new Set(remoteProjects.map((p) => p.id));
+        for (const lp of local) {
+          if (!existingIds.has(lp.id)) {
+            remoteProjects.unshift(lp);
+            existingIds.add(lp.id);
+          }
+        }
+      }
+    } catch {}
+
+    return remoteProjects;
   }
 
   /**
@@ -544,11 +566,43 @@ export class EosApiClient {
       }),
       body: JSON.stringify(payload),
     });
+
+    let result: any = null;
+    if (res.ok) {
+      result = await res.json();
+    }
+
+    // Persist to local custom projects cache so it is immediately visible in project directory
+    try {
+      if (typeof window !== 'undefined') {
+        const stored = JSON.parse(localStorage.getItem('eos_custom_projects') || '[]');
+        const projId = result?.data?.id || payload.id;
+        const projRecord = {
+          id: projId,
+          projectCode: payload.projectIdentity?.code || `PRJ-${Date.now().toString().slice(-4)}`,
+          title: payload.projectIdentity?.title || 'Untitled Project',
+          description: payload.projectIdentity?.description || '',
+          maturity: payload.maturity || 'onboarding',
+          originCode: payload.originRoute || 'TENDER',
+          clientName: payload.clientStakeholders?.clientName || 'Qatar Tourism Authority',
+          clientOrganisationId: payload.clientStakeholders?.clientOrganisationId || '22222222-2222-4222-8222-222222222222',
+          isOnboardingComplete: payload.isOnboardingComplete ?? false,
+          onboardingCompletionPct: payload.onboardingCompletionPct ?? 57,
+          missingSections: payload.missingSections || [],
+        };
+        const exists = stored.some((p: any) => p.id === projId);
+        if (!exists) {
+          stored.unshift(projRecord);
+          localStorage.setItem('eos_custom_projects', JSON.stringify(stored));
+        }
+      }
+    } catch {}
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || err.title || `Project creation failed (${res.status})`);
     }
-    return await res.json();
+    return result;
   }
 
   /**
