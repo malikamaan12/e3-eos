@@ -249,8 +249,10 @@ export const ProjectCockpitView: React.FC = () => {
 
   const [showTechnicalAudit, setShowTechnicalAudit] = useState<boolean>(false);
 
+  const isSyntheticDemo = projectId === 'f1111111-1111-4111-8111-111111111111';
+
   // 9 Canonical Workstreams
-  const workstreams = [
+  const demoWorkstreams = [
     { name: 'Creative & 3D Spatial Renders', lead: 'Karim Haddad', progress: 85, openTasks: 1, blockers: 0, status: 'on_track' },
     { name: 'Technical & Structural CAD Rigging', lead: 'Karim Haddad', progress: 60, openTasks: 2, blockers: 0, status: 'on_track' },
     { name: 'Commercial Pricing & BOQ', lead: 'Rashid Al-Hajri', progress: 95, openTasks: 0, blockers: 0, status: 'healthy' },
@@ -262,11 +264,37 @@ export const ProjectCockpitView: React.FC = () => {
     { name: 'Governance & Four-Eyes Gates', lead: 'Nasser Al-Attiyah', progress: 50, openTasks: 1, blockers: 0, status: 'on_track' },
   ];
 
-  const projectTitle = cockpitData?.title || 'Qatar Tourism Demo Tender';
-  const projectCode = cockpitData?.projectCode || 'PRJ-2026-DEMO';
-  const clientName = cockpitData?.clientName || 'Qatar Tourism Authority';
-  const venue = cockpitData?.venue?.name || 'Doha Exhibition & Convention Center';
-  const daysRemaining = cockpitData?.daysRemaining ?? 66;
+  const defaultWorkstreamList = [
+    { name: 'Creative & 3D Spatial Renders', lead: 'Design Team' },
+    { name: 'Technical & Structural CAD Rigging', lead: 'Technical Lead' },
+    { name: 'Commercial Pricing & BOQ', lead: 'Commercial Lead' },
+    { name: 'Procurement Packages & RFQs', lead: 'Procurement Lead' },
+    { name: 'Logistics, Fleet & Dispatch', lead: 'Logistics Lead' },
+    { name: 'Site & Operations Runbooks', lead: 'Operations Lead' },
+    { name: 'HSE, Fire Safety & Permits', lead: 'HSE Lead' },
+    { name: 'Client Stakeholder Collaboration', lead: cockpitData?.pm?.name || 'Project Lead' },
+    { name: 'Governance & Four-Eyes Gates', lead: 'Executive Sponsor' },
+  ];
+
+  const workstreams = isSyntheticDemo
+    ? demoWorkstreams
+    : (cockpitData?.workstreamProgress || defaultWorkstreamList.map((ws) => ({
+        name: ws.name,
+        lead: ws.lead,
+        progress: 0,
+        openTasks: 0,
+        blockers: 0,
+        status: 'on_track',
+      })));
+
+  const projectTitle = cockpitData?.title || (isSyntheticDemo ? 'Qatar Tourism Demo Tender' : 'Untitled Project');
+  const projectCode = cockpitData?.projectCode || (isSyntheticDemo ? 'PRJ-2026-DEMO' : (projectId || 'PRJ-NEW'));
+  const clientName = cockpitData?.clientName || (isSyntheticDemo ? 'Qatar Tourism Authority' : 'To Be Confirmed');
+  const venue = cockpitData?.venue?.name || (isSyntheticDemo ? 'Doha Exhibition & Convention Center' : 'To Be Confirmed');
+  const pmLeadName = cockpitData?.pm?.name
+    ? `${cockpitData.pm.name} (${cockpitData.pm.email || 'pm@e3.qa'})`
+    : (isSyntheticDemo ? 'Zaid Mansour (pm@e3.qa)' : (currentUser.name ? `${currentUser.name} (Lead PM)` : 'Unassigned Lead PM'));
+  const daysRemaining = cockpitData?.dates?.daysRemaining ?? (isSyntheticDemo ? 66 : null);
   const isDraft = cockpitData?.maturity === 'draft';
 
   // Fast-track incomplete detection
@@ -284,10 +312,18 @@ export const ProjectCockpitView: React.FC = () => {
   const rejectedApproval = approvals.find((a) => a.status === 'rejected');
 
   // Strict EAC Accounting: EAC = Actual Cost + Forecast to Complete
-  const baselineCost = isDraft ? null : (cockpitData?.financials?.baselineBudget || 1968750);
-  const committedCost = isDraft ? null : (cockpitData?.financials?.committedCost || 1420000);
-  const actualCost = isDraft ? null : (cockpitData?.financials?.postedActuals || 580000);
-  const forecastToComplete = isDraft ? null : (cockpitData?.financials?.forecastToComplete || 1288750);
+  const baselineCost = isDraft
+    ? null
+    : (cockpitData?.financials?.budget ?? cockpitData?.financials?.baselineBudget ?? (isSyntheticDemo ? 1968750 : 0));
+  const committedCost = isDraft
+    ? null
+    : (cockpitData?.financials?.committedCost ?? (isSyntheticDemo ? 1420000 : 0));
+  const actualCost = isDraft
+    ? null
+    : (cockpitData?.financials?.actualCost ?? cockpitData?.financials?.postedActuals ?? (isSyntheticDemo ? 580000 : 0));
+  const forecastToComplete = isDraft
+    ? null
+    : (cockpitData?.financials?.forecastToComplete ?? (isSyntheticDemo ? 1288750 : ((baselineCost !== null && actualCost !== null) ? Math.max(0, baselineCost - actualCost) : 0)));
   const eac = (actualCost !== null && forecastToComplete !== null) ? (actualCost + forecastToComplete) : null;
   const costVariance = (baselineCost !== null && eac !== null) ? (baselineCost - eac) : null;
   const isSaving = costVariance !== null && costVariance >= 0;
@@ -345,8 +381,8 @@ export const ProjectCockpitView: React.FC = () => {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px', color: '#64748b' }}>
               <span>🏢 Client: <strong>{clientName}</strong></span>
               <span>📍 {isRtl ? 'المكان:' : 'Venue:'} <strong>{venue}</strong></span>
-              <span>👤 {isRtl ? 'مدير المشروع:' : 'Lead PM:'} <strong>Zaid Mansour (pm@e3.qa)</strong></span>
-              <span>⏳ {isRtl ? 'التركيب الميداني:' : 'Move-in:'} <strong>{isRtl ? `${daysRemaining} يوماً حتى انطلاق الفعالية` : `${daysRemaining} days to live event`}</strong></span>
+              <span>👤 {isRtl ? 'مدير المشروع:' : 'Lead PM:'} <strong>{pmLeadName}</strong></span>
+              <span>⏳ {isRtl ? 'التركيب الميداني:' : 'Move-in:'} <strong>{daysRemaining !== null ? (isRtl ? `${daysRemaining} يوماً حتى انطلاق الفعالية` : `${daysRemaining} days to live event`) : (isRtl ? 'التاريخ قيد التأكيد' : 'Date to be confirmed')}</strong></span>
             </div>
           </div>
 
@@ -900,43 +936,43 @@ export const ProjectCockpitView: React.FC = () => {
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Contract Value</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : formatCurrency(3500000, 'QAR')}
+              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.expectedRevenue ?? (isSyntheticDemo ? 3500000 : (baselineCost || 0)), 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Invoiced to Client</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : formatCurrency(1050000, 'QAR')}
+              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.invoiced ?? (isSyntheticDemo ? 1050000 : 0), 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Collected (Cash In)</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : formatCurrency(1050000, 'QAR')}
+              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.collected ?? (isSyntheticDemo ? 1050000 : 0), 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Outstanding Receivables</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : formatCurrency(0, 'QAR')}
+              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.receivables ?? 0, 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Supplier Committed</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#d97706', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : formatCurrency(1420000, 'QAR')}
+              {isDraft ? 'Not yet available' : formatCurrency(committedCost || 0, 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Supplier Paid</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : formatCurrency(580000, 'QAR')}
+              {isDraft ? 'Not yet available' : formatCurrency(actualCost || 0, 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Net Cash Exposure</div>
             <div style={{ fontSize: '14px', fontWeight: 800, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : `+${formatCurrency(470000, 'QAR')}`}
+              {isDraft ? 'Not yet available' : `+${formatCurrency(isSyntheticDemo ? 470000 : Math.max(0, (cockpitData?.financials?.collected || 0) - (actualCost || 0)), 'QAR')}`}
             </div>
           </div>
         </div>
@@ -951,70 +987,216 @@ export const ProjectCockpitView: React.FC = () => {
           <span style={{ fontSize: '12px', color: '#64748b' }}>Automated priority evaluation</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-          {/* Card 1: Blocker (Red) */}
-          <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>🔴 Critical Blocker</span>
-                <Badge variant="danger" size="sm">Gate 03</Badge>
+        {isSyntheticDemo ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+            {/* Card 1: Blocker (Red) */}
+            <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>🔴 Critical Blocker</span>
+                  <Badge variant="danger" size="sm">Gate 03</Badge>
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#991b1b', marginBottom: '4px' }}>
+                  Stage 03 Executive Gate Sign-Off Pending
+                </div>
+                <p style={{ fontSize: '12px', color: '#7f1d1d', margin: 0 }}>
+                  Four-eyes commercial authorization by Executive Partner Nasser Al-Attiyah required before advancing.
+                </p>
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#991b1b', marginBottom: '4px' }}>
-                Stage 03 Executive Gate Sign-Off Pending
+              <div style={{ marginTop: '12px' }}>
+                <Button size="sm" variant="danger" onClick={() => setIsApprovalModalOpen(true)}>
+                  Open Approval Queue →
+                </Button>
               </div>
-              <p style={{ fontSize: '12px', color: '#7f1d1d', margin: 0 }}>
-                Four-eyes commercial authorization by Executive Partner Nasser Al-Attiyah required before advancing.
-              </p>
             </div>
-            <div style={{ marginTop: '12px' }}>
-              <Button size="sm" variant="danger" onClick={() => setIsApprovalModalOpen(true)}>
-                Open Approval Queue →
-              </Button>
-            </div>
-          </div>
 
-          {/* Card 2: Medium Action (Orange) */}
-          <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🟠 HSE Compliance</span>
-                <Badge variant="warning" size="sm">Permits</Badge>
+            {/* Card 2: Medium Action (Orange) */}
+            <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🟠 HSE Compliance</span>
+                  <Badge variant="warning" size="sm">Permits</Badge>
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', marginBottom: '4px' }}>
+                  Civil Defence Fire Safety Clearance
+                </div>
+                <p style={{ fontSize: '12px', color: '#78350f', margin: 0 }}>
+                  Stage 09 site access prerequisite. CAD structural rigging certification must be uploaded.
+                </p>
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', marginBottom: '4px' }}>
-                Civil Defence Fire Safety Clearance
+              <div style={{ marginTop: '12px' }}>
+                <Button size="sm" variant="secondary" onClick={() => navigate(`/projects/${projectId}/readiness`)}>
+                  Inspect HSE Gate →
+                </Button>
               </div>
-              <p style={{ fontSize: '12px', color: '#78350f', margin: 0 }}>
-                Stage 09 site access prerequisite. CAD structural rigging certification must be uploaded.
-              </p>
             </div>
-            <div style={{ marginTop: '12px' }}>
-              <Button size="sm" variant="secondary" onClick={() => navigate('/projects/f1111111-1111-4111-8111-111111111111/readiness')}>
-                Inspect HSE Gate →
-              </Button>
-            </div>
-          </div>
 
-          {/* Card 3: Notice (Yellow) */}
-          <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>🟡 Procurement Alert</span>
-                <Badge variant="success" size="sm">Vendor RFQ</Badge>
+            {/* Card 3: Notice (Yellow) */}
+            <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>🟡 Procurement Alert</span>
+                  <Badge variant="success" size="sm">Vendor RFQ</Badge>
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#166534', marginBottom: '4px' }}>
+                  Structural Rigging Contractor Quotes
+                </div>
+                <p style={{ fontSize: '12px', color: '#14532d', margin: 0 }}>
+                  2 RFQ packages awaiting quote comparison before PO release deadline.
+                </p>
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#166534', marginBottom: '4px' }}>
-                Structural Rigging Contractor Quotes
+              <div style={{ marginTop: '12px' }}>
+                <Button size="sm" variant="secondary" onClick={() => navigate(`/projects/${projectId}/procurement`)}>
+                  Review RFQ Packages →
+                </Button>
               </div>
-              <p style={{ fontSize: '12px', color: '#14532d', margin: 0 }}>
-                2 RFQ packages awaiting quote comparison before PO release deadline.
-              </p>
-            </div>
-            <div style={{ marginTop: '12px' }}>
-              <Button size="sm" variant="secondary" onClick={() => navigate('/projects/f1111111-1111-4111-8111-111111111111/procurement')}>
-                Review RFQ Packages →
-              </Button>
             </div>
           </div>
-        </div>
+        ) : (
+          (() => {
+            const pendingApprovals = approvals.filter((a) => a.status === 'pending');
+            const criticalBlockers = cockpitData?.criticalBlockers || [];
+            const attentionList = cockpitData?.needsAttention || [];
+            const hasItems = pendingApprovals.length > 0 || criticalBlockers.length > 0 || attentionList.length > 0;
+
+            if (!hasItems) {
+              return (
+                <div
+                  id="cockpit-all-nominal-card"
+                  style={{
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '8px',
+                    padding: '20px 24px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>
+                        🟢 All Systems Nominal
+                      </span>
+                      <Badge variant="success" size="sm">Project on track</Badge>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#166534' }}>
+                      No critical governance blockers, pending approvals, or statutory compliance risks. The project operational pipeline is ready for delivery execution.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <Button size="sm" variant="secondary" onClick={() => setIsTaskModalOpen(true)}>
+                      + Add Task
+                    </Button>
+                    <Button size="sm" variant="primary" onClick={() => setIsApprovalModalOpen(true)}>
+                      Request Gate Sign-off
+                    </Button>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                {pendingApprovals.map((appr) => (
+                  <div
+                    key={appr.id}
+                    style={{
+                      backgroundColor: '#fef2f2',
+                      border: '1px solid #fecaca',
+                      borderRadius: '8px',
+                      padding: '14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>🔴 Pending Approval</span>
+                        <Badge variant="danger" size="sm">{appr.requiredRole || 'Executive'}</Badge>
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#991b1b', marginBottom: '4px' }}>
+                        {appr.reason || `Approval required for ${appr.targetType}`}
+                      </div>
+                      <p style={{ fontSize: '12px', color: '#7f1d1d', margin: 0 }}>
+                        Monetary value: <strong>{formatCurrency(appr.amount || 0, 'QAR')}</strong>. Four-eyes authorization pending.
+                      </p>
+                    </div>
+                    <div style={{ marginTop: '12px' }}>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => {
+                          const el = document.getElementById(`approval-item-${appr.id}`);
+                          if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                      >
+                        Review Sign-off →
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                {criticalBlockers.map((blk: any, idx: number) => (
+                  <div
+                    key={idx}
+                    style={{
+                      backgroundColor: '#fffbeb',
+                      border: '1px solid #fde68a',
+                      borderRadius: '8px',
+                      padding: '14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🟠 Operational Blocker</span>
+                        <Badge variant="warning" size="sm">{blk.owner || 'Operations'}</Badge>
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', marginBottom: '4px' }}>
+                        {blk.title}
+                      </div>
+                      <p style={{ fontSize: '12px', color: '#78350f', margin: 0 }}>
+                        {blk.impact || 'Action required to proceed with delivery.'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+
+                {attentionList.map((item: string, idx: number) => (
+                  <div
+                    key={idx}
+                    style={{
+                      backgroundColor: '#eff6ff',
+                      border: '1px solid #bfdbfe',
+                      borderRadius: '8px',
+                      padding: '14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase' }}>ℹ️ Project Notice</span>
+                        <Badge variant="info" size="sm">Notice</Badge>
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e40af' }}>
+                        {item}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()
+        )}
       </div>
 
       {/* 9-Workstream Health Grid with Mobile Filter */}

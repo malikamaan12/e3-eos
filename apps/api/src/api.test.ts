@@ -747,6 +747,110 @@ describe('Sprint 02: Operational Constraints Verification & Provenance API', () 
     });
     expect(supRes.data.verificationStatus).toBe('Superseded');
   });
+
+  describe('Project Cockpit & Visual Lifecycle Architecture Tests', () => {
+    it('returns clean authentic dynamic cockpit data for newly created projects without hardcoded mock values', async () => {
+      const { ProjectsController } = await import('./projects/projects.controller.js');
+      const controller = new ProjectsController();
+
+      const testOrgId = '11111111-1111-4111-8111-111111111111';
+      const mockReq = {
+        organisationId: testOrgId,
+        headers: { 'x-request-id': 'req-test-clean-cockpit' },
+      } as any;
+
+      const newProjectId = 'f9999999-9999-4999-8999-999999999999';
+      await controller.createProject(
+        {
+          id: newProjectId,
+          originRoute: 'DIRECT_AWARD',
+          projectIdentity: {
+            code: 'PRJ-2026-CLEAN-01',
+            title: 'Lusail Sound & Drone Festival 2026',
+            description: 'Brand new project testing clean dynamic cockpit data',
+          },
+          clientStakeholders: {
+            clientName: 'Lusail Real Estate Development Co',
+          },
+          commercialStartingPoint: {
+            revenueValue: '4,500,000',
+            targetMargin: '42.50%',
+            currency: 'QAR',
+          },
+          venue: {
+            venueName: 'Lusail South Promenade',
+            hallZone: 'Outdoor Zone A',
+          },
+          team: {
+            projectManagerName: 'Maryam Al-Kuwari (Lead PM)',
+          },
+          dates: {
+            eventDate: '2026-12-25',
+          },
+          workflowConfig: {
+            stages: [
+              { id: 1, sequenceNumber: 1, name: 'Stage 01: Intake', isMandatoryGate: false, ownerRole: 'project_manager' },
+              { id: 3, sequenceNumber: 2, name: 'Stage 03: Executive Gate', isMandatoryGate: true, ownerRole: 'executive' },
+              { id: 99, sequenceNumber: 3, name: 'Stage 99: VIP Logistics', isMandatoryGate: false, ownerRole: 'logistics' },
+            ],
+          },
+        },
+        mockReq
+      );
+
+      const cockpitRes = await controller.getCockpit(newProjectId, mockReq);
+      const data = cockpitRes.data;
+
+      // Identity & PM
+      expect(data.projectCode).toBe('PRJ-2026-CLEAN-01');
+      expect(data.title).toBe('Lusail Sound & Drone Festival 2026');
+      expect(data.clientName).toBe('Lusail Real Estate Development Co');
+      expect(data.venue.name).toBe('Lusail South Promenade');
+      expect(data.pm.name).toBe('Maryam Al-Kuwari (Lead PM)');
+
+      // Financials: clean 0 actuals and commitments, starting budget from input
+      expect(data.financials.budget).toBe(4500000);
+      expect(data.financials.expectedRevenue).toBe(4500000);
+      expect(data.financials.committedCost).toBe(0);
+      expect(data.financials.actualCost).toBe(0);
+      expect(data.financials.eac).toBe(4500000);
+      expect(data.financials.forecastMarginPercent).toBe(42.5);
+
+      // Blockers & Approvals: cleanly initialized to empty (no hardcoded AV Rigging or Civil Defence dummy records!)
+      expect(data.outstandingApprovals).toEqual([]);
+      expect(data.criticalBlockers).toEqual([]);
+
+      // Workstream progress starts at 0%
+      expect(data.workstreamProgress.length).toBeGreaterThan(0);
+      data.workstreamProgress.forEach((ws: any) => {
+        expect(ws.progress).toBe(0);
+      });
+
+      // Stages derived from project workflowConfig
+      expect(data.stages).toHaveLength(3);
+      expect(data.stages[2].name).toBe('Stage 99: VIP Logistics');
+      expect(data.stages[2].progressPercent).toBe(0);
+    });
+
+    it('preserves synthetic rich demo baseline for project f1111111-1111-4111-8111-111111111111', async () => {
+      const { ProjectsController } = await import('./projects/projects.controller.js');
+      const controller = new ProjectsController();
+
+      const mockReq = {
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        headers: { 'x-request-id': 'req-test-demo-cockpit' },
+      } as any;
+
+      const cockpitRes = await controller.getCockpit('f1111111-1111-4111-8111-111111111111', mockReq);
+      const data = cockpitRes.data;
+
+      expect(data.financials.budget).toBe(1850000);
+      expect(data.financials.committedCost).toBe(720000);
+      expect(data.financials.actualCost).toBe(215000);
+      expect(data.outstandingApprovals.length).toBeGreaterThan(0);
+      expect(data.criticalBlockers.length).toBeGreaterThan(0);
+    });
+  });
 });
 
 

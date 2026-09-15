@@ -48,6 +48,9 @@ export interface StoredProject {
   outcome: string;
   rowVersion: number;
   clientOrganisationId?: string;
+  clientStakeholders?: any;
+  team?: any;
+  workflowConfig?: any;
   classification?: any;
   financialAssumptions?: any;
   dateRegister?: any;
@@ -328,6 +331,9 @@ export class ProjectsController {
         originCode,
         ownerId,
         clientOrganisationId: clientOrgId,
+        clientStakeholders: b.clientStakeholders,
+        team: b.team,
+        workflowConfig: b.workflowConfig,
         dateRegister: b.dates,
         venueContext: b.venue,
         financialAssumptions: b.commercialStartingPoint,
@@ -512,10 +518,14 @@ export class ProjectsController {
   @Get(':id/cockpit')
   async getCockpit(@Param('id') id: string, @Req() _req: Request) {
     let project = projectRepository.get(id);
-    let title = project?.title || 'Qatar Tourism Annual Exhibition & Gala 2026';
-    let code = project?.projectCode || 'PRJ-2026-QATAR-01';
-    let clientName = 'Qatar Tourism Authority';
-    let maturity = project?.maturity || 'developing';
+    const isSyntheticDemo = id === 'f1111111-1111-4111-8111-111111111111';
+
+    let title = project?.title || (isSyntheticDemo ? 'Qatar Tourism Annual Exhibition & Gala 2026' : 'Untitled Project');
+    let code = project?.projectCode || (isSyntheticDemo ? 'PRJ-2026-QATAR-01' : id);
+    let clientName = project?.clientStakeholders?.clientName || (isSyntheticDemo ? 'Qatar Tourism Authority' : 'To Be Confirmed');
+    let maturity = project?.maturity || (isSyntheticDemo ? 'developing' : 'onboarding');
+    let ownerName = project?.team?.projectManagerName || (isSyntheticDemo ? 'Zaid Mansour' : 'Unassigned Lead PM');
+    let ownerEmail = isSyntheticDemo ? 'pm@e3.qa' : '';
 
     if (this.dbService) {
       try {
@@ -531,15 +541,21 @@ export class ProjectsController {
           const row = pRes.rows[0];
           title = row.title;
           code = row.project_code;
-          clientName = row.client_name || 'Qatar Tourism Authority';
+          if (project?.clientStakeholders?.clientName) {
+            clientName = project.clientStakeholders.clientName;
+          } else if (row.client_name) {
+            clientName = row.client_name;
+          }
           maturity = row.maturity;
+          if (project?.team?.projectManagerName) {
+            ownerName = project.team.projectManagerName;
+          } else if (row.owner_name) {
+            ownerName = row.owner_name;
+          }
+          if (row.owner_email) ownerEmail = row.owner_email;
         }
       } catch (e) {}
     }
-
-    const eventDate = new Date('2026-11-15T09:00:00Z');
-    const now = new Date();
-    const daysRemaining = Math.max(0, Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
 
     let taskList: any[] = [];
     if (this.dbService) {
@@ -556,13 +572,13 @@ export class ProjectsController {
           title: r.title,
           status: r.is_completed ? 'completed' : r.state,
           isCompleted: r.is_completed,
-          assignee: r.assignee_name || 'Karim Haddad (Design Director)',
+          assignee: r.assignee_name || ownerName,
           createdAt: r.created_at,
         }));
       } catch (e) {}
     }
 
-    if (taskList.length === 0 && id === 'f1111111-1111-4111-8111-111111111111') {
+    if (taskList.length === 0 && isSyntheticDemo) {
       taskList = [
         {
           id: 'task-rigging-01',
@@ -583,11 +599,137 @@ export class ProjectsController {
       ];
     }
 
-    const stages = STANDARD_THIRTEEN_STAGE_TEMPLATE.stages.map((s, idx) => ({
-      stageNumber: idx + 1,
+    if (isSyntheticDemo) {
+      const eventDate = new Date('2026-11-15T09:00:00Z');
+      const now = new Date();
+      const daysRemaining = Math.max(0, Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+      const stages = STANDARD_THIRTEEN_STAGE_TEMPLATE.stages.map((s, idx) => ({
+        stageNumber: idx + 1,
+        name: s.name,
+        status: idx === 0 ? 'completed' : idx === 1 ? 'in_progress' : 'not_started',
+        progressPercent: idx === 0 ? 100 : idx === 1 ? 40 : 0,
+      }));
+
+      return {
+        data: {
+          projectId: id,
+          projectCode: code,
+          title,
+          clientName,
+          maturity,
+          health: 'healthy',
+          isOnboardingComplete: project?.isOnboardingComplete ?? true,
+          onboardingCompletionPct: project?.onboardingCompletionPct ?? 100,
+          missingSections: project?.missingSections ?? [],
+          pm: {
+            name: ownerName || 'Zaid Mansour',
+            email: ownerEmail || 'pm@e3.qa',
+          },
+          venue: {
+            name: 'Doha Exhibition & Convention Center (DECC) — Hall 1 & 2',
+            type: 'indoor',
+            location: 'West Bay, Doha, Qatar',
+          },
+          dates: {
+            moveIn: '2026-11-10',
+            eventStart: '2026-11-15',
+            eventEnd: '2026-11-18',
+            moveOut: '2026-11-20',
+            daysRemaining,
+          },
+          financials: {
+            currency: 'QAR',
+            budget: 1850000,
+            committedCost: 720000,
+            actualCost: 215000,
+            eac: 1740000,
+            expectedRevenue: 2950000,
+            forecastMarginPercent: 41.02,
+          },
+          outstandingApprovals: [
+            {
+              id: 'appr-po-01',
+              title: 'AV Rigging Subrental Commitment PO-0442',
+              amount: '350,000 QAR',
+              requestedBy: 'Zaid Mansour (PM)',
+              requiredRole: 'executive',
+              status: 'pending',
+            },
+          ],
+          criticalBlockers: [
+            {
+              id: 'blk-01',
+              title: 'Awaiting Civil Defence Fire Suppression Clearance',
+              owner: 'Dr. Sarah Ibrahim',
+              impact: 'Cannot commence main truss flying before sign-off',
+            },
+          ],
+          needsAttention: [
+            'Civil Defence inspection scheduled for tomorrow 09:00 AM',
+            'Contractor insurance certificate renewal pending from SoundTech WLL',
+            'Client design review meeting confirmed for Thursday 14:00',
+          ],
+          workstreamProgress: [
+            { name: 'Stage & Rigging Structures', progress: 75, status: 'on_track' },
+            { name: 'Audio, Visual & Lighting', progress: 45, status: 'on_track' },
+            { name: 'Health, Safety & Permits', progress: 85, status: 'caution' },
+            { name: 'Fabrication & Decor', progress: 50, status: 'on_track' },
+            { name: 'Commercial & Invoicing', progress: 30, status: 'on_track' },
+          ],
+          tasks: taskList,
+          stages,
+          activityHistory: [
+            {
+              id: 'act-01',
+              action: 'Project Onboarded',
+              actor: 'Zaid Mansour',
+              timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
+            },
+            {
+              id: 'act-02',
+              action: 'Stage 1 Onboarding Completed',
+              actor: 'Fatima Al-Sulaiti (Director)',
+              timestamp: new Date(Date.now() - 3600000 * 12).toISOString(),
+            },
+            {
+              id: 'act-03',
+              action: 'CAD Structural Task Completed',
+              actor: 'Karim Haddad',
+              timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+            },
+          ],
+        },
+      };
+    }
+
+    // Dynamic clean cockpit data for user-created projects
+    const rawEventDate = project?.dateRegister?.eventDate || project?.dateRegister?.eventStartDate;
+    let daysRemaining: number | null = null;
+    if (rawEventDate) {
+      const parsed = new Date(rawEventDate);
+      if (!isNaN(parsed.getTime())) {
+        daysRemaining = Math.max(0, Math.ceil((parsed.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+      }
+    }
+
+    const startingRevenue = Number(String(project?.financialAssumptions?.revenueValue || '0').replace(/,/g, '')) || 0;
+    const targetMargin = Number(String(project?.financialAssumptions?.targetMargin || '0').replace(/%/g, '')) || 0;
+    const currency = project?.financialAssumptions?.currency || 'QAR';
+
+    // Build stages from project's configured stages or standard template
+    const rawStages = project?.workflowConfig?.stages || STANDARD_THIRTEEN_STAGE_TEMPLATE.stages.map((s, idx) => ({
+      sequenceNumber: idx + 1,
       name: s.name,
-      status: idx === 0 ? 'completed' : idx === 1 ? 'in_progress' : 'not_started',
-      progressPercent: idx === 0 ? 100 : idx === 1 ? 40 : 0,
+      ownerRole: 'operations',
+    }));
+
+    const stages = rawStages.map((s: any, idx: number) => ({
+      stageNumber: s.sequenceNumber || idx + 1,
+      name: s.name,
+      ownerRole: s.ownerRole || 'operations',
+      status: 'not_started',
+      progressPercent: 0,
     }));
 
     return {
@@ -599,83 +741,57 @@ export class ProjectsController {
         maturity,
         health: 'healthy',
         isOnboardingComplete: project?.isOnboardingComplete ?? (maturity === 'draft' ? false : true),
-        onboardingCompletionPct: project?.onboardingCompletionPct ?? (maturity === 'draft' ? 57 : 100),
-        missingSections: project?.missingSections ?? (maturity === 'draft' ? ['Venue & Spatial Parameters', 'Workflow Confirmation & Mandatory Gates'] : []),
+        onboardingCompletionPct: project?.onboardingCompletionPct ?? (maturity === 'draft' ? 50 : 100),
+        missingSections: project?.missingSections ?? [],
         pm: {
-          name: 'Zaid Mansour',
-          email: 'pm@e3.qa',
+          name: ownerName,
+          email: ownerEmail || 'pm@e3.qa',
         },
         venue: {
-          name: 'Doha Exhibition & Convention Center (DECC) — Hall 1 & 2',
-          type: 'indoor',
-          location: 'West Bay, Doha, Qatar',
+          name: project?.venueContext?.venueName || 'To Be Confirmed',
+          type: project?.venueContext?.hallZone || 'indoor',
+          location: project?.venueContext?.venueName ? 'Doha, Qatar' : 'To Be Confirmed',
         },
         dates: {
-          moveIn: '2026-11-10',
-          eventStart: '2026-11-15',
-          eventEnd: '2026-11-18',
-          moveOut: '2026-11-20',
+          moveIn: project?.dateRegister?.bumpInDate || null,
+          eventStart: rawEventDate || null,
+          eventEnd: project?.dateRegister?.bumpOutDate || null,
+          moveOut: project?.dateRegister?.bumpOutDate || null,
           daysRemaining,
         },
         financials: {
-          currency: 'QAR',
-          budget: 1850000,
-          committedCost: 720000,
-          actualCost: 215000,
-          eac: 1740000,
-          expectedRevenue: 2950000,
-          forecastMarginPercent: 41.02,
+          currency,
+          budget: startingRevenue,
+          committedCost: 0,
+          actualCost: 0,
+          eac: startingRevenue,
+          expectedRevenue: startingRevenue,
+          forecastMarginPercent: targetMargin,
         },
-        outstandingApprovals: [
-          {
-            id: 'appr-po-01',
-            title: 'AV Rigging Subrental Commitment PO-0442',
-            amount: '350,000 QAR',
-            requestedBy: 'Zaid Mansour (PM)',
-            requiredRole: 'executive',
-            status: 'pending',
-          },
-        ],
-        criticalBlockers: [
-          {
-            id: 'blk-01',
-            title: 'Awaiting Civil Defence Fire Suppression Clearance',
-            owner: 'Dr. Sarah Ibrahim',
-            impact: 'Cannot commence main truss flying before sign-off',
-          },
-        ],
-        needsAttention: [
-          'Civil Defence inspection scheduled for tomorrow 09:00 AM',
-          'Contractor insurance certificate renewal pending from SoundTech WLL',
-          'Client design review meeting confirmed for Thursday 14:00',
-        ],
+        outstandingApprovals: [],
+        criticalBlockers: [],
+        needsAttention: project?.missingSections && project.missingSections.length > 0
+          ? project.missingSections.map((s: string) => `Pending: ${s}`)
+          : [],
         workstreamProgress: [
-          { name: 'Stage & Rigging Structures', progress: 75, status: 'on_track' },
-          { name: 'Audio, Visual & Lighting', progress: 45, status: 'on_track' },
-          { name: 'Health, Safety & Permits', progress: 85, status: 'caution' },
-          { name: 'Fabrication & Decor', progress: 50, status: 'on_track' },
-          { name: 'Commercial & Invoicing', progress: 30, status: 'on_track' },
+          { name: 'Creative & 3D Spatial Renders', progress: 0, status: 'on_track' },
+          { name: 'Technical & Structural CAD Rigging', progress: 0, status: 'on_track' },
+          { name: 'Commercial Pricing & BOQ', progress: 0, status: 'on_track' },
+          { name: 'Procurement Packages & RFQs', progress: 0, status: 'on_track' },
+          { name: 'Logistics, Fleet & Dispatch', progress: 0, status: 'on_track' },
+          { name: 'Site & Operations Runbooks', progress: 0, status: 'on_track' },
+          { name: 'HSE, Fire Safety & Permits', progress: 0, status: 'on_track' },
+          { name: 'Client Stakeholder Collaboration', progress: 0, status: 'on_track' },
+          { name: 'Governance & Four-Eyes Gates', progress: 0, status: 'on_track' },
         ],
         tasks: taskList,
         stages,
         activityHistory: [
           {
-            id: 'act-01',
-            action: 'Project Onboarded',
-            actor: 'Zaid Mansour',
-            timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
-          },
-          {
-            id: 'act-02',
-            action: 'Stage 1 Onboarding Completed',
-            actor: 'Fatima Al-Sulaiti (Director)',
-            timestamp: new Date(Date.now() - 3600000 * 12).toISOString(),
-          },
-          {
-            id: 'act-03',
-            action: 'CAD Structural Task Completed',
-            actor: 'Karim Haddad',
-            timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+            id: `act-${Date.now()}`,
+            action: 'Project Onboarding Initialized',
+            actor: ownerName,
+            timestamp: new Date().toISOString(),
           },
         ],
       },

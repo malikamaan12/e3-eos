@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { Button, Badge, Card, AlertBanner } from '../components/DesignSystem.js';
+import { Button, Badge, Card, AlertBanner, Modal, Input, Select } from '../components/DesignSystem.js';
 import { FastTrackProjectModal } from './FastTrackProjectModal.js';
 
 interface ConfigurableStage {
@@ -10,6 +10,18 @@ interface ConfigurableStage {
   isOptional: boolean;
   ownerRole: string;
 }
+
+const STAGE_ROLES = [
+  { value: 'project_manager', label: 'Project Manager (PM)' },
+  { value: 'finance', label: 'Finance & Cost Control' },
+  { value: 'executive', label: 'Executive Partner' },
+  { value: 'commercial_director', label: 'Commercial Director' },
+  { value: 'design_production', label: 'Technical & Creative Design' },
+  { value: 'procurement', label: 'Procurement & Subcontracting' },
+  { value: 'logistics', label: 'Logistics & Fleet Dispatch' },
+  { value: 'hse_quality', label: 'HSE & Compliance Director' },
+  { value: 'operations', label: 'Live Operations & Site Delivery' },
+];
 
 const GATE_EXPLANATIONS: Record<number, { title: string; rationale: string; authority: string }> = {
   3: {
@@ -112,6 +124,13 @@ export const NewProjectWizardView: React.FC = () => {
 
   // Step 8 Workflow Configuration
   const [stages, setStages] = useState<ConfigurableStage[]>(DEFAULT_STAGES);
+  const [isAddStageOpen, setIsAddStageOpen] = useState<boolean>(false);
+  const [newStageName, setNewStageName] = useState<string>('');
+  const [newStageOwnerRole, setNewStageOwnerRole] = useState<string>('project_manager');
+  const [editingStage, setEditingStage] = useState<ConfigurableStage | null>(null);
+  const [editStageName, setEditStageName] = useState<string>('');
+  const [editStageOwnerRole, setEditStageOwnerRole] = useState<string>('project_manager');
+  const [stageFeedback, setStageFeedback] = useState<string | null>(null);
 
   const steps = [
     { num: 1, title: currentLanguage === 'ar' ? 'مسار المصدر' : 'Origin Route' },
@@ -145,6 +164,58 @@ export const NewProjectWizardView: React.FC = () => {
       updated[targetIdx] = temp;
       return updated;
     });
+  };
+
+  const handleAddStage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newStageName.trim()) return;
+    const maxId = stages.reduce((max, s) => Math.max(max, s.id), 0);
+    const newStage: ConfigurableStage = {
+      id: maxId + 1,
+      name: newStageName.trim(),
+      isMandatoryGate: false,
+      isOptional: false,
+      ownerRole: newStageOwnerRole,
+    };
+    setStages((prev) => [...prev, newStage]);
+    setNewStageName('');
+    setNewStageOwnerRole('project_manager');
+    setIsAddStageOpen(false);
+    setStageFeedback(`Added stage: "${newStage.name}"`);
+    setTimeout(() => setStageFeedback(null), 4000);
+  };
+
+  const handleStartEditStage = (stage: ConfigurableStage) => {
+    setEditingStage(stage);
+    setEditStageName(stage.name);
+    setEditStageOwnerRole(stage.ownerRole);
+  };
+
+  const handleSaveEditStage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!editingStage || !editStageName.trim()) return;
+    setStages((prev) =>
+      prev.map((s) =>
+        s.id === editingStage.id
+          ? { ...s, name: editStageName.trim(), ownerRole: editStageOwnerRole }
+          : s
+      )
+    );
+    setEditingStage(null);
+    setStageFeedback(`Updated stage: "${editStageName.trim()}"`);
+    setTimeout(() => setStageFeedback(null), 4000);
+  };
+
+  const handleDeleteStage = (stageId: number) => {
+    const target = stages.find((s) => s.id === stageId);
+    if (!target) return;
+    if (target.isMandatoryGate) {
+      alert('Governance Invariant: Mandatory gates (Stages 3, 9, 10, 13) cannot be deleted as they are statutory requirements.');
+      return;
+    }
+    setStages((prev) => prev.filter((s) => s.id !== stageId));
+    setStageFeedback(`Removed stage: "${target.name}"`);
+    setTimeout(() => setStageFeedback(null), 4000);
   };
 
   const handleSaveProject = async (isDraft: boolean = false) => {
@@ -205,6 +276,16 @@ export const NewProjectWizardView: React.FC = () => {
         team: {
           projectManagerId: '10000000-0000-4000-8000-000000000004',
           projectManagerName: pmName,
+        },
+        workflowConfig: {
+          stages: stages.map((s, idx) => ({
+            id: s.id,
+            sequenceNumber: idx + 1,
+            name: s.name,
+            isMandatoryGate: s.isMandatoryGate,
+            isOptional: s.isOptional,
+            ownerRole: s.ownerRole,
+          })),
         },
       };
 
@@ -961,20 +1042,54 @@ export const NewProjectWizardView: React.FC = () => {
         {/* Step 8: Visual Stage Workflow Configuration Editor */}
         {currentStep === 8 && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                Step 8: Visual Lifecycle Configuration Editor
-              </h3>
-              <Badge variant="purple">Governance Protected</Badge>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                  Step 8: Visual Lifecycle Configuration Editor
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748b' }}>
+                  Add, edit, or customize project stages. Note: <strong>Mandatory Governance Gates</strong> (Executive Gate, Civil Defence HSE, Readiness Gate, Closeout) are enforced by system policy and cannot be bypassed.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <Button
+                  id="btn-add-custom-stage"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setIsAddStageOpen(true)}
+                >
+                  + Add Custom Stage
+                </Button>
+                <Badge variant="purple">Governance Protected</Badge>
+              </div>
             </div>
-            <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#64748b' }}>
-              Customize and review project stages. Note: <strong>Mandatory Governance Gates</strong> (Executive Gate, Civil Defence HSE, Readiness Gate) are enforced by system policy and cannot be bypassed.
-            </p>
 
-            <div style={{ maxHeight: '340px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+            {stageFeedback && (
+              <div
+                id="stage-feedback-banner"
+                style={{
+                  padding: '8px 12px',
+                  backgroundColor: '#ecfdf5',
+                  border: '1px solid #a7f3d0',
+                  borderRadius: '6px',
+                  color: '#065f46',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  marginBottom: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>✓</span> {stageFeedback}
+              </div>
+            )}
+
+            <div style={{ maxHeight: '380px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
               {stages.map((stage, idx) => (
                 <div
                   key={stage.id}
+                  id={`stage-item-${stage.id}`}
                   style={{
                     borderBottom: '1px solid #f1f5f9',
                     backgroundColor: stage.isMandatoryGate ? '#fffbeb' : stage.isOptional ? '#f8fafc' : '#ffffff',
@@ -987,6 +1102,8 @@ export const NewProjectWizardView: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '8px',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -996,6 +1113,7 @@ export const NewProjectWizardView: React.FC = () => {
                           onClick={() => handleStageMove(idx, 'up')}
                           disabled={idx === 0}
                           style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', fontSize: '9px', color: '#94a3b8' }}
+                          title="Move stage up"
                         >
                           ▲
                         </button>
@@ -1004,16 +1122,22 @@ export const NewProjectWizardView: React.FC = () => {
                           onClick={() => handleStageMove(idx, 'down')}
                           disabled={idx === stages.length - 1}
                           style={{ border: 'none', background: 'none', cursor: idx === stages.length - 1 ? 'default' : 'pointer', fontSize: '9px', color: '#94a3b8' }}
+                          title="Move stage down"
                         >
                           ▼
                         </button>
                       </div>
-                      <span style={{ fontWeight: 600, color: stage.isOptional ? '#94a3b8' : '#1e293b' }}>
-                        {stage.name}
-                      </span>
+                      <div>
+                        <span style={{ fontWeight: 600, color: stage.isOptional ? '#94a3b8' : '#1e293b' }}>
+                          {stage.name}
+                        </span>
+                        <span style={{ marginInlineStart: '8px', fontSize: '11px', color: '#64748b', backgroundColor: '#f1f5f9', padding: '1px 6px', borderRadius: '4px' }}>
+                          Role: {stage.ownerRole}
+                        </span>
+                      </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {stage.isMandatoryGate ? (
                         <button
                           type="button"
@@ -1046,7 +1170,46 @@ export const NewProjectWizardView: React.FC = () => {
                           {stage.isOptional ? 'Mark Mandatory' : 'Mark Optional'}
                         </button>
                       )}
-                      <span style={{ fontSize: '11px', color: '#64748b' }}>Role: {stage.ownerRole}</span>
+
+                      <Button
+                        id={`edit-stage-btn-${stage.id}`}
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleStartEditStage(stage)}
+                        style={{ padding: '2px 8px', fontSize: '11px', minHeight: '26px' }}
+                      >
+                        ✏️ Edit
+                      </Button>
+
+                      {stage.isMandatoryGate ? (
+                        <button
+                          type="button"
+                          disabled
+                          title="Protected governance gate cannot be deleted"
+                          style={{
+                            border: '1px solid #fde68a',
+                            backgroundColor: '#fffbeb',
+                            color: '#d97706',
+                            borderRadius: '4px',
+                            padding: '2px 8px',
+                            fontSize: '11px',
+                            cursor: 'not-allowed',
+                            opacity: 0.8,
+                          }}
+                        >
+                          🔒 Locked
+                        </button>
+                      ) : (
+                        <Button
+                          id={`delete-stage-btn-${stage.id}`}
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDeleteStage(stage.id)}
+                          style={{ padding: '2px 8px', fontSize: '11px', minHeight: '26px' }}
+                        >
+                          🗑️ Delete
+                        </Button>
+                      )}
                     </div>
                   </div>
 
@@ -1113,6 +1276,16 @@ export const NewProjectWizardView: React.FC = () => {
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{venueTbc ? 'To Be Confirmed' : venueName}</div>
                 <div style={{ fontSize: '12px', color: '#64748b' }}>
                   {datesTbc ? 'Dates Pending Confirmation' : `Submission: ${submissionDeadline} • Live: ${eventDate}`}
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', gridColumn: 'span 2' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Configured Lifecycle Stages</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                  {stages.length} Stages Active ({stages.filter(s => s.isMandatoryGate).length} Mandatory Gates, {stages.filter(s => s.isOptional).length} Optional)
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  Visual lifecycle sequence confirmed with strict governance lock integrity.
                 </div>
               </div>
             </div>
@@ -1183,6 +1356,102 @@ export const NewProjectWizardView: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      {/* Modal: Add Custom Stage */}
+      <Modal
+        isOpen={isAddStageOpen}
+        onClose={() => setIsAddStageOpen(false)}
+        title="Add Custom Lifecycle Stage"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setIsAddStageOpen(false)}>Cancel</Button>
+            <Button
+              id="submit-add-stage-btn"
+              variant="primary"
+              disabled={!newStageName.trim()}
+              onClick={() => handleAddStage()}
+            >
+              + Add Stage
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleAddStage}>
+          <Input
+            id="new-stage-name-input"
+            label="Stage Title / Name *"
+            value={newStageName}
+            onChange={(e) => setNewStageName(e.target.value)}
+            placeholder="e.g. Stage 14: VIP Hospitality & Protocol Management"
+            required
+            autoFocus
+          />
+          <Select
+            id="new-stage-role-select"
+            label="Accountable Role *"
+            value={newStageOwnerRole}
+            onChange={(e) => setNewStageOwnerRole(e.target.value)}
+            options={STAGE_ROLES}
+          />
+          <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0' }}>
+            ℹ️ Custom stages will be instantiated into the project's CPM delivery schedule with associated activity packages.
+          </p>
+        </form>
+      </Modal>
+
+      {/* Modal: Edit Stage */}
+      <Modal
+        isOpen={editingStage !== null}
+        onClose={() => setEditingStage(null)}
+        title={`Edit Stage: ${editingStage?.name || ''}`}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setEditingStage(null)}>Cancel</Button>
+            <Button
+              id="submit-edit-stage-btn"
+              variant="primary"
+              disabled={!editStageName.trim()}
+              onClick={() => handleSaveEditStage()}
+            >
+              Save Changes
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleSaveEditStage}>
+          <Input
+            id="edit-stage-name-input"
+            label="Stage Title / Name *"
+            value={editStageName}
+            onChange={(e) => setEditStageName(e.target.value)}
+            placeholder="Stage name"
+            required
+            autoFocus
+          />
+          <Select
+            id="edit-stage-role-select"
+            label="Accountable Role *"
+            value={editStageOwnerRole}
+            onChange={(e) => setEditStageOwnerRole(e.target.value)}
+            options={STAGE_ROLES}
+          />
+          {editingStage?.isMandatoryGate && (
+            <div
+              style={{
+                padding: '10px 12px',
+                backgroundColor: '#fffbeb',
+                border: '1px solid #fde68a',
+                borderRadius: '6px',
+                color: '#92400e',
+                fontSize: '12px',
+                marginTop: '8px',
+              }}
+            >
+              🔒 <strong>Governance Gate Invariant:</strong> This is a protected statutory governance gate. You can customize the name or role title, but its mandatory sign-off requirement remains strictly enforced.
+            </div>
+          )}
+        </form>
+      </Modal>
     </div>
   );
 };

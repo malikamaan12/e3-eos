@@ -92,11 +92,12 @@ export const ProjectWorkspaceView: React.FC = () => {
   const projectCode = cockpitData?.projectCode || currentProject.projectCode;
   const originCode = currentProject.originCode || 'TENDER-QATAR-2026';
   const daysRemaining = cockpitData?.dates?.daysRemaining ?? 67;
+  const isSyntheticDemo = currentProject.id === 'f1111111-1111-4111-8111-111111111111';
   const venueDesc = cockpitData?.venue?.name
-    ? `${cockpitData.venue.name} • ${cockpitData.venue.location}`
-    : 'Doha Exhibition & Convention Centre (DECC) — West Bay, Doha, Qatar';
+    ? `${cockpitData.venue.name} • ${cockpitData.venue.location || 'Doha, Qatar'}`
+    : (isSyntheticDemo ? 'Doha Exhibition & Convention Centre (DECC) — West Bay, Doha, Qatar' : 'Venue to be confirmed');
 
-  const financials = cockpitData?.financials || {
+  const financials = cockpitData?.financials || (isSyntheticDemo ? {
     budget: 1850000,
     eac: 1740000,
     expectedRevenue: 2950000,
@@ -104,17 +105,25 @@ export const ProjectWorkspaceView: React.FC = () => {
     actualCost: 215000,
     committedCost: 720000,
     currency: 'QAR',
-  };
+  } : {
+    budget: 0,
+    eac: 0,
+    expectedRevenue: 0,
+    forecastMarginPercent: 0,
+    actualCost: 0,
+    committedCost: 0,
+    currency: 'QAR',
+  });
 
-  const blockers = cockpitData?.criticalBlockers || [
+  const blockers = cockpitData?.criticalBlockers || (isSyntheticDemo ? [
     { title: 'Awaiting Civil Defence Fire Safety Clearance', impact: 'Cannot fly main truss without certificate', owner: 'Dr. Sarah Ibrahim' },
-  ];
+  ] : []);
 
-  const attentionQueue = cockpitData?.needsAttention || [
+  const attentionQueue = cockpitData?.needsAttention || (isSyntheticDemo ? [
     'Civil Defence inspection scheduled for tomorrow 09:00 AM',
     'Contractor insurance certificate renewal pending from SoundTech WLL',
     'Client design review meeting confirmed for Thursday 14:00',
-  ];
+  ] : []);
 
   return (
     <div data-testid="project-workspace">

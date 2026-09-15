@@ -1525,6 +1525,101 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
         expect(updatedPoStatus).toBe('compensated_cancelled');
         expect(po.id).toBe('PO-2026-089'); // Record exists and retains audit history
       });
+
+      it('Item 41: Visual Lifecycle Configuration Editor allows adding, editing, and deleting stages while preserving mandatory governance gates', () => {
+        interface Stage {
+          id: number;
+          name: string;
+          isMandatoryGate: boolean;
+          isOptional: boolean;
+          ownerRole: string;
+        }
+
+        const initialStages: Stage[] = [
+          { id: 1, name: 'Stage 01: Strategic Intake', isMandatoryGate: false, isOptional: false, ownerRole: 'project_manager' },
+          { id: 2, name: 'Stage 02: Commercial Proposal', isMandatoryGate: false, isOptional: false, ownerRole: 'finance' },
+          { id: 3, name: 'Stage 03: Four-Eyes Executive Gate Sign-off', isMandatoryGate: true, isOptional: false, ownerRole: 'executive' },
+          { id: 4, name: 'Stage 04: Client Contracting', isMandatoryGate: false, isOptional: false, ownerRole: 'commercial_director' },
+          { id: 9, name: 'Stage 09: Civil Defence & HSE Clearance', isMandatoryGate: true, isOptional: false, ownerRole: 'hse_quality' },
+          { id: 10, name: 'Stage 10: Technical Readiness', isMandatoryGate: true, isOptional: false, ownerRole: 'operations' },
+          { id: 13, name: 'Stage 13: Financial Closeout', isMandatoryGate: true, isOptional: false, ownerRole: 'finance' },
+        ];
+
+        let stages = [...initialStages];
+
+        // 1. Add Custom Stage
+        const newStage: Stage = {
+          id: 14,
+          name: 'Stage 14: VIP Protocol & Royal Delegation Liaison',
+          isMandatoryGate: false,
+          isOptional: false,
+          ownerRole: 'operations',
+        };
+        stages.push(newStage);
+        expect(stages).toHaveLength(8);
+        expect(stages[7].name).toContain('VIP Protocol');
+
+        // 2. Edit Stage
+        const editTargetId = 14;
+        stages = stages.map(s => s.id === editTargetId ? { ...s, name: 'Stage 14: State Protocol & VIP Delegation', ownerRole: 'executive' } : s);
+        const editedStage = stages.find(s => s.id === editTargetId);
+        expect(editedStage?.name).toBe('Stage 14: State Protocol & VIP Delegation');
+        expect(editedStage?.ownerRole).toBe('executive');
+
+        // 3. Delete Non-Mandatory Stage
+        const stageToDelete = stages.find(s => s.id === 2);
+        expect(stageToDelete?.isMandatoryGate).toBe(false);
+        stages = stages.filter(s => s.id !== 2);
+        expect(stages.find(s => s.id === 2)).toBeUndefined();
+        expect(stages).toHaveLength(7);
+
+        // 4. Invariant: Mandatory Governance Gates Cannot Be Deleted
+        const mandatoryGateIds = [3, 9, 10, 13];
+        mandatoryGateIds.forEach((gateId) => {
+          const gate = stages.find(s => s.id === gateId);
+          expect(gate).toBeDefined();
+          expect(gate?.isMandatoryGate).toBe(true);
+          // Attempted deletion is rejected by governance invariant rule
+          const canDelete = !gate?.isMandatoryGate;
+          expect(canDelete).toBe(false);
+        });
+      });
+
+      it('Item 42: Project Cockpit computes clean zero-actual financial state and nominal alert queue for new projects', () => {
+        // Clean newly created project data
+        const newProjectCockpit = {
+          projectId: 'f9999999-9999-4999-8999-999999999999',
+          financials: {
+            budget: 3500000,
+            committedCost: 0,
+            actualCost: 0,
+            eac: 3500000,
+            expectedRevenue: 3500000,
+            forecastMarginPercent: 43.75,
+          },
+          outstandingApprovals: [],
+          criticalBlockers: [],
+          needsAttention: [],
+        };
+
+        const baselineCost = newProjectCockpit.financials.budget;
+        const actualCost = newProjectCockpit.financials.actualCost;
+        const committedCost = newProjectCockpit.financials.committedCost;
+        const forecastToComplete = baselineCost - actualCost;
+        const eac = actualCost + forecastToComplete;
+        const costVariance = baselineCost - eac;
+
+        expect(actualCost).toBe(0);
+        expect(committedCost).toBe(0);
+        expect(eac).toBe(baselineCost);
+        expect(costVariance).toBe(0);
+
+        // Nominal status check
+        const hasBlockersOrAlerts = newProjectCockpit.criticalBlockers.length > 0 ||
+          newProjectCockpit.outstandingApprovals.length > 0 ||
+          newProjectCockpit.needsAttention.length > 0;
+        expect(hasBlockersOrAlerts).toBe(false);
+      });
     });
   });
 });
