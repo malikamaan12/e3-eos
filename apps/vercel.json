@@ -1,8 +1,13 @@
 {
-  "buildCommand": "node ../scripts/build-web-vercel.cjs",
+  "buildCommand": "node scripts/build-web-vercel.cjs",
   "outputDirectory": "dist",
   "framework": "vite",
+  "installCommand": "pnpm install",
   "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "https://e3-eos-api-staging-4m6nzwqkuq-ww.a.run.app/api/:match*"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
