@@ -131,8 +131,9 @@ export async function runSeed(): Promise<SeedDataManifest> {
   console.log(`[E3-EOS DB Seed] Synthetic manifest generated (${manifest.projectsCount} projects, ${manifest.stageInstancesCount} stages).`);
 
   const connectionString = process.env.DATABASE_URL;
+  const isLocal = !connectionString || connectionString.includes('localhost') || connectionString.includes('127.0.0.1') || process.env.DB_SSL === 'false';
   const pool = connectionString
-    ? new pg.Pool({ connectionString, ssl: { rejectUnauthorized: false } })
+    ? new pg.Pool({ connectionString, ssl: isLocal ? false : { rejectUnauthorized: false } })
     : new pg.Pool({
         host: process.env.DB_HOST || 'localhost',
         port: Number(process.env.DB_PORT) || 5432,

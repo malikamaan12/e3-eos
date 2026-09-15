@@ -9,8 +9,9 @@ const __dirname = dirname(__filename);
 export async function runMigrations() {
   console.log('=== Running PostgreSQL Migrations ===');
   const connectionString = process.env.DATABASE_URL;
+  const isLocal = !connectionString || connectionString.includes('localhost') || connectionString.includes('127.0.0.1') || process.env.DB_SSL === 'false';
   const pool = connectionString
-    ? new pg.Pool({ connectionString, ssl: { rejectUnauthorized: false } })
+    ? new pg.Pool({ connectionString, ssl: isLocal ? false : { rejectUnauthorized: false } })
     : new pg.Pool({
         host: process.env.DB_HOST || 'localhost',
         port: Number(process.env.DB_PORT) || 5432,

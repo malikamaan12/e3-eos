@@ -53,12 +53,13 @@ export function getDbPool(): pg.Pool {
   if (!poolInstance) {
     const connectionString = process.env.DATABASE_URL;
     if (connectionString) {
+      const isLocal = connectionString.includes('localhost') || connectionString.includes('127.0.0.1') || process.env.DB_SSL === 'false';
       poolInstance = new Pool({
         connectionString,
         max: Number(process.env.DB_POOL_MAX) || 20,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 10000,
-        ssl: { rejectUnauthorized: false },
+        ssl: isLocal ? false : { rejectUnauthorized: false },
       });
     } else {
       poolInstance = new Pool({
