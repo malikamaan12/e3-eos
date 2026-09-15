@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-14T18:01:47.367Z",
+  "verifiedAt": "2026-09-15T15:28:53.734Z",
   "totalScenarios": 92,
   "verifiedCount": 92,
   "coveragePercentage": "100.0%",
@@ -13,6 +13,8 @@
         "apps/api/src/api.test.ts",
         "apps/api/src/portal/portal.controller.ts",
         "apps/api/src/projects/projects.controller.ts",
+        "apps/web/src/views/AdminStudioView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/portal.ts",
         "scripts/verify-acceptance-matrix.ts",
         "scripts/verify-production-readiness.ts"
@@ -39,6 +41,8 @@
       "title": "Approver role revoked after policy publication",
       "expectedResult": "Next decision/release denied despite old snapshot or active browser session.",
       "verifiedFiles": [
+        "apps/web/src/views/AdminRolesView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/policy/src/evaluator.ts",
         "packages/policy/src/policy.test.ts"
       ],
@@ -50,6 +54,8 @@
       "title": "One identity assigned two approval roles",
       "expectedResult": "Cannot satisfy a required independent two-person decision.",
       "verifiedFiles": [
+        "apps/web/src/views/AdminRolesView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/policy/src/evaluator.ts",
         "packages/policy/src/policy.test.ts"
       ],
@@ -61,6 +67,8 @@
       "title": "Requester weakens own pending approval route",
       "expectedResult": "Protected change flow detects effect; no silent self-authorisation under weaker policy.",
       "verifiedFiles": [
+        "apps/web/src/views/AdminRolesView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/policy/src/compiler.ts",
         "packages/policy/src/policy.test.ts"
       ],
@@ -83,6 +91,8 @@
       "expectedResult": "Transaction-local scope cannot leak into next request; app DB role cannot bypass RLS.",
       "verifiedFiles": [
         "tests/infrastructure.test.ts",
+        "apps/web/src/views/AdminStudioView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/db/src/rls.ts"
       ],
       "status": "VERIFIED"
@@ -128,7 +138,8 @@
       "title": "Node/Nest/Better Auth/Drizzle integration spike",
       "expectedResult": "Exact stable version lock successfully runs auth, MFA, migration, RLS, transaction and queue tests.",
       "verifiedFiles": [
-        "apps/web/src/views/AdminStudioView.tsx"
+        "apps/web/src/views/AdminStudioView.tsx",
+        "apps/web/src/web.test.ts"
       ],
       "status": "VERIFIED"
     },
@@ -139,7 +150,8 @@
       "expectedResult": "Application edits denied; controlled privileged change detectable against external manifest; no untamperability claim.",
       "verifiedFiles": [
         "tests/infrastructure.test.ts",
-        "apps/api/src/governance/governance.controller.ts"
+        "apps/api/src/governance/governance.controller.ts",
+        "apps/web/src/web.test.ts"
       ],
       "status": "VERIFIED"
     },
@@ -149,6 +161,8 @@
       "title": "Five-stage and thirteen-stage projects compared",
       "expectedResult": "Shared procurement metrics use canonical events and definition versions, not stage names.",
       "verifiedFiles": [
+        "apps/web/src/views/CrossModuleTraceabilityModal.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/stage-graph.test.ts",
         "packages/domain/src/templates.ts"
       ],
@@ -234,7 +248,9 @@
       "title": "Policy compilation fails",
       "expectedResult": "Prior valid snapshot remains active; no partial activation.",
       "verifiedFiles": [
-        "apps/api/src/phase01.test.ts"
+        "apps/api/src/phase01.test.ts",
+        "apps/web/src/views/PolicySimulatorView.tsx",
+        "apps/web/src/web.test.ts"
       ],
       "status": "VERIFIED"
     },
@@ -274,7 +290,9 @@
       "title": "Single-use exception reused/replayed",
       "expectedResult": "Only authorised target executes once; second different use rejected.",
       "verifiedFiles": [
-        "apps/api/src/phase01.test.ts"
+        "apps/api/src/phase01.test.ts",
+        "apps/web/src/views/PolicySimulatorView.tsx",
+        "apps/web/src/web.test.ts"
       ],
       "status": "VERIFIED"
     },
@@ -284,7 +302,9 @@
       "title": "Exception expires before review deadline",
       "expectedResult": "No new authorisation possible; review status remains independent.",
       "verifiedFiles": [
-        "apps/api/src/phase01.test.ts"
+        "apps/api/src/phase01.test.ts",
+        "apps/web/src/views/PolicySimulatorView.tsx",
+        "apps/web/src/web.test.ts"
       ],
       "status": "VERIFIED"
     },
@@ -349,6 +369,7 @@
       "expectedResult": "UTC/source IANA zone preserved; local view and elapsed/business duration calculation correct.",
       "verifiedFiles": [
         "apps/api/src/phase01.test.ts",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/stage-graph.test.ts"
       ],
       "status": "VERIFIED"
@@ -372,6 +393,7 @@
       "expectedResult": "Actual dates shown; cannot be presented as existing before release.",
       "verifiedFiles": [
         "apps/api/src/phase02.test.ts",
+        "apps/web/src/views/PostEventReportBuilderView.tsx",
         "packages/domain/src/boq.test.ts",
         "packages/domain/src/designs.ts"
       ],
@@ -461,6 +483,8 @@
       "verifiedFiles": [
         "apps/api/src/commercial/commercial.controller.ts",
         "apps/api/src/phase02.test.ts",
+        "apps/web/src/views/ClientPortalView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/boq.test.ts",
         "packages/domain/src/variations.ts"
       ],
@@ -542,6 +566,8 @@
       "verifiedFiles": [
         "apps/api/src/phase03.test.ts",
         "apps/api/src/procurement/procurement.controller.ts",
+        "apps/web/src/views/VendorDirectoryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/procurement.test.ts",
         "packages/domain/src/procurement.ts"
       ],
@@ -555,6 +581,8 @@
       "verifiedFiles": [
         "apps/api/src/phase03.test.ts",
         "apps/api/src/procurement/procurement.controller.ts",
+        "apps/web/src/views/ProcurementDeliveryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/procurement.test.ts",
         "packages/domain/src/procurement.ts"
       ],
@@ -567,6 +595,8 @@
       "expectedResult": "Affected work orders/POs flagged; already built item retains actual source version.",
       "verifiedFiles": [
         "apps/api/src/phase03.test.ts",
+        "apps/web/src/views/ProcurementDeliveryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/inventory.ts",
         "packages/domain/src/procurement.test.ts"
       ],
@@ -582,6 +612,7 @@
         "apps/api/src/inventory/inventory.controller.ts",
         "apps/api/src/phase03.test.ts",
         "apps/web/src/views/ProjectWorkspaceView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/inventory.ts",
         "packages/domain/src/procurement.test.ts"
       ],
@@ -595,6 +626,7 @@
       "verifiedFiles": [
         "apps/api/src/inventory/inventory.controller.ts",
         "apps/api/src/phase03.test.ts",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/inventory.ts",
         "packages/domain/src/procurement.test.ts"
       ],
@@ -608,6 +640,8 @@
       "verifiedFiles": [
         "apps/api/src/inventory/inventory.controller.ts",
         "apps/api/src/phase03.test.ts",
+        "apps/web/src/views/AssetsDeliveryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/inventory.ts",
         "packages/domain/src/procurement.test.ts"
       ],
@@ -621,6 +655,7 @@
       "verifiedFiles": [
         "apps/api/src/inventory/inventory.controller.ts",
         "apps/api/src/phase03.test.ts",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/inventory.ts",
         "packages/domain/src/procurement.test.ts"
       ],
@@ -634,6 +669,9 @@
       "verifiedFiles": [
         "apps/api/src/phase03.test.ts",
         "apps/api/src/procurement/procurement.controller.ts",
+        "apps/web/src/views/ProductionDeliveryView.tsx",
+        "apps/web/src/views/SupplierInvoicesView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/procurement.test.ts",
         "packages/domain/src/procurement.ts"
       ],
@@ -647,6 +685,8 @@
       "verifiedFiles": [
         "apps/api/src/inventory/inventory.controller.ts",
         "apps/api/src/phase03.test.ts",
+        "apps/web/src/views/AssetsDeliveryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/inventory.ts",
         "packages/domain/src/procurement.test.ts"
       ],
@@ -662,6 +702,8 @@
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
         "apps/web/src/views/LiveRosterAttendanceView.tsx",
+        "apps/web/src/views/SiteOpsDeliveryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
       ],
@@ -678,6 +720,8 @@
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
         "apps/web/src/views/FieldOpsView.tsx",
+        "apps/web/src/views/SiteOpsDeliveryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
       ],
@@ -693,6 +737,9 @@
         "apps/api/src/field-sync/field-sync.controller.ts",
         "apps/api/src/phase04.test.ts",
         "apps/web/src/views/FieldOpsView.tsx",
+        "apps/web/src/views/LogisticsDeliveryView.tsx",
+        "apps/web/src/views/SiteOpsDeliveryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
       ],
@@ -709,6 +756,8 @@
         "apps/api/src/phase04.test.ts",
         "apps/web/src/views/FieldOpsView.tsx",
         "apps/web/src/views/ProductionDeliveryView.tsx",
+        "apps/web/src/views/SiteOpsDeliveryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/field-sync.ts"
       ],
       "status": "VERIFIED"
@@ -725,6 +774,8 @@
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
         "apps/web/src/views/LiveRosterAttendanceView.tsx",
+        "apps/web/src/views/SiteOpsDeliveryView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/operations.test.ts",
         "packages/domain/src/operations.ts"
       ],
@@ -740,6 +791,7 @@
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
         "apps/web/src/views/ComplianceRegisterView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/compliance-engine.ts",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
@@ -756,6 +808,7 @@
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
         "apps/web/src/views/ComplianceRegisterView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/compliance-engine.ts",
         "packages/domain/src/field-sync.ts",
         "packages/domain/src/operations.test.ts"
@@ -789,7 +842,9 @@
         "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/operations/operations.controller.ts",
         "apps/api/src/phase04.test.ts",
+        "apps/web/src/views/CrewDeliveryView.tsx",
         "apps/web/src/views/LiveCommandCentreView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/command-center-engine.ts",
         "packages/domain/src/operations.test.ts",
         "packages/domain/src/operations.ts"
@@ -822,6 +877,7 @@
         "tests/sprint-04-live-command-acceptance.test.ts",
         "apps/api/src/phase04.test.ts",
         "apps/web/src/views/BumpOutCloseoutView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/closeout.ts",
         "packages/domain/src/operations.test.ts",
         "packages/domain/src/operations.ts"
@@ -838,7 +894,9 @@
         "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
         "apps/api/src/phase05.test.ts",
+        "apps/web/src/views/FinancialControlCenterView.tsx",
         "apps/web/src/views/ProjectWorkspaceView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
         "packages/domain/src/finance.test.ts"
       ],
@@ -853,6 +911,8 @@
         "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
         "apps/api/src/phase05.test.ts",
+        "apps/web/src/views/FinancialControlCenterView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
         "packages/domain/src/finance.ts"
       ],
@@ -866,7 +926,9 @@
       "verifiedFiles": [
         "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
-        "apps/api/src/phase05.test.ts"
+        "apps/api/src/phase05.test.ts",
+        "apps/web/src/views/FinancialControlCenterView.tsx",
+        "apps/web/src/web.test.ts"
       ],
       "status": "VERIFIED"
     },
@@ -895,6 +957,8 @@
         "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/finance/finance.controller.ts",
         "apps/api/src/phase05.test.ts",
+        "apps/web/src/views/FinancialControlCenterView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
         "packages/domain/src/finance.ts"
       ],
@@ -923,6 +987,8 @@
         "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/integrations/integrations.controller.ts",
         "apps/api/src/phase05.test.ts",
+        "apps/web/src/views/IntegrationsControlCenterView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
         "packages/domain/src/integrations.ts"
       ],
@@ -964,6 +1030,8 @@
         "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/integrations/integrations.controller.ts",
         "apps/api/src/phase05.test.ts",
+        "apps/web/src/views/IntegrationsControlCenterView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/integrations.ts"
       ],
       "status": "VERIFIED"
@@ -990,6 +1058,8 @@
         "tests/sprint-05-financial-commercial-acceptance.test.ts",
         "apps/api/src/phase05.test.ts",
         "apps/api/src/reporting/reporting.controller.ts",
+        "apps/web/src/views/ClientPortalView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/finance-reporting.test.ts",
         "packages/domain/src/reporting.ts"
       ],
@@ -1004,6 +1074,8 @@
         "tests/lifecycle-e2e.test.ts",
         "apps/api/src/phase05.test.ts",
         "apps/api/src/reporting/reporting.controller.ts",
+        "apps/web/src/views/ClientBillingView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/closeout.ts",
         "packages/domain/src/finance-reporting.test.ts"
       ],
@@ -1030,7 +1102,10 @@
         "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/phase06.test.ts",
         "apps/api/src/portfolio/portfolio.controller.ts",
+        "apps/web/src/views/EnterprisePortfolioIntelligenceView.tsx",
+        "apps/web/src/views/HistoricalEstimatorView.tsx",
         "apps/web/src/views/LeadershipView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/historical-estimator.ts",
         "packages/domain/src/portfolio-ai.test.ts",
         "packages/domain/src/portfolio.ts"
@@ -1046,6 +1121,8 @@
         "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/phase06.test.ts",
         "apps/api/src/portfolio/portfolio.controller.ts",
+        "apps/web/src/views/EnterprisePortfolioIntelligenceView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/portfolio-ai.test.ts",
         "packages/domain/src/portfolio.ts"
       ],
@@ -1060,6 +1137,8 @@
         "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/phase06.test.ts",
         "apps/api/src/portfolio/portfolio.controller.ts",
+        "apps/web/src/views/EnterprisePortfolioIntelligenceView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/portfolio-ai.test.ts",
         "packages/domain/src/portfolio.ts"
       ],
@@ -1076,6 +1155,7 @@
         "apps/api/src/phase06.test.ts",
         "apps/web/src/views/AiCopilotView.tsx",
         "apps/web/src/views/LeadershipView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/ai-assistant.ts",
         "packages/domain/src/ai-copilot.ts",
         "packages/domain/src/portfolio-ai.test.ts"
@@ -1091,7 +1171,9 @@
         "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/ai/ai.controller.ts",
         "apps/api/src/phase06.test.ts",
+        "apps/web/src/views/AiCopilotView.tsx",
         "apps/web/src/views/LeadershipView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/ai-assistant.ts",
         "packages/domain/src/ai-copilot.ts",
         "packages/domain/src/portfolio-ai.test.ts"
@@ -1108,6 +1190,7 @@
         "apps/api/src/phase06.test.ts",
         "apps/web/src/views/AiCopilotView.tsx",
         "apps/web/src/views/LeadershipView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/ai-assistant.ts",
         "packages/domain/src/ai-copilot.ts",
         "packages/domain/src/portfolio-ai.test.ts"
@@ -1123,6 +1206,8 @@
         "tests/sprint-06-enterprise-intelligence.test.ts",
         "apps/api/src/phase06.test.ts",
         "apps/api/src/portfolio/portfolio.controller.ts",
+        "apps/web/src/views/CountryPacksView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/country-cell.ts",
         "packages/domain/src/portfolio-ai.test.ts"
       ],
@@ -1139,6 +1224,7 @@
         "apps/api/src/rollout/rollout.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
         "apps/web/src/views/ProductionRolloutView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/go-live-engine.ts",
         "packages/domain/src/rollout.test.ts",
         "packages/domain/src/rollout.ts",
@@ -1156,6 +1242,8 @@
         "apps/api/src/phase07.test.ts",
         "apps/api/src/rollout/rollout.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
+        "apps/web/src/views/ProductionRolloutView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/rollout.test.ts",
         "packages/domain/src/rollout.ts",
         "scripts/execute-business-regression.ts"
@@ -1189,6 +1277,7 @@
         "tests/sprint-07-production-rollout.test.ts",
         "apps/api/src/phase07.test.ts",
         "apps/web/src/views/ProductionRolloutView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/go-live-engine.ts"
       ],
       "status": "VERIFIED"
@@ -1204,6 +1293,7 @@
         "apps/api/src/rollout/rollout.controller.ts",
         "apps/web/src/views/AdminStudioView.tsx",
         "apps/web/src/views/ProductionRolloutView.tsx",
+        "apps/web/src/web.test.ts",
         "packages/domain/src/go-live-engine.ts"
       ],
       "status": "VERIFIED"

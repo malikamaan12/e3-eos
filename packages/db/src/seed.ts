@@ -141,11 +141,20 @@ export async function runSeed(): Promise<SeedDataManifest> {
         database: process.env.DB_NAME || 'postgres',
       });
 
+  let client: pg.PoolClient | null = null;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
     console.log('[*] Connected to PostgreSQL. Seeding persistent tables...');
 
-    // 0. Ensure Sprint 01 hardening tables exist
+    // 0. Ensure Sprint 01 & 03 hardening columns exist
+    await client.query(`
+      ALTER TABLE IF EXISTS vendors ADD COLUMN IF NOT EXISTS legal_name TEXT;
+      ALTER TABLE IF EXISTS vendors ADD COLUMN IF NOT EXISTS trading_name TEXT;
+      ALTER TABLE IF EXISTS vendors ADD COLUMN IF NOT EXISTS country TEXT;
+      ALTER TABLE IF EXISTS vendors ADD COLUMN IF NOT EXISTS rating NUMERIC;
+      ALTER TABLE IF EXISTS vendors ADD COLUMN IF NOT EXISTS qualification_status TEXT;
+      ALTER TABLE IF EXISTS vendors ADD COLUMN IF NOT EXISTS compliance_verified BOOLEAN DEFAULT FALSE;
+    `);
     await client.query(`
       CREATE TABLE IF NOT EXISTS user_invitations (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -751,11 +760,13 @@ export async function runSeed(): Promise<SeedDataManifest> {
     ]);
 
     console.log('[*] ✓ Successfully populated persistent PostgreSQL tables with 16 roles, Qatar Tourism project, FEE Acceptance Project, stages, documents, physical delivery lifecycle, and unverified constraints.');
-    client.release();
   } catch (err: any) {
     console.warn('[*] Database persistent seed notice:', err.message);
   } finally {
-    await pool.end();
+    if (client) {
+      try { client.release(); } catch {}
+    }
+    try { await pool.end(); } catch {}
   }
 
   return manifest;

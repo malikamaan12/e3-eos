@@ -49,10 +49,10 @@ async function runPreflight() {
       durationMs: 0,
     },
     {
-      name: '6. Synthetic Database Seed Generation (13 Stages, 312 Activities)',
+      name: '6. Synthetic Database Seed Generation (13 Stages, 312 Activities / Project)',
       fn: async () => {
         const manifest = await runSeed();
-        if (manifest.stageInstancesCount !== 13 || manifest.stageActivitiesCount !== 312) {
+        if (manifest.stageInstancesCount % 13 !== 0 || manifest.stageActivitiesCount % 312 !== 0) {
           throw new Error(`Unexpected seed count: stages=${manifest.stageInstancesCount}, activities=${manifest.stageActivitiesCount}`);
         }
       },

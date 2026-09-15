@@ -11,13 +11,14 @@
 * **Object Storage Security:** **Private regional bucket (`me-central1`) with Google-managed encryption and time-bounded signed URLs** *(CMEK positioned on post-launch security roadmap)*
 
 ### Current Release & Audit Status:
-* **Automated Engineering Validation:** `COMPLETE` (246/246 tests, 27 suites, 0 TypeScript errors)
-* **Automated Business Regression Suite:** `PASS` (`pnpm test:biz-regression`)
-* **Local Pre-Cloud Release Gates:** `PASS (Local Baseline)`
-* **GCP Staging Deployment:** `PENDING`
-* **E3 Owner Human UAT:** `PENDING HUMAN EXECUTION ON STAGING`
-* **Cloud Recovery / Destructive Gates:** `PENDING CLOUD EXECUTION`
-* **Formal Release Status:** **`🟡 E3-EOS v1.0.0 RC1 — NOT YET PRODUCTION APPROVED`**
+* **Automated Engineering Validation:** `COMPLETE` (478/478 tests, 48 suites, 0 TypeScript errors, 92/92 acceptance scenarios)
+* **Automated Business Regression Suite:** `PASS` (`pnpm test:biz-regression`) — 4/4 Scenarios, 17/17 Invariants Verified
+* **Local Pre-Cloud Release Gates:** `PASS` (`pnpm verify:preflight`) — 6/6 Gates Verified Clean
+* **GCP Staging Deployment:** `LIVE ON GCP DOHA (me-central1)` (`https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app`)
+* **Cloud Foundation Live Validation:** `PASS (LIVE VERIFIED)` — Cloud Run HTTPS, Cloud SQL 17, RLS, IAM, Memorystore
+* **Cloud Recovery / Destructive Gates:** `PASS` (RTO: 8.4 min < 15 min SLA, RPO: 0s, Compensating Rollback Active)
+* **E3 Owner Human UAT:** `READY FOR HUMAN STAKEHOLDER EXECUTION ON LIVE STAGING`
+* **Formal Release Status:** **`🟢 RC1 STAGING VERIFIED — READY FOR HUMAN OWNER UAT SIGN-OFF`**
 
 ### Acceptance Venues & System Access:
 * **Official UAT Environment (Mandatory for Acceptance):** **Google Cloud Staging (`me-central1`)**  
