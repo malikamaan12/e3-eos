@@ -366,6 +366,48 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect(fieldHtml).toContain('Field Ops PWA');
       expect(fieldHtml).toContain('Live Field Readiness Checklist');
       expect(fieldHtml).toContain('Overhead Truss Rigging Torque Check');
+      expect(fieldHtml).toContain('Offline Queue');
+      expect(fieldHtml).toContain('QR Scanner');
+    });
+
+    it('should verify Field Ops offline mutation queue persistence and sync replay', async () => {
+      const { useEosContext, EosProvider } = await import('./index.js');
+      const React = await import('react');
+
+      let contextRef: any = null;
+      const TestComponent = () => {
+        contextRef = useEosContext();
+        return React.createElement('div', null, 'Queue Test Component');
+      };
+
+      const { renderToStaticMarkup } = await import('react-dom/server');
+      renderToStaticMarkup(
+        React.createElement(EosProvider, null, React.createElement(TestComponent))
+      );
+
+      expect(contextRef).toBeDefined();
+      expect(typeof contextRef.queueMutation).toBe('function');
+      expect(typeof contextRef.syncPendingMutations).toBe('function');
+      expect(Array.isArray(contextRef.pendingMutations)).toBe(true);
+
+      // Enqueue a mutation
+      contextRef.queueMutation('confirm_dispatch_pick', 'AssetInventory', {
+        assetTag: 'AST-SCN-001',
+        zone: 'DECC Hall 1',
+      });
+      expect(contextRef.pendingMutations.length).toBeGreaterThanOrEqual(1);
+      const queued = contextRef.pendingMutations[contextRef.pendingMutations.length - 1];
+      expect(queued.action).toBe('confirm_dispatch_pick');
+      expect(queued.entity).toBe('AssetInventory');
+      expect(queued.status).toBe('pending');
+      expect(queued.dedupTag).toContain('assetinventory');
+
+      // Replay sync engine
+      const syncResult = await contextRef.syncPendingMutations();
+      expect(syncResult.success).toBeGreaterThanOrEqual(1);
+      const synced = contextRef.pendingMutations.find((m: any) => m.id === queued.id);
+      expect(synced.status).toBe('synced');
+      expect(synced.syncedAt).toBeDefined();
     });
 
     it('should render AdminStudioView with cryptographic audit log', async () => {

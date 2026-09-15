@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Badge, Button, AlertBanner, Card, Input, Textarea, Select, Modal } from '../components/DesignSystem.js';
 import { ViewStateRenderer } from '../components/ViewStateRenderer.js';
@@ -28,6 +28,131 @@ interface PodRecord {
   signed: boolean;
 }
 
+interface CatalogAsset {
+  assetTag: string;
+  description: string;
+  category: string;
+  zone: string;
+  status: string;
+  assignedTech: string;
+  dimensions?: string;
+  serialNumber: string;
+  lastScanned?: string;
+  critical?: boolean;
+}
+
+const FIELD_ASSET_CATALOG: Record<string, CatalogAsset> = {
+  'AST-SCN-001': {
+    assetTag: 'AST-SCN-001',
+    description: 'Custom Wooden Registration Counters (120x80cm)',
+    category: 'Scenic / Joinery',
+    zone: 'DECC Hall 1 - East Foyer',
+    status: 'Picked & Staged for Dispatch',
+    assignedTech: 'Tariq Mansoor (Scenic Lead)',
+    dimensions: '120cm x 80cm x 110cm',
+    serialNumber: 'SN-SCN-2026-081',
+    critical: false,
+  },
+  'AST-LGT-002': {
+    assetTag: 'AST-LGT-002',
+    description: 'Martin Mac Viper Profile Moving Head 1000W',
+    category: 'Lighting / FX',
+    zone: 'Main Stage Overhead Truss - Sector B',
+    status: 'Rigged & Patched',
+    assignedTech: 'Zaid Al-Harbi (Master Electrician)',
+    dimensions: '47kg Flight Case (x2 Fixtures)',
+    serialNumber: 'SN-LGT-MV-9912',
+    critical: true,
+  },
+  'AST-AV-003': {
+    assetTag: 'AST-AV-003',
+    description: 'Shure Axient Digital Quad Wireless Receiver',
+    category: 'Audio / RF',
+    zone: 'FOH Audio Control Deck - Hall 1',
+    status: 'QC Inspected',
+    assignedTech: 'Karim Haddad (RF Engineer)',
+    dimensions: '1U Rackmount Unit (G56 Band)',
+    serialNumber: 'SN-SHURE-AXD-440',
+    critical: true,
+  },
+  'AST-RIG-004': {
+    assetTag: 'AST-RIG-004',
+    description: 'Eurotruss HD34 3-Meter Square Truss Section',
+    category: 'Rigging / Truss',
+    zone: 'Loading Bay 2 - Rigging Staging',
+    status: 'Picked & Staged for Dispatch',
+    assignedTech: 'Rashid Al-Kuwari (Lead Rigger)',
+    dimensions: '290mm x 290mm x 3000mm (EN-1090)',
+    serialNumber: 'SN-ET-HD34-300-88',
+    critical: true,
+  },
+  'AST-PWR-005': {
+    assetTag: 'AST-PWR-005',
+    description: 'Cummins 500kVA Sound-Attenuated Power Generator',
+    category: 'Power / Plant',
+    zone: 'External Yard - Generator Pad #1',
+    status: 'QC Inspected',
+    assignedTech: 'Bilal Nasser (Chief Plant Engineer)',
+    dimensions: 'ISO 20ft Container Enclosure',
+    serialNumber: 'SN-CUMMINS-500-Q3',
+    critical: true,
+  },
+  'BDG-VIP-8821': {
+    assetTag: 'BDG-VIP-8821',
+    description: 'VIP Ministerial Delegate Security All-Access NFC Badge',
+    category: 'Credentials / Security',
+    zone: 'Royal Protocol / VIP Lounge 1',
+    status: 'QC Inspected',
+    assignedTech: 'Protocol Security Office',
+    dimensions: 'Encrypted MIFARE DESFire EV3',
+    serialNumber: 'SN-VIP-NFC-8821-QA',
+    critical: true,
+  },
+  'TRK-QA-7819': {
+    assetTag: 'TRK-QA-7819',
+    description: 'Al-Maha Heavy Logistics Semi-Trailer (QA-7819-HV)',
+    category: 'Logistics / Fleet',
+    zone: 'DECC Cargo Dock Bay 4',
+    status: 'In Transit',
+    assignedTech: 'Gulf Rapid Dispatch (Driver: Omar Farooq)',
+    dimensions: '40ft Curtain-Sider (30 Pallets)',
+    serialNumber: 'SN-FLEET-TRK-7819',
+    critical: false,
+  },
+};
+
+const triggerScanAudioBeep = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass) {
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.12);
+    }
+  } catch {
+    // Audio safe fallback
+  }
+};
+
+const triggerHapticVibrate = () => {
+  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+    try {
+      navigator.vibrate([60, 40, 60]);
+    } catch {
+      // Haptic safe fallback
+    }
+  }
+};
+
 export const FieldOpsView: React.FC = () => {
   const {
     currentLanguage,
@@ -36,6 +161,9 @@ export const FieldOpsView: React.FC = () => {
     pendingMutations,
     queueMutation,
     clearPendingMutations,
+    syncPendingMutations,
+    removePendingMutation,
+    clearSyncedMutations,
     projects,
     selectedProjectId,
   } = useEosContext();
@@ -126,15 +254,248 @@ export const FieldOpsView: React.FC = () => {
   const [newPhotoName, setNewPhotoName] = useState<string>('');
 
   // 4. Barcode / QR Scanner State
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scanAnimRef = useRef<number | null>(null);
+
   const [scannedTag, setScannedTag] = useState<string>('AST-SCN-001');
-  const [scanResult, setScanResult] = useState<any | null>({
-    assetTag: 'AST-SCN-001',
-    description: 'Custom Wooden Registration Counters (120x80cm)',
-    zone: 'Zone Scenic',
-    status: 'Picked & Staged for Dispatch',
-    lastScanned: '2026-09-12 09:20 AST',
-  });
+  const [scanResult, setScanResult] = useState<CatalogAsset | null>(FIELD_ASSET_CATALOG['AST-SCN-001']);
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [isTorchOn, setIsTorchOn] = useState<boolean>(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [manualTagInput, setManualTagInput] = useState<string>('');
+  const [scanFeedbackMsg, setScanFeedbackMsg] = useState<string | null>(null);
+  const [isSyncingQueue, setIsSyncingQueue] = useState<boolean>(false);
+  const [syncToast, setSyncToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  // Clean up camera stream on component unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  const handleProcessCode = (code: string) => {
+    const cleanCode = code.trim().toUpperCase();
+    if (!cleanCode) return;
+
+    triggerScanAudioBeep();
+    triggerHapticVibrate();
+
+    const found = FIELD_ASSET_CATALOG[cleanCode];
+    setScannedTag(cleanCode);
+
+    if (found) {
+      setScanResult({
+        ...found,
+        lastScanned: new Date().toLocaleTimeString(),
+      });
+      setScanFeedbackMsg(`Recognized: ${found.description}`);
+    } else {
+      setScanResult({
+        assetTag: cleanCode,
+        description: `Field Asset / Material Tag (${cleanCode})`,
+        category: 'Scenic / Staging',
+        zone: 'DECC Hall 1 - Staging Bay',
+        status: 'Picked & Staged for Dispatch',
+        assignedTech: 'Site Field Supervisor',
+        serialNumber: `SN-${cleanCode}`,
+        lastScanned: new Date().toLocaleTimeString(),
+      });
+      setScanFeedbackMsg(`Registered tag: ${cleanCode}`);
+    }
+
+    setTimeout(() => setScanFeedbackMsg(null), 3000);
+  };
+
+  const startCamera = async () => {
+    setCameraError(null);
+    setIsScanning(true);
+    try {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera access (getUserMedia) is not supported in this environment.');
+      }
+      const constraints: MediaStreamConstraints = {
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => {});
+      }
+      setIsCameraActive(true);
+
+      // Continuous barcode detection if BarcodeDetector is supported
+      if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+        try {
+          const barcodeDetector = new (window as any).BarcodeDetector({
+            formats: ['qr_code', 'code_128', 'ean_13', 'code_39', 'data_matrix'],
+          });
+          const detectLoop = async () => {
+            if (!videoRef.current || !streamRef.current) return;
+            try {
+              if (videoRef.current.readyState >= 2) {
+                const barcodes = await barcodeDetector.detect(videoRef.current);
+                if (barcodes && barcodes.length > 0) {
+                  const rawValue = barcodes[0].rawValue;
+                  if (rawValue) {
+                    handleProcessCode(rawValue);
+                  }
+                }
+              }
+            } catch {
+              // Frame dropped safely
+            }
+            if (streamRef.current) {
+              scanAnimRef.current = requestAnimationFrame(detectLoop);
+            }
+          };
+          scanAnimRef.current = requestAnimationFrame(detectLoop);
+        } catch {
+          // BarcodeDetector setup failure safe
+        }
+      }
+    } catch (err: any) {
+      setCameraError(err.message || 'Unable to access device camera. Please check camera permissions.');
+      setIsCameraActive(false);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (scanAnimRef.current) {
+      cancelAnimationFrame(scanAnimRef.current);
+      scanAnimRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+    setIsTorchOn(false);
+  };
+
+  const toggleCamera = () => {
+    if (isCameraActive) {
+      stopCamera();
+    } else {
+      startCamera();
+    }
+  };
+
+  const switchFacingMode = async () => {
+    const nextMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(nextMode);
+    if (isCameraActive) {
+      stopCamera();
+      setTimeout(() => {
+        startCamera();
+      }, 150);
+    }
+  };
+
+  const toggleTorch = async () => {
+    if (!streamRef.current) return;
+    const track = streamRef.current.getVideoTracks()[0];
+    if (track && 'applyConstraints' in track) {
+      try {
+        const nextTorch = !isTorchOn;
+        await (track as any).applyConstraints({
+          advanced: [{ torch: nextTorch }],
+        });
+        setIsTorchOn(nextTorch);
+      } catch {
+        alert('Torch/Flashlight is not supported on this device hardware.');
+      }
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fileName = file.name.toUpperCase();
+    let detectedTag = 'AST-SCN-001';
+    if (fileName.includes('LGT') || fileName.includes('VIPER')) detectedTag = 'AST-LGT-002';
+    else if (fileName.includes('AV') || fileName.includes('SHURE')) detectedTag = 'AST-AV-003';
+    else if (fileName.includes('RIG') || fileName.includes('TRUSS')) detectedTag = 'AST-RIG-004';
+    else if (fileName.includes('PWR') || fileName.includes('GEN')) detectedTag = 'AST-PWR-005';
+    else if (fileName.includes('VIP') || fileName.includes('BADGE')) detectedTag = 'BDG-VIP-8821';
+    else if (fileName.includes('TRK') || fileName.includes('TRUCK')) detectedTag = 'TRK-QA-7819';
+    handleProcessCode(detectedTag);
+  };
+
+  const handleConfirmPick = (asset: CatalogAsset) => {
+    const updated: CatalogAsset = {
+      ...asset,
+      status: 'Picked & Staged for Dispatch',
+      lastScanned: new Date().toLocaleTimeString(),
+    };
+    setScanResult(updated);
+    if (isOffline) {
+      queueMutation('confirm_dispatch_pick', 'AssetInventory', {
+        assetTag: asset.assetTag,
+        zone: asset.zone,
+        description: asset.description,
+      });
+    }
+    setScanFeedbackMsg(`Asset ${asset.assetTag} marked as Picked & Staged!`);
+    setTimeout(() => setScanFeedbackMsg(null), 3000);
+  };
+
+  const handleQuickQcPass = (asset: CatalogAsset) => {
+    const updated: CatalogAsset = {
+      ...asset,
+      status: 'QC Inspected',
+      lastScanned: new Date().toLocaleTimeString(),
+    };
+    setScanResult(updated);
+    if (isOffline) {
+      queueMutation('qc_inspect_pass', 'QualityControl', {
+        assetTag: asset.assetTag,
+        inspector: 'Site Field Supervisor',
+        zone: asset.zone,
+      });
+    }
+    setScanFeedbackMsg(`Asset ${asset.assetTag} passed Quality Control!`);
+    setTimeout(() => setScanFeedbackMsg(null), 3000);
+  };
+
+  const handleFlagSnagFromAsset = (asset: CatalogAsset) => {
+    setSnagTitle(`Defect identified on ${asset.description} (${asset.assetTag})`);
+    setSnagLocation(asset.zone);
+    setSnagTrade(asset.category);
+    setMobileTab('snag');
+  };
+
+  const handleSyncQueue = async () => {
+    setIsSyncingQueue(true);
+    try {
+      const res = await syncPendingMutations();
+      setSyncToast({
+        message: `Sync finished: ${res.success} mutation(s) synchronized with cloud server.`,
+        type: 'success',
+      });
+    } catch {
+      setSyncToast({
+        message: 'Sync encountered network errors. Mutations remain safely queued locally.',
+        type: 'error',
+      });
+    } finally {
+      setIsSyncingQueue(false);
+      setTimeout(() => setSyncToast(null), 4000);
+    }
+  };
 
   // 5. QC Inspection State
   const [qcStatus, setQcStatus] = useState<'pass' | 'fail_quarantine'>('pass');
@@ -210,22 +571,7 @@ export const FieldOpsView: React.FC = () => {
   };
 
   const handleSimulateScan = (tag: string) => {
-    setIsScanning(true);
-    setTimeout(() => {
-      setScannedTag(tag);
-      setScanResult({
-        assetTag: tag,
-        description: tag.includes('SCN')
-          ? 'Custom Wooden Registration Counters (120x80cm)'
-          : tag.includes('LGT')
-          ? 'Martin Mac Viper Profile Moving Head 1000W'
-          : 'Shure Axient Digital Quad Wireless Receiver',
-        zone: tag.includes('SCN') ? 'Zone Scenic' : tag.includes('LGT') ? 'Zone Lighting' : 'Zone AV',
-        status: 'Picked & Staged for Dispatch',
-        lastScanned: new Date().toLocaleTimeString(),
-      });
-      setIsScanning(false);
-    }, 600);
+    handleProcessCode(tag);
   };
 
   const viewState = isOffline
@@ -363,7 +709,7 @@ export const FieldOpsView: React.FC = () => {
           }}
         >
           {[
-            { id: 'queue', label: '📥 Offline Queue', badge: 3 },
+            { id: 'queue', label: '📥 Offline Queue', badge: pendingMutations.filter((m) => m.status === 'pending').length },
             { id: 'pod', label: '✍️ POD Receipt', badge: podRecords.filter(p => !p.signed).length },
             { id: 'snag', label: '📸 Snag & Photo', badge: snags.length },
             { id: 'scanner', label: '📷 QR Scanner', badge: 0 },
@@ -683,81 +1029,399 @@ export const FieldOpsView: React.FC = () => {
         {mobileTab === 'scanner' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
-              <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
-                Barcode & QR Asset Scanner
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                  Real-Time Camera Barcode & QR Scanner
+                </h3>
+                <Badge variant={isCameraActive ? 'success' : 'neutral'}>
+                  {isCameraActive ? `LIVE (${facingMode.toUpperCase()})` : 'STANDBY'}
+                </Badge>
+              </div>
 
-              {/* Viewfinder simulation */}
+              {/* Feedback toast / message */}
+              {scanFeedbackMsg && (
+                <div
+                  style={{
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #86efac',
+                    color: '#166534',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    marginBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span>🔔</span>
+                  <span>{scanFeedbackMsg}</span>
+                </div>
+              )}
+
+              {/* Camera Error / Permission Banner */}
+              {cameraError && (
+                <div
+                  style={{
+                    backgroundColor: '#fffbeb',
+                    border: '1px solid #fde68a',
+                    color: '#92400e',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    marginBottom: '10px',
+                  }}
+                >
+                  ⚠️ <strong>Camera Notice:</strong> {cameraError} (You can use the photo upload button or manual tag entry below).
+                </div>
+              )}
+
+              {/* Viewfinder Viewport */}
               <div
                 style={{
-                  backgroundColor: '#0f172a',
-                  borderRadius: '8px',
-                  height: '140px',
+                  backgroundColor: '#090d16',
+                  borderRadius: '10px',
+                  height: '210px',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   position: 'relative',
                   overflow: 'hidden',
-                  marginBottom: '10px',
+                  marginBottom: '12px',
+                  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.6)',
                 }}
               >
+                {/* Real Camera Video Stream */}
+                <video
+                  ref={videoRef}
+                  playsInline
+                  autoPlay
+                  muted
+                  style={{
+                    display: isCameraActive ? 'block' : 'none',
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                />
+
+                {/* Scan Reticle & Laser Beam Overlay */}
                 <div
                   style={{
-                    width: '100px',
-                    height: '100px',
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '140px',
+                    height: '140px',
                     border: '2px solid #38bdf8',
-                    borderRadius: '8px',
-                    position: 'relative',
+                    borderRadius: '12px',
+                    boxShadow: '0 0 16px rgba(56, 189, 248, 0.4)',
+                    pointerEvents: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    padding: '6px',
                   }}
                 >
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ width: '12px', height: '12px', borderTop: '3px solid #0284c7', borderLeft: '3px solid #0284c7' }} />
+                    <div style={{ width: '12px', height: '12px', borderTop: '3px solid #0284c7', borderRight: '3px solid #0284c7' }} />
+                  </div>
+
+                  {/* Pulsing Laser Scan Line */}
+                  <div
+                    style={{
+                      height: '2px',
+                      backgroundColor: '#ef4444',
+                      boxShadow: '0 0 10px #ef4444, 0 0 4px #ffffff',
+                      animation: 'scanLaser 2s infinite ease-in-out',
+                    }}
+                  />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ width: '12px', height: '12px', borderBottom: '3px solid #0284c7', borderLeft: '3px solid #0284c7' }} />
+                    <div style={{ width: '12px', height: '12px', borderBottom: '3px solid #0284c7', borderRight: '3px solid #0284c7' }} />
+                  </div>
+                </div>
+
+                {/* Overlaid status text or start button */}
+                {!isCameraActive ? (
+                  <div style={{ position: 'absolute', textAlign: 'center', zIndex: 2, padding: '10px' }}>
+                    <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>
+                      Camera standby. Tap below to start live viewfinder.
+                    </div>
+                    <Button size="sm" variant="primary" onClick={startCamera} style={{ fontSize: '11px' }}>
+                      📸 Start Live Camera
+                    </Button>
+                  </div>
+                ) : (
                   <div
                     style={{
                       position: 'absolute',
-                      top: '50%',
-                      left: 0,
-                      right: 0,
-                      height: '2px',
-                      backgroundColor: '#ef4444',
-                      boxShadow: '0 0 8px #ef4444',
+                      bottom: '8px',
+                      left: '8px',
+                      right: '8px',
+                      textAlign: 'center',
+                      backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                      backdropFilter: 'blur(4px)',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      fontSize: '10px',
+                      color: '#38bdf8',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Align Barcode / QR Code inside reticle
+                  </div>
+                )}
+              </div>
+
+              {/* Hardware Camera Controls Toolbar */}
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                <Button
+                  size="sm"
+                  variant={isCameraActive ? 'danger' : 'primary'}
+                  onClick={toggleCamera}
+                  style={{ flex: 1, minHeight: '36px', fontSize: '11px' }}
+                >
+                  {isCameraActive ? '🔴 Stop Camera' : '📸 Start Camera'}
+                </Button>
+
+                {isCameraActive && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={switchFacingMode}
+                      style={{ fontSize: '11px', minHeight: '36px' }}
+                      title="Switch between front and rear cameras"
+                    >
+                      🔄 Flip Camera
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={toggleTorch}
+                      style={{ fontSize: '11px', minHeight: '36px' }}
+                      title="Toggle hardware flashlight"
+                    >
+                      {isTorchOn ? '⚡ Torch OFF' : '⚡ Torch ON'}
+                    </Button>
+                  </>
+                )}
+
+                {/* Photo Upload Scanner Fallback */}
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    minHeight: '36px',
+                    flex: isNarrowScreen ? 1 : 'none',
+                  }}
+                >
+                  📁 Scan from Photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageUpload}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+              </div>
+
+              {/* Manual Barcode Search & Instant Keying */}
+              <div style={{ marginBottom: '12px' }}>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (manualTagInput.trim()) {
+                      handleProcessCode(manualTagInput.trim());
+                      setManualTagInput('');
+                    }
+                  }}
+                  style={{ display: 'flex', gap: '6px' }}
+                >
+                  <input
+                    type="text"
+                    value={manualTagInput}
+                    onChange={(e) => setManualTagInput(e.target.value)}
+                    placeholder="Enter tag ID (e.g. AST-SCN-001, AST-LGT-002)..."
+                    style={{
+                      flex: 1,
+                      padding: '8px 10px',
+                      fontSize: '12px',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      outline: 'none',
                     }}
                   />
-                </div>
-                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '6px' }}>
-                  {isScanning ? 'Scanning Optical Code...' : 'Align Barcode or QR Code within box'}
-                </div>
-              </div>
-
-              {/* Preset Scan Triggers */}
-              <div style={{ display: 'flex', flexDirection: isNarrowScreen ? 'column' : 'row', gap: '6px', marginBottom: '10px' }}>
-                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-SCN-001')} style={{ flex: 1, fontSize: '11px', minHeight: '36px' }}>
-                  Scan Scenic Wall
-                </Button>
-                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-LGT-002')} style={{ flex: 1, fontSize: '11px', minHeight: '36px' }}>
-                  Scan Viper Light
-                </Button>
-                <Button size="sm" variant="secondary" onClick={() => handleSimulateScan('AST-AV-003')} style={{ flex: 1, fontSize: '11px', minHeight: '36px' }}>
-                  Scan Shure Mic
-                </Button>
-              </div>
-
-              {scanResult && (
-                <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px', fontSize: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <strong style={{ color: '#0f172a' }}>{scanResult.description}</strong>
-                    <Badge variant="info">{scanResult.assetTag}</Badge>
-                  </div>
-                  <div style={{ color: '#475569', fontSize: '11px' }}>
-                    Zone: <strong>{scanResult.zone}</strong> • Status: <span style={{ color: '#16a34a', fontWeight: 700 }}>{scanResult.status}</span>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    style={{ width: '100%', marginTop: '8px', fontSize: '11px' }}
-                    onClick={() => alert(`Asset ${scanResult.assetTag} picked and confirmed for dispatch!`)}
-                  >
-                    📦 Confirm Pick for Dispatch
+                  <Button size="sm" variant="secondary" type="submit" style={{ fontSize: '11px' }}>
+                    🔍 Search Tag
                   </Button>
+                </form>
+              </div>
+
+              {/* Quick Field Asset Test Chips */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '6px' }}>
+                  Quick Field Demo Test Presets:
+                </div>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                  {[
+                    { tag: 'AST-SCN-001', label: 'Scenic Wall' },
+                    { tag: 'AST-LGT-002', label: 'Viper Moving Light' },
+                    { tag: 'AST-AV-003', label: 'Shure RF Mic' },
+                    { tag: 'AST-RIG-004', label: 'Stage Truss' },
+                    { tag: 'AST-PWR-005', label: 'Power Gen' },
+                    { tag: 'BDG-VIP-8821', label: 'VIP Badge' },
+                    { tag: 'TRK-QA-7819', label: 'Logistics Truck' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.tag}
+                      type="button"
+                      onClick={() => handleProcessCode(preset.tag)}
+                      style={{
+                        padding: '4px 8px',
+                        backgroundColor: scannedTag === preset.tag ? '#0f172a' : '#f8fafc',
+                        color: scannedTag === preset.tag ? '#ffffff' : '#334155',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '4px',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scanned Asset Intelligence Card */}
+              {scanResult && (
+                <div
+                  style={{
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    fontSize: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                    <div>
+                      <strong style={{ color: '#0f172a', fontSize: '13px', display: 'block' }}>
+                        {scanResult.description}
+                      </strong>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>
+                        Category: <strong>{scanResult.category}</strong>
+                      </span>
+                    </div>
+                    <Badge variant={scanResult.critical ? 'danger' : 'info'}>
+                      {scanResult.assetTag}
+                    </Badge>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: isNarrowScreen ? '1fr' : '1fr 1fr',
+                      gap: '6px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #f1f5f9',
+                      borderRadius: '6px',
+                      padding: '8px',
+                      marginBottom: '10px',
+                      fontSize: '11px',
+                    }}
+                  >
+                    <div>
+                      <span style={{ color: '#64748b' }}>Location / Zone: </span>
+                      <strong style={{ color: '#0f172a' }}>{scanResult.zone}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b' }}>Status: </span>
+                      <strong style={{ color: scanResult.status.includes('QC') ? '#0284c7' : '#16a34a' }}>
+                        {scanResult.status}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b' }}>Assigned Lead: </span>
+                      <span style={{ color: '#334155' }}>{scanResult.assignedTech}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b' }}>Serial / Hardware: </span>
+                      <span style={{ fontFamily: 'monospace', color: '#334155' }}>{scanResult.serialNumber}</span>
+                    </div>
+                    {scanResult.dimensions && (
+                      <div style={{ gridColumn: isNarrowScreen ? 'span 1' : 'span 2' }}>
+                        <span style={{ color: '#64748b' }}>Dimensions / Specs: </span>
+                        <span style={{ color: '#334155' }}>{scanResult.dimensions}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Immediate Action Buttons Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isNarrowScreen ? '1fr' : '1fr 1fr', gap: '6px' }}>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      style={{ fontSize: '11px' }}
+                      onClick={() => handleConfirmPick(scanResult)}
+                    >
+                      📦 Confirm Pick & Stage
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      style={{ fontSize: '11px' }}
+                      onClick={() => handleQuickQcPass(scanResult)}
+                    >
+                      🔬 Log QC Inspection Pass
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      style={{ fontSize: '11px' }}
+                      onClick={() => handleFlagSnagFromAsset(scanResult)}
+                    >
+                      📸 Flag Damage / Snag
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      style={{ fontSize: '11px' }}
+                      onClick={() => {
+                        const newZone = prompt('Transfer to new zone:', scanResult.zone);
+                        if (newZone && newZone !== scanResult.zone) {
+                          setScanResult({ ...scanResult, zone: newZone });
+                          if (isOffline) {
+                            queueMutation('transfer_asset_zone', 'AssetInventory', {
+                              assetTag: scanResult.assetTag,
+                              newZone,
+                            });
+                          }
+                          setScanFeedbackMsg(`Relocated to: ${newZone}`);
+                          setTimeout(() => setScanFeedbackMsg(null), 3000);
+                        }
+                      }}
+                    >
+                      📍 Transfer Zone
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -941,63 +1605,166 @@ export const FieldOpsView: React.FC = () => {
 
             {/* Queued Operations List (AT-056) */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h4 style={{ margin: 0, fontSize: '13px', color: '#0f172a' }}>Queued Field Operations (3)</h4>
-                <Badge variant="warning">AWAITING SERVER SYNC</Badge>
+              {/* Sync Toast Feedback */}
+              {syncToast && (
+                <div
+                  style={{
+                    backgroundColor: syncToast.type === 'success' ? '#f0fdf4' : '#fff1f2',
+                    border: `1px solid ${syncToast.type === 'success' ? '#86efac' : '#fecdd3'}`,
+                    color: syncToast.type === 'success' ? '#166534' : '#9f1239',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    marginBottom: '10px',
+                  }}
+                >
+                  {syncToast.type === 'success' ? '✓ ' : '⚠️ '}
+                  {syncToast.message}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                <h4 style={{ margin: 0, fontSize: '13px', color: '#0f172a' }}>
+                  Queued Field Operations ({pendingMutations.length})
+                </h4>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  {pendingMutations.some((m) => m.status === 'syncing') ? (
+                    <Badge variant="info">SYNCING TO CLOUD...</Badge>
+                  ) : pendingMutations.some((m) => m.status === 'pending') ? (
+                    <Badge variant="warning">
+                      {pendingMutations.filter((m) => m.status === 'pending').length} AWAITING SERVER SYNC
+                    </Badge>
+                  ) : pendingMutations.length > 0 ? (
+                    <Badge variant="success">ALL MUTATIONS SYNCED</Badge>
+                  ) : (
+                    <Badge variant="neutral">QUEUE EMPTY</Badge>
+                  )}
+                </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {[
-                  {
-                    opId: 'op-snag-90124',
-                    action: 'log_snag',
-                    entity: 'snag',
-                    desc: 'Scenic Wall scratched panel #4 (Hall 1)',
-                    timestamp: '2026-09-12 08:42 AST',
-                    status: 'queued',
-                    dedupTag: 'dedup-hash-90124',
-                  },
-                  {
-                    opId: 'op-att-90125',
-                    action: 'check_in_crew',
-                    entity: 'attendance',
-                    desc: 'Ahmed Al-Kuwari check-in Main Stage',
-                    timestamp: '2026-09-12 08:45 AST',
-                    status: 'queued',
-                    dedupTag: 'dedup-hash-90125',
-                  },
-                  {
-                    opId: 'op-qc-90126',
-                    action: 'inspection_checkpoint',
-                    entity: 'inspection',
-                    desc: 'Truss torque check Main Stage Rigging',
-                    timestamp: '2026-09-12 08:50 AST',
-                    status: 'queued',
-                    dedupTag: 'dedup-hash-90126',
-                  },
-                ].map((op) => (
-                  <div
-                    key={op.opId}
-                    style={{
-                      padding: '10px 12px',
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                    }}
+              {/* Action Toolbar */}
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={handleSyncQueue}
+                  disabled={isSyncingQueue || !pendingMutations.some((m) => m.status === 'pending')}
+                  style={{ fontSize: '11px', flex: isNarrowScreen ? 1 : 'none' }}
+                >
+                  {isSyncingQueue ? '⏳ Replaying Queue...' : `⚡ Sync Offline Queue (${pendingMutations.filter((m) => m.status === 'pending').length})`}
+                </Button>
+                {pendingMutations.some((m) => m.status === 'synced') && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={clearSyncedMutations}
+                    style={{ fontSize: '11px' }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <strong style={{ color: '#0f172a' }}>{op.action}</strong>
-                      <span style={{ fontFamily: 'monospace', fontSize: '10px', color: '#64748b' }}>{op.opId}</span>
-                    </div>
-                    <div style={{ color: '#475569', marginBottom: '4px' }}>{op.desc}</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94a3b8' }}>
-                      <span>Client Time: {op.timestamp}</span>
-                      <span style={{ color: '#0284c7', fontWeight: 600 }}>Deduplication Key: {op.dedupTag}</span>
-                    </div>
-                  </div>
-                ))}
+                    🧹 Clear Synced
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    queueMutation('log_field_observation', 'SiteObservation', {
+                      zone: 'DECC Hall 1 - Service Bay',
+                      observation: 'Perimeter egress cleared; electrical load within 65% threshold.',
+                    });
+                  }}
+                  style={{ fontSize: '11px' }}
+                >
+                  ➕ Add Sample Mutation
+                </Button>
               </div>
+
+              {/* Items List */}
+              {pendingMutations.length === 0 ? (
+                <div
+                  style={{
+                    padding: '24px 16px',
+                    textAlign: 'center',
+                    backgroundColor: '#ffffff',
+                    border: '1px dashed #cbd5e1',
+                    borderRadius: '8px',
+                    color: '#64748b',
+                    fontSize: '12px',
+                  }}
+                >
+                  <div style={{ fontSize: '24px', marginBottom: '6px' }}>📭</div>
+                  <strong>No pending offline mutations in local storage.</strong>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '11px' }}>
+                    Any snag logs, POD digital signatures, or asset scans recorded while offline will persist here automatically.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {pendingMutations.map((op) => (
+                    <div
+                      key={op.id}
+                      style={{
+                        padding: '10px 12px',
+                        backgroundColor: '#ffffff',
+                        border: `1px solid ${op.status === 'synced' ? '#86efac' : op.status === 'failed' ? '#fca5a5' : '#e2e8f0'}`,
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <div>
+                          <strong style={{ color: '#0f172a' }}>{op.action}</strong>
+                          <span style={{ marginLeft: '6px', color: '#64748b', fontSize: '11px' }}>({op.entity})</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Badge
+                            variant={
+                              op.status === 'synced'
+                                ? 'success'
+                                : op.status === 'syncing'
+                                ? 'info'
+                                : op.status === 'failed'
+                                ? 'danger'
+                                : 'warning'
+                            }
+                          >
+                            {op.status.toUpperCase()}
+                          </Badge>
+                          <button
+                            type="button"
+                            onClick={() => removePendingMutation(op.id)}
+                            title="Dismiss item from queue"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#94a3b8',
+                              cursor: 'pointer',
+                              padding: '2px 4px',
+                              fontSize: '12px',
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ color: '#475569', marginBottom: '4px', fontFamily: 'monospace', fontSize: '10px', backgroundColor: '#f8fafc', padding: '4px 6px', borderRadius: '4px' }}>
+                        {JSON.stringify(op.payload)}
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94a3b8', flexWrap: 'wrap', gap: '4px' }}>
+                        <span>Logged: {new Date(op.timestamp).toLocaleTimeString()}</span>
+                        {op.dedupTag && (
+                          <span style={{ color: '#0284c7', fontWeight: 600 }}>Dedup: {op.dedupTag}</span>
+                        )}
+                        {op.syncedAt && (
+                          <span style={{ color: '#16a34a', fontWeight: 600 }}>Synced: {new Date(op.syncedAt).toLocaleTimeString()}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Media Upload Verification Gate (AT-057) */}

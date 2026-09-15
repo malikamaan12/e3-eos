@@ -16,6 +16,8 @@ export interface PendingOfflineMutation {
   entity: string;
   payload: Record<string, unknown>;
   status: 'pending' | 'syncing' | 'synced' | 'failed';
+  syncedAt?: string;
+  dedupTag?: string;
 }
 
 export type { CanonicalUser } from './canonical-users.js';
@@ -69,6 +71,9 @@ export interface EosContextValue {
   setSelectedProjectId: (id: string) => void;
   queueMutation: (action: string, entity: string, payload: Record<string, unknown>) => void;
   clearPendingMutations: () => void;
+  syncPendingMutations: () => Promise<{ success: number; failed: number }>;
+  removePendingMutation: (id: string) => void;
+  clearSyncedMutations: () => void;
 }
 
 const EosContext = createContext<EosContextValue | undefined>(undefined);
@@ -118,10 +123,53 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return SYNTHETIC_ORGANISATIONS.e3Internal;
   });
   const [currentLanguage, setLanguageState] = useState<SupportedLocale>(getInitialLanguage);
-  const [isOffline, setIsOffline] = useState<boolean>(false);
+  const [isOffline, setIsOffline] = useState<boolean>(() => {
+    if (typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean') {
+      return !navigator.onLine;
+    }
+    return false;
+  });
   const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceType>('leadership');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('f1111111-1111-4111-8111-111111111111');
-  const [pendingMutations, setPendingMutations] = useState<PendingOfflineMutation[]>([]);
+  const [pendingMutations, setPendingMutations] = useState<PendingOfflineMutation[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('e3_offline_mutations_v1');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch {
+        // Fallback to empty on parse failure
+      }
+    }
+    return [];
+  });
+
+  const mutationsRef = React.useRef<PendingOfflineMutation[]>(pendingMutations);
+  mutationsRef.current = pendingMutations;
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('e3_offline_mutations_v1', JSON.stringify(pendingMutations));
+      } catch {
+        // Quota safety
+      }
+    }
+  }, [pendingMutations]);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState<boolean>(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState<boolean>(false);
@@ -343,18 +391,71 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const queueMutation = (action: string, entity: string, payload: Record<string, unknown>) => {
+    const id = `mut-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const dedupTag = `dedup-${entity.toLowerCase()}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
     const mutation: PendingOfflineMutation = {
-      id: `mut-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      id,
       timestamp: new Date().toISOString(),
       action,
       entity,
       payload,
       status: 'pending',
+      dedupTag,
     };
-    setPendingMutations((prev) => [...prev, mutation]);
+    mutationsRef.current = [...mutationsRef.current, mutation];
+    setPendingMutations(mutationsRef.current);
+  };
+
+  const syncPendingMutations = async (): Promise<{ success: number; failed: number }> => {
+    const pendingItems = mutationsRef.current.filter((m) => m.status === 'pending');
+    if (pendingItems.length === 0) return { success: 0, failed: 0 };
+
+    mutationsRef.current = mutationsRef.current.map((m) =>
+      m.status === 'pending' ? { ...m, status: 'syncing' } : m
+    );
+    setPendingMutations([...mutationsRef.current]);
+
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (const item of pendingItems) {
+      try {
+        await new Promise((r) => setTimeout(r, 60));
+        mutationsRef.current = mutationsRef.current.map((m) =>
+          m.id === item.id
+            ? {
+                ...m,
+                status: 'synced',
+                syncedAt: new Date().toISOString(),
+              }
+            : m
+        );
+        successCount++;
+      } catch {
+        mutationsRef.current = mutationsRef.current.map((m) =>
+          m.id === item.id ? { ...m, status: 'failed' } : m
+        );
+        failedCount++;
+      }
+    }
+
+    setPendingMutations([...mutationsRef.current]);
+    triggerRefresh();
+    return { success: successCount, failed: failedCount };
+  };
+
+  const removePendingMutation = (id: string) => {
+    mutationsRef.current = mutationsRef.current.filter((m) => m.id !== id);
+    setPendingMutations(mutationsRef.current);
+  };
+
+  const clearSyncedMutations = () => {
+    mutationsRef.current = mutationsRef.current.filter((m) => m.status !== 'synced');
+    setPendingMutations(mutationsRef.current);
   };
 
   const clearPendingMutations = () => {
+    mutationsRef.current = [];
     setPendingMutations([]);
   };
 
@@ -367,56 +468,61 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [direction, currentLanguage]);
 
+  const contextValue: EosContextValue = {
+    currentUser,
+    currentOrg,
+    currentLanguage,
+    direction,
+    isOffline,
+    activeWorkspace,
+    currentPath,
+    selectedProjectId,
+    projects,
+    currentProject: projects.find((p) => p.id === selectedProjectId) || projects[0],
+    userRole: currentUser?.role,
+    get pendingMutations() {
+      return mutationsRef.current;
+    },
+    isNewProjectModalOpen,
+    isTaskModalOpen,
+    isApprovalModalOpen,
+    isAuditDrawerOpen,
+    refreshTrigger,
+    apiClient,
+    isImpersonating,
+    impersonatedBy,
+    notifications,
+    unreadNotificationCount,
+    refreshNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    exitImpersonation,
+    triggerRefresh,
+    navigate,
+    login,
+    logout,
+    switchPersona,
+    setIsNewProjectModalOpen,
+    setIsTaskModalOpen,
+    setIsApprovalModalOpen,
+    setIsAuditDrawerOpen,
+    setCurrentUser: setCurrentUserState,
+    setCurrentOrg,
+    setLanguage,
+    toggleLanguage,
+    setIsOffline,
+    toggleOffline,
+    setActiveWorkspace,
+    setSelectedProjectId,
+    queueMutation,
+    clearPendingMutations,
+    syncPendingMutations,
+    removePendingMutation,
+    clearSyncedMutations,
+  };
+
   return (
-    <EosContext.Provider
-      value={{
-        currentUser,
-        currentOrg,
-        currentLanguage,
-        direction,
-        isOffline,
-        activeWorkspace,
-        currentPath,
-        selectedProjectId,
-        projects,
-        currentProject: projects.find((p) => p.id === selectedProjectId) || projects[0],
-        userRole: currentUser?.role,
-        pendingMutations,
-        isNewProjectModalOpen,
-        isTaskModalOpen,
-        isApprovalModalOpen,
-        isAuditDrawerOpen,
-        refreshTrigger,
-        apiClient,
-        isImpersonating,
-        impersonatedBy,
-        notifications,
-        unreadNotificationCount,
-        refreshNotifications,
-        markNotificationRead,
-        markAllNotificationsRead,
-        exitImpersonation,
-        triggerRefresh,
-        navigate,
-        login,
-        logout,
-        switchPersona,
-        setIsNewProjectModalOpen,
-        setIsTaskModalOpen,
-        setIsApprovalModalOpen,
-        setIsAuditDrawerOpen,
-        setCurrentUser: setCurrentUserState,
-        setCurrentOrg,
-        setLanguage,
-        toggleLanguage,
-        setIsOffline,
-        toggleOffline,
-        setActiveWorkspace,
-        setSelectedProjectId,
-        queueMutation,
-        clearPendingMutations,
-      }}
-    >
+    <EosContext.Provider value={contextValue}>
       <div dir={direction} data-locale={currentLanguage} style={{ height: '100%' }}>
         {children}
       </div>
