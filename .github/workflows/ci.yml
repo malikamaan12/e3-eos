@@ -10,6 +10,24 @@ jobs:
   validate-and-test:
     name: Lint, Typecheck & Automated Suites
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: e3_eos_dev
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: devpassword123
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:devpassword123@localhost:5432/e3_eos_dev
+      JWT_SECRET: super-secret-jwt-key-for-e3-eos-testing-minimum-32-chars-long!
+      NODE_ENV: test
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -34,7 +52,12 @@ jobs:
       - name: Strict TypeScript Compilation
         run: pnpm -r run typecheck
 
-      - name: Execute Vitest Automated Suites (245 tests across 27 test suites)
+      - name: Run Database Migrations & Seed
+        run: |
+          pnpm migrate
+          pnpm seed
+
+      - name: Execute Vitest Automated Suites (478 tests across 48 test suites)
         run: pnpm test
 
       - name: Verify 100% Acceptance Test Traceability Matrix (92/92 Scenarios)
