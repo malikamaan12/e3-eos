@@ -17,8 +17,15 @@ const repoRoot = findRepoRoot(__dirname) || findRepoRoot(process.cwd());
 console.log('[Vercel Build] Repository root detected at: ' + repoRoot);
 console.log('[Vercel Build] Current working directory: ' + process.cwd());
 
-console.log('[Vercel Build] Building @e3-eos/web...');
-execSync('pnpm --filter @e3-eos/web build', { cwd: repoRoot, stdio: 'inherit' });
+let pnpmCmd = 'pnpm';
+try {
+  execSync('pnpm --version', { stdio: 'ignore' });
+} catch {
+  pnpmCmd = 'npx pnpm';
+}
+
+console.log('[Vercel Build] Building @e3-eos/web with ' + pnpmCmd + '...');
+execSync(pnpmCmd + ' --filter @e3-eos/web build', { cwd: repoRoot, stdio: 'inherit' });
 
 const srcDist = path.join(repoRoot, 'apps', 'web', 'dist');
 const targetLocations = [
@@ -26,6 +33,7 @@ const targetLocations = [
   path.join(process.cwd(), 'dist'),
   path.join(repoRoot, 'apps', 'dist'),
   path.join(repoRoot, 'apps', 'web', 'dist'),
+  path.join(repoRoot, 'apps', 'api', 'dist'),
 ];
 
 for (const target of targetLocations) {
