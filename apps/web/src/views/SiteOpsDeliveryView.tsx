@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { FieldSyncEngine } from '@e3-eos/domain';
 
 interface SiteOpsDeliveryViewProps {
   projectId: string;
-  initialSection?: 'dsr' | 'installation' | 'readiness';
+  initialSection?: 'dsr' | 'installation' | 'readiness' | 'snags' | 'offline_sync';
 }
 
 export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
@@ -13,13 +14,57 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
 }) => {
   const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
 
-  const [activeSection, setActiveSection] = useState<'dsr' | 'installation' | 'readiness'>(initialSection);
+  const [activeSection, setActiveSection] = useState<'dsr' | 'installation' | 'readiness' | 'snags' | 'offline_sync'>(initialSection);
+  const [networkMode, setNetworkMode] = useState<'online_5g' | 'low_bandwidth_2g' | 'airplane_offline'>('airplane_offline');
+  const [isQueueFlushed, setIsQueueFlushed] = useState<boolean>(false);
 
   const [reports, setReports] = useState<any[]>([]);
   const [installationItems, setInstallationItems] = useState<any[]>([]);
   const [readinessData, setReadinessData] = useState<any | null>(null);
   const [authorizations, setAuthorizations] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  // Capability 35: Site Zone Critical Inspection Readiness Gate (P04-ST07 / AT-059)
+  const [at059CriticalUnresolved, setAt059CriticalUnresolved] = useState<boolean>(true);
+
+  // Safety Punch-List & S1 RTO Gate State (P04-ST05 / AT-058)
+  const [siteSnags, setSiteSnags] = useState<any[]>([
+    {
+      id: 'snag-s1-01',
+      title: 'Emergency fire egress corridor obstructed by lighting ballast cables at Gate 4',
+      severity: 'S1_LIFE_SAFETY',
+      location: 'Lusail Hall 1 - Gate 4 Egress Route',
+      blocksRto: true,
+      status: 'open',
+      reportedBy: 'Khamis Al-Sulaiti (HSE Lead)',
+      qcddRef: 'QCDD-NOTICE-2026-441',
+    },
+    {
+      id: 'snag-s2-02',
+      title: 'DMX distribution line intermittent communication on Stage Left Truss',
+      severity: 'S2_SHOW_STOPPER',
+      location: 'Main Stage Overhead Grid 2',
+      blocksRto: false,
+      status: 'resolved',
+      reportedBy: 'Tariq Al-Mansoor (AV Lead)',
+      qcddRef: 'N/A',
+    },
+    {
+      id: 'snag-s3-03',
+      title: 'Scuff marks on VIP reception counter fascia',
+      severity: 'S3_COSMETIC',
+      location: 'VIP Registration Lobby',
+      blocksRto: false,
+      status: 'open',
+      reportedBy: 'Sarah Jenkins (Client Services)',
+      qcddRef: 'N/A',
+    },
+  ]);
+
+  const handleResolveSiteSnag = (snagId: string) => {
+    setSiteSnags((prev) =>
+      prev.map((s) => (s.id === snagId ? { ...s, status: 'resolved', blocksRto: false } : s))
+    );
+  };
 
   // Governed Opening Authorization Modal
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
@@ -277,6 +322,59 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               {readinessData?.overallStatus || 'READY'}
             </span>
           </button>
+
+          <button
+            id="subtab-snags"
+            onClick={() => setActiveSection('snags')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 700,
+              border: 'none',
+              backgroundColor: activeSection === 'snags' ? '#2563eb' : '#f1f5f9',
+              color: activeSection === 'snags' ? '#ffffff' : '#475569',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>⚠️</span> Safety Punch-List & Snags (S1 Gate)
+            <span
+              style={{
+                backgroundColor: siteSnags.some((s) => s.blocksRto && s.status === 'open') ? '#dc2626' : '#16a34a',
+                color: '#ffffff',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                fontSize: '11px',
+                fontWeight: 800,
+              }}
+            >
+              {siteSnags.filter((s) => s.status === 'open').length} Open
+            </span>
+          </button>
+
+          <button
+            id="subtab-offline-sync"
+            onClick={() => setActiveSection('offline_sync')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 700,
+              border: 'none',
+              backgroundColor: activeSection === 'offline_sync' ? '#2563eb' : '#f1f5f9',
+              color: activeSection === 'offline_sync' ? '#ffffff' : '#475569',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>📲</span> Field PWA & Offline Sync (AT-055 - AT-058)
+            <Badge variant="accent">Dexie Queue</Badge>
+          </button>
         </div>
 
         {activeSection === 'dsr' && (
@@ -518,6 +616,87 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             </div>
           </div>
 
+          {/* Capability 35: Site Zone Critical Inspection Readiness Gate & S1 Life-Safety Blocker (P04-ST07 / AT-059) */}
+          <div
+            id="zone-critical-inspection-gate-workbench"
+            style={{
+              backgroundColor: at059CriticalUnresolved ? '#fef2f2' : '#f0fdf4',
+              border: `2px solid ${at059CriticalUnresolved ? '#ef4444' : '#22c55e'}`,
+              borderRadius: '12px',
+              padding: '20px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '20px' }}>🚨</span>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: at059CriticalUnresolved ? '#991b1b' : '#166534' }}>
+                    Zone Critical Inspection Readiness Gate (P04-ST07 / AT-059)
+                  </h3>
+                  <Badge variant={at059CriticalUnresolved ? 'danger' : 'success'}>
+                    {at059CriticalUnresolved ? 'S1 LIFE-SAFETY BLOCKER' : 'ALL CONDITIONS CLEARED'}
+                  </Badge>
+                  <Badge variant="info">INVARIANT AT-059 ENFORCED</Badge>
+                </div>
+                <p style={{ fontSize: '13px', color: at059CriticalUnresolved ? '#7f1d1d' : '#15803d', margin: '4px 0 0 0' }}>
+                  Invariant AT-059 mandates that a high percentage (e.g. 99.4%) cannot override an unresolved critical inspection. Zone remains blocked until life safety is 100% verified.
+                </p>
+              </div>
+
+              <Button
+                variant={at059CriticalUnresolved ? 'success' : 'secondary'}
+                size="sm"
+                onClick={() => setAt059CriticalUnresolved(!at059CriticalUnresolved)}
+              >
+                {at059CriticalUnresolved ? 'Simulate QCDD Inspector Certifying S1 Flaps' : 'Re-open S1 Life Safety Inspection Defect'}
+              </Button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+              <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>AFFECTED ZONE</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                  VIP Royal Pavilion & North Overhead Truss
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>Zone Capacity: 850 Dignitaries & VVIPs</div>
+              </div>
+
+              <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>PHYSICAL MILESTONE COMPLETION</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#2563eb', marginTop: '2px' }}>
+                  149 / 150 Tasks Complete (99.33%)
+                </div>
+                <div style={{ fontSize: '11px', color: '#059669' }}>Carpentry, Lighting, Audio, Scenic: 100% Done</div>
+              </div>
+
+              <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>S1 CRITICAL LIFE SAFETY PREREQUISITE</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: at059CriticalUnresolved ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
+                  {at059CriticalUnresolved ? 'QCDD-INSP-441: UNRESOLVED' : 'QCDD-INSP-441: CERTIFIED'}
+                </div>
+                <div style={{ fontSize: '11px', color: at059CriticalUnresolved ? '#b91c1c' : '#059669' }}>
+                  {at059CriticalUnresolved ? 'Emergency smoke flaps interlock uncertified' : 'Wet-stamp signed by Capt. Al-Sulaiti'}
+                </div>
+              </div>
+
+              <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>AUTHORITATIVE ZONE OPENING VERDICT</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: at059CriticalUnresolved ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
+                  {at059CriticalUnresolved ? 'BLOCKED / NOT READY' : 'AUTHORIZED FOR DOORS OPEN'}
+                </div>
+                <div style={{ fontSize: '11px', color: at059CriticalUnresolved ? '#dc2626' : '#059669' }}>
+                  {at059CriticalUnresolved ? 'AT-059: Score cannot override condition' : 'All statutory gates satisfied'}
+                </div>
+              </div>
+            </div>
+
+            {at059CriticalUnresolved && (
+              <div style={{ padding: '10px 14px', backgroundColor: '#fef2f2', borderRadius: '6px', border: '1px solid #fca5a5', fontSize: '12px', color: '#991b1b', fontWeight: 700 }}>
+                ⛔ <strong>CRITICAL STATUTORY OVERRIDE ENFORCED (AT-059):</strong> Although Zone 02 has attained 99.33% physical completion, public doors opening is strictly prohibited until the mandatory QCDD Smoke Flaps certificate is certified.
+              </div>
+            )}
+          </div>
+
           {/* Governed Show Opening Authorization Console */}
           <div
             id="governed-opening-authorization-card"
@@ -678,6 +857,330 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                   )}
                 </div>
               ))}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* SECTION 4: SAFETY PUNCH-LIST & READY-TO-OPEN (RTO) GATE (AT-058 / P04-ST05) */}
+      {activeSection === 'snags' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* RTO Certificate Gate Status Banner */}
+          <Card style={{
+            border: `2px solid ${siteSnags.some((s) => s.blocksRto && s.status === 'open') ? '#ef4444' : '#10b981'}`,
+            backgroundColor: siteSnags.some((s) => s.blocksRto && s.status === 'open') ? '#fef2f2' : '#ecfdf5',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '22px' }}>
+                    {siteSnags.some((s) => s.blocksRto && s.status === 'open') ? '🛑' : '✅'}
+                  </span>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: siteSnags.some((s) => s.blocksRto && s.status === 'open') ? '#991b1b' : '#065f46' }}>
+                    {siteSnags.some((s) => s.blocksRto && s.status === 'open')
+                      ? 'READY-TO-OPEN (RTO) CERTIFICATE LOCKED BY OPEN S1 DEFECT'
+                      : 'READY-TO-OPEN (RTO) SAFETY CLEARANCE ISSUABLE'}
+                  </h3>
+                </div>
+                <p style={{ fontSize: '13px', color: siteSnags.some((s) => s.blocksRto && s.status === 'open') ? '#b91c1c' : '#047857', margin: '4px 0 0 0' }}>
+                  {siteSnags.some((s) => s.blocksRto && s.status === 'open')
+                    ? 'EOS Invariant AT-058 enforced: Open S1 Life Safety conditions strictly block public opening certification, regardless of overall task completion.'
+                    : 'All S1 Life Safety conditions have been inspected, rectified, and cleared. Venue is certified compliant with QCDD life safety regulations.'}
+                </p>
+              </div>
+
+              <div style={{ textAlign: 'right' }}>
+                <Badge variant={siteSnags.some((s) => s.blocksRto && s.status === 'open') ? 'danger' : 'success'}>
+                  {siteSnags.some((s) => s.blocksRto && s.status === 'open') ? 'RTO BLOCKED' : 'RTO CLEARED'}
+                </Badge>
+                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                  Offline Queue: 0 Pending
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Snags Table */}
+          <Card>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+                  📋 Defect & Snag Register (S1 / S2 / S3 Severity Tiering)
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                  S1: Life Safety / QCDD (blocks opening) • S2: Show-stopper (blocks show call) • S3: Cosmetic.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 12px' }}>Severity</th>
+                    <th style={{ padding: '10px 12px' }}>Defect Description</th>
+                    <th style={{ padding: '10px 12px' }}>Location</th>
+                    <th style={{ padding: '10px 12px' }}>RTO Impact</th>
+                    <th style={{ padding: '10px 12px' }}>Status</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {siteSnags.map((snag) => (
+                    <tr key={snag.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px' }}>
+                        <Badge variant={snag.severity === 'S1_LIFE_SAFETY' ? 'danger' : snag.severity === 'S2_SHOW_STOPPER' ? 'warning' : 'neutral'}>
+                          {snag.severity.replace(/_/g, ' ')}
+                        </Badge>
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{snag.title}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          Reported by: {snag.reportedBy} {snag.qcddRef !== 'N/A' && `• ${snag.qcddRef}`}
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px', color: '#475569' }}>{snag.location}</td>
+                      <td style={{ padding: '12px' }}>
+                        {snag.blocksRto ? (
+                          <span style={{ color: '#dc2626', fontWeight: 700 }}>🛑 BLOCKS RTO</span>
+                        ) : (
+                          <span style={{ color: '#059669', fontWeight: 600 }}>Non-blocking</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <Badge variant={snag.status === 'resolved' ? 'success' : 'danger'}>
+                          {snag.status.toUpperCase()}
+                        </Badge>
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'right' }}>
+                        {snag.status === 'open' ? (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handleResolveSiteSnag(snag.id)}
+                            style={{ backgroundColor: snag.severity === 'S1_LIFE_SAFETY' ? '#10b981' : '#2563eb' }}
+                          >
+                            ✓ Rectify & Clear
+                          </Button>
+                        ) : (
+                          <span style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>
+                            ✓ Rectified
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* SECTION 5: OFFLINE FIELD PWA & DEXIE QUEUE SIMULATOR (P04-ST06 / AT-055, AT-056, AT-057, AT-058) */}
+      {activeSection === 'offline_sync' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Network Simulator Controls */}
+          <Card>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+                    📲 Mobile Field PWA & Offline Mutation Queue Simulator
+                  </h3>
+                  <Badge variant="accent">AT-055 / AT-056 / AT-057 / AT-058</Badge>
+                </div>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                  Simulate field edge conditions across Lusail Stadium and DECC halls. Validates Dexie.js offline mutation queue, per-operation deduplication, and supervisor review gating.
+                </p>
+              </div>
+
+              {/* Network Connectivity Selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Radio State:</span>
+                <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '6px' }}>
+                  <button
+                    onClick={() => setNetworkMode('online_5g')}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      border: 'none',
+                      backgroundColor: networkMode === 'online_5g' ? '#16a34a' : 'transparent',
+                      color: networkMode === 'online_5g' ? '#ffffff' : '#64748b',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🟢 5G Online
+                  </button>
+                  <button
+                    onClick={() => setNetworkMode('low_bandwidth_2g')}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      border: 'none',
+                      backgroundColor: networkMode === 'low_bandwidth_2g' ? '#f59e0b' : 'transparent',
+                      color: networkMode === 'low_bandwidth_2g' ? '#ffffff' : '#64748b',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🟡 2G / Edge
+                  </button>
+                  <button
+                    onClick={() => setNetworkMode('airplane_offline')}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      border: 'none',
+                      backgroundColor: networkMode === 'airplane_offline' ? '#dc2626' : 'transparent',
+                      color: networkMode === 'airplane_offline' ? '#ffffff' : '#64748b',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🔴 Offline Mode
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Dexie Mutation Queue & Reconciliation Table */}
+          <Card>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h4 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+                  📦 IndexedDB / Dexie Mutation Queue (4 Operations Staged)
+                </h4>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  Local storage status: <strong>Persistent (Quota: 24.8 MB / 500 MB)</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <Button
+                  id="btn-flush-offline-queue"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setIsQueueFlushed(true)}
+                >
+                  ⚡ Flush Queue & Reconcile (Online Sync)
+                </Button>
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 12px' }}>Op ID & Type</th>
+                    <th style={{ padding: '10px 12px' }}>Payload Description</th>
+                    <th style={{ padding: '10px 12px' }}>Client Timestamp</th>
+                    <th style={{ padding: '10px 12px' }}>Sync Policy Invariant</th>
+                    <th style={{ padding: '10px 12px' }}>Reconciliation Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Operation 1: Normal Incident Log */}
+                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px' }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a' }}>OP-QA-7701</div>
+                      <Badge variant="neutral">incident</Badge>
+                    </td>
+                    <td style={{ padding: '12px', color: '#334155' }}>
+                      Truss clamp torque re-checked at Grid C (120 Nm verified)
+                    </td>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                      2026-09-12 11:20:04 AST
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{ fontSize: '12px', color: '#16a34a' }}>Standard local buffer</span>
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <Badge variant={isQueueFlushed ? 'success' : 'warning'}>
+                        {isQueueFlushed ? 'APPLIED (Committed)' : 'QUEUED (Offline)'}
+                      </Badge>
+                    </td>
+                  </tr>
+
+                  {/* Operation 2: Revoked Credential Attendance (AT-055) */}
+                  <tr style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#fffbeb' }}>
+                    <td style={{ padding: '12px' }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a' }}>OP-QA-7702</div>
+                      <Badge variant="warning">attendance</Badge>
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <div style={{ fontWeight: 600, color: '#92400e' }}>Turnstile badge scan for Worker #449 (Rigging Tech)</div>
+                      <div style={{ fontSize: '11px', color: '#b45309' }}>Server state: IPAF license revoked 2h ago during offline window</div>
+                    </td>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                      2026-09-12 11:24:18 AST
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <strong style={{ color: '#b45309', fontSize: '11px' }}>AT-055: Retain as observation, deny qualified release</strong>
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <Badge variant="warning">
+                        {isQueueFlushed ? 'OBSERVATION FOR REVIEW' : 'FLAGGED IN QUEUE'}
+                      </Badge>
+                    </td>
+                  </tr>
+
+                  {/* Operation 3: Incomplete Binary Upload (AT-057) */}
+                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px' }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a' }}>OP-QA-7703</div>
+                      <Badge variant="neutral">inspection_media</Badge>
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <div>Photo evidence: `egress-doors-gate4.jpg`</div>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>Transferred: 1.4 MB of 4.2 MB (Connection interrupted)</div>
+                    </td>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                      2026-09-12 11:26:00 AST
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <strong style={{ color: '#d97706', fontSize: '11px' }}>AT-057: Incomplete binary upload blocks task signoff</strong>
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <Badge variant="danger">
+                        PENDING BINARY UPLOAD
+                      </Badge>
+                    </td>
+                  </tr>
+
+                  {/* Operation 4: Duplicate Operation Replay (AT-056) */}
+                  <tr style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
+                    <td style={{ padding: '12px' }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a' }}>OP-QA-7701-DUP</div>
+                      <Badge variant="neutral">replay_test</Badge>
+                    </td>
+                    <td style={{ padding: '12px', color: '#64748b' }}>
+                      Replay of OP-QA-7701 (Simulated duplicate packet re-transmission)
+                    </td>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                      2026-09-12 11:28:40 AST
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <strong style={{ color: '#0284c7', fontSize: '11px' }}>AT-056: Per-operation deduplication prevents duplicate write</strong>
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <Badge variant="neutral">
+                        {isQueueFlushed ? 'DUPLICATE IGNORED' : 'PENDING REPLAY'}
+                      </Badge>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Storage Eviction & Session Revocation Contingency Notice (AT-058) */}
+            <div style={{ marginTop: '16px', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', color: '#475569' }}>
+              🛡️ <strong>AT-058 Contingency Protocol:</strong> {FieldSyncEngine.getStorageContingencyDisclosure()}
             </div>
           </Card>
         </div>

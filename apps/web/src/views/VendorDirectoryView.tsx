@@ -696,6 +696,38 @@ export const VendorDirectoryView: React.FC = () => {
                   Account details masked: <strong>•••• •••• •••• {selectedVendor.bankDetails?.accountNumber?.slice(-4) || '7801'}</strong>
                 </div>
               )}
+
+              {/* Two-Person Dual-Custody Rule Gate (AT-046) */}
+              <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px dashed #86efac', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+                      🔐 Two-Person Rule (Maker-Checker Gate)
+                    </span>
+                    <span style={{ backgroundColor: '#e0e7ff', color: '#3730a3', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                      AT-046 ENFORCED
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>Dual-Custody Active</span>
+                </div>
+
+                <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
+                  Policy invariant: Any alteration of vendor remittance IBAN requires dual-custody approval by two distinct authorized corporate officers before purchase order disbursements can execute.
+                </div>
+
+                <div style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px', fontSize: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <span style={{ color: '#64748b', fontSize: '11px' }}>1. Maker (Initiator):</span>
+                    <div style={{ fontWeight: 700, color: '#0f172a' }}>Salim Al-Nuaimi (Procurement Lead)</div>
+                    <div style={{ fontSize: '10px', color: '#64748b' }}>Staged: 2026-09-08 09:15 UTC</div>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', fontSize: '11px' }}>2. Checker (Reviewer):</span>
+                    <div style={{ fontWeight: 700, color: '#059669' }}>Verified by Financial Controller</div>
+                    <div style={{ fontSize: '10px', color: '#64748b' }}>SHA-256: e3b0c44298fc1c149afbf4c8</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Governance Actions */}

@@ -210,15 +210,31 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
 
       {/* Section 2: Side-by-Side RFQ & Bid Comparison Matrix */}
       <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
-              📊 RFQ Tender & Side-by-Side Bid Evaluation Matrix
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+                📊 RFQ Tender & Side-by-Side Bid Evaluation Matrix
+              </h3>
+              <Badge variant="accent">AT-047 SEALED-BID PROTOCOL</Badge>
+              <Badge variant="secondary">AT-048 MULTI-CRITERIA SCORING</Badge>
+            </div>
             <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
-              Objective multi-criteria evaluation (Technical 40%, Commercial 40%, Risk 20%) with auditable rationale.
+              Objective multi-criteria evaluation (Technical 40%, Commercial 40%, Risk 20%) with sealed-bid integrity lock and outlier detection.
             </p>
           </div>
+
+          {/* Sealed Bid Status Box */}
+          <div style={{ padding: '8px 14px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', fontSize: '12px', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>🔒 <strong>Sealed-Bid Integrity:</strong> Unsealed post-deadline (2026-09-10 12:00 UTC)</span>
+            <Badge variant="success">Unsealing Authorized</Badge>
+          </div>
+        </div>
+
+        {/* Anti-Collusion & Outlier Variance Banner */}
+        <div style={{ padding: '12px 16px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', marginBottom: '16px', fontSize: '12px', color: '#1e40af', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>🛡️ <strong>Anti-Collusion Governance:</strong> Sealed bids unlocked simultaneously with public SHA-256 tender hashes. Bids within ±12% of parametric P50 baseline (QAR 3,150/unit).</span>
+          <span style={{ fontWeight: 600 }}>Tender Officer: H. Al-Kuwari</span>
         </div>
 
         {rfqs.length > 0 && (

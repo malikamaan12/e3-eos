@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Card, MetricCard, Badge } from '../components/DesignSystem.js';
 
 export const HistoricalEstimatorView: React.FC = () => {
   const [eventType, setEventType] = useState<string>('summit');
@@ -23,32 +24,53 @@ export const HistoricalEstimatorView: React.FC = () => {
     { category: 'LOGISTICS & FREIGHT', pct: 4.0, amount: '129,000 QAR' },
   ];
 
+  // Item 2: Discipline Unit Rate Corridors (P06-ST03)
+  const rateCorridors = [
+    { discipline: 'Scenic Custom Carpentry', unit: 'per m²', p25: 450, p50: 620, p75: 850, sampleCount: 14, leadTimeDays: 18 },
+    { discipline: 'Overhead Truss Rigging', unit: 'per point / day', p25: 350, p50: 500, p75: 750, sampleCount: 22, leadTimeDays: 7 },
+    { discipline: 'High-Power Laser Video & LED', unit: 'per m² / day', p25: 320, p50: 480, p75: 650, sampleCount: 18, leadTimeDays: 10 },
+    { discipline: 'Certified Rigger & Crew Lead', unit: 'per 10h shift', p25: 1200, p50: 1600, p75: 2200, sampleCount: 35, leadTimeDays: 4 },
+  ];
+
   return (
-    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', color: '#0f172a' }}>
       {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#0f172a' }}>
-            📊 Historical Estimating & Parametric Cost Forecasting
+          <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+            📊 Historical Estimating & Dynamic Rate Corridors
           </h1>
-          <span style={{ backgroundColor: '#e0e7ff', color: '#3730a3', padding: '4px 10px', borderRadius: '16px', fontSize: '12px', fontWeight: '600' }}>
-            Empirical Benchmark Engine
-          </span>
+          <Badge variant="info">P06-ST03 Governed</Badge>
+          <Badge variant="success">Empirical Benchmark</Badge>
         </div>
-        <p style={{ color: '#64748b', marginTop: '6px', fontSize: '14px' }}>
-          Empirical parametric cost ranges, similar project clustering, category spend distributions, and margin erosion risk indices.
+        <p style={{ color: '#64748b', marginTop: '6px', fontSize: '13px' }}>
+          Empirical unit rate corridors, parametric cost forecasting, evidence disclosures, and supplier lead-time intelligence.
         </p>
       </div>
 
+      {/* Mandatory Evidence Age & Disclosure Ribbon */}
+      <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px 18px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '20px' }}>ℹ️</span>
+          <div>
+            <strong style={{ fontSize: '13px', color: '#1e40af' }}>Evidence Disclosure Standard (AT-080):</strong>
+            <div style={{ fontSize: '12px', color: '#3b82f6', marginTop: '2px' }}>
+              Corridor data derived from <strong>14 delivered Doha mega-events</strong>. Average evidence age: <strong>42 days</strong>. Outputs reflect empirical benchmarks, not binding quotations.
+            </div>
+          </div>
+        </div>
+        <Badge variant="info">Sample N = 14 | Inflation Indexed +3.5%</Badge>
+      </div>
+
       {/* Controls Form */}
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+      <Card title="Tender Feasibility & Parametric Forecasting Parameters">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>Event Type</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Event Type</label>
             <select
               value={eventType}
               onChange={(e) => setEventType(e.target.value)}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
             >
               <option value="summit">Summit / Conference</option>
               <option value="festival">Festival / Cultural Event</option>
@@ -59,11 +81,11 @@ export const HistoricalEstimatorView: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>Venue Type</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Venue Type</label>
             <select
               value={venueType}
               onChange={(e) => setVenueType(e.target.value)}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
             >
               <option value="convention_centre">Convention Centre</option>
               <option value="indoor_arena">Indoor Arena</option>
@@ -73,80 +95,101 @@ export const HistoricalEstimatorView: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>Target Capacity</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Target Capacity</label>
             <input
               type="number"
               value={capacity}
               onChange={(e) => setCapacity(Number(e.target.value))}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
             />
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>Duration (Days)</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Duration (Days)</label>
             <input
               type="number"
               value={durationDays}
               onChange={(e) => setDurationDays(Number(e.target.value))}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
             />
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>Currency</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Currency</label>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
             >
               <option value="QAR">QAR (Qatari Riyal)</option>
+              <option value="USD">USD (US Dollar)</option>
+              <option value="EUR">EUR (Euro)</option>
               <option value="SAR">SAR (Saudi Riyal)</option>
               <option value="AED">AED (UAE Dirham)</option>
-              <option value="USD">USD (US Dollar)</option>
             </select>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Parametric Output Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>P25 LOW BENCHMARK</span>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#059669', marginTop: '4px' }}>2,740,000 {currency}</div>
-          <span style={{ fontSize: '11px', color: '#94a3b8' }}>Conservative baseline scope</span>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', margin: '20px 0' }}>
+        <MetricCard label="P25 Low Benchmark" value={`2,740,000 ${currency}`} subtext="Conservative baseline scope" />
+        <MetricCard label="P50 Median Forecast" value={`3,227,000 ${currency}`} subtext="Empirical historical midpoint" />
+        <MetricCard label="P75 High Benchmark" value={`3,870,000 ${currency}`} subtext="High-spec VIP / custom finishes" />
+        <MetricCard label="Margin Erosion Risk" value="3.20%" subtext="Historical scope creep average" />
+      </div>
 
-        <div style={{ backgroundColor: '#ffffff', border: '2px solid #0284c7', borderRadius: '10px', padding: '16px' }}>
-          <span style={{ fontSize: '12px', color: '#0284c7', fontWeight: '700' }}>P50 MEDIAN FORECAST</span>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#0f172a', marginTop: '4px' }}>3,227,000 {currency}</div>
-          <span style={{ fontSize: '11px', color: '#64748b' }}>Empirical historical midpoint</span>
-        </div>
-
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>P75 HIGH BENCHMARK</span>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#d97706', marginTop: '4px' }}>3,870,000 {currency}</div>
-          <span style={{ fontSize: '11px', color: '#94a3b8' }}>High-spec VIP / custom finishes</span>
-        </div>
-
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>MARGIN EROSION RISK</span>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc2626', marginTop: '4px' }}>3.20%</div>
-          <span style={{ fontSize: '11px', color: '#dc2626' }}>Historical scope creep average</span>
-        </div>
+      {/* Item 2: Dynamic Discipline Rate Corridors Table */}
+      <div style={{ marginBottom: '20px' }}>
+        <Card title="Discipline Empirical Rate Corridors (P25 / P50 / P75)" noPadding>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+                <th style={{ padding: '12px 16px' }}>Discipline & Category</th>
+                <th style={{ padding: '12px 16px' }}>Unit Basis</th>
+                <th style={{ padding: '12px 16px', textAlign: 'right' }}>P25 Low ({currency})</th>
+                <th style={{ padding: '12px 16px', textAlign: 'right' }}>P50 Median ({currency})</th>
+                <th style={{ padding: '12px 16px', textAlign: 'right' }}>P75 High ({currency})</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center' }}>Lead Time</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center' }}>Evidence Sample</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rateCorridors.map((rc, idx) => (
+                <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>{rc.discipline}</td>
+                  <td style={{ padding: '12px 16px', color: '#64748b' }}>{rc.unit}</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', color: '#059669', fontWeight: 700 }}>
+                    {rc.p25.toLocaleString()}
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 800, color: '#0f172a' }}>
+                    {rc.p50.toLocaleString()}
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', color: '#d97706', fontWeight: 700 }}>
+                    {rc.p75.toLocaleString()}
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                    <Badge variant="neutral">{rc.leadTimeDays} Days</Badge>
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                    <Badge variant="info">N = {rc.sampleCount}</Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
       </div>
 
       {/* Breakdown and Similar Projects */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         {/* Category Spend Distribution */}
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '20px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#0f172a' }}>
-            Category Spend Breakdown (% of Direct Cost)
-          </h2>
+        <Card title="Category Spend Breakdown (% of Direct Cost)">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {categorySpend.map((c, idx) => (
               <div key={idx}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                  <span style={{ fontWeight: '600', color: '#334155' }}>{c.category}</span>
+                  <span style={{ fontWeight: 600, color: '#334155' }}>{c.category}</span>
                   <span style={{ color: '#64748b' }}>{c.amount} ({c.pct}%)</span>
                 </div>
                 <div style={{ backgroundColor: '#f1f5f9', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
@@ -155,41 +198,36 @@ export const HistoricalEstimatorView: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* Similar Projects Table */}
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '20px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#0f172a' }}>
-            Comparable Delivered Projects (Evidence Base)
-          </h2>
+        <Card title="Comparable Delivered Projects (Evidence Base)" noPadding>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#64748b' }}>
-                <th style={{ padding: '8px' }}>Project</th>
-                <th style={{ padding: '8px' }}>Actual Cost</th>
-                <th style={{ padding: '8px' }}>Margin</th>
-                <th style={{ padding: '8px' }}>Match</th>
+              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+                <th style={{ padding: '12px 16px' }}>Project</th>
+                <th style={{ padding: '12px 16px' }}>Actual Cost</th>
+                <th style={{ padding: '12px 16px' }}>Margin</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center' }}>Similarity Match</th>
               </tr>
             </thead>
             <tbody>
               {similarProjects.map((p, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '10px 8px' }}>
-                    <div style={{ fontWeight: '600', color: '#0f172a' }}>{p.name}</div>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{p.name}</div>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>{p.code} ({p.capacity} pax, {p.days}d)</div>
                   </td>
-                  <td style={{ padding: '10px 8px', fontWeight: '500' }}>{p.cost}</td>
-                  <td style={{ padding: '10px 8px', color: '#059669', fontWeight: '600' }}>{p.margin}</td>
-                  <td style={{ padding: '10px 8px' }}>
-                    <span style={{ backgroundColor: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '700' }}>
-                      {p.similarity}%
-                    </span>
+                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>{p.cost}</td>
+                  <td style={{ padding: '12px 16px', color: '#059669', fontWeight: 700 }}>{p.margin}</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                    <Badge variant="success">{p.similarity}%</Badge>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       </div>
     </div>
   );

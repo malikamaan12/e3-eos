@@ -78,6 +78,82 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Customs Clearance & ATA Carnet Cross-Border Gateway (AT-057 / P04-ST03) */}
+      <Card style={{ border: '2px solid #059669', backgroundColor: '#ecfdf5' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#065f46' }}>
+                🚢 Customs Clearance, ATA Carnet & Dock Manifest Engine (P04-ST03 / AT-057)
+              </h3>
+              <Badge variant="success">CUSTOMS CLEARED</Badge>
+            </div>
+            <p style={{ fontSize: '13px', color: '#047857', margin: '4px 0 0 0' }}>
+              Bilateral customs transit tracking (General Authority of Customs Qatar / ZATCA Saudi Arabia), ATA Carnet bond verification, and 30-minute venue dock scheduling.
+            </p>
+          </div>
+
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>ACTIVE ATA CARNET:</span>
+            <div style={{ fontFamily: 'monospace', fontSize: '13px', color: '#064e3b', fontWeight: 900 }}>
+              QA-CARNET-2026-9908
+            </div>
+            <span style={{ fontSize: '10px', color: '#059669' }}>Abu Samra Land Port & Hamad Port</span>
+          </div>
+        </div>
+
+        {/* Dock Slot Scheduling Matrix */}
+        <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 01</span>
+              <Badge variant="success">30-MIN ACTIVE</Badge>
+            </div>
+            <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
+              Heavy Rigging & Trussing Manifest
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+              Slot: <strong>08:30 – 09:00</strong> • Truck QA-TRK-771
+            </div>
+            <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700, marginTop: '4px' }}>
+              Driver: Tariq Al-Dosari (QID: 28463400192) • Gate Pass QR Valid
+            </div>
+          </div>
+
+          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 02</span>
+              <Badge variant="primary">RESERVED</Badge>
+            </div>
+            <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
+              Scenic Carpentry & VIP Arch Units
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+              Slot: <strong>09:00 – 09:30</strong> • 12m Flatbed QA-FLB-201
+            </div>
+            <div style={{ fontSize: '11px', color: '#2563eb', fontWeight: 700, marginTop: '4px' }}>
+              Security Clearance: Pre-vetted by MOI Security Command
+            </div>
+          </div>
+
+          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 03</span>
+              <Badge variant="warning">CUSTOMS INSPECT</Badge>
+            </div>
+            <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
+              High-Value Laser Projection & LED Panels
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+              Slot: <strong>09:30 – 10:00</strong> • Climate Box Van QA-CBX-442
+            </div>
+            <div style={{ fontSize: '11px', color: '#d97706', fontWeight: 700, marginTop: '4px' }}>
+              Bonded Transit Seal Intact • Tamper-evident Sensor OK
+            </div>
+          </div>
+        </div>
+      </Card>
+
       {/* Transport Plans & Fleet Roster */}
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

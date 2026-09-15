@@ -183,6 +183,67 @@ export const CountryPacksView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Item 5: Regional Cell Isolation & Cross-Border Allocation Gate (P06-ST07 / AT-086) */}
+      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginTop: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: '#0f172a' }}>
+              🌐 Regional Sovereign Cell Boundaries & Cross-Border Transfer Gate (AT-086)
+            </h2>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b' }}>
+              Enforces cell boundary isolation. Prohibits implicit global data replication or asset transfers without bilateral compliance review.
+            </p>
+          </div>
+          <span style={{ backgroundColor: '#eff6ff', color: '#1e40af', padding: '4px 10px', borderRadius: '16px', fontSize: '11px', fontWeight: '700' }}>
+            Data Residency: me-central1-doha
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '14px', backgroundColor: '#f8fafc' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <strong style={{ fontSize: '13px', color: '#0f172a' }}>CELL-QA (Doha Hub)</strong>
+              <span style={{ fontSize: '11px', color: '#059669', fontWeight: '700' }}>● PRIMARY CELL</span>
+            </div>
+            <div style={{ fontSize: '12px', color: '#475569' }}>Region: <code>me-central1-doha</code></div>
+            <div style={{ fontSize: '12px', color: '#475569' }}>Tax Authority: 0% VAT / QCB Cleared</div>
+            <div style={{ fontSize: '12px', color: '#475569' }}>Active Assets: 142 Stage Equipment</div>
+          </div>
+
+          <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '14px', backgroundColor: '#f8fafc' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <strong style={{ fontSize: '13px', color: '#0f172a' }}>CELL-SA (Riyadh Hub)</strong>
+              <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: '700' }}>● SATELLITE CELL</span>
+            </div>
+            <div style={{ fontSize: '12px', color: '#475569' }}>Region: <code>me-central2-riyadh</code></div>
+            <div style={{ fontSize: '12px', color: '#475569' }}>Tax Authority: 15% ZATCA Phase 2</div>
+            <div style={{ fontSize: '12px', color: '#475569' }}>Active Assets: 86 Stage Equipment</div>
+          </div>
+
+          <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '14px', backgroundColor: '#f8fafc' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <strong style={{ fontSize: '13px', color: '#0f172a' }}>CELL-AE (Dubai Hub)</strong>
+              <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: '700' }}>● SATELLITE CELL</span>
+            </div>
+            <div style={{ fontSize: '12px', color: '#475569' }}>Region: <code>me-west1-dubai</code></div>
+            <div style={{ fontSize: '12px', color: '#475569' }}>Tax Authority: 5% UAE FTA Standard</div>
+            <div style={{ fontSize: '12px', color: '#475569' }}>Active Assets: 64 Stage Equipment</div>
+          </div>
+        </div>
+
+        <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '12px', color: '#92400e' }}>
+            <strong>Cross-Cell Transfer Protocol:</strong> Moving equipment from CELL-QA to CELL-SA requires dual customs transit ATA Carnet validation and bilateral VAT withholding clearance.
+          </div>
+          <button
+            onClick={() => alert('Bilateral Cross-Cell Protocol Checked (AT-086): Bilateral customs authorization certificate active. Asset movement permitted between CELL-QA and CELL-SA under reviewed regional data treaty.')}
+            style={{ backgroundColor: '#0284c7', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            Verify Cross-Cell Clearance
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal, Input, Textarea } from '../components/DesignSystem.js';
+import { CommercialCloseoutEngine, CommercialCloseoutChecklist } from '@e3-eos/domain';
 
 export const CommercialCloseoutView: React.FC = () => {
   const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
@@ -10,7 +11,7 @@ export const CommercialCloseoutView: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   // Closeout Checklist State (10 Pillars)
-  const [checklist, setChecklist] = useState({
+  const [checklist, setChecklist] = useState<CommercialCloseoutChecklist>({
     posFullyInvoicedOrDecommitted: true,
     supplierInvoicesSettled: true,
     clientMilestonesBilled: true,
@@ -27,6 +28,16 @@ export const CommercialCloseoutView: React.FC = () => {
   const [authorizedBy, setAuthorizedBy] = useState<string>('Hamad Al-Kuwari (Finance Director)');
   const [justification, setJustification] = useState<string>('All commercial variations settled, 100% PO commitments reconciled, final P&L locked at 26.53% gross margin.');
   const [isSealing, setIsSealing] = useState<boolean>(false);
+
+  // Live evaluation via CommercialCloseoutEngine (Item 8)
+  const closeoutEval = CommercialCloseoutEngine.evaluateCloseout({
+    projectId,
+    currency: 'QAR',
+    checklist,
+    finalRevenue: '2450000',
+    finalActualCost: '1800000',
+    signedBy: authorizedBy,
+  });
 
   const loadData = async () => {
     setLoading(true);
@@ -85,6 +96,71 @@ export const CommercialCloseoutView: React.FC = () => {
     }
   };
 
+  const handleExportPdf = () => {
+    const reportContent = `
+========================================================================
+E3-EOS COMMERCIAL CLOSEOUT & FINAL ACCOUNT AUDIT CERTIFICATE
+========================================================================
+Project ID: ${projectId}
+Closure Status: ${closeoutEval.decision.toUpperCase()}
+10-Pillar Verification: ${10 - closeoutEval.unmetPillars.length}/10 Verified
+Authorized By: ${authorizedBy}
+Date: ${new Date().toISOString()}
+
+1. FINAL REVENUE RECONCILIATION:
+- Original Contract Baseline: 2,300,000.00 QAR
+- Approved Variations (VO-01, VO-02): +150,000.00 QAR
+- Final Settled Contract Value: ${closeoutEval.finalRevenue.toString()}
+
+2. FINAL ACTUAL EXPENDITURE (EAC):
+- Direct Scenic & Steel: 620,000.00 QAR
+- AV & Projection: 480,000.00 QAR
+- Rigging & Lighting: 390,000.00 QAR
+- Site Logistics & Management: 310,000.00 QAR
+- Total Final Cost: ${closeoutEval.finalActualCost.toString()}
+
+3. PURCHASE ORDER RECONCILIATION:
+- Committed POs: 1,920,000.00 QAR
+- Invoiced POs: 1,800,000.00 QAR
+- Decommitted / Cancelled PO Balance: 120,000.00 QAR (Returned to contingency)
+
+4. FINAL COMMERCIAL PROFIT & MARGIN:
+- Net Operating Profit: ${closeoutEval.finalProfit.toString()}
+- Gross Margin Percentage: ${closeoutEval.finalGrossMarginPercent}
+
+5. CRYPTOGRAPHIC AUDIT SEAL:
+SHA-256 Digest: ${closeoutEval.auditHash}
+========================================================================
+`;
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `E3-EOS-Commercial-Closeout-${projectId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportCsv = () => {
+    const csvContent = `LineItem,Category,OriginalContract_QAR,Variations_QAR,FinalContract_QAR,FinalActualCost_QAR,Variance_QAR,Margin_Percent
+Revenue - Main Contract,Revenue,2300000,0,2300000,0,2300000,100%
+Revenue - VO-01 VIP Redesign,Revenue,0,85000,85000,0,85000,100%
+Revenue - VO-02 Acoustic Baffles,Revenue,0,65000,65000,0,65000,100%
+Cost - Scenic Carpentry & Steel,Direct Cost,0,0,0,620000,-620000,N/A
+Cost - AV & LED Display Systems,Direct Cost,0,0,0,480000,-480000,N/A
+Cost - Lighting & Rigging Hoists,Direct Cost,0,0,0,390000,-390000,N/A
+Cost - Site Logistics & Welfare,Direct Cost,0,0,0,310000,-310000,N/A
+TOTAL COMMERCIAL SETTLEMENT,SUMMARY,2300000,150000,2450000,1800000,650000,${closeoutEval.finalGrossMarginPercent}
+`;
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `E3-EOS-Final-Account-Ledger-${projectId}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const pillarDescriptions: Array<{ key: keyof typeof checklist; title: string; desc: string }> = [
     { key: 'posFullyInvoicedOrDecommitted', title: '1. PO Commitments Sealed & Decommitted', desc: 'All purchase orders have matching final supplier invoices or formal remaining commitment cancellations.' },
     { key: 'supplierInvoicesSettled', title: '2. Zero Pending Supplier Invoices', desc: '100% of incoming vendor invoices are approved, scheduled for payment, or formally disputed.' },
@@ -109,8 +185,8 @@ export const CommercialCloseoutView: React.FC = () => {
             <h1 className="text-2xl font-bold text-white tracking-wide">
               {currentLanguage === 'ar' ? 'الإغلاق التجاري والمالي للمشروع' : 'Commercial & Financial Closeout Gate'}
             </h1>
-            <Badge variant={metCount === 10 ? 'success' : 'warning'}>
-              {metCount === 10 ? '10/10 PILLARS VERIFIED' : `${metCount}/10 PILLARS MET`}
+            <Badge variant={closeoutEval.isCommerciallyClosed ? 'success' : closeoutEval.decision === 'conditional_closure' ? 'warning' : 'danger'}>
+              {closeoutEval.decision.toUpperCase().replace('_', ' ')} ({10 - closeoutEval.unmetPillars.length}/10 PILLARS)
             </Badge>
           </div>
           <p className="text-sm text-slate-400 mt-1">
@@ -118,7 +194,13 @@ export const CommercialCloseoutView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button id="btn-export-closeout-csv" variant="secondary" onClick={handleExportCsv}>
+            📊 Export CSV
+          </Button>
+          <Button id="btn-export-closeout-pdf" variant="secondary" onClick={handleExportPdf}>
+            📄 Export Audit Certificate
+          </Button>
           <Button variant="secondary" onClick={() => loadData()}>
             ↻ Refresh State
           </Button>
@@ -147,11 +229,130 @@ export const CommercialCloseoutView: React.FC = () => {
         />
         <MetricCard
           label="Final Gross Margin"
-          value="26.53%"
+          value={closeoutEval.finalGrossMarginPercent}
           trend="+6.96% vs Tender (19.57%)"
           trendDirection="up"
         />
       </div>
+
+      {/* Unmet Pillars Alert if any */}
+      {closeoutEval.unmetPillars.length > 0 && (
+        <div id="unmet-pillars-alert" className="bg-amber-950/30 border border-amber-500/50 rounded-lg p-4 text-xs text-amber-300">
+          <strong className="block text-sm text-amber-200 mb-1">
+            ⚠️ Commercial Closeout Incomplete ({closeoutEval.unmetPillars.length} Pillar(s) Pending):
+          </strong>
+          <ul className="list-disc pl-5 space-y-1">
+            {closeoutEval.unmetPillars.map((p, idx) => (
+              <li key={idx}>{p}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Final Commercial Settlement Statement Ledger (Item 8) */}
+      <Card title="Final Commercial Settlement Statement & Audit Ledger">
+        <p className="text-sm text-slate-400 mb-3">
+          Reconciled contract baseline, approved client variations, purchase order decommitments, and actual costs across disciplines.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-300">
+            <thead className="bg-slate-800/80 text-xs uppercase text-slate-400 font-medium">
+              <tr>
+                <th className="p-3">Commercial Line Item / Description</th>
+                <th className="p-3">Category</th>
+                <th className="p-3 text-right">Contract Baseline</th>
+                <th className="p-3 text-right">Approved Variations</th>
+                <th className="p-3 text-right">Final Settled (QAR)</th>
+                <th className="p-3 text-right">Actual Cost (EAC)</th>
+                <th className="p-3 text-right">Net Variance</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700/50 font-mono text-xs">
+              <tr className="hover:bg-slate-800/40">
+                <td className="p-3 font-sans font-semibold text-white">Main Contract Base Scope (Advance + Milestones)</td>
+                <td className="p-3 font-sans text-slate-400">Revenue Baseline</td>
+                <td className="p-3 text-right text-slate-200">2,300,000.00</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-white">2,300,000.00</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-emerald-400">—</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40">
+                <td className="p-3 font-sans font-semibold text-white">VO-01: VIP Royal Protocol Canopy Redesign</td>
+                <td className="p-3 font-sans text-amber-400">Approved Variation</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-amber-400">+85,000.00</td>
+                <td className="p-3 text-right text-white">85,000.00</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-emerald-400">—</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40">
+                <td className="p-3 font-sans font-semibold text-white">VO-02: Acoustic Fabric Treatment & Baffles</td>
+                <td className="p-3 font-sans text-amber-400">Approved Variation</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-amber-400">+65,000.00</td>
+                <td className="p-3 text-right text-white">65,000.00</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-emerald-400">—</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40 bg-slate-800/20">
+                <td className="p-3 font-sans font-semibold text-white">Purchase Orders Decommitment Adjustment</td>
+                <td className="p-3 font-sans text-emerald-400">PO Reconciled</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-emerald-400">-120,000.00 (Decommitted)</td>
+                <td className="p-3 text-right text-emerald-400">+120,000.00 Savings</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40">
+                <td className="p-3 font-sans font-semibold text-white">Direct Production Costs (Steel, Scenic, Carpentry)</td>
+                <td className="p-3 font-sans text-slate-400">Direct Cost</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-rose-400">620,000.00</td>
+                <td className="p-3 text-right text-slate-400">—</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40">
+                <td className="p-3 font-sans font-semibold text-white">AV, LED & Projection Subcontractors</td>
+                <td className="p-3 font-sans text-slate-400">Direct Cost</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-rose-400">480,000.00</td>
+                <td className="p-3 text-right text-slate-400">—</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40">
+                <td className="p-3 font-sans font-semibold text-white">Lighting, Rigging & Heavy Plant Machinery</td>
+                <td className="p-3 font-sans text-slate-400">Direct Cost</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-rose-400">390,000.00</td>
+                <td className="p-3 text-right text-slate-400">—</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40">
+                <td className="p-3 font-sans font-semibold text-white">Site Management, Crew Welfare & Permits</td>
+                <td className="p-3 font-sans text-slate-400">Site Operations</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-slate-500">—</td>
+                <td className="p-3 text-right text-rose-400">310,000.00</td>
+                <td className="p-3 text-right text-slate-400">—</td>
+              </tr>
+              <tr className="bg-slate-900 font-bold border-t-2 border-slate-600 text-sm">
+                <td className="p-3 font-sans text-white">FINAL RECONCILED SETTLEMENT SUMMARY</td>
+                <td className="p-3 font-sans text-emerald-400">{closeoutEval.decision.toUpperCase()}</td>
+                <td className="p-3 text-right text-slate-300">2,300,000.00</td>
+                <td className="p-3 text-right text-amber-400">+150,000.00</td>
+                <td className="p-3 text-right text-white">{closeoutEval.finalRevenue.toString()}</td>
+                <td className="p-3 text-right text-rose-300">{closeoutEval.finalActualCost.toString()}</td>
+                <td className="p-3 text-right text-emerald-400">+{closeoutEval.finalProfit.toString()} ({closeoutEval.finalGrossMarginPercent})</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* 10-Dimension Commercial Closeout Checklist */}
       <Card title="10-Dimension Commercial Closeout Framework">
@@ -201,20 +402,22 @@ export const CommercialCloseoutView: React.FC = () => {
           <div className="bg-slate-900/90 border border-amber-500/30 rounded-lg p-4 space-y-3 text-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/50 pb-2">
               <span className="text-slate-400">Closure Authorization Status:</span>
-              <Badge variant="success">COMMERCIALLY CLOSED</Badge>
+              <Badge variant={closeoutEval.isCommerciallyClosed ? 'success' : 'warning'}>
+                {closeoutEval.decision.toUpperCase().replace('_', ' ')}
+              </Badge>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/50 pb-2">
               <span className="text-slate-400">Signed By:</span>
-              <span className="text-white font-medium">{closeout?.signedBy || 'Hamad Al-Kuwari (Finance Director)'}</span>
+              <span className="text-white font-medium">{authorizedBy}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/50 pb-2">
-              <span className="text-slate-400">Timestamp:</span>
-              <span className="text-slate-300 font-mono">{closeout?.signedAt || new Date().toISOString()}</span>
+              <span className="text-slate-400">Evaluation Timestamp:</span>
+              <span className="text-slate-300 font-mono">{closeoutEval.signedAt}</span>
             </div>
             <div>
-              <span className="text-slate-400 block mb-1">SHA-256 Audit Seal:</span>
-              <div className="bg-slate-950 p-2.5 rounded font-mono text-amber-400 break-all text-[11px] border border-slate-800">
-                {closeout?.auditSeal || 'b4a6cf80e3198dc00451fa2889211d04b321a99471fec9983716a782a514d720'}
+              <span className="text-slate-400 block mb-1">SHA-256 Audit Seal (CommercialCloseoutEngine):</span>
+              <div id="closeout-audit-seal-display" className="bg-slate-950 p-2.5 rounded font-mono text-amber-400 break-all text-[11px] border border-slate-800">
+                {closeoutEval.auditHash}
               </div>
             </div>
           </div>

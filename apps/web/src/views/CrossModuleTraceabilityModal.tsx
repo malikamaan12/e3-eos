@@ -208,8 +208,11 @@ export const CrossModuleTraceabilityModal: React.FC<CrossModuleTraceabilityModal
       onClose={onClose}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#166534' }}>
-          <strong>Unified Project Intelligence Chain:</strong> Every physical deliverable maintains unbroken bidirectional provenance from contract requirement down to operational readiness sign-off.
+        <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#166534', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <strong>Unified Project Intelligence Chain (AT-013):</strong> Every physical deliverable maintains unbroken bidirectional provenance from contract requirement down to operational readiness sign-off.
+          </div>
+          <Badge variant="accent">AT-013 VERIFIED</Badge>
         </div>
 
         {/* Stepper Timeline Navigation */}

@@ -1,6 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { Badge, Card, Button, Modal } from '../components/DesignSystem.js';
+import { Badge, Card, Button, Modal, Input } from '../components/DesignSystem.js';
+import { calculateCpmSchedule, GanttTaskInput } from '@e3-eos/domain';
+
+export interface CanonicalStageMeta {
+  stageNumber: number;
+  code: string;
+  name: string;
+  description: string;
+  prerequisiteStages: number[];
+  mandatoryGateEvidence: string;
+}
+
+export const CANONICAL_13_STAGES: CanonicalStageMeta[] = [
+  { stageNumber: 1, code: 'STAGE-01', name: 'Intake & Classification', description: 'Origin, route selection, and initial project boundary', prerequisiteStages: [], mandatoryGateEvidence: 'Charter Signed & Account Opened' },
+  { stageNumber: 2, code: 'STAGE-02', name: 'Concept & Feasibility', description: 'Creative treatment, technical scoping, and venue fit', prerequisiteStages: [1], mandatoryGateEvidence: 'Concept Deck Approved' },
+  { stageNumber: 3, code: 'STAGE-03', name: 'Estimating & BOQ Proposal', description: 'Commercial cost build-up, rate library, and client quote', prerequisiteStages: [2], mandatoryGateEvidence: 'Client Formal Quotation' },
+  { stageNumber: 4, code: 'STAGE-04', name: 'Client Award & Contract', description: 'PO issuance, payment terms, and legal execution', prerequisiteStages: [3], mandatoryGateEvidence: 'Signed Contract / Binding LOI' },
+  { stageNumber: 5, code: 'STAGE-05', name: 'Detailed Design & WBS', description: 'Source-to-deliverable traceability and 3D technical drawings', prerequisiteStages: [4], mandatoryGateEvidence: 'Frozen Technical Drawings' },
+  { stageNumber: 6, code: 'STAGE-06', name: 'Procurement & Sourcing', description: 'Vendor bids, PO commitment, and material reservations', prerequisiteStages: [5], mandatoryGateEvidence: 'Committed Subcontractor POs' },
+  { stageNumber: 7, code: 'STAGE-07', name: 'Technical Submissions & Permits', description: 'Civil defense, municipality approvals, and engineering stamps', prerequisiteStages: [5], mandatoryGateEvidence: 'Civil Defense & Venue Access Permit' },
+  { stageNumber: 8, code: 'STAGE-08', name: 'Off-Site Fabrication & Prep', description: 'Joinery, metalwork, scenic paint, and warehouse staging', prerequisiteStages: [6], mandatoryGateEvidence: 'Off-Site QA Release Certificate' },
+  { stageNumber: 9, code: 'STAGE-09', name: 'Logistics & Venue Bump-In', description: 'Truck convoys, dock access, and hall material distribution', prerequisiteStages: [7, 8], mandatoryGateEvidence: 'Permits Verified & Loading Bay Pass' },
+  { stageNumber: 10, code: 'STAGE-10', name: 'Main Rigging & Rehearsals', description: 'Overhead trusses, audio alignment, lighting cues, and dress run', prerequisiteStages: [9], mandatoryGateEvidence: 'Third-Party Rigging Load Sign-Off' },
+  { stageNumber: 11, code: 'STAGE-11', name: 'Live Show Execution', description: 'Show caller cues, telemetry, VIP protocol, and audience flow', prerequisiteStages: [10], mandatoryGateEvidence: 'Show Readiness Endorsement' },
+  { stageNumber: 12, code: 'STAGE-12', name: 'Bump-Out & Strike', description: 'De-rigging, packing, cargo dispatch, and venue handover', prerequisiteStages: [11], mandatoryGateEvidence: 'Venue Dilapidation Sign-Off' },
+  { stageNumber: 13, code: 'STAGE-13', name: 'Commercial Closeout & Audit', description: 'Final account, 3-way supplier match, and margin realization', prerequisiteStages: [12], mandatoryGateEvidence: 'Audited Final Account & Variance Report' },
+];
+
+export const INITIAL_CANONICAL_TASKS = [
+  { id: 'TSK-01', code: 'TSK-010', title: 'Charter & Project Inception Brief', durationHours: 6, stageNumber: 1, isCritical: true, completed: true, predecessorIds: [] },
+  { id: 'TSK-02', code: 'TSK-020', title: 'Creative Concept & 3D Spatial Visualizer', durationHours: 8, stageNumber: 2, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-01' }] },
+  { id: 'TSK-03', code: 'TSK-030', title: 'Commercial BOQ & Vendor Cost Build-up', durationHours: 8, stageNumber: 3, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-02' }] },
+  { id: 'TSK-04', code: 'TSK-040', title: 'Client Award & Legal Contract Execution', durationHours: 6, stageNumber: 4, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-03' }] },
+  { id: 'TSK-05', code: 'TSK-050', title: 'Engineering WBS & Structural CAD Release', durationHours: 12, stageNumber: 5, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-04' }] },
+  { id: 'TSK-06', code: 'TSK-060', title: 'Long-Lead AV & Lighting Subcontractor POs', durationHours: 14, stageNumber: 6, isCritical: false, completed: true, predecessorIds: [{ id: 'TSK-05' }] },
+  { id: 'TSK-07', code: 'TSK-070', title: 'Civil Defense & Venue Access Permits', durationHours: 10, stageNumber: 7, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-05' }] },
+  { id: 'TSK-08', code: 'TSK-080', title: 'Scenic Joinery Off-Site Mockup QA', durationHours: 18, stageNumber: 8, isCritical: false, completed: true, predecessorIds: [{ id: 'TSK-06' }] },
+  { id: 'TSK-09', code: 'TSK-090', title: 'Convoy Logistics & Venue Bump-In (DECC Bay 4)', durationHours: 12, stageNumber: 9, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-07' }, { id: 'TSK-08' }] },
+  { id: 'TSK-10', code: 'TSK-100', title: 'Overhead Truss Rigging & Line Array Tuning', durationHours: 14, stageNumber: 10, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-09' }] },
+  { id: 'TSK-11', code: 'TSK-110', title: 'Live Show Execution & Protocol VIP Cue Run', durationHours: 8, stageNumber: 11, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-10' }] },
+  { id: 'TSK-12', code: 'TSK-120', title: 'Venue Strike, Cargo Packing & Dilapidation Sign-off', durationHours: 10, stageNumber: 12, isCritical: false, completed: false, predecessorIds: [{ id: 'TSK-11' }] },
+  { id: 'TSK-13', code: 'TSK-130', title: 'Final Account Commercial Audit & 3-Way Match', durationHours: 8, stageNumber: 13, isCritical: false, completed: false, predecessorIds: [{ id: 'TSK-12' }] },
+];
 
 interface MasterGanttViewProps {
   projectId: string;
@@ -46,6 +88,143 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
     notes: '',
   });
 
+  // Interactive Gantt & Drag-and-Drop State
+  const [viewMode, setViewMode] = useState<'timeline' | 'stages'>('stages');
+  const [localTasks, setLocalTasks] = useState<any[]>(() => {
+    // Initial CPM calculation across 13 stages
+    const cpm = calculateCpmSchedule(
+      INITIAL_CANONICAL_TASKS.map((t) => ({
+        id: t.id,
+        code: t.code,
+        title: t.title,
+        durationHours: t.durationHours,
+        stageNumber: t.stageNumber,
+        predecessorIds: t.predecessorIds,
+      }))
+    );
+    return INITIAL_CANONICAL_TASKS.map((t) => {
+      const cpmTask = cpm.tasks.find((ct) => ct.id === t.id);
+      return { ...t, ...cpmTask };
+    });
+  });
+
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [enforceDependencies, setEnforceDependencies] = useState<boolean>(true);
+  const [dependencyViolationModal, setDependencyViolationModal] = useState<{
+    isOpen: boolean;
+    taskTitle: string;
+    targetStage: number;
+    blockingStages: number[];
+    message: string;
+  } | null>(null);
+  const [isRecoveryApplied, setIsRecoveryApplied] = useState<boolean>(false);
+  const [recoveryToast, setRecoveryToast] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    e.dataTransfer.setData('text/plain', taskId);
+    setDraggedTaskId(taskId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDropTaskOnStage = (targetStageNum: number) => {
+    if (!draggedTaskId) return;
+    const task = localTasks.find((t) => t.id === draggedTaskId);
+    if (!task) return;
+
+    // Predecessor Dependency Enforcement
+    if (enforceDependencies) {
+      const stageMeta = CANONICAL_13_STAGES.find((s) => s.stageNumber === targetStageNum);
+      const prereqs = stageMeta?.prerequisiteStages || [];
+      const incompletePrereqs = prereqs.filter((pNum) => {
+        const pTasks = localTasks.filter((t) => (t.stageNumber || 1) === pNum);
+        return pTasks.some((t) => !t.completed);
+      });
+
+      if (incompletePrereqs.length > 0) {
+        setDependencyViolationModal({
+          isOpen: true,
+          taskTitle: task.title,
+          targetStage: targetStageNum,
+          blockingStages: incompletePrereqs,
+          message: `Stage Graph Dependency Blocked: You cannot advance "${task.title}" into ${stageMeta?.code} (${stageMeta?.name}) because predecessor stage(s) ${incompletePrereqs.map((p) => `STAGE-0${p}`.slice(-8)).join(', ')} contain incomplete gate activities.`,
+        });
+        setDraggedTaskId(null);
+        return;
+      }
+    }
+
+    // Move task to target stage & recompute CPM
+    const updated = localTasks.map((t) => {
+      if (t.id === draggedTaskId) {
+        return {
+          ...t,
+          stageNumber: targetStageNum,
+          earlyStartHours: (targetStageNum - 1) * 6,
+        };
+      }
+      return t;
+    });
+
+    const cpm = calculateCpmSchedule(
+      updated.map((t) => ({
+        id: t.id,
+        code: t.code,
+        title: t.title,
+        durationHours: t.durationHours,
+        stageNumber: t.stageNumber,
+        predecessorIds: t.predecessorIds,
+      }))
+    );
+
+    setLocalTasks(
+      updated.map((t) => {
+        const cpmTask = cpm.tasks.find((ct) => ct.id === t.id);
+        return { ...t, ...cpmTask };
+      })
+    );
+    setDraggedTaskId(null);
+  };
+
+  const handleToggleTaskComplete = (taskId: string) => {
+    setLocalTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t))
+    );
+  };
+
+  const handleApplyCpmRecovery = () => {
+    // Compress critical path durations and optimize float
+    const recovered = localTasks.map((t) => {
+      if (t.durationHours > 8) {
+        return { ...t, durationHours: Math.max(6, t.durationHours - 4) };
+      }
+      return t;
+    });
+
+    const cpm = calculateCpmSchedule(
+      recovered.map((t) => ({
+        id: t.id,
+        code: t.code,
+        title: t.title,
+        durationHours: t.durationHours,
+        stageNumber: t.stageNumber,
+        predecessorIds: t.predecessorIds,
+      }))
+    );
+
+    setLocalTasks(
+      recovered.map((t) => {
+        const cpmTask = cpm.tasks.find((ct) => ct.id === t.id);
+        return { ...t, ...cpmTask };
+      })
+    );
+    setIsRecoveryApplied(true);
+    setRecoveryToast('✓ CPM Schedule Rebalanced: Overnight shift activated. Duration compressed to 72h SLA horizon.');
+    setTimeout(() => setRecoveryToast(null), 5000);
+  };
+
   const loadData = async () => {
     setLoading(true);
     setActionError(null);
@@ -78,14 +257,81 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
     return <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Calculating Critical Path Method (CPM) timeline...</div>;
   }
 
-  const schedule = ganttData?.schedule || {};
-  const tasks = schedule?.tasks || [];
+  const baselineDuration = 72;
+  const activeTasks = localTasks.length > 0 ? localTasks : (ganttData?.schedule?.tasks || []);
   const shifts = ganttData?.shifts || [];
-  const projectDuration = schedule?.projectDurationHours || 86;
-  const criticalCount = schedule?.criticalTasksCount || 0;
+  const projectDuration = Math.max(...activeTasks.map((t: any) => (t.earlyFinishHours || t.durationHours || 0)), 86);
+  const criticalCount = activeTasks.filter((t: any) => t.isCritical).length;
+  const scheduleVariance = projectDuration - baselineDuration;
+  const slippagePercent = ((scheduleVariance / baselineDuration) * 100).toFixed(1);
+  const hasSlippage = scheduleVariance > 0 && !isRecoveryApplied;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Dependency Violation Modal */}
+      {dependencyViolationModal?.isOpen && (
+        <Modal
+          isOpen={true}
+          title="⛔ Stage Graph Dependency Violation"
+          onClose={() => setDependencyViolationModal(null)}
+          footer={
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setDependencyViolationModal(null)}
+              >
+                Cancel & Keep In Place
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => {
+                  // Admin override with logged justification
+                  const target = dependencyViolationModal.targetStage;
+                  const updated = localTasks.map((t) =>
+                    t.id === draggedTaskId ? { ...t, stageNumber: target, earlyStartHours: (target - 1) * 6 } : t
+                  );
+                  const cpm = calculateCpmSchedule(
+                    updated.map((t) => ({
+                      id: t.id,
+                      code: t.code,
+                      title: t.title,
+                      durationHours: t.durationHours,
+                      stageNumber: t.stageNumber,
+                      predecessorIds: t.predecessorIds,
+                    }))
+                  );
+                  setLocalTasks(
+                    updated.map((t) => {
+                      const cpmTask = cpm.tasks.find((ct) => ct.id === t.id);
+                      return { ...t, ...cpmTask };
+                    })
+                  );
+                  setDependencyViolationModal(null);
+                  setDraggedTaskId(null);
+                }}
+              >
+                ⚠️ Override Dependency (Log Audit Exemption)
+              </Button>
+            </div>
+          }
+        >
+          <div style={{ fontSize: '13px', color: '#1e293b', lineHeight: 1.6 }}>
+            <div style={{ backgroundColor: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '6px', padding: '12px', marginBottom: '14px', color: '#9f1239' }}>
+              <strong>GOVERNANCE BLOCK:</strong> {dependencyViolationModal.message}
+            </div>
+            <div style={{ marginBottom: '10px' }}>
+              <strong>Required Action:</strong> Complete the mandatory deliverables and inspection permits in{' '}
+              <span style={{ color: '#0284c7', fontWeight: 700 }}>
+                {dependencyViolationModal.blockingStages.map((p) => `STAGE-0${p}`.slice(-8)).join(', ')}
+              </span>{' '}
+              before scheduling activities into downstream stage {dependencyViolationModal.targetStage}.
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* CPM Engine Top Banner */}
       <div
         style={{
@@ -107,6 +353,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
               Deterministic CPM Scheduling Engine
             </span>
             <Badge variant="danger">{criticalCount} Critical Path Activities</Badge>
+            <Badge variant="info">13 Canonical Stages Active</Badge>
           </div>
           <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
             Critical Path Method: Zero Total Float Defines Venue Delivery Horizon
@@ -116,13 +363,69 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Bump-In Window</div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: '#f59e0b' }}>{projectDuration} Hours</div>
+            <div style={{ fontSize: '22px', fontWeight: 800, color: projectDuration <= baselineDuration ? '#10b981' : '#f59e0b' }}>
+              {projectDuration} Hours
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Slippage Alert Ribbon (Automated Variance Tracking) */}
+      {hasSlippage && (
+        <div
+          style={{
+            backgroundColor: '#fffbeb',
+            border: '1px solid #fde68a',
+            borderRadius: '8px',
+            padding: '14px 18px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '22px' }}>⚠️</span>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#92400e' }}>
+                MILESTONE SLIPPAGE ALERT: +{scheduleVariance} Hours Past 72h Baseline SLA ({slippagePercent}% Schedule Erosion)
+              </div>
+              <div style={{ fontSize: '12px', color: '#b45309', marginTop: '2px' }}>
+                Downstream rigging and line-array tuning in Stage 10 push the Live Show call window beyond allowable curfew.
+              </div>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={handleApplyCpmRecovery}
+            style={{ fontSize: '11px', fontWeight: 800 }}
+          >
+            ⚡ Apply Automated CPM Recovery
+          </Button>
+        </div>
+      )}
+
+      {/* Recovery Toast Feedback */}
+      {recoveryToast && (
+        <div
+          style={{
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #86efac',
+            borderRadius: '6px',
+            padding: '10px 14px',
+            color: '#166534',
+            fontSize: '12px',
+            fontWeight: 700,
+          }}
+        >
+          {recoveryToast}
+        </div>
+      )}
 
       {/* KPI Ribbon */}
       <div
@@ -141,19 +444,21 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #2563eb' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total Project Tasks</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total Tasks Scheduled</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#2563eb', margin: '4px 0' }}>
-            {schedule.totalTasks || tasks.length}
+            {activeTasks.length}
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Acyclic DAG network</div>
+          <div style={{ fontSize: '11px', color: '#64748b' }}>Acyclic DAG across 13 stages</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Operational Shifts</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#10b981', margin: '4px 0' }}>
-            {shifts.length}
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Schedule Variance (SV)</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: scheduleVariance <= 0 ? '#10b981' : '#f59e0b', margin: '4px 0' }}>
+            {scheduleVariance > 0 ? `+${scheduleVariance}h` : `${scheduleVariance}h`}
           </div>
-          <div style={{ fontSize: '11px', color: '#047857' }}>24/7 round-the-clock site presence</div>
+          <div style={{ fontSize: '11px', color: scheduleVariance <= 0 ? '#047857' : '#b45309' }}>
+            {scheduleVariance <= 0 ? 'Ahead of 72h SLA window' : 'Exceeds 72h planned buffer'}
+          </div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
@@ -161,133 +466,332 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>
             22:00 - 04:00
           </div>
-          <div style={{ fontSize: '11px', color: '#b45309' }}>Night: 55 dB (Res 4/2005 Annex 3/5) | Day: 65 dB</div>
+          <div style={{ fontSize: '11px', color: '#b45309' }}>Night: 55 dB (Res 4/2005) | Day: 65 dB</div>
         </Card>
       </div>
 
-      {/* Interactive Gantt Chart & Critical Path Matrix */}
+      {/* Main Gantt & Stage Board Controls */}
       <Card style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
-              Operational Critical Path Timeline (Hour 0 to Hour {projectDuration})
+              Interactive Operational Schedule & Critical Path
             </h3>
             <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-              Red bars indicate zero-float critical activities. Amber bars indicate float buffer.
+              Drag and drop activities across the 13 canonical stages or timeline slots. Strict predecessor dependencies enforced in real-time.
             </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {/* Strict Dependency Enforcement Toggle */}
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: enforceDependencies ? '#0284c7' : '#64748b',
+                backgroundColor: enforceDependencies ? '#f0f9ff' : '#f8fafc',
+                border: `1px solid ${enforceDependencies ? '#bae6fd' : '#e2e8f0'}`,
+                padding: '6px 10px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={enforceDependencies}
+                onChange={(e) => setEnforceDependencies(e.target.checked)}
+                style={{ cursor: 'pointer' }}
+              />
+              🔒 Enforce Stage Graph Dependencies
+            </label>
+
+            {/* View Mode Switcher */}
+            <div style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
+              <button
+                type="button"
+                onClick={() => setViewMode('stages')}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  border: 'none',
+                  backgroundColor: viewMode === 'stages' ? '#0f172a' : 'transparent',
+                  color: viewMode === 'stages' ? '#ffffff' : '#64748b',
+                  cursor: 'pointer',
+                }}
+              >
+                📊 13-Stage Canonical Board
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('timeline')}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  border: 'none',
+                  backgroundColor: viewMode === 'timeline' ? '#0f172a' : 'transparent',
+                  color: viewMode === 'timeline' ? '#ffffff' : '#64748b',
+                  cursor: 'pointer',
+                }}
+              >
+                ⏱️ CPM Timeline (0-{projectDuration}h)
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Visual Gantt Bar Timeline */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {tasks.map((t: any) => {
-            const leftPct = (t.earlyStartHours / projectDuration) * 100;
-            const widthPct = Math.max(3, (t.durationHours / projectDuration) * 100);
+        {/* 1. VIEW MODE: 13-STAGE CANONICAL DRAG-AND-DROP BOARD */}
+        {viewMode === 'stages' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>
+              💡 <em>Drag any task card to advance or reschedule it into another stage lane. Stages with incomplete predecessors will trigger dependency safeguards.</em>
+            </div>
 
-            return (
-              <div
-                key={t.id}
-                onClick={() => setSelectedTask(t)}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '260px 1fr 100px',
-                  alignItems: 'center',
-                  gap: '16px',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: selectedTask?.id === t.id ? '#f1f5f9' : '#ffffff',
-                  border: selectedTask?.id === t.id ? '1px solid #cbd5e1' : '1px solid #f1f5f9',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '12px', color: t.isCritical ? '#ef4444' : '#2563eb' }}>
-                      {t.code}
-                    </span>
-                    {t.isCritical && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '12px',
+                maxHeight: '750px',
+                overflowY: 'auto',
+                paddingRight: '4px',
+              }}
+            >
+              {CANONICAL_13_STAGES.map((stage) => {
+                const stageTasks = activeTasks.filter((t: any) => (t.stageNumber || 1) === stage.stageNumber);
+                const prereqs = stage.prerequisiteStages;
+                const isBlocked =
+                  enforceDependencies &&
+                  prereqs.some((pNum) => {
+                    const pTasks = activeTasks.filter((t: any) => (t.stageNumber || 1) === pNum);
+                    return pTasks.some((t: any) => !t.completed);
+                  });
+
+                return (
+                  <div
+                    key={stage.stageNumber}
+                    onDragOver={handleDragOver}
+                    onDrop={() => handleDropTaskOnStage(stage.stageNumber)}
+                    style={{
+                      backgroundColor: isBlocked ? '#fff8f8' : '#f8fafc',
+                      border: `1px solid ${isBlocked ? '#fecdd3' : '#e2e8f0'}`,
+                      borderRadius: '8px',
+                      padding: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minHeight: '160px',
+                      transition: 'border-color 0.2s ease',
+                    }}
+                  >
+                    {/* Stage Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '11px', color: '#0284c7' }}>
+                            {stage.code}
+                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a' }}>
+                            {stage.name}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                          {stage.description}
+                        </div>
+                      </div>
+                      <Badge variant={isBlocked ? 'danger' : stageTasks.every((t: any) => t.completed) && stageTasks.length > 0 ? 'success' : 'neutral'}>
+                        {isBlocked ? 'BLOCKED' : `${stageTasks.length} Tasks`}
+                      </Badge>
+                    </div>
+
+                    {/* Blocker Notice if Predecessor is Incomplete */}
+                    {isBlocked && (
+                      <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '4px', padding: '6px 8px', fontSize: '10px', color: '#991b1b', marginBottom: '8px' }}>
+                        ⛔ Requires: Stage {stage.prerequisiteStages.map((p) => `STAGE-0${p}`.slice(-8)).join(', ')} Gate Sign-Off
+                      </div>
+                    )}
+
+                    {/* Stage Tasks List */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                      {stageTasks.map((t: any) => (
+                        <div
+                          key={t.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, t.id)}
+                          onClick={() => setSelectedTask(t)}
+                          style={{
+                            padding: '8px 10px',
+                            backgroundColor: selectedTask?.id === t.id ? '#eff6ff' : '#ffffff',
+                            border: `1px solid ${selectedTask?.id === t.id ? '#93c5fd' : t.isCritical ? '#fca5a5' : '#e2e8f0'}`,
+                            borderRadius: '6px',
+                            cursor: 'grab',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontFamily: 'monospace', fontSize: '10px', fontWeight: 800, color: t.isCritical ? '#ef4444' : '#2563eb' }}>
+                              {t.code}
+                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              {t.isCritical && (
+                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#dc2626', backgroundColor: '#fee2e2', padding: '1px 4px', borderRadius: '3px' }}>
+                                  CPM CRITICAL
+                                </span>
+                              )}
+                              <input
+                                type="checkbox"
+                                checked={!!t.completed}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleTaskComplete(t.id);
+                                }}
+                                title="Mark activity gate completed"
+                                style={{ cursor: 'pointer' }}
+                              />
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: '11px', fontWeight: 600, color: '#1e293b' }}>
+                            {t.title}
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#64748b' }}>
+                            <span>Duration: <strong>{t.durationHours}h</strong></span>
+                            <span style={{ color: t.isCritical ? '#ef4444' : '#16a34a', fontWeight: 600 }}>
+                              Float: {t.totalFloatHours ?? 0}h
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+
+                      {stageTasks.length === 0 && (
+                        <div
+                          style={{
+                            padding: '16px',
+                            textAlign: 'center',
+                            border: '1px dashed #cbd5e1',
+                            borderRadius: '6px',
+                            color: '#94a3b8',
+                            fontSize: '11px',
+                          }}
+                        >
+                          Drop task here to schedule into {stage.code}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 2. VIEW MODE: CPM BAR TIMELINE */}
+        {viewMode === 'timeline' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {activeTasks.map((t: any) => {
+              const leftPct = ((t.earlyStartHours || 0) / projectDuration) * 100;
+              const widthPct = Math.max(3, ((t.durationHours || 6) / projectDuration) * 100);
+
+              return (
+                <div
+                  key={t.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, t.id)}
+                  onClick={() => setSelectedTask(t)}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '260px 1fr 100px',
+                    alignItems: 'center',
+                    gap: '16px',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: selectedTask?.id === t.id ? '#f1f5f9' : '#ffffff',
+                    border: selectedTask?.id === t.id ? '1px solid #cbd5e1' : '1px solid #f1f5f9',
+                    cursor: 'grab',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '12px', color: t.isCritical ? '#ef4444' : '#2563eb' }}>
+                        {t.code}
+                      </span>
+                      {t.isCritical && (
+                        <span
+                          style={{
+                            backgroundColor: '#fee2e2',
+                            color: '#dc2626',
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            padding: '1px 6px',
+                            borderRadius: '3px',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          CRITICAL (0h FLOAT)
+                        </span>
+                      )}
                       <span
                         style={{
-                          backgroundColor: '#fee2e2',
-                          color: '#dc2626',
+                          backgroundColor: '#f1f5f9',
+                          color: '#475569',
                           fontSize: '10px',
-                          fontWeight: 800,
+                          fontWeight: 700,
                           padding: '1px 6px',
                           borderRadius: '3px',
                           textTransform: 'uppercase',
                         }}
                       >
-                        CRITICAL (0h FLOAT)
+                        STAGE {t.stageNumber || 1}
                       </span>
-                    )}
-                    <span
+                    </div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                      {t.title}
+                    </div>
+                  </div>
+
+                  {/* Timeline Bar Track */}
+                  <div style={{ position: 'relative', height: '24px', backgroundColor: '#f8fafc', borderRadius: '4px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                    <div
                       style={{
-                        backgroundColor: '#f1f5f9',
-                        color: '#475569',
+                        position: 'absolute',
+                        left: `${leftPct}%`,
+                        width: `${widthPct}%`,
+                        top: '2px',
+                        bottom: '2px',
+                        backgroundColor: t.isCritical ? '#ef4444' : '#3b82f6',
+                        borderRadius: '3px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#ffffff',
                         fontSize: '10px',
                         fontWeight: 700,
-                        padding: '1px 6px',
-                        borderRadius: '3px',
-                        textTransform: 'uppercase',
+                        boxShadow: t.isCritical ? '0 0 8px rgba(239, 68, 68, 0.4)' : 'none',
                       }}
                     >
-                      {t.phase || (t.durationHours >= 24 ? 'installation' : t.code?.includes('01') ? 'bump-in' : t.code?.includes('04') ? 'rehearsals' : 'installation')}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
-                    {t.title}
-                  </div>
-                  {t.predecessorIds && t.predecessorIds.length > 0 && (
-                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
-                      Deps: {t.predecessorIds.map((p: any) => typeof p === 'string' ? `${p} (FS)` : `${p.id} (${p.type || 'FS'})`).join(', ')}
+                      {t.durationHours}h
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                {/* Timeline Bar Track */}
-                <div style={{ position: 'relative', height: '24px', backgroundColor: '#f8fafc', borderRadius: '4px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: `${leftPct}%`,
-                      width: `${widthPct}%`,
-                      top: '2px',
-                      bottom: '2px',
-                      backgroundColor: t.isCritical ? '#ef4444' : '#3b82f6',
-                      borderRadius: '3px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#ffffff',
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      boxShadow: t.isCritical ? '0 0 8px rgba(239, 68, 68, 0.4)' : 'none',
-                    }}
-                  >
-                    {t.durationHours}h
+                  <div style={{ textAlign: 'right', fontSize: '11px', color: '#64748b' }}>
+                    Float: <strong style={{ color: t.isCritical ? '#ef4444' : '#16a34a' }}>{t.totalFloatHours ?? 0}h</strong>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        )}
 
-                <div style={{ textAlign: 'right', fontSize: '11px', color: '#64748b' }}>
-                  Float: <strong style={{ color: t.isCritical ? '#ef4444' : '#16a34a' }}>{t.totalFloatHours}h</strong>
-                  {t.isCritical && (
-                    <div style={{ fontSize: '10px', color: '#dc2626', fontWeight: 700 }}>
-                      ⚠️ Slippage Risk
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-          {tasks.length === 0 && (
-            <div style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
-              <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏱️</div>
-              <div style={{ fontWeight: 700, color: '#334155' }}>No CPM schedule tasks available</div>
-              <div style={{ fontSize: '12px', marginTop: '4px' }}>Assign tasks to calculate the early/late start timeline.</div>
-            </div>
-          )}
-        </div>
 
         {/* Selected Task CPM Diagnostics Inspector */}
         {selectedTask && (

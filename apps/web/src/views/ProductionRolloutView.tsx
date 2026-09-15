@@ -240,6 +240,10 @@ export const ProductionRolloutView: React.FC = () => {
     }, 1000);
   };
 
+  // Capability 40: Compensating Business Action & Rollback Reconciliation (P07-ST03 / AT-088)
+  const [at088RollbackSimulated, setAt088RollbackSimulated] = useState<boolean>(false);
+  const [at088HardDeleteAttempted, setAt088HardDeleteAttempted] = useState<boolean>(false);
+
   // Support Runbook State (AT-092)
   const [selectedRunbook, setSelectedRunbook] = useState<string>('RB01');
   const [supportDrillResult, setSupportDrillResult] = useState<any>(null);
@@ -1086,6 +1090,7 @@ export const ProductionRolloutView: React.FC = () => {
           return (
             <button
               key={tab.id}
+              id={`tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               style={{
                 display: 'inline-flex',
@@ -1601,6 +1606,75 @@ export const ProductionRolloutView: React.FC = () => {
               <div style={{ color: '#34d399', fontWeight: 700, marginTop: '8px' }}>
                 ✓ Manifest Reconciliation Completed: 0 Discrepancies detected. Restore target verified.
               </div>
+            </div>
+          </Card>
+
+          {/* Capability 40: Compensating Business Action & Rollback Reconciliation Studio (P07-ST03 / AT-088) */}
+          <Card
+            title="Invariant AT-088: Compensating Business Action & Rollback Reconciliation Studio"
+            subtitle="Guarantees that rolling back an externally dispatched PO executes a compensating business action with delivery reconciliation, strictly prohibiting hard deletions."
+          >
+            <div id="dr-compensating-action-workbench" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '18px' }}>📜</span>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                      Dispatched Commitment Target: PO-2026-089 (85,000 QAR)
+                    </h4>
+                    <Badge variant={at088RollbackSimulated ? 'neutral' : 'warning'}>
+                      {at088RollbackSimulated ? 'COMPENSATED_CANCELLED' : 'DISPATCHED & ACKNOWLEDGED'}
+                    </Badge>
+                    <Badge variant="info">INVARIANT AT-088 ACTIVE</Badge>
+                  </div>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                    Vendor: Gulf Stage Lighting LLC • Transmitted via EDI Gateway • Physical loading was scheduled.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => {
+                      setAt088HardDeleteAttempted(true);
+                      setAt088RollbackSimulated(false);
+                    }}
+                  >
+                    Attempt Hard Database Delete / Reset
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      setAt088RollbackSimulated(true);
+                      setAt088HardDeleteAttempted(false);
+                    }}
+                  >
+                    Execute Compensating Business Action (AT-088)
+                  </Button>
+                </div>
+              </div>
+
+              {at088HardDeleteAttempted && (
+                <div style={{ padding: '14px 18px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b', fontSize: '13px', lineHeight: 1.5, fontWeight: 600 }}>
+                  ⛔ <strong>HARD DELETE CATEGORICALLY REJECTED (AT-088):</strong> Cannot delete or reset PO-2026-089. An external financial and delivery commitment has already been transmitted to Gulf Stage Lighting LLC. Hard deletions create un-reconciled phantom debts. Compensating business action is strictly required.
+                </div>
+              )}
+
+              {at088RollbackSimulated && (
+                <div style={{ backgroundColor: '#0f172a', color: '#f8fafc', padding: '16px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '12px', lineHeight: 1.6 }}>
+                  <div style={{ color: '#34d399', fontWeight: 800, marginBottom: '6px' }}>
+                    ✓ AT-088 Compensating Business Action Executed Successfully:
+                  </div>
+                  <div>Compensating Notice ID: <span style={{ color: '#38bdf8' }}>CBRN-2026-0042</span></div>
+                  <div>PO Status Transition: <span style={{ color: '#fbbf24' }}>DISPATCHED ➔ COMPENSATED_CANCELLED</span> (Zero hard deletion)</div>
+                  <div>Vendor Transmittal: <span style={{ color: '#cbd5e1' }}>Formal Revocation Memo dispatched to Gulf Stage Lighting LLC</span></div>
+                  <div>Commercial Ledger Adjustment: <span style={{ color: '#34d399' }}>-85,000 QAR commitment reversed from Project EAC</span></div>
+                  <div>Delivery Reconciled State: <span style={{ color: '#cbd5e1' }}>Dock loading slot released; dispatch manifest cancelled</span></div>
+                  <div>Cryptographic Seal: <span style={{ color: '#94a3b8' }}>d142ab608b5531fcacdabf8a4b227777d4dd1fc61c6f884f48641d02b4d121d3</span></div>
+                </div>
+              )}
             </div>
           </Card>
         </div>

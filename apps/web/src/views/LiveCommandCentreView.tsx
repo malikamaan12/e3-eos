@@ -1,6 +1,136 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+
+export interface CommandPushEvent {
+  id: string;
+  timestamp: string;
+  category: 'gate' | 'snag' | 'safety' | 'vip';
+  title: string;
+  detail: string;
+  severity: 'info' | 'warning' | 'critical' | 'success';
+}
+
+export interface ShowCue {
+  id: string;
+  code: string;
+  title: string;
+  scheduledTime: string;
+  durationMinutes: number;
+  department: string;
+  vipProtocol: boolean;
+  status: 'completed' | 'live' | 'armed' | 'pending' | 'hold';
+  notes: string;
+}
+
+const INITIAL_PUSH_EVENTS: CommandPushEvent[] = [
+  {
+    id: 'EVT-001',
+    timestamp: '20:14:10',
+    category: 'vip',
+    title: '👑 VIP Protocol: State Convoy In Transit',
+    detail: 'Amiri Diwan motorcade departed; ETA DECC Gate 1 in 14 minutes. Protocol reception team standing by at VIP Majlis.',
+    severity: 'info',
+  },
+  {
+    id: 'EVT-002',
+    timestamp: '20:12:45',
+    category: 'gate',
+    title: '🚚 Gate Arrival: TRK-QA-7819 at Loading Bay 4',
+    detail: '40ft air-ride trailer carrying Barco UDX-4K40 backup laser projectors arrived. Manifest verified by Logistics Lead.',
+    severity: 'success',
+  },
+  {
+    id: 'EVT-003',
+    timestamp: '20:10:02',
+    category: 'snag',
+    title: '⚠️ Snag Escalation: SNAG-902 Kinetic Rig Lanyard',
+    detail: 'Secondary safety wire checked and tension certified by Lead Rigging Engineer Klaus Mueller. Stage clearance signed.',
+    severity: 'warning',
+  },
+  {
+    id: 'EVT-004',
+    timestamp: '20:07:30',
+    category: 'safety',
+    title: '🚨 Field Telemetry: Anemometer Main Grid 28 kts',
+    detail: 'Wind speed within permissible operational threshold (<42 knots). Continuous ultrasonic monitoring active.',
+    severity: 'info',
+  },
+  {
+    id: 'EVT-005',
+    timestamp: '20:03:15',
+    category: 'gate',
+    title: '🚚 Gate Arrival: TRK-DXB-9022 at VIP Majlis Gate 2',
+    detail: 'Curtainsider transport with custom ceremonial pavilion carpet & acoustic panels cleared by security screening.',
+    severity: 'success',
+  },
+  {
+    id: 'EVT-006',
+    timestamp: '19:58:40',
+    category: 'snag',
+    title: '⚠️ Snag Escalation: SNAG-908 AC Vibration Damped',
+    detail: 'VIP Majlis condenser acoustic baffle fitted; sound pressure verified at 43 dB (well under 55 dB curfew limit).',
+    severity: 'success',
+  },
+];
+
+const INITIAL_SHOW_CUES: ShowCue[] = [
+  {
+    id: 'cue-01',
+    code: 'CUE-01.00',
+    title: 'Doors Open & Public Concourse Ingress',
+    scheduledTime: '19:00',
+    durationMinutes: 60,
+    department: 'Front of House / Security',
+    vipProtocol: false,
+    status: 'completed',
+    notes: 'Turnstiles open. Ambient lighting preset L-01 active. Background strings playback.',
+  },
+  {
+    id: 'cue-02',
+    code: 'CUE-02.00',
+    title: 'VIP Majlis Arrival & Dignitary Reception',
+    scheduledTime: '20:00',
+    durationMinutes: 20,
+    department: 'Amiri Protocol / Guest Relations',
+    vipProtocol: true,
+    status: 'live',
+    notes: 'State motorcade reception. Ceremonial coffee service. Low ambient lighting preset L-02.',
+  },
+  {
+    id: 'cue-03',
+    code: 'CUE-03.00',
+    title: 'Qatar National Anthem & Kinetic Chandelier Reveal',
+    scheduledTime: '20:20',
+    durationMinutes: 10,
+    department: 'Show Caller / Audio / Automation',
+    vipProtocol: true,
+    status: 'armed',
+    notes: 'Armed: Kinetic motor winches at standby 100%. Main PA unmuted. Spotlight on National Emblem.',
+  },
+  {
+    id: 'cue-04',
+    code: 'CUE-04.00',
+    title: 'Emiri Diwan Keynote Address & 3D Hologram',
+    scheduledTime: '20:30',
+    durationMinutes: 25,
+    department: 'Video / Lighting / Audio',
+    vipProtocol: true,
+    status: 'pending',
+    notes: 'Holographic mesh screen drop. Shure Axient wireless mic channel 1 active. Barco 4K laser feed.',
+  },
+  {
+    id: 'cue-05',
+    code: 'CUE-05.00',
+    title: 'Grand Finale Drone Swarm & Pyrotechnic Salute',
+    scheduledTime: '20:55',
+    durationMinutes: 15,
+    department: 'Civil Defense / Special Effects',
+    vipProtocol: true,
+    status: 'pending',
+    notes: '500-drone formation launched. Low-smoke cold spark jets armed. QCDD safety marshals in position.',
+  },
+];
 
 export const LiveCommandCentreView: React.FC = () => {
   const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
@@ -9,7 +139,59 @@ export const LiveCommandCentreView: React.FC = () => {
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'panels' | 'incidents' | 'audience'>('panels');
+  const [activeTab, setActiveTab] = useState<'panels' | 'cues' | 'audience' | 'emergency'>('panels');
+  const [emergencyIncidents, setEmergencyIncidents] = useState<any[]>([
+    {
+      id: 'INC-EMG-01',
+      tier: 'L3_CRITICAL',
+      title: 'Kinetic Chandelier Winch #4 Brake Slip Warning',
+      zone: 'ROYAL_MAJLIS_OVERHEAD',
+      reportedAt: '20:14:02 AST',
+      slaMinutes: 3,
+      dispatchedMarshal: 'Capt. Rashid Al-Hajri (QCDD Liaison)',
+      status: 'dispatched',
+      auditHash: 'SHA256:9c1a3b8d7e2f5a0c',
+    },
+    {
+      id: 'INC-EMG-02',
+      tier: 'L2_OPERATIONAL',
+      title: 'Main PA Line Array Subwoofer Amp Overheat',
+      zone: 'STAGE_LEFT_RIG',
+      reportedAt: '20:08:15 AST',
+      slaMinutes: 15,
+      dispatchedMarshal: 'Kareem Taha (Audio System Engineer)',
+      status: 'in_progress',
+      auditHash: 'SHA256:2b4c6d8e0f1a3c5e',
+    },
+    {
+      id: 'INC-EMG-03',
+      tier: 'L1_ROUTINE',
+      title: 'VIP Gate 2 Egress Turnstile Sensor Scuff',
+      zone: 'CONCOURSE_NORTH',
+      reportedAt: '19:45:00 AST',
+      slaMinutes: 60,
+      dispatchedMarshal: 'Civil Ops Team B',
+      status: 'contained',
+      auditHash: 'SHA256:7f9a1b3c5e7d9e1f',
+    },
+  ]);
+
+  // Push Feed & Ticker States
+  const [pushEvents, setPushEvents] = useState<CommandPushEvent[]>(INITIAL_PUSH_EVENTS);
+  const [feedFilter, setFeedFilter] = useState<'all' | 'gate' | 'snag' | 'safety' | 'vip'>('all');
+  const [isTickerPaused, setIsTickerPaused] = useState<boolean>(false);
+  const [tickerIndex, setTickerIndex] = useState<number>(0);
+  const [isSimulateModalOpen, setIsSimulateModalOpen] = useState<boolean>(false);
+  const [simCategory, setSimCategory] = useState<'gate' | 'snag' | 'safety' | 'vip'>('gate');
+  const [simTitle, setSimTitle] = useState<string>('');
+  const [simDetail, setSimDetail] = useState<string>('');
+
+  // Show Caller Countdown & VIP Cue States
+  const [showCues, setShowCues] = useState<ShowCue[]>(INITIAL_SHOW_CUES);
+  const [countdownSeconds, setCountdownSeconds] = useState<number>(14 * 60 + 32); // 14m 32s default
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
+  const [cumulativeDelayMinutes, setCumulativeDelayMinutes] = useState<number>(10);
+  const [cueFeedbackToast, setCueFeedbackToast] = useState<string | null>(null);
 
   // Protective Action Modal
   const [isActionModalOpen, setIsActionModalOpen] = useState<boolean>(false);
@@ -26,6 +208,47 @@ export const LiveCommandCentreView: React.FC = () => {
   const [incidentDesc, setIncidentDesc] = useState<string>('');
 
   const [lastUpdated, setLastUpdated] = useState<string>('09:15:00');
+
+  // Web Audio Chime Helper (SSR safe)
+  const playCueChime = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch {
+      // Audio playback blocked or not supported
+    }
+  };
+
+  // Real-time Countdown Timer effect
+  useEffect(() => {
+    if (!isTimerRunning) return;
+    const timer = setInterval(() => {
+      setCountdownSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isTimerRunning]);
+
+  // Push Event Ticker auto-advance effect
+  useEffect(() => {
+    if (isTickerPaused) return;
+    const tickerInterval = setInterval(() => {
+      setTickerIndex((prev) => (prev + 1) % pushEvents.length);
+    }, 4500);
+    return () => clearInterval(tickerInterval);
+  }, [isTickerPaused, pushEvents.length]);
 
   const loadCommandCenter = async () => {
     setLoading(true);
@@ -45,6 +268,83 @@ export const LiveCommandCentreView: React.FC = () => {
     const interval = setInterval(loadCommandCenter, 10000);
     return () => clearInterval(interval);
   }, [projectId]);
+
+  // Cue execution trigger handler
+  const handleExecuteCue = (cueId: string) => {
+    playCueChime();
+    setShowCues((prevCues) => {
+      let foundActive = false;
+      const updated = prevCues.map((c) => {
+        if (c.id === cueId) {
+          foundActive = true;
+          return { ...c, status: 'completed' as const };
+        }
+        if (foundActive && c.status === 'armed') {
+          return { ...c, status: 'live' as const };
+        }
+        if (foundActive && c.status === 'pending') {
+          foundActive = false;
+          return { ...c, status: 'armed' as const };
+        }
+        return c;
+      });
+      return updated;
+    });
+
+    const targetCue = showCues.find((c) => c.id === cueId);
+    setCueFeedbackToast(`⚡ GO! ${targetCue?.code}: "${targetCue?.title}" executed successfully.`);
+    setTimeout(() => setCueFeedbackToast(null), 4000);
+
+    // Reset countdown for the next armed cue
+    setCountdownSeconds(10 * 60);
+  };
+
+  const handleHoldCue = (cueId: string) => {
+    setShowCues((prev) =>
+      prev.map((c) => (c.id === cueId ? { ...c, status: c.status === 'hold' ? 'armed' : ('hold' as const) } : c))
+    );
+    setIsTimerRunning((prev) => !prev);
+  };
+
+  const handleAdjustCueDelay = (minutesDelta: number) => {
+    setCumulativeDelayMinutes((prev) => Math.max(0, prev + minutesDelta));
+    setCountdownSeconds((prev) => Math.max(0, prev + minutesDelta * 60));
+  };
+
+  const handleAddSimulatedEvent = () => {
+    if (!simTitle) return;
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const newEvt: CommandPushEvent = {
+      id: `EVT-${Date.now().toString().slice(-4)}`,
+      timestamp: timeStr,
+      category: simCategory,
+      title: simTitle,
+      detail: simDetail || 'Dispatched via Live Command Centre operator console.',
+      severity: simCategory === 'safety' ? 'warning' : 'info',
+    };
+    setPushEvents([newEvt, ...pushEvents]);
+    setIsSimulateModalOpen(false);
+    setSimTitle('');
+    setSimDetail('');
+    setTickerIndex(0);
+  };
+
+  const filteredEvents = pushEvents.filter((evt) => {
+    if (feedFilter === 'all') return true;
+    return evt.category === feedFilter;
+  });
+
+  const activeTickerEvent = filteredEvents[tickerIndex % (filteredEvents.length || 1)] || pushEvents[0];
+
+  const formatCountdown = (totalSecs: number) => {
+    const hours = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const nextArmedCue = showCues.find((c) => c.status === 'armed') || showCues.find((c) => c.status === 'live') || showCues[0];
 
   const handleExecuteAction = async () => {
     if (!selectedIncident) return;
@@ -88,6 +388,31 @@ export const LiveCommandCentreView: React.FC = () => {
 
   return (
     <div style={{ padding: '24px', maxWidth: '1600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Toast notification */}
+      {cueFeedbackToast && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 9999,
+            backgroundColor: '#0f172a',
+            color: '#10b981',
+            border: '1px solid #10b981',
+            padding: '12px 20px',
+            borderRadius: '8px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            fontWeight: 700,
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <span>{cueFeedbackToast}</span>
+        </div>
+      )}
+
       {/* Top Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
@@ -116,6 +441,14 @@ export const LiveCommandCentreView: React.FC = () => {
             {isRtl ? '8 لوحات عملياتية' : '8 Operations Panels'}
           </Button>
           <Button
+            variant={activeTab === 'cues' ? 'primary' : 'outline'}
+            onClick={() => setActiveTab('cues')}
+            id="tab-cues"
+            style={{ backgroundColor: activeTab === 'cues' ? '#7c3aed' : undefined, color: activeTab === 'cues' ? '#ffffff' : undefined }}
+          >
+            🎙️ {isRtl ? 'مصفوفة إشارات كبار الشخصيات' : 'VIP Cue Matrix & Run-Sheet'}
+          </Button>
+          <Button
             variant={activeTab === 'audience' ? 'primary' : 'outline'}
             onClick={() => setActiveTab('audience')}
             id="tab-audience"
@@ -123,11 +456,266 @@ export const LiveCommandCentreView: React.FC = () => {
             {isRtl ? 'كثافة الجمهور والتوقعات' : 'Audience Density & Projection'}
           </Button>
           <Button
+            variant={activeTab === 'emergency' ? 'primary' : 'outline'}
+            onClick={() => setActiveTab('emergency')}
+            id="tab-emergency"
+            style={{ backgroundColor: activeTab === 'emergency' ? '#dc2626' : undefined, color: activeTab === 'emergency' ? '#ffffff' : undefined }}
+          >
+            🚨 {isRtl ? 'إدارة الطوارئ والتصعيد' : 'Emergency Dispatch & Escalation'}
+          </Button>
+          <Button
             variant="danger"
             onClick={() => setIsIncidentModalOpen(true)}
             id="btn-report-incident-top"
           >
             {isRtl ? '+ تسجيل حادث فوري' : '+ Report Live Incident'}
+          </Button>
+        </div>
+      </div>
+
+      {/* 🔴 REAL-TIME WEBSOCKET / SSE LIVE TICKER STRIP */}
+      <div
+        style={{
+          backgroundColor: '#090d16',
+          border: '1px solid #1e293b',
+          borderRadius: '8px',
+          padding: '10px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              📡 SSE LIVE FEED TICKER
+            </span>
+            <span style={{ fontSize: '11px', color: '#64748b' }}>| Active Telemetry & Field Broadcast</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            {/* Category filter pills */}
+            {(['all', 'gate', 'snag', 'safety', 'vip'] as const).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  setFeedFilter(cat);
+                  setTickerIndex(0);
+                }}
+                style={{
+                  backgroundColor: feedFilter === cat ? '#1e293b' : 'transparent',
+                  color: feedFilter === cat ? '#f8fafc' : '#94a3b8',
+                  border: `1px solid ${feedFilter === cat ? '#38bdf8' : '#334155'}`,
+                  borderRadius: '4px',
+                  padding: '2px 8px',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {cat === 'all' && 'All Feed'}
+                {cat === 'gate' && '🚚 Gate Arrivals'}
+                {cat === 'snag' && '⚠️ Snags'}
+                {cat === 'safety' && '🚨 Field Safety'}
+                {cat === 'vip' && '👑 VIP Protocol'}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setIsTickerPaused(!isTickerPaused)}
+              style={{
+                backgroundColor: '#1e293b',
+                color: isTickerPaused ? '#f59e0b' : '#94a3b8',
+                border: '1px solid #334155',
+                borderRadius: '4px',
+                padding: '2px 8px',
+                fontSize: '10px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              {isTickerPaused ? '▶️ Resume' : '⏸️ Pause'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsSimulateModalOpen(true)}
+              style={{
+                backgroundColor: '#0284c7',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '2px 8px',
+                fontSize: '10px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              + Push Simulated Alert
+            </button>
+          </div>
+        </div>
+
+        {/* Moving Ticker Banner Content */}
+        {activeTickerEvent && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#0f172a',
+              borderLeft: `4px solid ${activeTickerEvent.severity === 'critical' ? '#ef4444' : activeTickerEvent.severity === 'warning' ? '#f59e0b' : activeTickerEvent.category === 'vip' ? '#a855f7' : '#10b981'}`,
+              padding: '8px 12px',
+              borderRadius: '4px',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#94a3b8' }}>
+                [{activeTickerEvent.timestamp}]
+              </span>
+              <strong style={{ fontSize: '12px', color: '#f8fafc' }}>
+                {activeTickerEvent.title}
+              </strong>
+              <span style={{ fontSize: '11px', color: '#cbd5e1' }}>
+                — {activeTickerEvent.detail}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '10px', color: '#64748b' }}>
+                Item {tickerIndex + 1} of {filteredEvents.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => setTickerIndex((prev) => (prev - 1 + filteredEvents.length) % filteredEvents.length)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0 4px' }}
+              >
+                ◀
+              </button>
+              <button
+                type="button"
+                onClick={() => setTickerIndex((prev) => (prev + 1) % filteredEvents.length)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0 4px' }}
+              >
+                ▶
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ⏱️ RUN-SHEET MINUTE-BY-MINUTE COUNTDOWN & CUE CONTROLLER BANNER */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
+          border: '1px solid #312e81',
+          borderRadius: '8px',
+          padding: '16px 20px',
+          color: '#ffffff',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#a5b4fc', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Show Caller Countdown Clock
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginTop: '2px' }}>
+              <span
+                style={{
+                  fontFamily: 'monospace',
+                  fontSize: '32px',
+                  fontWeight: 900,
+                  color: countdownSeconds < 120 ? '#ef4444' : '#38bdf8',
+                  letterSpacing: '0.05em',
+                  textShadow: '0 0 12px rgba(56, 189, 248, 0.4)',
+                }}
+              >
+                T-{formatCountdown(countdownSeconds)}
+              </span>
+              <span style={{ fontSize: '12px', color: '#cbd5e1' }}>
+                to <strong style={{ color: '#ffffff' }}>{nextArmedCue?.code}</strong>: {nextArmedCue?.title}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderLeft: '1px solid #334155', paddingLeft: '16px' }}>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Cumulative Show Variance:</span>
+            <span
+              style={{
+                fontFamily: 'monospace',
+                fontSize: '14px',
+                fontWeight: 800,
+                color: cumulativeDelayMinutes > 0 ? '#f59e0b' : '#10b981',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+              }}
+            >
+              +{cumulativeDelayMinutes}m
+            </span>
+          </div>
+        </div>
+
+        {/* Quick Adjust & Direct Trigger Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '3px', borderRadius: '6px' }}>
+            <button
+              type="button"
+              onClick={() => handleAdjustCueDelay(1)}
+              style={{ background: 'none', border: '1px solid #334155', color: '#f8fafc', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+              title="Add 1 minute delay"
+            >
+              +1m
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAdjustCueDelay(5)}
+              style={{ background: 'none', border: '1px solid #334155', color: '#f8fafc', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+              title="Add 5 minutes delay"
+            >
+              +5m
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAdjustCueDelay(-1)}
+              style={{ background: 'none', border: '1px solid #334155', color: '#f8fafc', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+              title="Reduce 1 minute delay"
+            >
+              -1m
+            </button>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleHoldCue(nextArmedCue.id)}
+            style={{ color: '#fcd34d', borderColor: '#f59e0b' }}
+          >
+            {isTimerRunning ? '⏸️ HOLD CLOCK' : '▶️ RESUME CLOCK'}
+          </Button>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => handleExecuteCue(nextArmedCue.id)}
+            style={{ backgroundColor: '#10b981', color: '#ffffff', fontWeight: 800 }}
+            id="btn-trigger-next-cue"
+          >
+            ⚡ GO / EXECUTE {nextArmedCue.code}
           </Button>
         </div>
       </div>
@@ -343,6 +931,115 @@ export const LiveCommandCentreView: React.FC = () => {
         </div>
       )}
 
+      {/* TAB 2: VIP Show Caller & Cue Trigger Matrix */}
+      {activeTab === 'cues' && (
+        <Card title="VIP Cue Trigger Matrix & Show Caller Sequence (Minute-by-Minute Run Sheet)">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+                Operational cue execution with Web Audio chime feedback, multi-department telemetry integration, and dynamic show clock variance adjustment.
+              </p>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>Total Sequence: <strong>5 Governed Cues</strong></span>
+                <Badge variant="info">Amiri Protocol Signed</Badge>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+              {showCues.map((cue, index) => {
+                const isCurrentArmed = cue.status === 'armed';
+                const isLive = cue.status === 'live';
+                const isCompleted = cue.status === 'completed';
+                const isHold = cue.status === 'hold';
+
+                return (
+                  <div
+                    key={cue.id}
+                    style={{
+                      backgroundColor: isLive ? '#faf5ff' : isCurrentArmed ? '#f0fdf4' : isHold ? '#fffbeb' : '#ffffff',
+                      border: `2px solid ${isLive ? '#a855f7' : isCurrentArmed ? '#22c55e' : isHold ? '#f59e0b' : '#e2e8f0'}`,
+                      borderRadius: '8px',
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      boxShadow: isCurrentArmed ? '0 0 12px rgba(34, 197, 94, 0.2)' : isLive ? '0 0 12px rgba(168, 85, 247, 0.2)' : 'none',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: '#0f172a' }}>
+                          {cue.code}
+                        </span>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          {cue.vipProtocol && (
+                            <Badge variant="danger">👑 VIP PROTOCOL</Badge>
+                          )}
+                          <Badge
+                            variant={isCompleted ? 'neutral' : isLive ? 'danger' : isCurrentArmed ? 'success' : isHold ? 'warning' : 'neutral'}
+                          >
+                            {isCompleted ? 'COMPLETED' : isLive ? 'LIVE NOW' : isCurrentArmed ? 'ARMED / STANDBY' : isHold ? 'HELD' : 'PENDING'}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                        {cue.title}
+                      </h4>
+
+                      <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#475569' }}>
+                        {cue.notes}
+                      </p>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', color: '#64748b' }}>
+                        <div>Dept: <strong style={{ color: '#334155' }}>{cue.department}</strong></div>
+                        <div>Target: <strong style={{ color: '#334155' }}>{cue.scheduledTime} AST</strong></div>
+                        <div>Duration: <strong style={{ color: '#334155' }}>{cue.durationMinutes} mins</strong></div>
+                        <div>Seq Index: <strong style={{ color: '#334155' }}>#{index + 1}</strong></div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '12px', marginTop: '4px' }}>
+                      {!isCompleted && (
+                        <Button
+                          variant={isCurrentArmed ? 'primary' : 'outline'}
+                          size="sm"
+                          onClick={() => handleExecuteCue(cue.id)}
+                          style={{
+                            flex: 1,
+                            backgroundColor: isCurrentArmed ? '#10b981' : undefined,
+                            borderColor: isCurrentArmed ? '#10b981' : undefined,
+                            fontWeight: 800,
+                          }}
+                        >
+                          ⚡ GO / EXECUTE
+                        </Button>
+                      )}
+                      {!isCompleted && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleHoldCue(cue.id)}
+                          style={{ color: isHold ? '#10b981' : '#d97706', borderColor: '#f59e0b' }}
+                        >
+                          {isHold ? '▶️ RELEASE' : '⏸️ HOLD'}
+                        </Button>
+                      )}
+                      {isCompleted && (
+                        <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          ✓ Cue Successfully Executed & Time-Stamped
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Card>
+      )}
+
       {activeTab === 'audience' && (
         <Card title="Audience Density & Ingress Projection Engine">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
@@ -376,6 +1073,117 @@ export const LiveCommandCentreView: React.FC = () => {
                   {audience?.meteringRequired ? 'Turnstile Metering Active' : 'Normal Flow Clearance'}
                 </Badge>
               </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Item 6: Multi-Tier Incident Escalation Matrix & Emergency Dispatch (P04 / AT-063) */}
+      {activeTab === 'emergency' && (
+        <Card title="Multi-Tier Incident Escalation Matrix & Emergency Dispatch (P04 / AT-063)">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ backgroundColor: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '8px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '24px' }}>🚨</span>
+                <div>
+                  <strong style={{ fontSize: '13px', color: '#9f1239' }}>3-Tier Emergency Protocol Active:</strong>
+                  <div style={{ fontSize: '12px', color: '#be123c', marginTop: '2px' }}>
+                    Level 3 Structural / Life Safety incidents trigger immediate automated dispatch within 3-minute SLA window with push notifications to QCDD marshals.
+                  </div>
+                </div>
+              </div>
+              <Badge variant="danger">QCDD ESCALATION ARMED</Badge>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <Badge variant="neutral">LEVEL 1: ROUTINE</Badge>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>SLA: 60 Minutes</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: '#0f172a' }}>Minor Field Snags</h4>
+                <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
+                  Scuffed fascia paint, cable ramp adjustments, minor decorative fabric fixes. Handled by roaming civil site crew.
+                </p>
+              </div>
+
+              <div style={{ border: '1px solid #fde68a', borderRadius: '8px', padding: '16px', backgroundColor: '#fffbeb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <Badge variant="warning">LEVEL 2: OPERATIONAL</Badge>
+                  <span style={{ fontSize: '11px', color: '#b45309' }}>SLA: 15 Minutes</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: '#92400e' }}>Show Flow Impact</h4>
+                <p style={{ margin: 0, fontSize: '12px', color: '#78350f', lineHeight: 1.5 }}>
+                  Video processor heat throttle, line-array amplifier failover, stage turntable latency. Handled by senior department leads.
+                </p>
+              </div>
+
+              <div style={{ border: '1px solid #fecdd3', borderRadius: '8px', padding: '16px', backgroundColor: '#fff1f2' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <Badge variant="danger">LEVEL 3: CRITICAL</Badge>
+                  <span style={{ fontSize: '11px', color: '#9f1239', fontWeight: 800 }}>SLA: 3 Minutes</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: '#9f1239' }}>Structural & Life Safety</h4>
+                <p style={{ margin: 0, fontSize: '12px', color: '#881337', lineHeight: 1.5 }}>
+                  Winch brake slippage, wind gusts &gt;28 knots, QCDD emergency exit obstruction. Triggers instant show caller stop-work.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ padding: '12px 16px', backgroundColor: '#0f172a', color: '#ffffff', fontWeight: 700, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Active Incident Dispatch Register & Cryptographic Hash Chain</span>
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Live Telemetry Sync</span>
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+                    <th style={{ padding: '12px 16px' }}>Incident Code</th>
+                    <th style={{ padding: '12px 16px' }}>Tier</th>
+                    <th style={{ padding: '12px 16px' }}>Issue Description</th>
+                    <th style={{ padding: '12px 16px' }}>Zone</th>
+                    <th style={{ padding: '12px 16px' }}>SLA Target</th>
+                    <th style={{ padding: '12px 16px' }}>Dispatched Marshal</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center' }}>Audit Hash</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center' }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {emergencyIncidents.map((inc) => (
+                    <tr key={inc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px 16px', fontWeight: 700, fontFamily: 'monospace' }}>{inc.id}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <Badge variant={inc.tier.startsWith('L3') ? 'danger' : inc.tier.startsWith('L2') ? 'warning' : 'neutral'}>
+                          {inc.tier}
+                        </Badge>
+                      </td>
+                      <td style={{ padding: '12px 16px', fontWeight: 600 }}>{inc.title}</td>
+                      <td style={{ padding: '12px 16px', color: '#0284c7' }}>{inc.zone}</td>
+                      <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: inc.tier.startsWith('L3') ? '#dc2626' : '#b45309', fontWeight: 700 }}>
+                        {inc.slaMinutes}m SLA ({inc.status.toUpperCase()})
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#334155' }}>{inc.dispatchedMarshal}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                        {inc.auditHash}
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                        <Button
+                          size="sm"
+                          variant={inc.status === 'contained' ? 'secondary' : 'danger'}
+                          onClick={() => {
+                            setEmergencyIncidents((prev) =>
+                              prev.map((i) => (i.id === inc.id ? { ...i, status: i.status === 'contained' ? 'dispatched' : 'contained' } : i))
+                            );
+                            playCueChime();
+                          }}
+                        >
+                          {inc.status === 'contained' ? 'Re-open' : '⚡ Rapid Contain'}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </Card>
@@ -506,6 +1314,62 @@ export const LiveCommandCentreView: React.FC = () => {
               <Button variant="outline" onClick={() => setIsIncidentModalOpen(false)}>Cancel</Button>
               <Button variant="primary" onClick={handleReportIncident} disabled={!incidentDesc} id="btn-submit-incident">
                 Log Incident
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Simulate Live Push Alert Modal */}
+      {isSimulateModalOpen && (
+        <Modal
+          isOpen={isSimulateModalOpen}
+          onClose={() => setIsSimulateModalOpen(false)}
+          title="📡 Broadcast Simulated Live Push Event"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px' }}>Feed Category</label>
+              <Select
+                value={simCategory}
+                onChange={(e) => setSimCategory(e.target.value as any)}
+                options={[
+                  { value: 'gate', label: '🚚 Truck Gate Arrival' },
+                  { value: 'snag', label: '⚠️ Snag Escalation' },
+                  { value: 'safety', label: '🚨 Field Safety & Telemetry' },
+                  { value: 'vip', label: '👑 VIP Protocol Movement' },
+                ]}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px' }}>Alert Headline / Title</label>
+              <Input
+                value={simTitle}
+                onChange={(e) => setSimTitle(e.target.value)}
+                placeholder="e.g. TRK-QA-9901 Arrived at Gate 3 with Pyrotechnics"
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px' }}>Detail & Manifest / Verification Data</label>
+              <Textarea
+                value={simDetail}
+                onChange={(e) => setSimDetail(e.target.value)}
+                placeholder="Details of customs clearance, driver contact, zone routing, or technician sign-off..."
+                rows={3}
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <Button variant="outline" onClick={() => setIsSimulateModalOpen(false)}>Cancel</Button>
+              <Button
+                variant="primary"
+                onClick={handleAddSimulatedEvent}
+                disabled={!simTitle}
+                style={{ backgroundColor: '#0284c7' }}
+              >
+                Broadcast to Live Ticker
               </Button>
             </div>
           </div>

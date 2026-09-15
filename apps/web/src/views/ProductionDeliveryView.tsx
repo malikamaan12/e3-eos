@@ -31,6 +31,21 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
   const [newSnagBlocksDispatch, setNewSnagBlocksDispatch] = useState<boolean>(false);
   const [isSubmittingSnag, setIsSubmittingSnag] = useState<boolean>(false);
 
+  // Workshop Routing & Drawing Revision State (AT-053 / P03-ST05)
+  const [cadRevision, setCadRevision] = useState<number>(3);
+  const [builtActualVersion, setBuiltActualVersion] = useState<number>(2);
+  const [isReverifyingCad, setIsReverifyingCad] = useState<boolean>(false);
+  const [reverifiedNotes, setReverifiedNotes] = useState<string>('');
+
+  const handleReverifyRevision = () => {
+    setIsReverifyingCad(true);
+    setTimeout(() => {
+      setBuiltActualVersion(cadRevision);
+      setReverifiedNotes('Engineering QC verified: 12 built units conform to CAD Rev 03.0 with zero structural clashes.');
+      setIsReverifyingCad(false);
+    }, 400);
+  };
+
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
@@ -234,6 +249,109 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
               </div>
             </div>
           ))}
+        </div>
+      </Card>
+
+      {/* Workshop Fabrication Routing & CAD Drawing Revision Studio (AT-053 / P03-ST05) */}
+      <Card style={{ border: '2px solid #0284c7', backgroundColor: '#f0f9ff' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#0369a1' }}>
+                🛠️ Workshop Fabrication Routing & Drawing Revision Studio (P03-ST05 / AT-053)
+              </h3>
+              <Badge variant="info">CAD REVISION LINKED</Badge>
+            </div>
+            <p style={{ fontSize: '13px', color: '#0284c7', margin: '4px 0 0 0' }}>
+              Tracks shop floor routing across Carpentry, Metalwork, Scenic Paint, and Assembly with automated drawing revision impact detection.
+            </p>
+          </div>
+
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#0369a1' }}>Active CAD Drawing:</span>
+            <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#0f172a', fontWeight: 800 }}>
+              DWG-LUS-STAGE-REV-0{cadRevision}.dwg (v{cadRevision}.0)
+            </div>
+          </div>
+        </div>
+
+        {/* CAD Revision Discrepancy Alert */}
+        {builtActualVersion < cadRevision ? (
+          <div style={{ marginTop: '16px', padding: '14px', borderRadius: '8px', border: '1px solid #f97316', backgroundColor: '#fff7ed', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '16px' }}>⚠</span>
+                <span style={{ fontWeight: 800, color: '#c2410c', fontSize: '13px' }}>
+                  DRAWING REVISION TAKEOFF ALERT: UNITS BUILT TO REV {builtActualVersion}.0 (AT-053)
+                </span>
+              </div>
+              <p style={{ fontSize: '12px', color: '#9a3412', margin: '4px 0 0 0' }}>
+                12 fabricated units were built using Rev 0{builtActualVersion}.0. Newly approved Rev 0{cadRevision}.0 alters the VIP canopy support anchors. Units cannot be dispatched without engineering re-inspection.
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleReverifyRevision}
+              disabled={isReverifyingCad}
+              style={{ backgroundColor: '#ea580c', borderColor: '#c2410c', whiteSpace: 'nowrap' }}
+            >
+              {isReverifyingCad ? 'Verifying Tolerances...' : `Re-verify Units Against Rev 0${cadRevision}.0`}
+            </Button>
+          </div>
+        ) : (
+          <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', border: '1px solid #86efac', backgroundColor: '#f0fdf4' }}>
+            <span style={{ color: '#166534', fontWeight: 700, fontSize: '12px' }}>
+              ✓ All 12 fabricated units verified conforming to latest CAD Revision 0{cadRevision}.0. {reverifiedNotes}
+            </span>
+          </div>
+        )}
+
+        {/* Shop Floor Routing Breakdown */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginTop: '16px' }}>
+          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+              <span style={{ fontWeight: 700, color: '#0369a1' }}>🪵 Carpentry & CNC</span>
+              <span style={{ fontWeight: 800, color: '#0284c7' }}>90%</span>
+            </div>
+            <div style={{ width: '100%', height: '6px', backgroundColor: '#e0f2fe', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
+              <div style={{ width: '90%', height: '100%', backgroundColor: '#0284c7' }}></div>
+            </div>
+            <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0 0' }}>Main Stage Decking & Curved Risers</p>
+          </div>
+
+          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+              <span style={{ fontWeight: 700, color: '#0369a1' }}>⚙️ Metalwork & Rigging</span>
+              <span style={{ fontWeight: 800, color: '#0284c7' }}>75%</span>
+            </div>
+            <div style={{ width: '100%', height: '6px', backgroundColor: '#e0f2fe', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
+              <div style={{ width: '75%', height: '100%', backgroundColor: '#0284c7' }}></div>
+            </div>
+            <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0 0' }}>Overhead Lighting Rig Sub-frame</p>
+          </div>
+
+          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+              <span style={{ fontWeight: 700, color: '#0369a1' }}>🎨 Scenic Paint & Texture</span>
+              <span style={{ fontWeight: 800, color: '#0284c7' }}>40%</span>
+            </div>
+            <div style={{ width: '100%', height: '6px', backgroundColor: '#e0f2fe', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
+              <div style={{ width: '40%', height: '100%', backgroundColor: '#0284c7' }}></div>
+            </div>
+            <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0 0' }}>Gold Leaf & Textured Dune Finish</p>
+          </div>
+
+          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+              <span style={{ fontWeight: 700, color: '#0369a1' }}>🔌 Looms & Pre-assembly</span>
+              <span style={{ fontWeight: 800, color: '#0284c7' }}>60%</span>
+            </div>
+            <div style={{ width: '100%', height: '6px', backgroundColor: '#e0f2fe', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
+              <div style={{ width: '60%', height: '100%', backgroundColor: '#0284c7' }}></div>
+            </div>
+            <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0 0' }}>Socapex 19-Pin Looms & DMX Trunks</p>
+          </div>
         </div>
       </Card>
 

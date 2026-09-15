@@ -6,6 +6,15 @@ interface CommercialBOQViewProps {
   projectId: string;
 }
 
+export const CURRENCIES = [
+  { code: 'QAR', rate: 1.0, symbol: 'QAR', label: 'QAR (Qatar Riyal)' },
+  { code: 'USD', rate: 0.2747, symbol: '$', label: 'USD (US Dollar)' },
+  { code: 'EUR', rate: 0.2525, symbol: '€', label: 'EUR (Euro)' },
+  { code: 'GBP', rate: 0.2137, symbol: '£', label: 'GBP (British Pound)' },
+  { code: 'SAR', rate: 1.0309, symbol: 'SAR', label: 'SAR (Saudi Riyal)' },
+  { code: 'AED', rate: 1.0101, symbol: 'AED', label: 'AED (UAE Dirham)' },
+];
+
 export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId }) => {
   const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
 
@@ -14,6 +23,9 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
   const [selectedEstimateId, setSelectedEstimateId] = useState<string>('');
   const [lines, setLines] = useState<any[]>([]);
   const [financials, setFinancials] = useState<any | null>(null);
+
+  // Dynamic currency selector state
+  const [selectedCurrency, setSelectedCurrency] = useState<string>('QAR');
 
   // Add line modal
   const [isAddLineModalOpen, setIsAddLineModalOpen] = useState<boolean>(false);
@@ -25,6 +37,84 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
   const [lineSell, setLineSell] = useState<string>('145000');
   const [linkedReqCode, setLinkedReqCode] = useState<string>('REQ-QND-001');
   const [isSubmittingLine, setIsSubmittingLine] = useState<boolean>(false);
+
+  const activeCurrency = CURRENCIES.find((c) => c.code === selectedCurrency) || CURRENCIES[0];
+
+  const formatWithCurrency = (amountQar: number | string) => {
+    const num = typeof amountQar === 'string' ? parseFloat(amountQar.replace(/[^0-9.-]+/g, '')) : amountQar;
+    if (isNaN(num)) return `0 ${selectedCurrency}`;
+    const converted = Math.round(num * activeCurrency.rate);
+    return `${converted.toLocaleString('en-US')} ${activeCurrency.code}`;
+  };
+
+  const handleExportBOQCsv = () => {
+    if (typeof window === 'undefined') return;
+    const curr = activeCurrency;
+    
+    const headers = [
+      'Line Code',
+      'Hierarchy (Section > Discipline)',
+      'Description',
+      'Linked Scope Requirement',
+      'Linked Design Reference',
+      'Quantity',
+      'UOM',
+      'Unit Supplier Cost (QAR)',
+      `Unit Supplier Cost (${curr.code})`,
+      'Unit Sell Price (QAR)',
+      `Unit Sell Price (${curr.code})`,
+      'Total Supplier Cost (QAR)',
+      `Total Supplier Cost (${curr.code})`,
+      'Total Sell Price (QAR)',
+      `Total Sell Price (${curr.code})`,
+      'Gross Margin %',
+    ];
+
+    const rows = lines.map((l) => {
+      const qty = Number(l.quantity || 1);
+      const unitCost = Number(l.unitCost || 0);
+      const unitSell = Number(l.unitSell || 0);
+      const totCost = qty * unitCost;
+      const totSell = qty * unitSell;
+      const margin = totSell > 0 ? (((totSell - totCost) / totSell) * 100).toFixed(1) + '%' : '0%';
+
+      return [
+        `"${l.lineCode || ''}"`,
+        `"${(l.section ? `${l.section} > ${l.discipline}` : 'Direct Delivery').replace(/"/g, '""')}"`,
+        `"${(l.description || '').replace(/"/g, '""')}"`,
+        `"${l.linkedRequirementCode || ''}"`,
+        `"${l.linkedDesignId || 'Approved DWG'}"`,
+        qty,
+        `"${l.uom || 'lot'}"`,
+        unitCost,
+        Math.round(unitCost * curr.rate),
+        unitSell,
+        Math.round(unitSell * curr.rate),
+        totCost,
+        Math.round(totCost * curr.rate),
+        totSell,
+        Math.round(totSell * curr.rate),
+        `"${margin}"`,
+      ].join(',');
+    });
+
+    const csvString = [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `BOQ-Master-Ledger-${projectId}-${selectedCurrency}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrintBOQ = () => {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -138,14 +228,62 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
           </div>
         </div>
 
-        <Button
-          id="btn-add-boq-line"
-          variant="primary"
-          onClick={() => setIsAddLineModalOpen(true)}
-          style={{ backgroundColor: '#2563eb' }}
-        >
-          + Add Priced BOQ Line
-        </Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {/* Dynamic Currency Converter Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '3px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', padding: '0 8px', textTransform: 'uppercase' }}>
+              💱 Currency:
+            </span>
+            {CURRENCIES.map((c) => (
+              <button
+                key={c.code}
+                type="button"
+                onClick={() => setSelectedCurrency(c.code)}
+                style={{
+                  backgroundColor: selectedCurrency === c.code ? '#2563eb' : 'transparent',
+                  color: selectedCurrency === c.code ? '#ffffff' : '#cbd5e1',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                title={c.label}
+              >
+                {c.code}
+              </button>
+            ))}
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={handleExportBOQCsv}
+            style={{ color: '#38bdf8', borderColor: '#0284c7' }}
+            title="Download Master BOQ Ledger with multi-currency rates in Excel CSV format"
+          >
+            📥 Export to Excel (CSV)
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={handlePrintBOQ}
+            style={{ color: '#cbd5e1', borderColor: '#475569' }}
+            title="Print or export formatted PDF"
+          >
+            🖨️ Print / PDF
+          </Button>
+
+          <Button
+            id="btn-add-boq-line"
+            variant="primary"
+            onClick={() => setIsAddLineModalOpen(true)}
+            style={{ backgroundColor: '#2563eb' }}
+          >
+            + Add Priced BOQ Line
+          </Button>
+        </div>
       </div>
 
       {/* Financial Measures Breakdown */}
@@ -159,71 +297,95 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         <Card style={{ padding: '14px', borderLeft: '4px solid #3b82f6' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Baseline Budget</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
-            {Number(financials?.baselineBudget || activeEstimate?.totalCost || 985000).toLocaleString()} QAR
+            {formatWithCurrency(financials?.baselineBudget || activeEstimate?.totalCost || 985000)}
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Original authorised baseline</div>
+          <div style={{ fontSize: '11px', color: '#64748b' }}>
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.baselineBudget || activeEstimate?.totalCost || 985000).toLocaleString()} QAR | `}
+            Original authorised baseline
+          </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #6366f1' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Approved Changes</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#4338ca', margin: '4px 0' }}>
-            {Number(financials?.approvedChanges || 0).toLocaleString()} QAR
+            {formatWithCurrency(financials?.approvedChanges || 0)}
           </div>
-          <div style={{ fontSize: '11px', color: '#6366f1' }}>Net authorised variations</div>
+          <div style={{ fontSize: '11px', color: '#6366f1' }}>
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.approvedChanges || 0).toLocaleString()} QAR | `}
+            Net authorised variations
+          </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #2563eb' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Current Budget</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#1d4ed8', margin: '4px 0' }}>
-            {Number(financials?.currentBudget || financials?.approvedCostBudget || 985000).toLocaleString()} QAR
+            {formatWithCurrency(financials?.currentBudget || financials?.approvedCostBudget || 985000)}
           </div>
-          <div style={{ fontSize: '11px', color: '#1e40af' }}>Baseline + Approved Changes</div>
+          <div style={{ fontSize: '11px', color: '#1e40af' }}>
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.currentBudget || financials?.approvedCostBudget || 985000).toLocaleString()} QAR | `}
+            Baseline + Approved Changes
+          </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #0891b2' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Committed Cost</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#0e7490', margin: '4px 0' }}>
-            {Number(financials?.committedCost || 0).toLocaleString()} QAR
+            {formatWithCurrency(financials?.committedCost || 0)}
           </div>
-          <div style={{ fontSize: '11px', color: '#0891b2' }}>POs & subcontracts placed</div>
+          <div style={{ fontSize: '11px', color: '#0891b2' }}>
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.committedCost || 0).toLocaleString()} QAR | `}
+            POs & subcontracts placed
+          </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #0d9488' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Actual Cost</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f766e', margin: '4px 0' }}>
-            {Number(financials?.actualCost || 0).toLocaleString()} QAR
+            {formatWithCurrency(financials?.actualCost || 0)}
           </div>
-          <div style={{ fontSize: '11px', color: '#0d9488' }}>Incurred / posted costs</div>
+          <div style={{ fontSize: '11px', color: '#0d9488' }}>
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.actualCost || 0).toLocaleString()} QAR | `}
+            Incurred / posted costs
+          </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #d97706' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Forecast to Complete (ETC)</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#b45309', margin: '4px 0' }}>
-            {Number(financials?.forecastToComplete || financials?.currentBudget || 985000).toLocaleString()} QAR
+            {formatWithCurrency(financials?.forecastToComplete || financials?.currentBudget || 985000)}
           </div>
-          <div style={{ fontSize: '11px', color: '#d97706' }}>Expected remaining cost</div>
+          <div style={{ fontSize: '11px', color: '#d97706' }}>
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.forecastToComplete || financials?.currentBudget || 985000).toLocaleString()} QAR | `}
+            Expected remaining cost
+          </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #f59e0b' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>EAC (Estimate at Completion)</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#b45309', margin: '4px 0' }}>
-            {Number(financials?.estimateAtCompletion || 985000).toLocaleString()} QAR
+            {formatWithCurrency(financials?.estimateAtCompletion || 985000)}
           </div>
-          <div style={{ fontSize: '11px', color: '#b45309' }}>Actual + Forecast to Complete</div>
+          <div style={{ fontSize: '11px', color: '#b45309' }}>
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.estimateAtCompletion || 985000).toLocaleString()} QAR | `}
+            Actual + Forecast to Complete
+          </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #10b981' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>VAC (Variance at Completion)</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: Number(financials?.varianceAtCompletion || 0) >= 0 ? '#047857' : '#b91c1c', margin: '4px 0' }}>
-            {Number(financials?.varianceAtCompletion || 0).toLocaleString()} QAR
+            {formatWithCurrency(financials?.varianceAtCompletion || 0)}
           </div>
-          <div style={{ fontSize: '11px', color: '#059669' }}>Current Budget - EAC</div>
+          <div style={{ fontSize: '11px', color: '#059669' }}>
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.varianceAtCompletion || 0).toLocaleString()} QAR | `}
+            Current Budget - EAC
+          </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #ef4444', backgroundColor: '#fff5f5' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#b91c1c', textTransform: 'uppercase' }}>Pending Exposure (Isolated)</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#b91c1c', margin: '4px 0' }}>
-            {Number(financials?.pendingExposureCost || 0).toLocaleString()} QAR
+            {formatWithCurrency(financials?.pendingExposureCost || 0)}
           </div>
           <div style={{ fontSize: '11px', color: '#991b1b' }}>⚠️ Strictly isolated risk</div>
         </Card>
@@ -254,8 +416,8 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Linked Design</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Qty</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Unit</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Supplier Cost (QAR)</th>
-                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Sell Price (QAR)</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Supplier Cost ({activeCurrency.code})</th>
+                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Sell Price ({activeCurrency.code})</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'center' }}>Margin %</th>
               </tr>
             </thead>
@@ -263,6 +425,8 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
               {lines.map((l: any) => {
                 const cost = Number(l.unitCost);
                 const sell = Number(l.unitSell);
+                const convCost = Math.round(cost * activeCurrency.rate);
+                const convSell = Math.round(sell * activeCurrency.rate);
                 const margin = sell > 0 ? (((sell - cost) / sell) * 100).toFixed(1) : '0.0';
 
                 return (
@@ -295,10 +459,20 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                     <td style={{ padding: '12px' }}>{l.quantity}</td>
                     <td style={{ padding: '12px', textTransform: 'uppercase', color: '#64748b' }}>{l.uom}</td>
                     <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', color: '#64748b' }}>
-                      {cost.toLocaleString()}
+                      {convCost.toLocaleString()}
+                      {selectedCurrency !== 'QAR' && (
+                        <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8' }}>
+                          ({cost.toLocaleString()} QAR)
+                        </span>
+                      )}
                     </td>
                     <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: '#10b981' }}>
-                      {sell.toLocaleString()}
+                      {convSell.toLocaleString()}
+                      {selectedCurrency !== 'QAR' && (
+                        <span style={{ display: 'block', fontSize: '10px', color: '#059669' }}>
+                          ({sell.toLocaleString()} QAR)
+                        </span>
+                      )}
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <Badge variant={Number(margin) >= 25 ? 'success' : 'warning'} size="sm">

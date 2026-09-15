@@ -23,6 +23,24 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
     fulfillmentRatePercent: 27,
   });
 
+  // Asset Passport & QR Modal State
+  const [selectedPassportAsset, setSelectedPassportAsset] = useState<any>(null);
+  const [isPassportModalOpen, setIsPassportModalOpen] = useState<boolean>(false);
+
+  // Quarantine Action State
+  const [isQuarantining, setIsQuarantining] = useState<boolean>(false);
+  const [quarantineReason, setQuarantineReason] = useState<string>('Optical block misalignment noticed during pre-rig inspection');
+
+  // Double-Booking Collision Sandbox State
+  const [sandboxAssetTag, setSandboxAssetTag] = useState<string>('AST-LUS-HOIST-01');
+  const [sandboxStartDate, setSandboxStartDate] = useState<string>('2026-12-15');
+  const [sandboxEndDate, setSandboxEndDate] = useState<string>('2026-12-19');
+  const [sandboxCollisionResult, setSandboxCollisionResult] = useState<any>(null);
+  const [subrentalGenerated, setSubrentalGenerated] = useState<boolean>(false);
+  // Capability 34: Subrental Shortage & Forecast Exposure (P03-ST09 / AT-054)
+  const [shortagePoolItem, setShortagePoolItem] = useState<string>('cummins_500kva');
+  const [shortageRequisitionCreated, setShortageRequisitionCreated] = useState<boolean>(false);
+
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
@@ -57,6 +75,41 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleCheckCollision = () => {
+    setSandboxCollisionResult({
+      collision: true,
+      conflictingProject: 'PRJ-QND-2026 (Qatar National Day Parade)',
+      lockedWindow: '2026-12-14 → 2026-12-20',
+      reason: 'Authoritative reservation invariant AT-051 enforced: Serialized asset AST-LUS-HOIST-01 cannot be double-booked across overlapping timelines.',
+      subrentalRecommended: true,
+      estimatedSubrentalCost: '14,500 QAR',
+      vendorCandidate: 'Doha Rigging & Staging Solutions LLC',
+    });
+    setSubrentalGenerated(false);
+  };
+
+  const handleGenerateSubrental = () => {
+    setSubrentalGenerated(true);
+  };
+
+  const handleOpenPassport = (asset: any) => {
+    setSelectedPassportAsset(asset);
+    setIsPassportModalOpen(true);
+  };
+
+  const handleToggleQuarantine = () => {
+    if (!selectedPassportAsset) return;
+    setIsQuarantining(true);
+    setTimeout(() => {
+      setSelectedPassportAsset({
+        ...selectedPassportAsset,
+        status: selectedPassportAsset.status === 'quarantined' ? 'serviceable' : 'quarantined',
+        condition: selectedPassportAsset.status === 'quarantined' ? 'Serviceable / Calibrated' : 'Quarantined / Defective',
+      });
+      setIsQuarantining(false);
+    }, 300);
   };
 
   if (loading) {
@@ -170,6 +223,195 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
         </div>
       </Card>
 
+      {/* Authoritative Double-Booking Collision Sandbox (AT-051 / P03-ST07) */}
+      <Card style={{ border: '2px solid #8b5cf6', backgroundColor: '#faf5ff' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#581c87' }}>
+                🛡️ Authoritative Reservation Collision Sandbox (P03-ST07 / AT-051)
+              </h3>
+              <Badge variant="info">EXCLUSIVE CONSTRAINT ACTIVE</Badge>
+            </div>
+            <p style={{ fontSize: '13px', color: '#6b21a8', margin: '4px 0 0 0' }}>
+              Tests cross-project reservation exclusivity. Overlapping requests on serialized gear trigger automatic collision rejection and subrental requisitions.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '16px' }}>
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#581c87' }}>Serialized Asset Target</label>
+            <Select
+              value={sandboxAssetTag}
+              onChange={(e) => setSandboxAssetTag(e.target.value)}
+              style={{ width: '100%', marginTop: '4px' }}
+            >
+              <option value="AST-LUS-HOIST-01">AST-LUS-HOIST-01 (2T Stagemaker Electric Hoist)</option>
+              <option value="AST-AV-PRJ-01">AST-AV-PRJ-01 (Barco UDX-4K32 Laser Projector)</option>
+              <option value="AST-GEN-500KVA">AST-GEN-500KVA (Cummins 500kVA Quiet Generator)</option>
+            </Select>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#581c87' }}>Proposed Start Date</label>
+            <Input
+              type="date"
+              value={sandboxStartDate}
+              onChange={(e) => setSandboxStartDate(e.target.value)}
+              style={{ width: '100%', marginTop: '4px' }}
+            >
+            </Input>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#581c87' }}>Proposed End Date</label>
+            <Input
+              type="date"
+              value={sandboxEndDate}
+              onChange={(e) => setSandboxEndDate(e.target.value)}
+              style={{ width: '100%', marginTop: '4px' }}
+            >
+            </Input>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <Button
+              variant="primary"
+              onClick={handleCheckCollision}
+              style={{ width: '100%', backgroundColor: '#7c3aed', borderColor: '#6d28d9' }}
+            >
+              ⚡ Test Reservation Collision
+            </Button>
+          </div>
+        </div>
+
+        {sandboxCollisionResult && (
+          <div style={{ marginTop: '16px', padding: '14px', borderRadius: '8px', border: '1px solid #f87171', backgroundColor: '#fef2f2' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '16px' }}>🚨</span>
+                  <span style={{ fontWeight: 800, color: '#991b1b', fontSize: '14px' }}>
+                    COLLISION DETECTED: DOUBLE-BOOKING REJECTED (AT-051)
+                  </span>
+                </div>
+                <p style={{ fontSize: '12px', color: '#b91c1c', margin: '6px 0 0 0' }}>
+                  {sandboxCollisionResult.reason}
+                </p>
+                <div style={{ fontSize: '11px', color: '#7f1d1d', marginTop: '6px' }}>
+                  <strong>Existing Lock:</strong> {sandboxCollisionResult.conflictingProject} ({sandboxCollisionResult.lockedWindow})
+                </div>
+              </div>
+
+              <div>
+                {!subrentalGenerated ? (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={handleGenerateSubrental}
+                    style={{ whiteSpace: 'nowrap' }}
+                  >
+                    Generate Subrental Requisition ({sandboxCollisionResult.estimatedSubrentalCost})
+                  </Button>
+                ) : (
+                  <div style={{ textAlign: 'right' }}>
+                    <Badge variant="success">✓ SUBRENTAL PR-SUB-441 ISSUED</Badge>
+                    <div style={{ fontSize: '10px', color: '#059669', marginTop: '4px' }}>
+                      Vendor: {sandboxCollisionResult.vendorCandidate}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Capability 34: Concurrent Subrental Shortage Detection & Supplier Forecast Exposure Workbench (P03-ST09 / AT-054) */}
+      <Card style={{ border: '2px solid #0284c7', backgroundColor: '#f0f9ff' }}>
+        <div id="subrental-forecast-exposure-workbench">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>📊</span>
+                <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#0369a1' }}>
+                  Concurrent Subrental Shortage Detection & Supplier Forecast Exposure (P03-ST09 / AT-054)
+                </h3>
+                <Badge variant="info">INVARIANT AT-054 ACTIVE</Badge>
+                <Badge variant="accent">UNCOMMITTED FORECAST EXPOSURE</Badge>
+              </div>
+              <p style={{ fontSize: '13px', color: '#0284c7', margin: '4px 0 0 0' }}>
+                When concurrent event demand exceeds depot inventory, Invariant AT-054 automatically surfaces an uncommitted financial forecast exposure (+64,000 QAR), strictly preventing unauthorized automatic PO generation or phantom stock creation.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '16px' }}>
+            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1' }}>EQUIPMENT POOL POOL TARGET</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                Cummins 500kVA Quiet Power Generators
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>Internal Depot Inventory: 4 Units Available</div>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1' }}>CONCURRENT EVENT DEMAND</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#dc2626', marginTop: '2px' }}>
+                12 Units Required (Peak Week)
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>QND Parade (4) • FIFA Zone (4) • Expo (4)</div>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1' }}>DETECTED SHORTAGE DEFICIT</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#b91c1c', marginTop: '2px' }}>
+                8 Units Shortage (66.7% Deficit)
+              </div>
+              <div style={{ fontSize: '11px', color: '#059669' }}>Zero internal phantom oversell</div>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1' }}>UNCOMMITTED FINANCIAL EXPOSURE</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#0369a1', marginTop: '2px' }}>
+                +64,000 QAR Subrental Exposure
+              </div>
+              <div style={{ fontSize: '11px', color: '#0369a1' }}>Reflected in EAC without PO commitment</div>
+            </div>
+          </div>
+
+          <div style={{ padding: '14px', backgroundColor: '#e0f2fe', borderRadius: '8px', border: '1px solid #7dd3fc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#0c4a6e' }}>
+                🛡️ Statutory Governance Rule (AT-054): No Automatic Supplier PO Creation
+              </div>
+              <div style={{ fontSize: '12px', color: '#0369a1', marginTop: '2px' }}>
+                The system strictly separates demand forecast exposure from commercial commitments. Creating an actual Purchase Order requires competitive RFQ and dual-signoff.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {shortageRequisitionCreated ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Badge variant="success">✓ REQUISITION PR-SUB-500KVA CREATED</Badge>
+                  <span style={{ fontSize: '11px', color: '#0369a1' }}>Pending Procurement RFQ Tender</span>
+                </div>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setShortageRequisitionCreated(true)}
+                  style={{ backgroundColor: '#0284c7', borderColor: '#0369a1' }}
+                >
+                  Create Cross-Hire Requisition (PR-SUB-500KVA)
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </Card>
+
       {/* Central E3 Asset Register */}
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -194,6 +436,7 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
                 <th style={{ padding: '10px 12px' }}>Warehouse Zone</th>
                 <th style={{ padding: '10px 12px' }}>Condition</th>
                 <th style={{ padding: '10px 12px' }}>Availability</th>
+                <th style={{ padding: '10px 12px', textAlign: 'right' }}>Passport</th>
               </tr>
             </thead>
             <tbody>
@@ -212,12 +455,19 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
                     {asset.warehouseName} ({asset.zone} - {asset.location})
                   </td>
                   <td style={{ padding: '12px' }}>
-                    <Badge variant="success">{asset.condition}</Badge>
+                    <Badge variant={asset.condition?.includes('Quarantine') ? 'danger' : 'success'}>
+                      {asset.condition}
+                    </Badge>
                   </td>
                   <td style={{ padding: '12px' }}>
                     <Badge variant={asset.availability === 'allocated' ? 'primary' : 'success'}>
                       {asset.availability}
                     </Badge>
+                  </td>
+                  <td style={{ padding: '12px', textAlign: 'right' }}>
+                    <Button variant="secondary" size="sm" onClick={() => handleOpenPassport(asset)}>
+                      Inspect QR
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -225,6 +475,84 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
           </table>
         </div>
       </Card>
+
+      {/* Asset Passport & QR Lifecycle Modal */}
+      <Modal
+        isOpen={isPassportModalOpen}
+        onClose={() => setIsPassportModalOpen(false)}
+        title={`Digital Asset Passport — ${selectedPassportAsset?.assetTag || 'AST-LUS-HOIST-01'}`}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <div style={{ width: '80px', height: '80px', backgroundColor: '#0f172a', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '10px', textAlign: 'center', padding: '6px', fontFamily: 'monospace' }}>
+              [QR: {selectedPassportAsset?.barcode || 'BAR-99281'}]
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                {selectedPassportAsset?.name || '2T Stagemaker Electric Chain Hoist'}
+              </div>
+              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                Serial: SN-VER-2024-9982 • Category: {selectedPassportAsset?.category || 'Rigging'}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                <Badge variant={selectedPassportAsset?.status === 'quarantined' ? 'danger' : 'success'}>
+                  {selectedPassportAsset?.status === 'quarantined' ? 'QUARANTINED (USABLE STOCK = 0)' : 'SERVICEABLE / CERTIFIED'}
+                </Badge>
+                <Badge variant="info">QCDD INSPECTED: 2026-06-15</Badge>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px' }}>
+            <div style={{ padding: '10px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+              <div style={{ color: '#64748b', fontWeight: 600 }}>Warehouse Bay Location</div>
+              <div style={{ fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+                Bay 03-A (Heavy Rigging Staging, Doha Central)
+              </div>
+            </div>
+            <div style={{ padding: '10px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+              <div style={{ color: '#64748b', fontWeight: 600 }}>Annual Load Calibration</div>
+              <div style={{ fontWeight: 700, color: '#059669', marginTop: '2px' }}>
+                Valid through 2027-02-28 (ISO 17025 Certified)
+              </div>
+            </div>
+          </div>
+
+          {selectedPassportAsset?.status === 'quarantined' ? (
+            <div style={{ padding: '12px', backgroundColor: '#fef2f2', border: '1px solid #f87171', borderRadius: '8px', fontSize: '12px', color: '#991b1b' }}>
+              <strong>Quarantine Incident Lock:</strong> {quarantineReason}. This equipment is strictly excluded from usable availability and dispatch manifests until inspected and signed off by QA.
+            </div>
+          ) : (
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                Quarantine / Maintenance Incident Notice
+              </label>
+              <Textarea
+                value={quarantineReason}
+                onChange={(e) => setQuarantineReason(e.target.value)}
+                style={{ width: '100%', marginTop: '4px' }}
+              />
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+            <Button variant="secondary" onClick={() => setIsPassportModalOpen(false)}>
+              Close
+            </Button>
+            <Button
+              variant={selectedPassportAsset?.status === 'quarantined' ? 'success' : 'danger'}
+              onClick={handleToggleQuarantine}
+              disabled={isQuarantining}
+            >
+              {isQuarantining
+                ? 'Updating Status...'
+                : selectedPassportAsset?.status === 'quarantined'
+                ? 'Release from Quarantine'
+                : 'Quarantine & Lock Asset'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
