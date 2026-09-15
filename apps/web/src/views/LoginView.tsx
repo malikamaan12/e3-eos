@@ -65,6 +65,19 @@ export const LoginView: React.FC = () => {
     }
   };
 
+  const handleQuickLogin = async (targetEmail: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await login(targetEmail, 'E3#Doha2026!');
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const isAr = currentLanguage === 'ar';
 
   return (
@@ -478,6 +491,61 @@ export const LoginView: React.FC = () => {
                     ? (isAr ? 'جارِ التحقق والمصادقة...' : 'Authenticating...')
                     : (isAr ? 'المصادقة والدخول إلى النظام' : 'Authenticate & Enter EOS')}
                 </button>
+
+                {/* 1-Click Fast Persona Sign-In for UAT */}
+                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px dashed rgba(217, 119, 6, 0.3)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                      ⚡ {isAr ? 'الدخول السريع بحسابات الاختبار' : '1-Click UAT Persona Access'}
+                    </span>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>
+                      {isAr ? 'اختر دورك للدخول فوراً' : 'Select role to enter instantly'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    {[
+                      { name: isAr ? '👑 المدير العام' : '👑 Super Admin', email: 'superadmin@e3.qa' },
+                      { name: isAr ? '📋 مدير المشروع' : '📋 Lead PM', email: 'pm@e3.qa' },
+                      { name: isAr ? '💰 المدير المالي' : '💰 Finance Lead', email: 'finance@e3.qa' },
+                      { name: isAr ? '🏗️ مدير العمليات' : '🏗️ Live Ops', email: 'ops@e3.qa' },
+                      { name: isAr ? '📱 مشرف الموقع' : '📱 Field PWA', email: 'field@e3.qa' },
+                      { name: isAr ? '🤝 بوابة العميل' : '🤝 Client Portal', email: 'client@qatartourism.qa' },
+                    ].map((p) => (
+                      <button
+                        key={p.email}
+                        type="button"
+                        onClick={() => handleQuickLogin(p.email)}
+                        disabled={loading}
+                        style={{
+                          padding: '8px 10px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          textAlign: isAr ? 'right' : 'left',
+                          backgroundColor: '#0f172a',
+                          color: '#e2e8f0',
+                          border: '1px solid #334155',
+                          borderRadius: '6px',
+                          cursor: loading ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#d97706';
+                          e.currentTarget.style.backgroundColor = '#1e293b';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#334155';
+                          e.currentTarget.style.backgroundColor = '#0f172a';
+                        }}
+                      >
+                        <span>{p.name}</span>
+                        <span style={{ fontSize: '10px', color: '#94a3b8' }}>{isAr ? '←' : '→'}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </form>
             )}
 
