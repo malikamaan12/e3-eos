@@ -94,7 +94,7 @@ const AppRouter: React.FC = () => {
     if (currentPath === '/admin/roles') {
       return <AdminRolesView />;
     }
-    if (currentPath === '/field') {
+    if (currentPath === '/field' || currentPath.startsWith('/field')) {
       return <FieldOpsView />;
     }
     if (currentPath === '/live/command-center' || currentPath === '/command-center' || currentPath === '/live') {
