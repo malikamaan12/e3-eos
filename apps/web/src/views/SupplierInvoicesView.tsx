@@ -194,28 +194,28 @@ export const SupplierInvoicesView: React.FC = () => {
       {/* Invoices Table */}
       <Card title={`Supplier Invoices Registered (${invoices.length})`}>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm text-slate-300" style={{ borderCollapse: 'collapse' }}>
             <thead className="bg-slate-800/80 text-xs uppercase text-slate-400 font-medium">
               <tr>
-                <th className="p-3">Invoice #</th>
+                <th className="p-3 whitespace-nowrap">Invoice #</th>
                 <th className="p-3">Vendor</th>
-                <th className="p-3">PO Reference</th>
-                <th className="p-3">Total Amount</th>
-                <th className="p-3">3-Way Match</th>
-                <th className="p-3">Ledger Status</th>
-                <th className="p-3 text-right">Actions</th>
+                <th className="p-3 whitespace-nowrap">PO Reference</th>
+                <th className="p-3 whitespace-nowrap">Total Amount</th>
+                <th className="p-3 whitespace-nowrap">3-Way Match</th>
+                <th className="p-3 whitespace-nowrap">Ledger Status</th>
+                <th className="p-3 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700/50">
               {invoices.map((inv) => (
                 <tr key={inv.id} className="hover:bg-slate-800/40">
-                  <td className="p-3 font-mono font-medium text-white">{inv.invoiceNumber}</td>
+                  <td className="p-3 font-mono font-medium text-white whitespace-nowrap">{inv.invoiceNumber}</td>
                   <td className="p-3">{inv.vendorName}</td>
-                  <td className="p-3 font-mono text-slate-400">{inv.poId || 'N/A'}</td>
-                  <td className="p-3 font-mono font-semibold text-white">
+                  <td className="p-3 font-mono text-slate-400 whitespace-nowrap">{inv.poId || 'N/A'}</td>
+                  <td className="p-3 font-mono font-semibold text-white whitespace-nowrap">
                     {Number(inv.totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {inv.currency}
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 whitespace-nowrap">
                     {inv.threeWayMatchStatus === 'matched' ? (
                       <Badge variant="success">✓ Matched</Badge>
                     ) : inv.threeWayMatchStatus === 'exception_detected' ? (
@@ -224,12 +224,12 @@ export const SupplierInvoicesView: React.FC = () => {
                       <Badge variant="warning">⏳ Pending Match</Badge>
                     )}
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 whitespace-nowrap">
                     <Badge variant={inv.status === 'approved' ? 'success' : inv.status === 'match_exception' ? 'danger' : 'default'}>
                       {inv.status.toUpperCase()}
                     </Badge>
                   </td>
-                  <td className="p-3 text-right">
+                  <td className="p-3 text-right whitespace-nowrap">
                     <Button variant="secondary" size="sm" onClick={() => handleOpenMatch(inv)}>
                       Inspect 3-Way Match
                     </Button>

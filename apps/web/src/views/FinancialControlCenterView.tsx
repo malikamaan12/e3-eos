@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Tabs, formatCurrency } from '../components/DesignSystem.js';
+import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Tabs, AlertBanner, formatCurrency } from '../components/DesignSystem.js';
 import { isSyntheticDemo } from '../services/api-client.js';
 
 export interface CommercialVariation {
@@ -93,6 +93,7 @@ export const FinancialControlCenterView: React.FC = () => {
   const [duplicateImportAttempted, setDuplicateImportAttempted] = useState<boolean>(false);
   const [allocationExceededAttempted, setAllocationExceededAttempted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Dynamic currency selector state
   const [selectedCurrency, setSelectedCurrency] = useState<string>('QAR');
@@ -128,6 +129,7 @@ export const FinancialControlCenterView: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [fc, cp, mb, ss] = await Promise.all([
         apiClient.getFinancialControl(projectId),
@@ -139,8 +141,9 @@ export const FinancialControlCenterView: React.FC = () => {
       setCashPos(cp);
       setMarginBridge(mb);
       setSnapshots(ss);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load financial control data', err);
+      setError(err?.message || 'Failed to load financial control data from server');
     } finally {
       setLoading(false);
     }
@@ -358,6 +361,16 @@ export const FinancialControlCenterView: React.FC = () => {
 
   return (
     <div style={{ paddingBottom: '40px' }}>
+      {error && (
+        <AlertBanner
+          type="error"
+          title={isRtl ? 'فشل تحميل البيانات المالية' : 'Financial Data Request Failed'}
+          action={{ label: isRtl ? 'إعادة المحاولة' : 'Retry', onClick: loadData }}
+        >
+          {error}
+        </AlertBanner>
+      )}
+
       {/* Header Banner */}
       <div
         style={{

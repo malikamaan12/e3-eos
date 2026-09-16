@@ -11,6 +11,9 @@ import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { DbService } from './db.service.js';
 
+export const IS_PUBLIC_KEY = 'isPublic';
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+
 export const ALLOWED_AUDIENCES_KEY = 'allowedAudiences';
 export const AllowedAudiences = (...audiences: Array<'internal' | 'client' | 'supplier'>) =>
   SetMetadata(ALLOWED_AUDIENCES_KEY, audiences);
@@ -29,22 +32,32 @@ export class TenantIsolationGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // Check if endpoint is public
+    const isPublic = this.reflector?.getAllAndOverride<boolean>(
+      IS_PUBLIC_KEY,
+      [context.getHandler(), context.getClass()]
+    );
+    if (isPublic) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest<Request>();
     const allowedAudiences = this.reflector?.getAllAndOverride<string[]>(
       ALLOWED_AUDIENCES_KEY,
       [context.getHandler(), context.getClass()]
     );
 
-    // Extract caller identity and scope from headers or session
-    let callerOrgId = (request.headers['x-organisation-id'] as string) || (request.headers['x-organization-id'] as string) || (request as any).organisationId;
-    let callerAudience = ((request.headers['x-audience'] as string) || (request as any).audience || 'internal') as 'internal' | 'client' | 'supplier';
-    let callerUserId = (request.headers['x-user-id'] as string) || (request as any).userId;
-    let callerRole = (request.headers['x-user-roles'] as string) || (request as any).role;
-
-    // Check bearer token or cookie session first to resolve identity from database
-    const authHeader = request.headers.authorization;
+    // Extract bearer token or cookie session first to resolve identity from database
+    const authHeader = request.headers?.authorization;
     const cookieToken = (request as any).cookies?.['eos_session'];
-    const sessionToken = authHeader?.replace('Bearer ', '') || cookieToken;
+    const sessionToken = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : (authHeader?.trim() || cookieToken);
+
+    let callerUserId = (request as any).userId || (request as any).sessionUser?.userId || (request.headers?.['x-user-id'] as string);
+    let callerOrgId = (request as any).organisationId || (request as any).sessionUser?.organisationId || (request.headers?.['x-organisation-id'] as string) || (request.headers?.['x-organization-id'] as string);
+    let callerAudience = ((request as any).audience || (request as any).sessionUser?.audience || (request.headers?.['x-audience'] as string) || (request.headers?.['x-user-audience'] as string)) as 'internal' | 'client' | 'supplier' | undefined;
+    let callerRole = (request as any).role || (request as any).sessionUser?.role || (request.headers?.['x-user-roles'] as string);
 
     if (sessionToken && this.dbService) {
       try {
@@ -65,10 +78,37 @@ export class TenantIsolationGuard implements CanActivate {
           callerOrgId = row.organisation_id || callerOrgId;
           callerAudience = (row.audience || 'internal') as 'internal' | 'client' | 'supplier';
           callerRole = row.role || callerRole;
+        } else {
+          // Explicit token provided but invalid or expired
+          throw new HttpException(
+            {
+              code: 'UNAUTHENTICATED',
+              title: 'Session invalid or expired',
+              detail: 'The provided authentication session is not active.',
+            },
+            HttpStatus.UNAUTHORIZED
+          );
         }
       } catch (e: any) {
-        // Fall back to headers if DB query fails
+        if (e instanceof HttpException) throw e;
       }
+    }
+
+    // If completely unauthenticated (no session token, no pre-attached user, no auth headers)
+    if (!callerUserId && !callerOrgId && !authHeader && !(request as any).sessionUser) {
+      throw new HttpException(
+        {
+          code: 'UNAUTHENTICATED',
+          title: 'Authentication session required',
+          detail: 'An authenticated session is required to access protected EOS endpoints.',
+        },
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
+    // Default audience to 'internal' if caller has identity but no explicit audience
+    if (!callerAudience) {
+      callerAudience = 'internal';
     }
 
     (request as any).organisationId = callerOrgId;

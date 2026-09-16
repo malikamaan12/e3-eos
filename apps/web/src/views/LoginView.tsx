@@ -305,6 +305,9 @@ export const LoginView: React.FC = () => {
                 </div>
 
                 <div style={{ marginBottom: '24px' }}>
+                  <label htmlFor="mfa-code-input" style={{ display: 'none' }}>
+                    {isAr ? 'رمز المصادقة الثنائية' : 'Two-Factor Authentication Code'}
+                  </label>
                   <input
                     id="mfa-code-input"
                     type="text"
@@ -314,6 +317,7 @@ export const LoginView: React.FC = () => {
                     placeholder="000000"
                     autoFocus
                     required
+                    aria-label={isAr ? 'رمز المصادقة الثنائية' : 'Two-Factor Authentication Code'}
                     style={{
                       width: '100%',
                       padding: '14px',
@@ -369,7 +373,7 @@ export const LoginView: React.FC = () => {
               /* Standard Password Form */
               <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: '18px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>
+                  <label htmlFor="login-email-input" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>
                     {isAr ? 'البريد الإلكتروني المؤسسي' : 'Corporate Email Address'}
                   </label>
                   <input
@@ -396,7 +400,7 @@ export const LoginView: React.FC = () => {
 
                 <div style={{ marginBottom: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0' }}>
+                    <label htmlFor="login-password-input" style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0' }}>
                       {isAr ? 'كلمة المرور' : 'Password'}
                     </label>
                     <a
@@ -460,7 +464,7 @@ export const LoginView: React.FC = () => {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     style={{ accentColor: '#d97706', width: '16px', height: '16px', cursor: 'pointer' }}
                   />
-                  <label htmlFor="remember-me-checkbox" style={{ fontSize: '12px', color: '#94a3b8', cursor: 'pointer' }}>
+                  <label htmlFor="remember-me-checkbox" style={{ fontSize: '12px', color: '#cbd5e1', cursor: 'pointer' }}>
                     {isAr ? 'تذكر بريدي المؤسسي على هذا الجهاز' : 'Remember my corporate email on this device'}
                   </label>
                 </div>

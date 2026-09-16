@@ -19,18 +19,37 @@ import {
 import {
   WorkflowBuilderEngine,
   WorkflowDefinition,
+  STANDARD_THIRTEEN_STAGE_TEMPLATE,
 } from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 
 export const workflowRepository = new Map<string, WorkflowDefinition>([
   [
+    'WF-STANDARD-13-STAGE',
+    {
+      workflowCode: 'WF-STANDARD-13-STAGE',
+      name: 'Canonical 13-Stage Event Lifecycle',
+      description: 'Standard versioned 13-stage gated event lifecycle conforming to Qatar National Celebrations and ISO 20121 governance.',
+      isDefault: true,
+      stages: STANDARD_THIRTEEN_STAGE_TEMPLATE.stages.map((s, idx) => ({
+        stageCode: s.templateStageId.toLowerCase(),
+        name: s.name,
+        order: idx + 1,
+        requiredActivities: [`act_${s.templateStageId.toLowerCase()}_init`],
+        requiredGateApprovals: (idx + 1 === 5 || idx + 1 === 9 || idx + 1 === 10 || idx + 1 === 13)
+          ? ['executive_director', 'operations_lead']
+          : [],
+      })),
+    },
+  ],
+  [
     'WF-STANDARD-COMMERCIAL',
     {
       workflowCode: 'WF-STANDARD-COMMERCIAL',
       name: 'Standard Commercial Event Delivery',
       description: 'Default 10-stage gated delivery workflow for turnkey public and corporate events.',
-      isDefault: true,
+      isDefault: false,
       stages: [
         {
           stageCode: 'opportunity',
@@ -167,7 +186,7 @@ export class WorkflowBuilderController {
         payload: Array.from(workflowRepository.values()),
       },
       meta: {
-        requestId: (req.headers['x-request-id'] as string) || 'req-wf-list',
+        requestId: (req?.headers?.['x-request-id'] as string) || 'req-wf-list',
       },
     };
   }

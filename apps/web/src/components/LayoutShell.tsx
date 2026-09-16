@@ -844,6 +844,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         <main
           style={{
             flex: 1,
+            minWidth: 0,
             padding: isMobile ? '16px 12px 70px 12px' : '24px 32px',
             overflowY: 'auto',
             maxWidth: '1440px',

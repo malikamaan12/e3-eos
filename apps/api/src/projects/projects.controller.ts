@@ -550,9 +550,13 @@ export class ProjectsController {
   }
 
   @Get(':id/cockpit')
-  async getCockpit(@Param('id') id: string, @Req() _req: Request) {
+  async getCockpit(@Param('id') id: string, @Req() req: Request) {
+    const callerAudience = (req as any)?.audience || (req.headers?.['x-audience'] as string) || (req.headers?.['x-user-audience'] as string);
+    const callerRole = (req as any)?.role || (req.headers?.['x-user-roles'] as string);
+    const isClient = callerAudience === 'client' || callerRole === 'client_user' || callerRole === 'client_representative';
+
     let project = projectRepository.get(id);
-    const isSyntheticDemo = id === 'f1111111-1111-4111-8111-111111111111';
+    const isSyntheticDemo = id === 'f1111111-1111-4111-8111-111111111111' || id === 'PRJ-QND-2026' || id === 'PRJ-2026-QATAR-01';
 
     let title = project?.title || (isSyntheticDemo ? 'Qatar Tourism Annual Exhibition & Gala 2026' : 'Untitled Project');
     let code = project?.projectCode || (isSyntheticDemo ? 'PRJ-2026-QATAR-01' : id);
@@ -696,6 +700,34 @@ export class ProjectsController {
         progressPercent: idx === 0 ? 100 : idx === 1 ? 40 : 0,
       }));
 
+      const financials = isClient
+        ? {
+            currency: 'QAR',
+            contractValue: 2450000,
+            expectedRevenue: 2450000,
+            budget: null,
+            committedCost: null,
+            actualCost: null,
+            baselineCost: null,
+            baselineMarginPct: null,
+            eac: null,
+            forecastMarginPercent: null,
+            isClientRedacted: true,
+          }
+        : {
+            currency: 'QAR',
+            budget: 1850000,
+            committedCost: 720000,
+            actualCost: 215000,
+            eac: 1740000,
+            expectedRevenue: 2950000,
+            forecastMarginPercent: 41.02,
+            contractValue: 2450000,
+            baselineCost: 1950000,
+            baselineMarginPct: 20.41,
+            isClientRedacted: false,
+          };
+
       return {
         data: {
           projectId: id,
@@ -723,25 +755,19 @@ export class ProjectsController {
             moveOut: '2026-11-20',
             daysRemaining,
           },
-          financials: {
-            currency: 'QAR',
-            budget: 1850000,
-            committedCost: 720000,
-            actualCost: 215000,
-            eac: 1740000,
-            expectedRevenue: 2950000,
-            forecastMarginPercent: 41.02,
-          },
-          outstandingApprovals: [
-            {
-              id: 'appr-po-01',
-              title: 'AV Rigging Subrental Commitment PO-0442',
-              amount: '350,000 QAR',
-              requestedBy: 'Zaid Mansour (PM)',
-              requiredRole: 'executive',
-              status: 'pending',
-            },
-          ],
+          financials,
+          outstandingApprovals: isClient
+            ? []
+            : [
+                {
+                  id: 'appr-po-01',
+                  title: 'AV Rigging Subrental Commitment PO-0442',
+                  amount: '350,000 QAR',
+                  requestedBy: 'Zaid Mansour (PM)',
+                  requiredRole: 'executive',
+                  status: 'pending',
+                },
+              ],
           criticalBlockers: [
             {
               id: 'blk-01',
@@ -844,15 +870,30 @@ export class ProjectsController {
           moveOut: project?.dateRegister?.bumpOutDate || null,
           daysRemaining,
         },
-        financials: {
-          currency,
-          budget: startingRevenue,
-          committedCost: 0,
-          actualCost: 0,
-          eac: startingRevenue,
-          expectedRevenue: startingRevenue,
-          forecastMarginPercent: targetMargin,
-        },
+        financials: isClient
+          ? {
+              currency,
+              contractValue: startingRevenue,
+              expectedRevenue: startingRevenue,
+              budget: null,
+              committedCost: null,
+              actualCost: null,
+              baselineCost: null,
+              baselineMarginPct: null,
+              eac: null,
+              forecastMarginPercent: null,
+              isClientRedacted: true,
+            }
+          : {
+              currency,
+              budget: startingRevenue,
+              committedCost: 0,
+              actualCost: 0,
+              eac: startingRevenue,
+              expectedRevenue: startingRevenue,
+              forecastMarginPercent: targetMargin,
+              isClientRedacted: false,
+            },
         outstandingApprovals: [],
         criticalBlockers: [],
         needsAttention: project?.missingSections && project.missingSections.length > 0

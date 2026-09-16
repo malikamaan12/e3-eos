@@ -3,6 +3,7 @@ import { useEosContext } from '../context/EosContext.js';
 import { CANONICAL_E3_USERS } from '../context/EosContext.js';
 import { useEosApi } from '../hooks/useEosApi.js';
 import { Button, Badge } from './DesignSystem.js';
+import { STANDARD_THIRTEEN_STAGE_TEMPLATE } from '@e3-eos/domain';
 
 interface NewProjectWizardModalProps {
   isOpen: boolean;
@@ -129,6 +130,16 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
         dateRegister: {
           eventStart: formData.eventStartDate,
           eventEnd: formData.eventEndDate,
+        },
+        workflowConfig: {
+          stages: STANDARD_THIRTEEN_STAGE_TEMPLATE.stages.map((s, idx) => ({
+            id: idx + 1,
+            sequenceNumber: idx + 1,
+            name: s.name,
+            isMandatoryGate: idx + 1 === 5 || idx + 1 === 9 || idx + 1 === 10 || idx + 1 === 13,
+            isOptional: false,
+            ownerRole: idx + 1 === 5 ? 'executive' : idx + 1 === 9 ? 'hse_quality' : idx + 1 === 13 ? 'finance' : 'operations',
+          })),
         },
       };
 

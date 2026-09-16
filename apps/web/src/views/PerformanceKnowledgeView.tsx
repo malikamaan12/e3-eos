@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { Card, MetricCard, Badge, Button } from '../components/DesignSystem.js';
+import { Card, MetricCard, Badge, Button, Tabs } from '../components/DesignSystem.js';
 import { isSyntheticDemo } from '../services/api-client.js';
 
 export const PerformanceKnowledgeView: React.FC = () => {
@@ -61,48 +61,17 @@ export const PerformanceKnowledgeView: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-700/60 gap-4">
-        <button
-          onClick={() => setActiveTab('kpis')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'kpis'
-              ? 'border-amber-500 text-amber-400 font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Project KPIs & SLAs ({kpis.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('vendors')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'vendors'
-              ? 'border-amber-500 text-amber-400 font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Vendor Performance Scorecards ({vendors.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('lessons')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'lessons'
-              ? 'border-amber-500 text-amber-400 font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Lessons Learned Knowledge Base ({lessons.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('feedback')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'feedback'
-              ? 'border-amber-500 text-amber-400 font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Client Feedback & CSAT ({feedback.length})
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'kpis', label: currentLanguage === 'ar' ? `مؤشرات الأداء (${kpis.length})` : `Project KPIs & SLAs (${kpis.length})` },
+          { id: 'vendors', label: currentLanguage === 'ar' ? `تقييم الموردين (${vendors.length})` : `Vendor Performance (${vendors.length})` },
+          { id: 'lessons', label: currentLanguage === 'ar' ? `الدروس المستفادة (${lessons.length})` : `Lessons Learned (${lessons.length})` },
+          { id: 'feedback', label: currentLanguage === 'ar' ? `آراء العميل (${feedback.length})` : `Client Feedback (${feedback.length})` },
+        ]}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as any)}
+        ariaLabel="Performance & Knowledge Tabs"
+      />
 
       {/* TAB 1: KPIs */}
       {activeTab === 'kpis' && (

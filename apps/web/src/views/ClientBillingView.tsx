@@ -166,24 +166,24 @@ export const ClientBillingView: React.FC = () => {
       {/* Payment Milestones Schedule */}
       <Card title="Contract Payment Milestones Schedule">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm text-slate-300" style={{ borderCollapse: 'collapse' }}>
             <thead className="bg-slate-800/80 text-xs uppercase text-slate-400 font-medium">
               <tr>
-                <th className="p-3">Milestone Code</th>
+                <th className="p-3 whitespace-nowrap">Milestone Code</th>
                 <th className="p-3">Milestone Name</th>
-                <th className="p-3">% Contract</th>
-                <th className="p-3">Amount (QAR)</th>
-                <th className="p-3">Collection State</th>
+                <th className="p-3 whitespace-nowrap">% Contract</th>
+                <th className="p-3 whitespace-nowrap">Amount (QAR)</th>
+                <th className="p-3 whitespace-nowrap">Collection State</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700/50">
               {milestones.map((ms) => (
                 <tr key={ms.id} className="hover:bg-slate-800/40">
-                  <td className="p-3 font-mono font-medium text-white">{ms.milestoneCode}</td>
+                  <td className="p-3 font-mono font-medium text-white whitespace-nowrap">{ms.milestoneCode}</td>
                   <td className="p-3">{ms.milestoneName}</td>
-                  <td className="p-3 font-semibold text-amber-400">{ms.percentageOfContract}%</td>
-                  <td className="p-3 font-mono font-bold text-white">{Number(ms.contractualAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR</td>
-                  <td className="p-3">
+                  <td className="p-3 font-semibold text-amber-400 whitespace-nowrap">{ms.percentageOfContract}%</td>
+                  <td className="p-3 font-mono font-bold text-white whitespace-nowrap">{Number(ms.contractualAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR</td>
+                  <td className="p-3 whitespace-nowrap">
                     <Badge variant={ms.collectionStatus === 'fully_collected' ? 'success' : ms.collectionStatus === 'partially_collected' ? 'warning' : 'default'}>
                       {ms.collectionStatus.replace('_', ' ').toUpperCase()}
                     </Badge>
@@ -207,27 +207,27 @@ export const ClientBillingView: React.FC = () => {
         <div className="lg:col-span-2">
           <Card title="Issued & Pending Client Invoices">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
+              <table className="w-full text-left text-sm text-slate-300" style={{ borderCollapse: 'collapse' }}>
                 <thead className="bg-slate-800/80 text-xs uppercase text-slate-400 font-medium">
                   <tr>
-                    <th className="p-3">Invoice #</th>
-                    <th className="p-3">Type</th>
-                    <th className="p-3">Gross Due</th>
-                    <th className="p-3">Collected</th>
-                    <th className="p-3">Outstanding</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3 text-right">Action</th>
+                    <th className="p-3 whitespace-nowrap">Invoice #</th>
+                    <th className="p-3 whitespace-nowrap">Type</th>
+                    <th className="p-3 whitespace-nowrap">Gross Due</th>
+                    <th className="p-3 whitespace-nowrap">Collected</th>
+                    <th className="p-3 whitespace-nowrap">Outstanding</th>
+                    <th className="p-3 whitespace-nowrap">Status</th>
+                    <th className="p-3 text-right whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/50">
                   {invoices.map((inv) => (
                     <tr key={inv.id} className="hover:bg-slate-800/40">
-                      <td className="p-3 font-mono font-medium text-white">{inv.invoiceNumber}</td>
-                      <td className="p-3 capitalize">{inv.billingType}</td>
-                      <td className="p-3 font-mono font-bold text-white">{Number(inv.netDueAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="p-3 font-mono text-emerald-400">{Number(inv.collectedAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="p-3 font-mono text-red-400">{Number(inv.outstandingAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="p-3">
+                      <td className="p-3 font-mono font-medium text-white whitespace-nowrap">{inv.invoiceNumber}</td>
+                      <td className="p-3 capitalize whitespace-nowrap">{inv.billingType}</td>
+                      <td className="p-3 font-mono font-bold text-white whitespace-nowrap">{Number(inv.netDueAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="p-3 font-mono text-emerald-400 whitespace-nowrap">{Number(inv.collectedAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="p-3 font-mono text-red-400 whitespace-nowrap">{Number(inv.outstandingAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="p-3 whitespace-nowrap">
                         <Badge variant={inv.status === 'paid' ? 'success' : inv.status === 'partially_paid' ? 'warning' : inv.status === 'ready_to_issue' ? 'info' : 'default'}>
                           {inv.status.replace('_', ' ').toUpperCase()}
                         </Badge>

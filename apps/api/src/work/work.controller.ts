@@ -360,6 +360,21 @@ export class WorkController {
           assigneeName: r.assignee_name || 'Assigned Lead',
           createdAt: r.created_at,
         }));
+        for (const r of res.rows) {
+          if (!taskRepository.has(r.id)) {
+            taskRepository.set(r.id, {
+              id: r.id,
+              packageId: r.package_id,
+              organisationId: r.organisation_id,
+              projectId: r.project_id,
+              title: r.title,
+              assigneeId: r.assignee_id,
+              state: r.state,
+              isCompleted: r.is_completed,
+              completedAt: r.completed_at,
+            });
+          }
+        }
       } catch (e) {}
     }
 

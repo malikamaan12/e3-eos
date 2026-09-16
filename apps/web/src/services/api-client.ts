@@ -25,6 +25,19 @@ export function isSyntheticDemo(projectId?: string): boolean {
   );
 }
 
+export class ApiError extends Error {
+  public status: number;
+  public details?: any;
+
+  constructor(status: number, message: string, details?: any) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
+
 export class EosApiClient {
   private baseUrl: string;
   private organisationId: string;
@@ -3140,10 +3153,10 @@ export class EosApiClient {
         obligations: [],
         evaluation: {
           zone: 'ALL',
-          isCompliant: true,
-          canOpenZone: true,
-          criticalBlockers: [],
-          summaryReason: 'No compliance obligations registered.',
+          isCompliant: false,
+          canOpenZone: false,
+          criticalBlockers: ['Mandatory QCDD fire life safety and structural permits unverified'],
+          summaryReason: 'No compliance obligations registered or verified. Gate locked fail-closed.',
         },
       };
     }
@@ -3208,6 +3221,17 @@ export class EosApiClient {
         summaryReason: 'All critical regulatory obligations active or physical alternative verified.',
       },
     };
+  }
+
+  async evaluateOperationalReadiness(projectId: string = 'PRJ-QND-2026'): Promise<{
+    zone: string;
+    isCompliant: boolean;
+    canOpenZone: boolean;
+    criticalBlockers: string[];
+    summaryReason: string;
+  }> {
+    const res = await this.getComplianceObligations(projectId);
+    return res.evaluation;
   }
 
   async verifyComplianceObligation(payload: any): Promise<any> {
@@ -3798,7 +3822,11 @@ export class EosApiClient {
     try {
       const res = await fetch(`${this.baseUrl}/commercial/financial-control/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
-    } catch {}
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, err.message || `Failed to fetch financial control (${res.status})`, err);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
 
     if (!isSyntheticDemo(projectId)) {
       return {
@@ -3853,7 +3881,11 @@ export class EosApiClient {
     try {
       const res = await fetch(`${this.baseUrl}/commercial/cash-position/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
-    } catch {}
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, err.message || `Failed to fetch cash position (${res.status})`, err);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
 
     if (!isSyntheticDemo(projectId)) {
       return {
@@ -3894,7 +3926,11 @@ export class EosApiClient {
     try {
       const res = await fetch(`${this.baseUrl}/commercial/margin-bridge/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
-    } catch {}
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, err.message || `Failed to fetch margin bridge (${res.status})`, err);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
 
     if (!isSyntheticDemo(projectId)) {
       return {
@@ -3922,7 +3958,11 @@ export class EosApiClient {
         const json = await res.json();
         return json.snapshots || [];
       }
-    } catch {}
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, err.message || `Failed to fetch month-end snapshots (${res.status})`, err);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
 
     if (!isSyntheticDemo(projectId)) {
       return [];
@@ -3969,7 +4009,11 @@ export class EosApiClient {
         const json = await res.json();
         return json.invoices || [];
       }
-    } catch {}
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, err.message || `Failed to fetch supplier invoices (${res.status})`, err);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
 
     if (!isSyntheticDemo(projectId)) {
       return [];
@@ -4133,7 +4177,11 @@ export class EosApiClient {
         const json = await res.json();
         return json.clientInvoices || [];
       }
-    } catch {}
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, err.message || `Failed to fetch client invoices (${res.status})`, err);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
 
     if (!isSyntheticDemo(projectId)) {
       return [];
@@ -4163,7 +4211,11 @@ export class EosApiClient {
         const json = await res.json();
         return json.milestones || [];
       }
-    } catch {}
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, err.message || `Failed to fetch payment milestones (${res.status})`, err);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
 
     if (!isSyntheticDemo(projectId)) {
       return [];
@@ -4184,7 +4236,11 @@ export class EosApiClient {
         const json = await res.json();
         return json.collections || [];
       }
-    } catch {}
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, err.message || `Failed to fetch collections (${res.status})`, err);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
 
     if (!isSyntheticDemo(projectId)) {
       return [];
@@ -4211,7 +4267,11 @@ export class EosApiClient {
     try {
       const res = await fetch(`${this.baseUrl}/commercial/receivables-aging/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
-    } catch {}
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, err.message || `Failed to fetch receivables aging (${res.status})`, err);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
 
     if (!isSyntheticDemo(projectId)) {
       return {

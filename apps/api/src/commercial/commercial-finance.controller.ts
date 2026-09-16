@@ -7,7 +7,9 @@ import {
   HttpException,
   HttpStatus,
   UseFilters,
+  UseGuards,
 } from '@nestjs/common';
+import { TenantIsolationGuard, AllowedAudiences } from '../common/tenant.guard.js';
 import {
   SupplierInvoiceCreateSchema,
   SupplierInvoiceApproveSchema,
@@ -597,6 +599,8 @@ function seedCommercialData() {
 
 @Controller('commercial')
 @UseFilters(ProblemDetailsFilter)
+@UseGuards(TenantIsolationGuard)
+@AllowedAudiences('internal')
 export class CommercialFinanceController {
   constructor() {
     seedCommercialData();
@@ -1269,6 +1273,8 @@ export class CommercialFinanceController {
 // Controller for Client Results Room
 @Controller('client/results')
 @UseFilters(ProblemDetailsFilter)
+@UseGuards(TenantIsolationGuard)
+@AllowedAudiences('client', 'internal')
 export class ClientResultsRoomController {
   constructor() {
     seedCommercialData();

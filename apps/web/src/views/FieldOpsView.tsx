@@ -949,6 +949,7 @@ export const FieldOpsView: React.FC = () => {
                   <div style={{ display: 'flex', flexDirection: isNarrowScreen ? 'column' : 'row', gap: '6px', marginBottom: '8px' }}>
                     <input
                       type="text"
+                      aria-label="New photo file name"
                       value={newPhotoName}
                       onChange={(e) => setNewPhotoName(e.target.value)}
                       placeholder="e.g. photo-dock-counter.jpg"
@@ -1246,6 +1247,7 @@ export const FieldOpsView: React.FC = () => {
                     type="file"
                     accept="image/*"
                     capture="environment"
+                    aria-label="Scan barcode from uploaded photo"
                     onChange={handleImageUpload}
                     style={{ display: 'none' }}
                   />
@@ -1266,6 +1268,7 @@ export const FieldOpsView: React.FC = () => {
                 >
                   <input
                     type="text"
+                    aria-label="Enter asset tag ID manually"
                     value={manualTagInput}
                     onChange={(e) => setManualTagInput(e.target.value)}
                     placeholder="Enter tag ID (e.g. AST-SCN-001, AST-LGT-002)..."
@@ -1555,6 +1558,7 @@ export const FieldOpsView: React.FC = () => {
               >
                 <input
                   type="checkbox"
+                  aria-label={item.label}
                   checked={item.completed}
                   onChange={() => {}}
                   style={{ width: '16px', height: '16px', cursor: 'pointer' }}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { Card, Badge, Button } from '../components/DesignSystem.js';
+import { Card, Badge, Button, Tabs } from '../components/DesignSystem.js';
 import { isSyntheticDemo } from '../services/api-client.js';
 
 export const PostEventReportBuilderView: React.FC = () => {
@@ -101,26 +101,17 @@ export const PostEventReportBuilderView: React.FC = () => {
       )}
 
       {/* Dossier Tabs */}
-      <div className="flex border-b border-slate-800 gap-2">
-        {[
-          { key: 'executive', label: '🏛️ Executive Mandate & Highlights' },
-          { key: 'commercial', label: '💰 Commercial & Financial Ledger' },
-          { key: 'sustainability', label: '🌱 ISO 20121 Sustainability Scorecard' },
-          { key: 'safety', label: '🚒 QCDD Life Safety & Operations' },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
-            className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
-              activeTab === tab.key
-                ? 'border-blue-500 text-blue-400 bg-slate-800/40'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'executive', label: currentLanguage === 'ar' ? 'التقرير التنفيذي والإنجازات' : 'Executive Mandate & Highlights', icon: '🏛️' },
+          { id: 'commercial', label: currentLanguage === 'ar' ? 'السجل المالي والتجاري' : 'Commercial & Financial Ledger', icon: '💰' },
+          { id: 'sustainability', label: currentLanguage === 'ar' ? 'بطاقة استدامة ISO 20121' : 'ISO 20121 Sustainability Scorecard', icon: '🌱' },
+          { id: 'safety', label: currentLanguage === 'ar' ? 'السلامة وعمليات الدفاع المدني' : 'QCDD Life Safety & Operations', icon: '🚒' },
+        ]}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as any)}
+        ariaLabel="Dossier Sections"
+      />
 
       {/* Report Paper Container (Print-Ready Styling) */}
       <div id="executive-dossier-document" className="bg-slate-900 border border-slate-700/60 rounded-xl p-8 space-y-8 text-slate-300 shadow-2xl">
