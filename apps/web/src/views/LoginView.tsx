@@ -88,28 +88,29 @@ export const LoginView: React.FC = () => {
         backgroundColor: '#090d16',
         backgroundImage: 'radial-gradient(ellipse at 50% 0%, rgba(217, 119, 6, 0.12) 0%, rgba(15, 23, 42, 0.95) 70%, #090d16 100%)',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
+        justifyContent: 'flex-start',
+        padding: '0 16px 32px 16px',
         position: 'relative',
         fontFamily: isAr ? 'Tahoma, Arial, sans-serif' : 'Inter, system-ui, -apple-system, sans-serif',
+        boxSizing: 'border-box',
       }}
     >
       {/* Top Bar: Restrained Staging Indicator & Bilingual Selector */}
-      <div
+      <header
         style={{
-          position: 'absolute',
-          top: 16,
-          left: 16,
-          right: 16,
+          width: '100%',
+          maxWidth: '1200px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          padding: '16px 0',
           zIndex: 20,
-          pointerEvents: 'none',
+          boxSizing: 'border-box',
         }}
       >
-        <div style={{ pointerEvents: 'auto' }}>
+        <div>
           <span
             id="staging-badge"
             style={{
@@ -132,7 +133,7 @@ export const LoginView: React.FC = () => {
           </span>
         </div>
 
-        <div style={{ pointerEvents: 'auto' }}>
+        <div>
           <button
             id="btn-login-toggle-lang"
             onClick={toggleLanguage}
@@ -156,9 +157,9 @@ export const LoginView: React.FC = () => {
             <span>{isAr ? 'English' : 'العربية (RTL)'}</span>
           </button>
         </div>
-      </div>
+      </header>
 
-      <div style={{ width: '100%', maxWidth: '460px', zIndex: 10, marginTop: '48px' }}>
+      <div style={{ width: '100%', maxWidth: '460px', zIndex: 10, margin: '24px 0 auto 0' }}>
         {/* Brand Monogram & Product Identity */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div

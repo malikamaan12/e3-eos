@@ -169,6 +169,7 @@ export const FieldOpsView: React.FC = () => {
   } = useEosContext();
 
   const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
+  const isAr = currentLanguage === 'ar';
 
   // Viewport mode: mobile frame (<480px) vs desktop responsive
   const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
@@ -194,10 +195,10 @@ export const FieldOpsView: React.FC = () => {
 
   // 1. Checklist State
   const [checklists, setChecklists] = useState([
-    { id: 'chk-01', label: 'Overhead Truss Rigging Torque Check', completed: true, critical: true },
-    { id: 'chk-02', label: 'Generator Grounding & Fuel Spill Perimeter', completed: true, critical: true },
-    { id: 'chk-03', label: 'Emergency Exit Route Clearance & Signage', completed: false, critical: true },
-    { id: 'chk-04', label: 'AV Control Desk Talkback Comms Verification', completed: false, critical: false },
+    { id: 'chk-01', label: 'Overhead Truss Rigging Torque Check', labelAr: 'فحص عزم ربط هياكل التعليق العلوية', completed: true, critical: true },
+    { id: 'chk-02', label: 'Generator Grounding & Fuel Spill Perimeter', labelAr: 'تأريض المولدات وحزام احتواء الوقود', completed: true, critical: true },
+    { id: 'chk-03', label: 'Emergency Exit Route Clearance & Signage', labelAr: 'خلو مسارات الطوارئ وتثبيت اللوحات الإرشادية', completed: false, critical: true },
+    { id: 'chk-04', label: 'AV Control Desk Talkback Comms Verification', labelAr: 'التحقق من اتصال أجهزة التوجيه لغرفة التحكم', completed: false, critical: false },
   ]);
 
   // 2. POD State
@@ -668,11 +669,11 @@ export const FieldOpsView: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '18px' }}>📱</span>
               <span style={{ fontWeight: 800, fontSize: '14px' }}>
-                Field Ops PWA (E3 Field Operations Hub)
+                {isAr ? 'تطبيق العمليات الميدانية (E3 Hub)' : 'Field Ops PWA (E3 Field Operations Hub)'}
               </span>
             </div>
             <Badge variant={isOffline ? 'warning' : 'success'}>
-              {isOffline ? 'OFFLINE QUEUE' : 'ONLINE LIVE'}
+              {isOffline ? (isAr ? 'قائمة غير متصلة' : 'OFFLINE QUEUE') : (isAr ? 'متصل ومباشر' : 'ONLINE LIVE')}
             </Badge>
           </div>
           <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
@@ -684,10 +685,10 @@ export const FieldOpsView: React.FC = () => {
         {/* Quick Network & Safety Action Bar */}
         <div style={{ display: 'flex', flexDirection: isNarrowScreen ? 'column' : 'row', gap: '8px', marginBottom: '14px', width: '100%' }}>
           <Button size="md" variant={isOffline ? 'accent' : 'secondary'} onClick={toggleOffline} style={{ flex: 1, fontSize: '12px', minHeight: '44px', width: '100%' }}>
-            {isOffline ? '⚡ Sync Offline Queue' : '📶 Simulate Offline'}
+            {isOffline ? (isAr ? '⚡ مزامنة قائمة الانتظار' : '⚡ Sync Offline Queue') : (isAr ? '📶 محاكاة عدم الاتصال' : '📶 Simulate Offline')}
           </Button>
           <Button size="md" variant="danger" onClick={handleLogIncident} style={{ flex: 1, fontSize: '12px', minHeight: '44px', width: '100%' }}>
-            🚨 HSE Incident
+            {isAr ? '🚨 بلاغ سلامة وطوارئ' : '🚨 HSE Incident'}
           </Button>
         </div>
 
@@ -695,11 +696,50 @@ export const FieldOpsView: React.FC = () => {
           <div style={{ marginBottom: '12px' }}>
             <AlertBanner
               type="warning"
-              title="HSE Incident Recorded"
-              action={{ label: 'Dismiss', onClick: () => setIncidentLogged(false) }}
+              title={isAr ? 'تم تسجيل بلاغ السلامة الميداني' : 'HSE Incident Recorded'}
+              action={{ label: isAr ? 'إغلاق' : 'Dismiss', onClick: () => setIncidentLogged(false) }}
             >
-              Incident stored in internal site log. Client portal view strictly decoupled.
+              {isAr ? 'تم حفظ البلاغ في سجل الموقع الداخلي. بوابة العميل مفصولة تماماً.' : 'Incident stored in internal site log. Client portal view strictly decoupled.'}
             </AlertBanner>
+          </div>
+        )}
+
+        {/* Mobile Dropdown Selector for 390px Viewports */}
+        {isNarrowScreen && (
+          <div style={{ marginBottom: '12px' }}>
+            <label htmlFor="field-mobile-tool-select" style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+              {isAr ? 'أداة العمل الميداني الحالية:' : 'Active Field Tool:'}
+            </label>
+            <select
+              id="field-mobile-tool-select"
+              value={mobileTab}
+              onChange={(e) => setMobileTab(e.target.value as any)}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1.5px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#0f172a',
+                minHeight: '44px',
+              }}
+            >
+              {[
+                { id: 'checklist', label: isAr ? '📋 قائمة الجاهزية' : '📋 Readiness Chk', badge: checklists.filter(c => !c.completed).length },
+                { id: 'queue', label: isAr ? '📥 قائمة الانتظار' : '📥 Offline Queue', badge: pendingMutations.filter((m) => m.status === 'pending').length },
+                { id: 'pod', label: isAr ? '✍️ إيصال التسليم' : '✍️ POD Receipt', badge: podRecords.filter(p => !p.signed).length },
+                { id: 'snag', label: isAr ? '📸 الملاحظات والصور' : '📸 Snag & Photo', badge: snags.length },
+                { id: 'scanner', label: isAr ? '📷 قارئ الرمز' : '📷 QR Scanner', badge: 0 },
+                { id: 'qc', label: isAr ? '🔬 فحص الجودة' : '🔬 QC Inspect', badge: 0 },
+                { id: 'crew', label: isAr ? '👷 تسجيل الفريق' : '👷 Crew Checkin', badge: 0 },
+              ].map((tab) => (
+                <option key={tab.id} value={tab.id}>
+                  {tab.label} {tab.badge > 0 ? `(${tab.badge})` : ''}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 
@@ -717,13 +757,13 @@ export const FieldOpsView: React.FC = () => {
           }}
         >
           {[
-            { id: 'queue', label: '📥 Offline Queue', badge: pendingMutations.filter((m) => m.status === 'pending').length },
-            { id: 'pod', label: '✍️ POD Receipt', badge: podRecords.filter(p => !p.signed).length },
-            { id: 'snag', label: '📸 Snag & Photo', badge: snags.length },
-            { id: 'scanner', label: '📷 QR Scanner', badge: 0 },
-            { id: 'qc', label: '🔬 QC Inspect', badge: 0 },
-            { id: 'crew', label: '👷 Crew Checkin', badge: 0 },
-            { id: 'checklist', label: '📋 Readiness Chk', badge: checklists.filter(c => !c.completed).length },
+            { id: 'checklist', label: isAr ? '📋 قائمة الجاهزية' : '📋 Readiness Chk', badge: checklists.filter(c => !c.completed).length },
+            { id: 'queue', label: isAr ? '📥 قائمة الانتظار' : '📥 Offline Queue', badge: pendingMutations.filter((m) => m.status === 'pending').length },
+            { id: 'pod', label: isAr ? '✍️ إيصال التسليم' : '✍️ POD Receipt', badge: podRecords.filter(p => !p.signed).length },
+            { id: 'snag', label: isAr ? '📸 الملاحظات والصور' : '📸 Snag & Photo', badge: snags.length },
+            { id: 'scanner', label: isAr ? '📷 قارئ الرمز' : '📷 QR Scanner', badge: 0 },
+            { id: 'qc', label: isAr ? '🔬 فحص الجودة' : '🔬 QC Inspect', badge: 0 },
+            { id: 'crew', label: isAr ? '👷 تسجيل الفريق' : '👷 Crew Checkin', badge: 0 },
           ].map((tab) => {
             const isActive = mobileTab === tab.id;
             return (
@@ -1537,7 +1577,7 @@ export const FieldOpsView: React.FC = () => {
         {(mobileTab === 'checklist' || !isMobileFrame) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
-              Live Field Readiness Checklist
+              {isAr ? 'قائمة الجاهزية الميدانية المباشرة' : 'Live Field Readiness Checklist'}
             </h3>
 
             {checklists.map((item) => (
@@ -1558,23 +1598,23 @@ export const FieldOpsView: React.FC = () => {
               >
                 <input
                   type="checkbox"
-                  aria-label={item.label}
+                  aria-label={isAr && (item as any).labelAr ? (item as any).labelAr : item.label}
                   checked={item.completed}
                   onChange={() => {}}
                   style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                 />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, color: item.completed ? '#166534' : '#0f172a' }}>
-                    {item.label}
+                    {isAr && (item as any).labelAr ? (item as any).labelAr : item.label}
                   </div>
                   {item.critical && (
                     <span style={{ fontSize: '10px', color: '#dc2626', fontWeight: 700 }}>
-                      • Critical Safety Requirement
+                      {isAr ? '• متطلب سلامة حرج' : '• Critical Safety Requirement'}
                     </span>
                   )}
                 </div>
                 <Badge variant={item.completed ? 'success' : item.critical ? 'danger' : 'neutral'}>
-                  {item.completed ? 'PASS' : 'PENDING'}
+                  {item.completed ? (isAr ? 'معتمد' : 'PASS') : (isAr ? 'معلق' : 'PENDING')}
                 </Badge>
               </div>
             ))}

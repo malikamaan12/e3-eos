@@ -130,14 +130,14 @@ Date: ${new Date().toISOString()}
 1. FINAL REVENUE RECONCILIATION:
 - Original Contract Baseline: 2,300,000.00 QAR
 - Approved Variations (VO-01, VO-02): +150,000.00 QAR
-- Final Settled Contract Value: ${closeoutEval.finalRevenue.toString()}
+- Final Settled Contract Value: ${closeoutEval.finalRevenue?.toDisplayString ? closeoutEval.finalRevenue.toDisplayString() : Number(closeoutEval.finalRevenue || 0).toFixed(2)} QAR
 
 2. FINAL ACTUAL EXPENDITURE (EAC):
 - Direct Scenic & Steel: 620,000.00 QAR
 - AV & Projection: 480,000.00 QAR
 - Rigging & Lighting: 390,000.00 QAR
 - Site Logistics & Management: 310,000.00 QAR
-- Total Final Cost: ${closeoutEval.finalActualCost.toString()}
+- Total Final Cost: ${closeoutEval.finalActualCost?.toDisplayString ? closeoutEval.finalActualCost.toDisplayString() : Number(closeoutEval.finalActualCost || 0).toFixed(2)} QAR
 
 3. PURCHASE ORDER RECONCILIATION:
 - Committed POs: 1,920,000.00 QAR
@@ -145,7 +145,7 @@ Date: ${new Date().toISOString()}
 - Decommitted / Cancelled PO Balance: 120,000.00 QAR (Returned to contingency)
 
 4. FINAL COMMERCIAL PROFIT & MARGIN:
-- Net Operating Profit: ${closeoutEval.finalProfit.toString()}
+- Net Operating Profit: ${closeoutEval.finalProfit?.toDisplayString ? closeoutEval.finalProfit.toDisplayString() : Number(closeoutEval.finalProfit || 0).toFixed(2)} QAR
 - Gross Margin Percentage: ${closeoutEval.finalGrossMarginPercent}
 
 5. CRYPTOGRAPHIC AUDIT SEAL:
@@ -164,19 +164,19 @@ SHA-256 Digest: ${closeoutEval.auditHash}
   const handleExportCsv = () => {
     const csvContent = isDemo
       ? `LineItem,Category,OriginalContract_QAR,Variations_QAR,FinalContract_QAR,FinalActualCost_QAR,Variance_QAR,Margin_Percent
-Revenue - Main Contract,Revenue,2300000,0,2300000,0,2300000,100%
-Revenue - VO-01 VIP Redesign,Revenue,0,85000,85000,0,85000,100%
-Revenue - VO-02 Acoustic Baffles,Revenue,0,65000,65000,0,65000,100%
-Cost - Scenic Carpentry & Steel,Direct Cost,0,0,0,620000,-620000,N/A
-Cost - AV & LED Display Systems,Direct Cost,0,0,0,480000,-480000,N/A
-Cost - Lighting & Rigging Hoists,Direct Cost,0,0,0,390000,-390000,N/A
-Cost - Site Logistics & Welfare,Direct Cost,0,0,0,310000,-310000,N/A
-TOTAL COMMERCIAL SETTLEMENT,SUMMARY,2300000,150000,2450000,1800000,650000,${closeoutEval.finalGrossMarginPercent}
+Revenue - Main Contract,Revenue,2300000.00,0.00,2300000.00,0.00,2300000.00,100%
+Revenue - VO-01 VIP Redesign,Revenue,0.00,85000.00,85000.00,0.00,85000.00,100%
+Revenue - VO-02 Acoustic Baffles,Revenue,0.00,65000.00,65000.00,0.00,65000.00,100%
+Cost - Scenic Carpentry & Steel,Direct Cost,0.00,0.00,0.00,620000.00,-620000.00,N/A
+Cost - AV & LED Display Systems,Direct Cost,0.00,0.00,0.00,480000.00,-480000.00,N/A
+Cost - Lighting & Rigging Hoists,Direct Cost,0.00,0.00,0.00,390000.00,-390000.00,N/A
+Cost - Site Logistics & Welfare,Direct Cost,0.00,0.00,0.00,310000.00,-310000.00,N/A
+TOTAL COMMERCIAL SETTLEMENT,SUMMARY,2300000.00,150000.00,2450000.00,1800000.00,650000.00,${closeoutEval.finalGrossMarginPercent}
 `
       : `LineItem,Category,FinalContract_QAR,FinalActualCost_QAR,GrossProfit_QAR,Margin_Percent
-Total Contract Revenue,Revenue,${closeoutEval.finalRevenue},0,${closeoutEval.finalRevenue},100%
-Final Direct Costs,Direct Cost,0,${closeoutEval.finalActualCost},-${closeoutEval.finalActualCost},N/A
-TOTAL COMMERCIAL SETTLEMENT,SUMMARY,${closeoutEval.finalRevenue},${closeoutEval.finalActualCost},${closeoutEval.finalProfit},${closeoutEval.finalGrossMarginPercent}
+Total Contract Revenue,Revenue,${closeoutEval.finalRevenue?.toDisplayString ? closeoutEval.finalRevenue.toDisplayString() : Number(closeoutEval.finalRevenue || 0).toFixed(2)},0.00,${closeoutEval.finalRevenue?.toDisplayString ? closeoutEval.finalRevenue.toDisplayString() : Number(closeoutEval.finalRevenue || 0).toFixed(2)},100%
+Final Direct Costs,Direct Cost,0.00,${closeoutEval.finalActualCost?.toDisplayString ? closeoutEval.finalActualCost.toDisplayString() : Number(closeoutEval.finalActualCost || 0).toFixed(2)},-${closeoutEval.finalActualCost?.toDisplayString ? closeoutEval.finalActualCost.toDisplayString() : Number(closeoutEval.finalActualCost || 0).toFixed(2)},N/A
+TOTAL COMMERCIAL SETTLEMENT,SUMMARY,${closeoutEval.finalRevenue?.toDisplayString ? closeoutEval.finalRevenue.toDisplayString() : Number(closeoutEval.finalRevenue || 0).toFixed(2)},${closeoutEval.finalActualCost?.toDisplayString ? closeoutEval.finalActualCost.toDisplayString() : Number(closeoutEval.finalActualCost || 0).toFixed(2)},${closeoutEval.finalProfit?.toDisplayString ? closeoutEval.finalProfit.toDisplayString() : Number(closeoutEval.finalProfit || 0).toFixed(2)},${closeoutEval.finalGrossMarginPercent}
 `;
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
