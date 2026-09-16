@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Badge, Button, Card, Modal, Input } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 interface CommercialBOQViewProps {
   projectId: string;
@@ -16,7 +17,8 @@ export const CURRENCIES = [
 ];
 
 export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId }) => {
-  const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
+  const { apiClient, refreshTrigger, triggerRefresh, currentUser, currentOrg } = useEosContext();
+  const isDemo = isSyntheticDemo(projectId);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [estimates, setEstimates] = useState<any[]>([]);
@@ -33,9 +35,9 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
   const [lineDesc, setLineDesc] = useState<string>('');
   const [lineQuantity, setLineQuantity] = useState<string>('1');
   const [lineUom, setLineUom] = useState<string>('lot');
-  const [lineCost, setLineCost] = useState<string>('100000');
-  const [lineSell, setLineSell] = useState<string>('145000');
-  const [linkedReqCode, setLinkedReqCode] = useState<string>('REQ-QND-001');
+  const [lineCost, setLineCost] = useState<string>('');
+  const [lineSell, setLineSell] = useState<string>('');
+  const [linkedReqCode, setLinkedReqCode] = useState<string>('');
   const [isSubmittingLine, setIsSubmittingLine] = useState<boolean>(false);
 
   const activeCurrency = CURRENCIES.find((c) => c.code === selectedCurrency) || CURRENCIES[0];
@@ -125,8 +127,8 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
           apiClient.getEstimates(projectId).catch(() => []),
           fetch(`/api/v1/projects/${projectId}/financials`, {
             headers: {
-              'x-organization-id': '11111111-1111-4111-8111-111111111111',
-              'x-user-id': '10000000-0000-4000-8000-000000000004',
+              'x-organization-id': currentOrg?.id || '11111111-1111-4111-8111-111111111111',
+              'x-user-id': currentUser?.id || '10000000-0000-4000-8000-000000000004',
             },
           }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
         ]);
@@ -162,7 +164,8 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-organization-id': '11111111-1111-4111-8111-111111111111',
+          'x-organization-id': currentOrg?.id || '11111111-1111-4111-8111-111111111111',
+          'x-user-id': currentUser?.id || '10000000-0000-4000-8000-000000000004',
           'Idempotency-Key': `line-${Date.now()}`,
         },
         body: JSON.stringify({
@@ -181,7 +184,13 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         throw new Error('Failed to add BOQ line');
       }
       setIsAddLineModalOpen(false);
+      setLineCode('');
       setLineDesc('');
+      setLineQuantity('1');
+      setLineUom('lot');
+      setLineCost('');
+      setLineSell('');
+      setLinkedReqCode('');
       triggerRefresh();
     } catch (err: any) {
       alert(err.message || 'Failed to add BOQ line');
@@ -297,10 +306,10 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         <Card style={{ padding: '14px', borderLeft: '4px solid #3b82f6' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Baseline Budget</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
-            {formatWithCurrency(financials?.baselineBudget || activeEstimate?.totalCost || 985000)}
+            {formatWithCurrency(financials?.baselineBudget || activeEstimate?.totalCost || (isDemo ? 985000 : 0))}
           </div>
           <div style={{ fontSize: '11px', color: '#64748b' }}>
-            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.baselineBudget || activeEstimate?.totalCost || 985000).toLocaleString()} QAR | `}
+            {selectedCurrency !== 'QAR' && (financials?.baselineBudget || activeEstimate?.totalCost || isDemo) && `Base: ${Number(financials?.baselineBudget || activeEstimate?.totalCost || (isDemo ? 985000 : 0)).toLocaleString()} QAR | `}
             Original authorised baseline
           </div>
         </Card>
@@ -319,10 +328,10 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         <Card style={{ padding: '14px', borderLeft: '4px solid #2563eb' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Current Budget</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#1d4ed8', margin: '4px 0' }}>
-            {formatWithCurrency(financials?.currentBudget || financials?.approvedCostBudget || 985000)}
+            {formatWithCurrency(financials?.currentBudget || financials?.approvedCostBudget || (isDemo ? 985000 : 0))}
           </div>
           <div style={{ fontSize: '11px', color: '#1e40af' }}>
-            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.currentBudget || financials?.approvedCostBudget || 985000).toLocaleString()} QAR | `}
+            {selectedCurrency !== 'QAR' && (financials?.currentBudget || financials?.approvedCostBudget || isDemo) && `Base: ${Number(financials?.currentBudget || financials?.approvedCostBudget || (isDemo ? 985000 : 0)).toLocaleString()} QAR | `}
             Baseline + Approved Changes
           </div>
         </Card>
@@ -352,10 +361,10 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         <Card style={{ padding: '14px', borderLeft: '4px solid #d97706' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Forecast to Complete (ETC)</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#b45309', margin: '4px 0' }}>
-            {formatWithCurrency(financials?.forecastToComplete || financials?.currentBudget || 985000)}
+            {formatWithCurrency(financials?.forecastToComplete ?? financials?.currentBudget ?? 0)}
           </div>
           <div style={{ fontSize: '11px', color: '#d97706' }}>
-            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.forecastToComplete || financials?.currentBudget || 985000).toLocaleString()} QAR | `}
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.forecastToComplete ?? financials?.currentBudget ?? 0).toLocaleString()} QAR | `}
             Expected remaining cost
           </div>
         </Card>
@@ -363,10 +372,10 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         <Card style={{ padding: '14px', borderLeft: '4px solid #f59e0b' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>EAC (Estimate at Completion)</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#b45309', margin: '4px 0' }}>
-            {formatWithCurrency(financials?.estimateAtCompletion || 985000)}
+            {formatWithCurrency(financials?.estimateAtCompletion ?? financials?.currentBudget ?? 0)}
           </div>
           <div style={{ fontSize: '11px', color: '#b45309' }}>
-            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.estimateAtCompletion || 985000).toLocaleString()} QAR | `}
+            {selectedCurrency !== 'QAR' && `Base: ${Number(financials?.estimateAtCompletion ?? financials?.currentBudget ?? 0).toLocaleString()} QAR | `}
             Actual + Forecast to Complete
           </div>
         </Card>
@@ -436,7 +445,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                     </td>
                     <td style={{ padding: '12px' }}>
                       <span style={{ fontSize: '11px', color: '#475569', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                        {l.section || 'Main Stage'} &gt; {l.discipline || 'AV & Staging'}
+                        {l.section || (isDemo ? 'Main Stage' : 'General')} &gt; {l.discipline || (isDemo ? 'AV & Staging' : 'General')}
                       </span>
                     </td>
                     <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>
@@ -453,7 +462,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                     </td>
                     <td style={{ padding: '12px' }}>
                       <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: 600 }}>
-                        {l.linkedDesignId || 'DES-QND-001 (Rev B)'}
+                        {l.linkedDesignId || (isDemo ? 'DES-QND-001 (Rev B)' : '—')}
                       </span>
                     </td>
                     <td style={{ padding: '12px' }}>{l.quantity}</td>
@@ -518,7 +527,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
             <Input
               value={linkedReqCode}
               onChange={(e) => setLinkedReqCode(e.target.value)}
-              placeholder="e.g. REQ-QND-001"
+              placeholder="e.g. REQ-001"
               required
             />
           </div>

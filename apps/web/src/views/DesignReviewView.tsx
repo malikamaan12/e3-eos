@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 import {
   DesignPackageItem,
   DesignPackageType,
@@ -29,109 +30,159 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
   const [isSignoffModalOpen, setIsSignoffModalOpen] = useState<boolean>(false);
   const [gateEvaluation, setGateEvaluation] = useState<any>(null);
 
+  const isDemo = isSyntheticDemo(projectId);
+
   // New Pin Modal
   const [isNewPinModalOpen, setIsNewPinModalOpen] = useState<boolean>(false);
   const [newPinCoord, setNewPinCoord] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
-  const [newPinTitle, setNewPinTitle] = useState<string>('Truss Deflection & Kinetic Swivel Clearance');
+  const [newPinTitle, setNewPinTitle] = useState<string>('');
   const [newPinDiscipline, setNewPinDiscipline] = useState<string>('rigging');
   const [newPinPriority, setNewPinPriority] = useState<AnnotationPriority>('high');
-  const [newPinComment, setNewPinComment] = useState<string>(
-    'Confirm clear radius of motorized kinetic ring when rotated 45 degrees under load.'
-  );
+  const [newPinComment, setNewPinComment] = useState<string>('');
 
-  // Active Design Package Mock Data
-  const [designPackage, setDesignPackage] = useState<DesignPackageItem>({
-    id: 'DES-QND-001',
-    projectId,
-    packageType: 'elevations',
-    title: 'Main Ceremony 360° Kinetic LED Arch & Motorized Truss System',
-    discipline: 'audio_visual',
-    currentRevisionCode: 'Rev B',
-    currentReleaseStatus: 'approved_concept', // Approved Concept is NOT production!
-    linkedRequirementId: 'REQ-QND-001',
-    createdAt: '2026-09-08T10:00:00Z',
-    revisions: [
-      {
-        revisionCode: 'Rev A',
-        versionNumber: 1,
-        contentHash: 'a1b2c3d4e5f600112233445566778899aabbccddeeff00112233445566778899',
-        storageUrl: 'designs/DES-QND-001-RevA.pdf',
-        uploadedBy: 'Karim Haddad (Technical Director)',
-        uploadedAt: '2026-09-08T10:00:00Z',
-        notes: 'Initial concept elevation with 24m outer span and ground footings.',
-        releaseStatus: 'approved_concept',
-      },
-      {
-        revisionCode: 'Rev B',
-        versionNumber: 2,
-        contentHash: 'b2c3d4e5f6a111223344556677889900bbccddeeff00112233445566778899aa',
-        storageUrl: 'designs/DES-QND-001-RevB.pdf',
-        uploadedBy: 'Civil Defence Certified Structural Engineer',
-        uploadedAt: '2026-09-10T14:30:00Z',
-        notes: 'Updated tie-in deadweight ballasts and increased kinetic ring clearance to 1.8m.',
-        releaseStatus: 'client_review',
-        structuralEngineerSignoff: undefined,
-        hseSignoff: undefined,
-      },
-    ],
-    pins: [
-      {
-        id: 'pin-1',
-        pinNumber: 1,
-        revisionCode: 'Rev A',
-        xPercent: 32,
-        yPercent: 44,
-        title: 'Central Kinetic Ring Motorized Pivot Joint',
-        discipline: 'staging',
-        priority: 'urgent',
-        status: 'open',
-        assigneeName: 'Karim Haddad (Technical Director)',
-        comments: [
+  // Active Design Package
+  const [designPackage, setDesignPackage] = useState<DesignPackageItem | null>(() => {
+    if (isDemo) {
+      return {
+        id: 'DES-QND-001',
+        projectId,
+        packageType: 'elevations',
+        title: 'Main Ceremony 360° Kinetic LED Arch & Motorized Truss System',
+        discipline: 'audio_visual',
+        currentRevisionCode: 'Rev B',
+        currentReleaseStatus: 'approved_concept', // Approved Concept is NOT production!
+        linkedRequirementId: 'REQ-QND-001',
+        createdAt: '2026-09-08T10:00:00Z',
+        revisions: [
           {
-            id: 'c-1',
-            authorId: 'u-zaid',
-            authorName: 'Zaid Mansour (Lead PM)',
-            discipline: 'project_management',
-            message: 'Client requires certification that dynamic braking torque is rated for 150% maximum load.',
+            revisionCode: 'Rev A',
+            versionNumber: 1,
+            contentHash: 'a1b2c3d4e5f600112233445566778899aabbccddeeff00112233445566778899',
+            storageUrl: 'designs/DES-QND-001-RevA.pdf',
+            uploadedBy: 'Karim Haddad (Technical Director)',
+            uploadedAt: '2026-09-08T10:00:00Z',
+            notes: 'Initial concept elevation with 24m outer span and ground footings.',
+            releaseStatus: 'approved_concept',
+          },
+          {
+            revisionCode: 'Rev B',
+            versionNumber: 2,
+            contentHash: 'b2c3d4e5f6a111223344556677889900bbccddeeff00112233445566778899aa',
+            storageUrl: 'designs/DES-QND-001-RevB.pdf',
+            uploadedBy: 'Civil Defence Certified Structural Engineer',
+            uploadedAt: '2026-09-10T14:30:00Z',
+            notes: 'Updated tie-in deadweight ballasts and increased kinetic ring clearance to 1.8m.',
+            releaseStatus: 'client_review',
+            structuralEngineerSignoff: undefined,
+            hseSignoff: undefined,
+          },
+        ],
+        pins: [
+          {
+            id: 'pin-1',
+            pinNumber: 1,
+            revisionCode: 'Rev A',
+            xPercent: 32,
+            yPercent: 44,
+            title: 'Central Kinetic Ring Motorized Pivot Joint',
+            discipline: 'staging',
+            priority: 'urgent',
+            status: 'open',
+            assigneeName: 'Karim Haddad (Technical Director)',
+            comments: [
+              {
+                id: 'c-1',
+                authorId: 'u-zaid',
+                authorName: 'Zaid Mansour (Lead PM)',
+                discipline: 'project_management',
+                message: 'Client requires certification that dynamic braking torque is rated for 150% maximum load.',
+                createdAt: '2026-09-09T11:00:00Z',
+              },
+              {
+                id: 'c-2',
+                authorId: 'u-karim',
+                authorName: 'Karim Haddad (Technical Director)',
+                discipline: 'staging',
+                message: 'Dual electromagnetic failsafe brakes integrated into Rev B drawing callout #4.',
+                createdAt: '2026-09-09T15:30:00Z',
+              },
+            ],
             createdAt: '2026-09-09T11:00:00Z',
           },
           {
-            id: 'c-2',
-            authorId: 'u-karim',
-            authorName: 'Karim Haddad (Technical Director)',
-            discipline: 'staging',
-            message: 'Dual electromagnetic failsafe brakes integrated into Rev B drawing callout #4.',
-            createdAt: '2026-09-09T15:30:00Z',
-          },
-        ],
-        createdAt: '2026-09-09T11:00:00Z',
-      },
-      {
-        id: 'pin-2',
-        pinNumber: 2,
-        revisionCode: 'Rev A',
-        xPercent: 78,
-        yPercent: 68,
-        title: 'Foundation Tie-Down Ballast Anchor Point',
-        discipline: 'health_safety',
-        priority: 'high',
-        status: 'resolved',
-        assigneeName: 'Civil Defence Structural Inspector',
-        comments: [
-          {
-            id: 'c-3',
-            authorId: 'u-hse',
-            authorName: 'HSE & Safety Lead',
+            id: 'pin-2',
+            pinNumber: 2,
+            revisionCode: 'Rev A',
+            xPercent: 78,
+            yPercent: 68,
+            title: 'Foundation Tie-Down Ballast Anchor Point',
             discipline: 'health_safety',
-            message: 'Civil Defence requires water/concrete deadweight anchors rather than road-surface drilling on Lusail Boulevard.',
+            priority: 'high',
+            status: 'resolved',
+            assigneeName: 'Civil Defence Structural Inspector',
+            comments: [
+              {
+                id: 'c-3',
+                authorId: 'u-hse',
+                authorName: 'HSE & Safety Lead',
+                discipline: 'health_safety',
+                message: 'Civil Defence requires water/concrete deadweight anchors rather than road-surface drilling on Lusail Boulevard.',
+                createdAt: '2026-09-09T12:00:00Z',
+              },
+            ],
             createdAt: '2026-09-09T12:00:00Z',
+            resolvedAt: '2026-09-10T14:00:00Z',
           },
         ],
-        createdAt: '2026-09-09T12:00:00Z',
-        resolvedAt: '2026-09-10T14:00:00Z',
-      },
-    ],
+      };
+    }
+    return null;
   });
+
+  if (!designPackage) {
+    return (
+      <Card style={{ padding: '48px 24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '40px', marginBottom: '16px' }}>📐</div>
+        <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: '#1e293b' }}>
+          No Design Package Registered Yet
+        </h3>
+        <p style={{ margin: '0 0 24px', color: '#64748b', fontSize: '14px', maxWidth: '520px', marginInline: 'auto' }}>
+          Upload architectural drawings, structural layouts, or 3D visual renders for this project to start coordinate review pins and POL-DES-01 production release gates.
+        </p>
+        <Button
+          id="btn-register-initial-design"
+          variant="primary"
+          onClick={() => {
+            setDesignPackage({
+              id: `DES-${projectId.slice(0, 8).toUpperCase()}-001`,
+              projectId,
+              packageType: 'elevations',
+              title: 'Master Architectural Elevation & Rigging Plan',
+              discipline: 'staging',
+              currentRevisionCode: 'Rev A',
+              currentReleaseStatus: 'client_review',
+              createdAt: new Date().toISOString(),
+              revisions: [
+                {
+                  revisionCode: 'Rev A',
+                  versionNumber: 1,
+                  contentHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                  storageUrl: `designs/DES-${projectId.slice(0, 8).toUpperCase()}-001-RevA.pdf`,
+                  uploadedBy: 'Project Design Lead',
+                  uploadedAt: new Date().toISOString(),
+                  notes: 'Initial technical drawing set.',
+                  releaseStatus: 'client_review',
+                },
+              ],
+              pins: [],
+            });
+          }}
+        >
+          + Register Initial Design Package
+        </Button>
+      </Card>
+    );
+  }
 
   const activeRevision = designPackage.revisions.find((r) => r.revisionCode === selectedRevisionCode) || designPackage.revisions[0];
   const activePin = designPackage.pins.find((p) => p.id === selectedPinId) || designPackage.pins[0];
@@ -156,7 +207,7 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
       discipline: newPinDiscipline,
       priority: newPinPriority,
       status: 'open',
-      assigneeName: 'Zaid Mansour (Lead PM)',
+      assigneeName: 'Lead Design Reviewer',
       comments: [
         {
           id: `comm-${Date.now()}`,
@@ -176,6 +227,8 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
     });
     setSelectedPinId(newPin.id);
     setIsNewPinModalOpen(false);
+    setNewPinTitle('');
+    setNewPinComment('');
   };
 
   const handleTogglePinStatus = (pinId: string, newStatus: AnnotationStatus) => {
@@ -710,6 +763,7 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
               label="Callout Title"
               value={newPinTitle}
               onChange={(e) => setNewPinTitle(e.target.value)}
+              placeholder="e.g. Truss Deflection & Kinetic Swivel Clearance"
               required
             />
 
@@ -744,6 +798,7 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
               label="Review Note / Action Item"
               value={newPinComment}
               onChange={(e) => setNewPinComment(e.target.value)}
+              placeholder="e.g. Confirm clear radius and dynamic braking torque rating..."
               rows={3}
               required
             />

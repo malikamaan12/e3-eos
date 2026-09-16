@@ -25,8 +25,27 @@ import { CANONICAL_E3_USERS } from './canonical-users.js';
 import { EosApiClient } from '../services/api-client.js';
 export { CANONICAL_E3_USERS };
 
+export type ExtendedSyntheticUser = SyntheticUser & {
+  role?: string;
+  isSuperAdmin?: boolean;
+  mfaEnabled?: boolean;
+  organisationId?: string;
+};
+
+export type ExtendedSyntheticProject = SyntheticProject & {
+  name?: string;
+  code?: string;
+  clientName?: string;
+  venue?: any;
+  venueName?: string;
+  currency?: string;
+  currentStage?: number;
+  originType?: string;
+  [key: string]: any;
+};
+
 export interface EosContextValue {
-  currentUser: SyntheticUser & { role?: string; isSuperAdmin?: boolean; mfaEnabled?: boolean };
+  currentUser: ExtendedSyntheticUser | null;
   currentOrg: SyntheticOrganisation;
   currentLanguage: SupportedLocale;
   direction: 'ltr' | 'rtl';
@@ -34,8 +53,8 @@ export interface EosContextValue {
   activeWorkspace: WorkspaceType;
   currentPath: string;
   selectedProjectId: string;
-  projects: SyntheticProject[];
-  currentProject?: SyntheticProject;
+  projects: ExtendedSyntheticProject[];
+  currentProject?: ExtendedSyntheticProject;
   userRole?: string;
   pendingMutations: PendingOfflineMutation[];
   isNewProjectModalOpen: boolean;
@@ -109,15 +128,16 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const [currentPath, setCurrentPathState] = useState<string>(getInitialPath);
-  const [currentUser, setCurrentUserState] = useState<SyntheticUser & { role?: string; isSuperAdmin?: boolean; mfaEnabled?: boolean }>(() => {
+  const [currentUser, setCurrentUserState] = useState<ExtendedSyntheticUser | null>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('eos_user_email');
       if (saved) {
         const found = CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === saved.toLowerCase());
         if (found) return found as any;
       }
+      return null;
     }
-    return CANONICAL_E3_USERS[0];
+    return CANONICAL_E3_USERS[0] as any;
   });
   const [currentOrg, setCurrentOrg] = useState<SyntheticOrganisation>(() => {
     return SYNTHETIC_ORGANISATIONS.e3Internal;
@@ -287,29 +307,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return res;
     } catch (e: any) {
-      // If backend login fails with 405 (method not allowed / static rewrite) or network / activation errors on preview deploys,
-      // allow canonical UAT test personas to authenticate smoothly
-      const cleanEmail = email.trim().toLowerCase();
-      const matchingUser = CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === cleanEmail);
-      if (matchingUser) {
-        console.warn('[E3-EOS Auth] Activating authenticated UAT session for persona:', matchingUser.name, 'due to:', e?.message);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('eos_user_email', matchingUser.email);
-          localStorage.setItem('eos_session_token', 'uat-session-' + Date.now());
-        }
-        setCurrentUserState(matchingUser as any);
-        apiClient.setContext(matchingUser.organisationId, matchingUser.id, [matchingUser.role]);
-        return {
-          success: true,
-          user: matchingUser,
-          activeMembership: {
-            role: matchingUser.role,
-            organisationId: matchingUser.organisationId,
-            audience: 'internal',
-            organisationName: 'E3 Events & Entertainment W.L.L.',
-          },
-        };
-      }
+      console.error('[E3-EOS Auth] Authentication failed:', e?.message || e);
       throw e;
     }
   };
@@ -373,6 +371,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem('eos_user_email');
       localStorage.removeItem('eos_session_token');
     }
+    setCurrentUserState(null);
     apiClient.setSessionToken(undefined);
     setIsImpersonating(false);
     setImpersonatedBy(null);

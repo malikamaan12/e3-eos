@@ -4,7 +4,7 @@ import { Tabs, Card, Badge, Button, EmptyState, Modal, Textarea } from '../compo
 import { RequestApprovalModal } from '../components/RequestApprovalModal.js';
 
 export const MyWorkView: React.FC = () => {
-  const { currentUser, currentLanguage, apiClient, selectedProjectId, navigate, refreshTrigger, triggerRefresh, currentPath } = useEosContext();
+  const { currentUser, currentLanguage, apiClient, selectedProjectId, currentProject, navigate, refreshTrigger, triggerRefresh, currentPath } = useEosContext();
   const isRtl = currentLanguage === 'ar';
   const isApprovalsRoute = currentPath === '/approvals' || (typeof window !== 'undefined' && window.location.pathname === '/approvals');
   const [activeTab, setActiveTab] = useState<string>(() => (isApprovalsRoute ? 'pending' : 'action'));
@@ -245,8 +245,8 @@ export const MyWorkView: React.FC = () => {
                 ? 'قائمة مراجعة وتوقيع قرارات الحوكمة، اعتمادات بوابات المراحل، وأوامر الشراء المرفوعة للصلاحيات.'
                 : 'Four-Eyes governance approvals, stage-gate signoffs, and commercial decision queue.')
               : (isRtl
-                ? `المهام والموافقات والقرارات المسندة إلى: ${currentUser.name}`
-                : `Tasks, governance approvals, and milestone deliverables assigned to ${currentUser.name}`)}
+                ? `المهام والموافقات والقرارات المسندة إلى: ${currentUser?.name || ''}`
+                : `Tasks, governance approvals, and milestone deliverables assigned to ${currentUser?.name || 'User'}`)}
           </p>
         </div>
 
@@ -452,7 +452,7 @@ export const MyWorkView: React.FC = () => {
                               {appr.reason || `Approval Request for ${appr.targetType}`}
                             </div>
                             <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
-                              Target: <strong>{appr.targetType}</strong> • Project: <strong>Qatar Tourism</strong> • Hash: <span style={{ fontFamily: 'monospace' }}>{appr.targetHash ? appr.targetHash.slice(0, 16) + '...' : 'Verified SHA-256'}</span>
+                              Target: <strong>{appr.targetType}</strong> • Project: <strong>{currentProject?.title || currentProject?.clientName || 'Active Project'}</strong> • Hash: <span style={{ fontFamily: 'monospace' }}>{appr.targetHash ? appr.targetHash.slice(0, 16) + '...' : 'Verified SHA-256'}</span>
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -527,7 +527,7 @@ export const MyWorkView: React.FC = () => {
                                 {task.title}
                               </div>
                               <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                                Assignee: {task.assignee || task.assigneeName || currentUser.name} • Stage: Concept Architecture
+                                Assignee: {task.assignee || task.assigneeName || currentUser?.name || 'Assigned'} • Stage: Concept Architecture
                               </div>
                             </div>
                           </div>
@@ -641,7 +641,7 @@ export const MyWorkView: React.FC = () => {
                         </span>
                       </div>
                       <div style={{ fontSize: '12px', color: '#64748b' }}>
-                        {task.assignee || task.assigneeName || currentUser.name}
+                        {task.assignee || task.assigneeName || currentUser?.name || 'Assigned'}
                       </div>
                       <div>
                         <Badge variant={completed ? 'success' : 'info'}>
@@ -886,7 +886,7 @@ export const MyWorkView: React.FC = () => {
                     </span>
                   </div>
                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                    Client: <strong>Qatar Tourism Authority</strong> • Venue: Doha Exhibition & Convention Center
+                    Client: <strong>{currentProject?.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')}</strong> • Venue: {currentProject?.venue || (isRtl ? 'الموقع الرئيسي' : 'Main Venue')}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -916,7 +916,7 @@ export const MyWorkView: React.FC = () => {
                     </span>
                   </div>
                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                    Location: <strong>DECC Hall 1 & 2</strong> • Workstream: Live Ops & AV Production
+                    Location: <strong>{currentProject?.venue || (isRtl ? 'الموقع الميداني' : 'Main Site')}</strong> • Workstream: Live Ops & AV Production
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>

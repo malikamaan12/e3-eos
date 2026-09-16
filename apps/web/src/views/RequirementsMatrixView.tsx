@@ -34,19 +34,19 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   const [reqOriginalWording, setReqOriginalWording] = useState<string>('');
   const [reqInterpretation, setReqInterpretation] = useState<string>('');
   const [reqSourceType, setReqSourceType] = useState<string>('Client RFP');
-  const [reqSourceRef, setReqSourceRef] = useState<string>('RFP Section 4.2.1');
+  const [reqSourceRef, setReqSourceRef] = useState<string>('');
   const [reqPriority, setReqPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('high');
   const [reqCategory, setReqCategory] = useState<string>('staging_technical');
-  const [reqOwnerName, setReqOwnerName] = useState<string>('Tariq Mansoor (Technical Director)');
-  const [reqDueDate, setReqDueDate] = useState<string>('2026-11-20');
-  const [reqTargetCost, setReqTargetCost] = useState<number>(250000);
+  const [reqOwnerName, setReqOwnerName] = useState<string>('');
+  const [reqDueDate, setReqDueDate] = useState<string>('');
+  const [reqTargetCost, setReqTargetCost] = useState<number>(0);
   const [isSubmittingReq, setIsSubmittingReq] = useState<boolean>(false);
 
   const [isRfiModalOpen, setIsRfiModalOpen] = useState<boolean>(false);
   const [rfiQuestion, setRfiQuestion] = useState<string>('');
   const [rfiCategory, setRfiCategory] = useState<string>('technical');
-  const [rfiSection, setRfiSection] = useState<string>('RFP Section 4.2.1');
-  const [rfiDueAt, setRfiDueAt] = useState<string>('2026-11-10T18:00:00Z');
+  const [rfiSection, setRfiSection] = useState<string>('');
+  const [rfiDueAt, setRfiDueAt] = useState<string>('');
   const [isSubmittingRfi, setIsSubmittingRfi] = useState<boolean>(false);
 
   useEffect(() => {
@@ -102,6 +102,11 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       setReqDesc('');
       setReqOriginalWording('');
       setReqInterpretation('');
+      setReqCode('');
+      setReqSourceRef('');
+      setReqOwnerName('');
+      setReqDueDate('');
+      setReqTargetCost(0);
       triggerRefresh();
     } catch (err: any) {
       alert(err.message || 'Failed to register requirement');
@@ -135,6 +140,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       }
       setIsRfiModalOpen(false);
       setRfiQuestion('');
+      setRfiSection('');
+      setRfiDueAt('');
       triggerRefresh();
     } catch (err: any) {
       alert(err.message || 'Failed to submit RFI');
@@ -836,7 +843,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               <Input
                 value={reqCode}
                 onChange={(e) => setReqCode(e.target.value)}
-                placeholder="e.g. REQ-QND-005"
+                placeholder="e.g. REQ-001"
               />
             </div>
 
@@ -845,7 +852,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               <Input
                 value={reqTitle}
                 onChange={(e) => setReqTitle(e.target.value)}
-                placeholder="e.g. Amiri Protocol Shaded Holding Majlis"
+                placeholder="e.g. VIP Protocol Holding Majlis & Staging Canopy"
                 required
               />
             </div>

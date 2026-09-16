@@ -415,7 +415,7 @@ export class GovernanceController {
 
   @Get('audit-history')
   @UseGuards(TenantIsolationGuard)
-  async getAuditHistory(@Param('projectId') _projectId: string, @Req() _req: Request) {
+  async getAuditHistory(@Param('projectId') projectId: string, @Req() _req: Request) {
     if (this.dbService) {
       try {
         const pool = this.dbService.getPool();
@@ -423,9 +423,10 @@ export class GovernanceController {
           SELECT a.id, a.action, a.actor_id, a.actor_role, a.entry_hash, a.payload, a.created_at, u.name as actor_name
           FROM audit_events a
           LEFT JOIN users u ON u.id = a.actor_id
+          WHERE a.project_id = $1
           ORDER BY a.created_at DESC
           LIMIT 50;
-        `);
+        `, [projectId]);
         if (res.rows.length > 0) {
           return {
             data: res.rows.map(r => ({
@@ -445,12 +446,12 @@ export class GovernanceController {
     return {
       data: [
         {
-          id: 'audit-01',
+          id: `audit-${projectId ? projectId.slice(0, 8) : 'init'}`,
           action: 'PROJECT_ONBOARDED',
-          actor: 'Zaid Mansour (Lead PM)',
-          role: 'project_manager',
+          actor: 'System / Authority Lead',
+          role: 'system',
           entryHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-          timestamp: new Date().toISOString(),
+          timestamp: '2026-09-15T12:00:00.000Z',
         },
       ],
     };

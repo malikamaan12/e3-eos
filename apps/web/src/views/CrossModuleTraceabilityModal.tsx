@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Badge, Button } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 interface CrossModuleTraceabilityModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ export const CrossModuleTraceabilityModal: React.FC<CrossModuleTraceabilityModal
   onClose,
   projectId,
 }) => {
+  const isDemo = isSyntheticDemo(projectId);
   const [selectedNodeIndex, setSelectedNodeIndex] = useState<number>(0);
 
   const lineageNodes = [
@@ -25,7 +27,7 @@ export const CrossModuleTraceabilityModal: React.FC<CrossModuleTraceabilityModal
       details: [
         { label: 'Scope Item', value: '30 Units' },
         { label: 'Required On-Site', value: '2026-10-15' },
-        { label: 'Origin Spec', value: 'Qatar Tourism RFP Schedule 4' },
+        { label: 'Origin Spec', value: isDemo ? 'Qatar Tourism RFP Schedule 4' : 'Technical Specifications Schedule' },
       ],
       icon: '🎯',
     },

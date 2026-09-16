@@ -14,7 +14,7 @@ interface RfqLineItem {
 }
 
 export const SupplierPortalView: React.FC = () => {
-  const { currentLanguage } = useEosContext();
+  const { currentLanguage, currentProject, currentOrg } = useEosContext();
   const isAr = currentLanguage === 'ar';
 
   const [rfqItems, setRfqItems] = useState<RfqLineItem[]>([
@@ -115,8 +115,8 @@ export const SupplierPortalView: React.FC = () => {
           </h1>
           <div style={{ fontSize: '13px', color: '#64748b' }}>
             {isAr
-              ? 'المشروع: احتفالات اليوم الوطني لدولة قطر 2026 • الجهة الطالبة: شركة E3 للفعاليات والمشاريع الكبرى'
-              : 'Target Project: Qatar National Day 2026 • Issuing Entity: E3 Events & Special Projects LLC (Doha, Qatar)'}
+              ? `المشروع: ${currentProject?.name || 'مشروع الفعالية'} • الجهة الطالبة: ${currentOrg?.name || 'شركة E3 للفعاليات'}`
+              : `Target Project: ${currentProject?.name || 'Production Project'} • Issuing Entity: ${currentOrg?.name || 'E3 Events & Special Projects LLC'}`}
           </div>
         </div>
 

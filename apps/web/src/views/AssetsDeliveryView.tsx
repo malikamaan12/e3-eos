@@ -7,7 +7,7 @@ interface AssetsDeliveryViewProps {
 }
 
 export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectId }) => {
-  const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
+  const { apiClient, refreshTrigger, triggerRefresh, currentProject } = useEosContext();
 
   const [assets, setAssets] = useState<any[]>([]);
   const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -80,7 +80,7 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
   const handleCheckCollision = () => {
     setSandboxCollisionResult({
       collision: true,
-      conflictingProject: 'PRJ-QND-2026 (Qatar National Day Parade)',
+      conflictingProject: currentProject?.name ? `${currentProject.projectCode || 'PRJ'} (${currentProject.name})` : 'PRJ-QND-2026 (Qatar National Day Parade)',
       lockedWindow: '2026-12-14 → 2026-12-20',
       reason: 'Authoritative reservation invariant AT-051 enforced: Serialized asset AST-LUS-HOIST-01 cannot be double-booked across overlapping timelines.',
       subrentalRecommended: true,
@@ -361,7 +361,7 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
               <div style={{ fontSize: '14px', fontWeight: 800, color: '#dc2626', marginTop: '2px' }}>
                 12 Units Required (Peak Week)
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>QND Parade (4) • FIFA Zone (4) • Expo (4)</div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>Concurrent Project Demand (Peak Operational Schedule)</div>
             </div>
 
             <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>

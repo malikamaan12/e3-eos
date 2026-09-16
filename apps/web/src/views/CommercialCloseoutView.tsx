@@ -2,40 +2,45 @@ import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal, Input, Textarea } from '../components/DesignSystem.js';
 import { CommercialCloseoutEngine, CommercialCloseoutChecklist } from '@e3-eos/domain';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const CommercialCloseoutView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const { currentLanguage, apiClient, selectedProjectId, currentUser, currentProject } = useEosContext();
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
   const [closeout, setCloseout] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Closeout Checklist State (10 Pillars)
   const [checklist, setChecklist] = useState<CommercialCloseoutChecklist>({
-    posFullyInvoicedOrDecommitted: true,
-    supplierInvoicesSettled: true,
-    clientMilestonesBilled: true,
-    openReceivablesManaged: true,
-    retentionScheduleConfirmed: true,
-    expenseClaimsSettled: true,
-    variationsConcluded: true,
-    costAllocationsConfirmed: true,
-    finalPandLAudited: true,
-    executiveSignoffSealed: true,
+    posFullyInvoicedOrDecommitted: isDemo,
+    supplierInvoicesSettled: isDemo,
+    clientMilestonesBilled: isDemo,
+    openReceivablesManaged: isDemo,
+    retentionScheduleConfirmed: isDemo,
+    expenseClaimsSettled: isDemo,
+    variationsConcluded: isDemo,
+    costAllocationsConfirmed: isDemo,
+    finalPandLAudited: isDemo,
+    executiveSignoffSealed: isDemo,
   });
 
   const [isSignoffModalOpen, setIsSignoffModalOpen] = useState<boolean>(false);
-  const [authorizedBy, setAuthorizedBy] = useState<string>('Hamad Al-Kuwari (Finance Director)');
-  const [justification, setJustification] = useState<string>('All commercial variations settled, 100% PO commitments reconciled, final P&L locked at 26.53% gross margin.');
+  const [authorizedBy, setAuthorizedBy] = useState<string>(() => (currentUser?.name ? `${currentUser.name} (${currentUser.role || 'Finance Director'})` : (isDemo ? 'Hamad Al-Kuwari (Finance Director)' : 'Finance Director')));
+  const [justification, setJustification] = useState<string>(() => (isDemo ? 'All commercial variations settled, 100% PO commitments reconciled, final P&L locked at 26.53% gross margin.' : ''));
   const [isSealing, setIsSealing] = useState<boolean>(false);
+
+  const finalRev = closeout?.financialSummary?.finalRevenue || (isDemo ? '2450000' : '0');
+  const finalCost = closeout?.financialSummary?.finalActualCost || (isDemo ? '1800000' : '0');
 
   // Live evaluation via CommercialCloseoutEngine (Item 8)
   const closeoutEval = CommercialCloseoutEngine.evaluateCloseout({
     projectId,
     currency: 'QAR',
     checklist,
-    finalRevenue: '2450000',
-    finalActualCost: '1800000',
+    finalRevenue: finalRev,
+    finalActualCost: finalCost,
     signedBy: authorizedBy,
   });
 
@@ -55,6 +60,21 @@ export const CommercialCloseoutView: React.FC = () => {
   };
 
   useEffect(() => {
+    const demo = isSyntheticDemo(projectId);
+    setChecklist({
+      posFullyInvoicedOrDecommitted: demo,
+      supplierInvoicesSettled: demo,
+      clientMilestonesBilled: demo,
+      openReceivablesManaged: demo,
+      retentionScheduleConfirmed: demo,
+      expenseClaimsSettled: demo,
+      variationsConcluded: demo,
+      costAllocationsConfirmed: demo,
+      finalPandLAudited: demo,
+      executiveSignoffSealed: demo,
+    });
+    setAuthorizedBy(currentUser?.name ? `${currentUser.name} (${currentUser.role || 'Finance Director'})` : (demo ? 'Hamad Al-Kuwari (Finance Director)' : 'Finance Director'));
+    setJustification(demo ? 'All commercial variations settled, 100% PO commitments reconciled, final P&L locked at 26.53% gross margin.' : '');
     loadData();
   }, [projectId]);
 
@@ -142,7 +162,8 @@ SHA-256 Digest: ${closeoutEval.auditHash}
   };
 
   const handleExportCsv = () => {
-    const csvContent = `LineItem,Category,OriginalContract_QAR,Variations_QAR,FinalContract_QAR,FinalActualCost_QAR,Variance_QAR,Margin_Percent
+    const csvContent = isDemo
+      ? `LineItem,Category,OriginalContract_QAR,Variations_QAR,FinalContract_QAR,FinalActualCost_QAR,Variance_QAR,Margin_Percent
 Revenue - Main Contract,Revenue,2300000,0,2300000,0,2300000,100%
 Revenue - VO-01 VIP Redesign,Revenue,0,85000,85000,0,85000,100%
 Revenue - VO-02 Acoustic Baffles,Revenue,0,65000,65000,0,65000,100%
@@ -151,6 +172,11 @@ Cost - AV & LED Display Systems,Direct Cost,0,0,0,480000,-480000,N/A
 Cost - Lighting & Rigging Hoists,Direct Cost,0,0,0,390000,-390000,N/A
 Cost - Site Logistics & Welfare,Direct Cost,0,0,0,310000,-310000,N/A
 TOTAL COMMERCIAL SETTLEMENT,SUMMARY,2300000,150000,2450000,1800000,650000,${closeoutEval.finalGrossMarginPercent}
+`
+      : `LineItem,Category,FinalContract_QAR,FinalActualCost_QAR,GrossProfit_QAR,Margin_Percent
+Total Contract Revenue,Revenue,${closeoutEval.finalRevenue},0,${closeoutEval.finalRevenue},100%
+Final Direct Costs,Direct Cost,0,${closeoutEval.finalActualCost},-${closeoutEval.finalActualCost},N/A
+TOTAL COMMERCIAL SETTLEMENT,SUMMARY,${closeoutEval.finalRevenue},${closeoutEval.finalActualCost},${closeoutEval.finalProfit},${closeoutEval.finalGrossMarginPercent}
 `;
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -165,12 +191,12 @@ TOTAL COMMERCIAL SETTLEMENT,SUMMARY,2300000,150000,2450000,1800000,650000,${clos
     { key: 'posFullyInvoicedOrDecommitted', title: '1. PO Commitments Sealed & Decommitted', desc: 'All purchase orders have matching final supplier invoices or formal remaining commitment cancellations.' },
     { key: 'supplierInvoicesSettled', title: '2. Zero Pending Supplier Invoices', desc: '100% of incoming vendor invoices are approved, scheduled for payment, or formally disputed.' },
     { key: 'clientMilestonesBilled', title: '3. Full Contract Milestones Invoiced', desc: 'All four contract billing milestones (Advance, Delivery, Opening, Final) have been formally invoiced.' },
-    { key: 'openReceivablesManaged', title: '4. Receivables Managed & Under Action Plan', desc: 'Open milestone balance (245k QAR) tracked with 1-30 day aging and scheduled bank transfer confirmation.' },
+    { key: 'openReceivablesManaged', title: '4. Receivables Managed & Under Action Plan', desc: isDemo ? 'Open milestone balance (245k QAR) tracked with 1-30 day aging and scheduled bank transfer confirmation.' : 'Open milestone balance tracked with aging and scheduled bank transfer confirmation.' },
     { key: 'retentionScheduleConfirmed', title: '5. Retention Release Terms Confirmed', desc: 'Zero unbonded retention disputes; final defect liability period escrow terms confirmed.' },
     { key: 'expenseClaimsSettled', title: '6. Site Cost Claims Cleared & Reimbursed', desc: 'Staff expenses, crew welfare, and emergency site purchases fully reimbursed and cost-coded.' },
-    { key: 'variationsConcluded', title: '7. Variations Concluded & Client-Signed', desc: 'VO-01 and VO-02 fully approved with +150,000 QAR added to contract baseline.' },
+    { key: 'variationsConcluded', title: '7. Variations Concluded & Client-Signed', desc: isDemo ? 'VO-01 and VO-02 fully approved with +150,000 QAR added to contract baseline.' : 'All scope variations fully approved and added to contract baseline.' },
     { key: 'costAllocationsConfirmed', title: '8. Multi-Package Cost Allocations Complete', desc: 'All actual costs verified without over-allocation across packages (Steel, Staging, AV, Lighting).' },
-    { key: 'finalPandLAudited', title: '9. Final Project Profit & Loss Audited', desc: 'Revenue: 2,450,000 QAR | EAC: 1,800,000 QAR | Net Margin: 650,000 QAR (26.53%).' },
+    { key: 'finalPandLAudited', title: '9. Final Project Profit & Loss Audited', desc: isDemo ? 'Revenue: 2,450,000 QAR | EAC: 1,800,000 QAR | Net Margin: 650,000 QAR (26.53%).' : `Revenue: ${Number(finalRev).toLocaleString()} QAR | EAC: ${Number(finalCost).toLocaleString()} QAR | Margin: ${closeoutEval.finalGrossMarginPercent}.` },
     { key: 'executiveSignoffSealed', title: '10. Cryptographic Audit Seal Generated', desc: 'Executive commercial signoff authorization secured with immutable SHA-256 digest.' },
   ];
 
@@ -214,23 +240,23 @@ TOTAL COMMERCIAL SETTLEMENT,SUMMARY,2300000,150000,2450000,1800000,650000,${clos
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Final Revenue"
-          value="2,450,000 QAR"
+          value={`${Number(closeoutEval.finalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR`}
           subtext="Contract + Approved VOs"
         />
         <MetricCard
           label="Final Actual Cost (EAC)"
-          value="1,800,000 QAR"
+          value={`${Number(closeoutEval.finalActualCost || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR`}
           subtext="Zero Double-Counting"
         />
         <MetricCard
           label="Final Commercial Profit"
-          value="+650,000 QAR"
+          value={`${Number(closeoutEval.finalProfit || 0) >= 0 ? '+' : ''}${Number(closeoutEval.finalProfit || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR`}
           subtext="Net Project Earnings"
         />
         <MetricCard
           label="Final Gross Margin"
           value={closeoutEval.finalGrossMarginPercent}
-          trend="+6.96% vs Tender (19.57%)"
+          trend={isDemo ? "+6.96% vs Tender (19.57%)" : ""}
           trendDirection="up"
         />
       </div>
@@ -268,86 +294,117 @@ TOTAL COMMERCIAL SETTLEMENT,SUMMARY,2300000,150000,2450000,1800000,650000,${clos
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700/50 font-mono text-xs">
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-sans font-semibold text-white">Main Contract Base Scope (Advance + Milestones)</td>
-                <td className="p-3 font-sans text-slate-400">Revenue Baseline</td>
-                <td className="p-3 text-right text-slate-200">2,300,000.00</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-white">2,300,000.00</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-emerald-400">—</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-sans font-semibold text-white">VO-01: VIP Royal Protocol Canopy Redesign</td>
-                <td className="p-3 font-sans text-amber-400">Approved Variation</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-amber-400">+85,000.00</td>
-                <td className="p-3 text-right text-white">85,000.00</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-emerald-400">—</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-sans font-semibold text-white">VO-02: Acoustic Fabric Treatment & Baffles</td>
-                <td className="p-3 font-sans text-amber-400">Approved Variation</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-amber-400">+65,000.00</td>
-                <td className="p-3 text-right text-white">65,000.00</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-emerald-400">—</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40 bg-slate-800/20">
-                <td className="p-3 font-sans font-semibold text-white">Purchase Orders Decommitment Adjustment</td>
-                <td className="p-3 font-sans text-emerald-400">PO Reconciled</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-emerald-400">-120,000.00 (Decommitted)</td>
-                <td className="p-3 text-right text-emerald-400">+120,000.00 Savings</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-sans font-semibold text-white">Direct Production Costs (Steel, Scenic, Carpentry)</td>
-                <td className="p-3 font-sans text-slate-400">Direct Cost</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-rose-400">620,000.00</td>
-                <td className="p-3 text-right text-slate-400">—</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-sans font-semibold text-white">AV, LED & Projection Subcontractors</td>
-                <td className="p-3 font-sans text-slate-400">Direct Cost</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-rose-400">480,000.00</td>
-                <td className="p-3 text-right text-slate-400">—</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-sans font-semibold text-white">Lighting, Rigging & Heavy Plant Machinery</td>
-                <td className="p-3 font-sans text-slate-400">Direct Cost</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-rose-400">390,000.00</td>
-                <td className="p-3 text-right text-slate-400">—</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-sans font-semibold text-white">Site Management, Crew Welfare & Permits</td>
-                <td className="p-3 font-sans text-slate-400">Site Operations</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-slate-500">—</td>
-                <td className="p-3 text-right text-rose-400">310,000.00</td>
-                <td className="p-3 text-right text-slate-400">—</td>
-              </tr>
+              {isDemo ? (
+                <>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="p-3 font-sans font-semibold text-white">Main Contract Base Scope (Advance + Milestones)</td>
+                    <td className="p-3 font-sans text-slate-400">Revenue Baseline</td>
+                    <td className="p-3 text-right text-slate-200">2,300,000.00</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-white">2,300,000.00</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-emerald-400">—</td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="p-3 font-sans font-semibold text-white">VO-01: VIP Royal Protocol Canopy Redesign</td>
+                    <td className="p-3 font-sans text-amber-400">Approved Variation</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-amber-400">+85,000.00</td>
+                    <td className="p-3 text-right text-white">85,000.00</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-emerald-400">—</td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="p-3 font-sans font-semibold text-white">VO-02: Acoustic Fabric Treatment & Baffles</td>
+                    <td className="p-3 font-sans text-amber-400">Approved Variation</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-amber-400">+65,000.00</td>
+                    <td className="p-3 text-right text-white">65,000.00</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-emerald-400">—</td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/40 bg-slate-800/20">
+                    <td className="p-3 font-sans font-semibold text-white">Purchase Orders Decommitment Adjustment</td>
+                    <td className="p-3 font-sans text-emerald-400">PO Reconciled</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-emerald-400">-120,000.00 (Decommitted)</td>
+                    <td className="p-3 text-right text-emerald-400">+120,000.00 Savings</td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="p-3 font-sans font-semibold text-white">Direct Production Costs (Steel, Scenic, Carpentry)</td>
+                    <td className="p-3 font-sans text-slate-400">Direct Cost</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-rose-400">620,000.00</td>
+                    <td className="p-3 text-right text-slate-400">—</td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="p-3 font-sans font-semibold text-white">AV, LED & Projection Subcontractors</td>
+                    <td className="p-3 font-sans text-slate-400">Direct Cost</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-rose-400">480,000.00</td>
+                    <td className="p-3 text-right text-slate-400">—</td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="p-3 font-sans font-semibold text-white">Lighting, Rigging & Heavy Plant Machinery</td>
+                    <td className="p-3 font-sans text-slate-400">Direct Cost</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-rose-400">390,000.00</td>
+                    <td className="p-3 text-right text-slate-400">—</td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="p-3 font-sans font-semibold text-white">Site Management, Crew Welfare & Permits</td>
+                    <td className="p-3 font-sans text-slate-400">Site Operations</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-rose-400">310,000.00</td>
+                    <td className="p-3 text-right text-slate-400">—</td>
+                  </tr>
+                </>
+              ) : Number(closeoutEval.finalRevenue || 0) > 0 || Number(closeoutEval.finalActualCost || 0) > 0 ? (
+                <>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="p-3 font-sans font-semibold text-white">Total Authorized Contract & Variations</td>
+                    <td className="p-3 font-sans text-slate-400">Revenue Baseline</td>
+                    <td className="p-3 text-right text-slate-200">{Number(closeoutEval.finalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-white">{Number(closeoutEval.finalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-emerald-400">—</td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="p-3 font-sans font-semibold text-white">Total Reconciled Actual Direct Costs (EAC)</td>
+                    <td className="p-3 font-sans text-slate-400">Direct Cost</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-slate-500">—</td>
+                    <td className="p-3 text-right text-rose-400">{Number(closeoutEval.finalActualCost || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="p-3 text-right text-slate-400">—</td>
+                  </tr>
+                </>
+              ) : (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-400 font-sans">
+                    No commercial closeout ledger items recorded for this project yet.
+                  </td>
+                </tr>
+              )}
               <tr className="bg-slate-900 font-bold border-t-2 border-slate-600 text-sm">
                 <td className="p-3 font-sans text-white">FINAL RECONCILED SETTLEMENT SUMMARY</td>
                 <td className="p-3 font-sans text-emerald-400">{closeoutEval.decision.toUpperCase()}</td>
-                <td className="p-3 text-right text-slate-300">2,300,000.00</td>
-                <td className="p-3 text-right text-amber-400">+150,000.00</td>
-                <td className="p-3 text-right text-white">{closeoutEval.finalRevenue.toString()}</td>
-                <td className="p-3 text-right text-rose-300">{closeoutEval.finalActualCost.toString()}</td>
-                <td className="p-3 text-right text-emerald-400">+{closeoutEval.finalProfit.toString()} ({closeoutEval.finalGrossMarginPercent})</td>
+                <td className="p-3 text-right text-slate-300">{isDemo ? '2,300,000.00' : Number(closeoutEval.finalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="p-3 text-right text-amber-400">{isDemo ? '+150,000.00' : '—'}</td>
+                <td className="p-3 text-right text-white">{Number(closeoutEval.finalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="p-3 text-right text-rose-300">{Number(closeoutEval.finalActualCost || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="p-3 text-right text-emerald-400">+{Number(closeoutEval.finalProfit || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({closeoutEval.finalGrossMarginPercent})</td>
               </tr>
             </tbody>
           </table>
@@ -439,12 +496,14 @@ TOTAL COMMERCIAL SETTLEMENT,SUMMARY,2300000,150000,2450000,1800000,650000,${clos
             label="Authorized Signoff Executive"
             value={authorizedBy}
             onChange={(e) => setAuthorizedBy(e.target.value)}
+            placeholder="Authorized executive name and title"
           />
 
           <Textarea
             label="Executive Closeout Justification"
             value={justification}
             onChange={(e) => setJustification(e.target.value)}
+            placeholder="Enter executive closeout justification..."
           />
 
           <div className="bg-emerald-950/20 border border-emerald-500/40 p-3 rounded text-xs text-emerald-300">

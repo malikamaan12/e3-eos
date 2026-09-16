@@ -14,6 +14,7 @@ import { LogisticsDeliveryView } from './LogisticsDeliveryView.js';
 import { CrewDeliveryView } from './CrewDeliveryView.js';
 import { SiteOpsDeliveryView } from './SiteOpsDeliveryView.js';
 import { CrossModuleTraceabilityModal } from './CrossModuleTraceabilityModal.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const ProjectCockpitView: React.FC = () => {
   const {
@@ -46,13 +47,13 @@ export const ProjectCockpitView: React.FC = () => {
 
   // Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState<boolean>(false);
-  const [newTaskTitle, setNewTaskTitle] = useState<string>('Prepare clarification questions');
-  const [newTaskAssignee, setNewTaskAssignee] = useState<string>('10000000-0000-4000-8000-000000000004'); // Zaid Mansour
+  const [newTaskTitle, setNewTaskTitle] = useState<string>('');
+  const [newTaskAssignee, setNewTaskAssignee] = useState<string>(currentUser?.id || '10000000-0000-4000-8000-000000000004');
   const [isSubmittingTask, setIsSubmittingTask] = useState<boolean>(false);
 
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState<boolean>(false);
-  const [approvalReason, setApprovalReason] = useState<string>('Qatar Tourism Tender Clarifications & Pricing Sign-off');
-  const [approvalAmountQar, setApprovalAmountQar] = useState<number>(320000);
+  const [approvalReason, setApprovalReason] = useState<string>('');
+  const [approvalAmountQar, setApprovalAmountQar] = useState<number>(0);
   const [isSubmittingApproval, setIsSubmittingApproval] = useState<boolean>(false);
 
   // Workstream filter state
@@ -249,7 +250,7 @@ export const ProjectCockpitView: React.FC = () => {
 
   const [showTechnicalAudit, setShowTechnicalAudit] = useState<boolean>(false);
 
-  const isSyntheticDemo = projectId === 'f1111111-1111-4111-8111-111111111111';
+  const isDemo = isSyntheticDemo(projectId);
 
   // 9 Canonical Workstreams
   const demoWorkstreams = [
@@ -276,7 +277,7 @@ export const ProjectCockpitView: React.FC = () => {
     { name: 'Governance & Four-Eyes Gates', lead: 'Executive Sponsor' },
   ];
 
-  const workstreams = isSyntheticDemo
+  const workstreams: any[] = isDemo
     ? demoWorkstreams
     : (cockpitData?.workstreamProgress || defaultWorkstreamList.map((ws) => ({
         name: ws.name,
@@ -287,14 +288,14 @@ export const ProjectCockpitView: React.FC = () => {
         status: 'on_track',
       })));
 
-  const projectTitle = cockpitData?.title || (isSyntheticDemo ? 'Qatar Tourism Demo Tender' : 'Untitled Project');
-  const projectCode = cockpitData?.projectCode || (isSyntheticDemo ? 'PRJ-2026-DEMO' : (projectId || 'PRJ-NEW'));
-  const clientName = cockpitData?.clientName || (isSyntheticDemo ? 'Qatar Tourism Authority' : 'To Be Confirmed');
-  const venue = cockpitData?.venue?.name || (isSyntheticDemo ? 'Doha Exhibition & Convention Center' : 'To Be Confirmed');
+  const projectTitle = cockpitData?.title || (isDemo ? 'Qatar Tourism Demo Tender' : 'Untitled Project');
+  const projectCode = cockpitData?.projectCode || (isDemo ? 'PRJ-2026-DEMO' : (projectId || 'PRJ-NEW'));
+  const clientName = cockpitData?.clientName || (isDemo ? 'Qatar Tourism Authority' : 'To Be Confirmed');
+  const venue = cockpitData?.venue?.name || (isDemo ? 'Doha Exhibition & Convention Center' : 'To Be Confirmed');
   const pmLeadName = cockpitData?.pm?.name
     ? `${cockpitData.pm.name} (${cockpitData.pm.email || 'pm@e3.qa'})`
-    : (isSyntheticDemo ? 'Zaid Mansour (pm@e3.qa)' : (currentUser.name ? `${currentUser.name} (Lead PM)` : 'Unassigned Lead PM'));
-  const daysRemaining = cockpitData?.dates?.daysRemaining ?? (isSyntheticDemo ? 66 : null);
+    : (isDemo ? 'Zaid Mansour (pm@e3.qa)' : (currentUser?.name ? `${currentUser.name} (Lead PM)` : 'Unassigned Lead PM'));
+  const daysRemaining = cockpitData?.dates?.daysRemaining ?? (isDemo ? 66 : null);
   const isDraft = cockpitData?.maturity === 'draft';
 
   // Fast-track incomplete detection
@@ -314,16 +315,16 @@ export const ProjectCockpitView: React.FC = () => {
   // Strict EAC Accounting: EAC = Actual Cost + Forecast to Complete
   const baselineCost = isDraft
     ? null
-    : (cockpitData?.financials?.budget ?? cockpitData?.financials?.baselineBudget ?? (isSyntheticDemo ? 1968750 : 0));
+    : (cockpitData?.financials?.budget ?? cockpitData?.financials?.baselineBudget ?? (isDemo ? 1968750 : 0));
   const committedCost = isDraft
     ? null
-    : (cockpitData?.financials?.committedCost ?? (isSyntheticDemo ? 1420000 : 0));
+    : (cockpitData?.financials?.committedCost ?? (isDemo ? 1420000 : 0));
   const actualCost = isDraft
     ? null
-    : (cockpitData?.financials?.actualCost ?? cockpitData?.financials?.postedActuals ?? (isSyntheticDemo ? 580000 : 0));
+    : (cockpitData?.financials?.actualCost ?? cockpitData?.financials?.postedActuals ?? (isDemo ? 580000 : 0));
   const forecastToComplete = isDraft
     ? null
-    : (cockpitData?.financials?.forecastToComplete ?? (isSyntheticDemo ? 1288750 : ((baselineCost !== null && actualCost !== null) ? Math.max(0, baselineCost - actualCost) : 0)));
+    : (cockpitData?.financials?.forecastToComplete ?? (isDemo ? 1288750 : ((baselineCost !== null && actualCost !== null) ? Math.max(0, baselineCost - actualCost) : 0)));
   const eac = (actualCost !== null && forecastToComplete !== null) ? (actualCost + forecastToComplete) : null;
   const costVariance = (baselineCost !== null && eac !== null) ? (baselineCost - eac) : null;
   const isSaving = costVariance !== null && costVariance >= 0;
@@ -936,19 +937,19 @@ export const ProjectCockpitView: React.FC = () => {
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Contract Value</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.expectedRevenue ?? (isSyntheticDemo ? 3500000 : (baselineCost || 0)), 'QAR')}
+              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.expectedRevenue ?? (isDemo ? 3500000 : (baselineCost || 0)), 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Invoiced to Client</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.invoiced ?? (isSyntheticDemo ? 1050000 : 0), 'QAR')}
+              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.invoiced ?? (isDemo ? 1050000 : 0), 'QAR')}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Collected (Cash In)</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.collected ?? (isSyntheticDemo ? 1050000 : 0), 'QAR')}
+              {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.collected ?? (isDemo ? 1050000 : 0), 'QAR')}
             </div>
           </div>
           <div>
@@ -972,7 +973,7 @@ export const ProjectCockpitView: React.FC = () => {
           <div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Net Cash Exposure</div>
             <div style={{ fontSize: '14px', fontWeight: 800, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
-              {isDraft ? 'Not yet available' : `+${formatCurrency(isSyntheticDemo ? 470000 : Math.max(0, (cockpitData?.financials?.collected || 0) - (actualCost || 0)), 'QAR')}`}
+              {isDraft ? 'Not yet available' : `+${formatCurrency(isDemo ? 470000 : Math.max(0, (cockpitData?.financials?.collected || 0) - (actualCost || 0)), 'QAR')}`}
             </div>
           </div>
         </div>
@@ -987,7 +988,7 @@ export const ProjectCockpitView: React.FC = () => {
           <span style={{ fontSize: '12px', color: '#64748b' }}>Automated priority evaluation</span>
         </div>
 
-        {isSyntheticDemo ? (
+        {isDemo ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
             {/* Card 1: Blocker (Red) */}
             <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -1000,7 +1001,7 @@ export const ProjectCockpitView: React.FC = () => {
                   Stage 03 Executive Gate Sign-Off Pending
                 </div>
                 <p style={{ fontSize: '12px', color: '#7f1d1d', margin: 0 }}>
-                  Four-eyes commercial authorization by Executive Partner Nasser Al-Attiyah required before advancing.
+                  Four-eyes commercial authorization by Executive Partner required before advancing.
                 </p>
               </div>
               <div style={{ marginTop: '12px' }}>
@@ -1226,7 +1227,7 @@ export const ProjectCockpitView: React.FC = () => {
                 boxShadow: workstreamFilter === 'needs_attention' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
               }}
             >
-              ⚠️ Needs Attention ({workstreams.filter(w => w.blockers > 0 || w.status === 'warning' || w.openTasks > 0).length})
+              ⚠️ Needs Attention ({workstreams.filter((w: any) => w.blockers > 0 || w.status === 'warning' || w.openTasks > 0).length})
             </button>
             <button
               id="ws-filter-on-track"
@@ -1244,7 +1245,7 @@ export const ProjectCockpitView: React.FC = () => {
                 boxShadow: workstreamFilter === 'on_track' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
               }}
             >
-              🟢 On Track ({workstreams.filter(w => w.status === 'healthy' || w.status === 'on_track').length})
+              🟢 On Track ({workstreams.filter((w: any) => w.status === 'healthy' || w.status === 'on_track').length})
             </button>
             <button
               id="ws-filter-all"
@@ -1269,7 +1270,7 @@ export const ProjectCockpitView: React.FC = () => {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
           {workstreams
-            .filter((ws) => {
+            .filter((ws: any) => {
               if (workstreamFilter === 'all') return true;
               if (workstreamFilter === 'needs_attention') {
                 return ws.blockers > 0 || ws.status === 'warning' || ws.openTasks > 0;
@@ -1279,7 +1280,7 @@ export const ProjectCockpitView: React.FC = () => {
               }
               return true;
             })
-            .map((ws, i) => (
+            .map((ws: any, i: number) => (
             <div
               key={i}
               style={{
@@ -1374,7 +1375,7 @@ export const ProjectCockpitView: React.FC = () => {
                           {t.title}
                         </div>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>
-                          Assignee: {t.assignee || t.assigneeName || 'Zaid Mansour (Lead PM)'}
+                          Assignee: {t.assignee || t.assigneeName || (isDemo ? 'Zaid Mansour (Lead PM)' : 'Unassigned')}
                         </div>
                       </div>
                     </div>
@@ -1644,6 +1645,7 @@ export const ProjectCockpitView: React.FC = () => {
             label="Reason / Subject *"
             value={approvalReason}
             onChange={(e) => setApprovalReason(e.target.value)}
+            placeholder="e.g. Milestone Sign-off & Pricing Authorization"
             required
           />
 

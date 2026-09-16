@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
 import { FieldSyncEngine } from '@e3-eos/domain';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 interface SiteOpsDeliveryViewProps {
   projectId: string;
@@ -12,7 +13,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
   projectId,
   initialSection = 'dsr',
 }) => {
-  const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
+  const { apiClient, refreshTrigger, triggerRefresh, currentUser } = useEosContext();
+  const isDemo = isSyntheticDemo(projectId);
 
   const [activeSection, setActiveSection] = useState<'dsr' | 'installation' | 'readiness' | 'snags' | 'offline_sync'>(initialSection);
   const [networkMode, setNetworkMode] = useState<'online_5g' | 'low_bandwidth_2g' | 'airplane_offline'>('airplane_offline');
@@ -27,38 +29,42 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
   const [at059CriticalUnresolved, setAt059CriticalUnresolved] = useState<boolean>(true);
 
   // Safety Punch-List & S1 RTO Gate State (P04-ST05 / AT-058)
-  const [siteSnags, setSiteSnags] = useState<any[]>([
-    {
-      id: 'snag-s1-01',
-      title: 'Emergency fire egress corridor obstructed by lighting ballast cables at Gate 4',
-      severity: 'S1_LIFE_SAFETY',
-      location: 'Lusail Hall 1 - Gate 4 Egress Route',
-      blocksRto: true,
-      status: 'open',
-      reportedBy: 'Khamis Al-Sulaiti (HSE Lead)',
-      qcddRef: 'QCDD-NOTICE-2026-441',
-    },
-    {
-      id: 'snag-s2-02',
-      title: 'DMX distribution line intermittent communication on Stage Left Truss',
-      severity: 'S2_SHOW_STOPPER',
-      location: 'Main Stage Overhead Grid 2',
-      blocksRto: false,
-      status: 'resolved',
-      reportedBy: 'Tariq Al-Mansoor (AV Lead)',
-      qcddRef: 'N/A',
-    },
-    {
-      id: 'snag-s3-03',
-      title: 'Scuff marks on VIP reception counter fascia',
-      severity: 'S3_COSMETIC',
-      location: 'VIP Registration Lobby',
-      blocksRto: false,
-      status: 'open',
-      reportedBy: 'Sarah Jenkins (Client Services)',
-      qcddRef: 'N/A',
-    },
-  ]);
+  const [siteSnags, setSiteSnags] = useState<any[]>(() =>
+    isDemo
+      ? [
+          {
+            id: 'snag-s1-01',
+            title: 'Emergency fire egress corridor obstructed by lighting ballast cables at Gate 4',
+            severity: 'S1_LIFE_SAFETY',
+            location: 'Main Hall 1 - Gate 4 Egress Route',
+            blocksRto: true,
+            status: 'open',
+            reportedBy: 'Khamis Al-Sulaiti (HSE Lead)',
+            qcddRef: 'QCDD-NOTICE-2026-441',
+          },
+          {
+            id: 'snag-s2-02',
+            title: 'DMX distribution line intermittent communication on Stage Left Truss',
+            severity: 'S2_SHOW_STOPPER',
+            location: 'Main Stage Overhead Grid 2',
+            blocksRto: false,
+            status: 'resolved',
+            reportedBy: 'Tariq Al-Mansoor (AV Lead)',
+            qcddRef: 'N/A',
+          },
+          {
+            id: 'snag-s3-03',
+            title: 'Scuff marks on VIP reception counter fascia',
+            severity: 'S3_COSMETIC',
+            location: 'VIP Registration Lobby',
+            blocksRto: false,
+            status: 'open',
+            reportedBy: 'Sarah Jenkins (Client Services)',
+            qcddRef: 'N/A',
+          },
+        ]
+      : []
+  );
 
   const handleResolveSiteSnag = (snagId: string) => {
     setSiteSnags((prev) =>
@@ -68,36 +74,34 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
 
   // Governed Opening Authorization Modal
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-  const [authBy, setAuthBy] = useState<string>('Elena Rostova');
+  const [authBy, setAuthBy] = useState<string>(currentUser?.name || '');
   const [authRole, setAuthRole] = useState<string>('executive_producer');
-  const [authJustification, setAuthJustification] = useState<string>(
-    'All 10 operational dimensions passed, Civil Defence safety certificate approved, DECC venue walkthrough signed off.'
-  );
-  const [authConditions, setAuthConditions] = useState<string>(
-    'Standard medical & fire safety response teams stationed at Hall 1 & 2.'
-  );
+  const [authJustification, setAuthJustification] = useState<string>('');
+  const [authConditions, setAuthConditions] = useState<string>('');
   const [isAuthorizing, setIsAuthorizing] = useState<boolean>(false);
 
   // New DSR Modal
   const [isDsrModalOpen, setIsDsrModalOpen] = useState<boolean>(false);
   const [reportDate, setReportDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [workCompleted, setWorkCompleted] = useState<string>('Reception desk cable drops positioned and power energized');
-  const [workDelayed, setWorkDelayed] = useState<string>('None');
-  const [manpowerCount, setManpowerCount] = useState<number>(18);
-  const [equipmentActive, setEquipmentActive] = useState<string>('Forklifts 2x, Pallet jacks 4x, Laser levelers');
-  const [deliveriesReceived, setDeliveriesReceived] = useState<string>('Truck 07 offloaded (30 registration counters)');
-  const [incidentsOccurred, setIncidentsOccurred] = useState<string>('Zero safety incidents');
-  const [snagsIdentified, setSnagsIdentified] = useState<string>('Counter #14 edge banding touched up');
-  const [clientInstructions, setClientInstructions] = useState<string>('Approved badge print network dry run');
-  const [weatherConditions, setWeatherConditions] = useState<string>('Indoor DECC Hall 1 (21°C)');
-  const [tomorrowPlan, setTomorrowPlan] = useState<string>('Final client walkthrough and operational readiness sign-off');
-  const [recordedBy, setRecordedBy] = useState<string>('Omar Farooq (Site Field Supervisor)');
+  const [workCompleted, setWorkCompleted] = useState<string>('');
+  const [workDelayed, setWorkDelayed] = useState<string>('');
+  const [manpowerCount, setManpowerCount] = useState<number>(0);
+  const [equipmentActive, setEquipmentActive] = useState<string>('');
+  const [deliveriesReceived, setDeliveriesReceived] = useState<string>('');
+  const [incidentsOccurred, setIncidentsOccurred] = useState<string>('');
+  const [snagsIdentified, setSnagsIdentified] = useState<string>('');
+  const [clientInstructions, setClientInstructions] = useState<string>('');
+  const [weatherConditions, setWeatherConditions] = useState<string>('');
+  const [tomorrowPlan, setTomorrowPlan] = useState<string>('');
+  const [recordedBy, setRecordedBy] = useState<string>(
+    currentUser?.name ? `${currentUser.name} (Site Field Supervisor)` : ''
+  );
   const [isSubmittingDsr, setIsSubmittingDsr] = useState<boolean>(false);
 
   // Installation item advance modal
   const [selectedInstallItem, setSelectedInstallItem] = useState<any | null>(null);
   const [targetStatus, setTargetStatus] = useState<string>('accepted');
-  const [installerNotes, setInstallerNotes] = useState<string>('Inspected and signed off by Site Supervisor');
+  const [installerNotes, setInstallerNotes] = useState<string>('');
   const [isAdvancingItem, setIsAdvancingItem] = useState<boolean>(false);
 
   useEffect(() => {
@@ -149,6 +153,16 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
         photos: ['site/dsr-today-overview.jpg'],
       });
       setIsDsrModalOpen(false);
+      setWorkCompleted('');
+      setWorkDelayed('');
+      setManpowerCount(0);
+      setEquipmentActive('');
+      setDeliveriesReceived('');
+      setIncidentsOccurred('');
+      setSnagsIdentified('');
+      setClientInstructions('');
+      setWeatherConditions('');
+      setTomorrowPlan('');
       triggerRefresh();
     } catch (err: any) {
       alert(err.message || 'Failed to record Daily Site Report');
@@ -166,9 +180,10 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
         status: targetStatus,
         installerNotes,
         evidenceUris: ['photos/installation-verified.jpg'],
-        verifiedBy: 'Omar Farooq (Site Field Supervisor)',
+        verifiedBy: currentUser?.name ? `${currentUser.name} (Site Field Supervisor)` : 'Site Field Supervisor',
       });
       setSelectedInstallItem(null);
+      setInstallerNotes('');
       triggerRefresh();
     } catch (err: any) {
       alert(err.message || 'Failed to update installation status');
@@ -198,6 +213,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
         conditionNotes: authConditions,
       });
       setIsAuthModalOpen(false);
+      setAuthJustification('');
+      setAuthConditions('');
       triggerRefresh();
     } catch (err: any) {
       alert(err.message || 'Failed to authorize show opening');
@@ -970,6 +987,15 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                       </td>
                     </tr>
                   ))}
+                  {siteSnags.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                        <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
+                        <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Site Snags or Safety Deficiencies Recorded</div>
+                        <div style={{ fontSize: '12px', marginTop: '4px' }}>All inspection criteria and life-safety clearance gates are currently clear.</div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1214,6 +1240,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               label="Work Completed Today"
               value={workCompleted}
               onChange={(e) => setWorkCompleted(e.target.value)}
+              placeholder="e.g. Reception desk cable drops positioned and power energized..."
               rows={2}
               required
             />
@@ -1222,11 +1249,13 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 label="Deliveries Received"
                 value={deliveriesReceived}
                 onChange={(e) => setDeliveriesReceived(e.target.value)}
+                placeholder="e.g. Truck 07 offloaded (registration counters)"
               />
               <Input
                 label="Active Equipment"
                 value={equipmentActive}
                 onChange={(e) => setEquipmentActive(e.target.value)}
+                placeholder="e.g. Forklifts, Pallet jacks, Laser levelers"
               />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -1234,23 +1263,27 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 label="HSE / Incidents (Law No. 13)"
                 value={incidentsOccurred}
                 onChange={(e) => setIncidentsOccurred(e.target.value)}
+                placeholder="e.g. Zero safety incidents"
               />
               <Input
                 label="Snags Identified / Solved"
                 value={snagsIdentified}
                 onChange={(e) => setSnagsIdentified(e.target.value)}
+                placeholder="e.g. Counter edge trim touched up"
               />
             </div>
             <Textarea
               label="Tomorrow's Plan & Milestones"
               value={tomorrowPlan}
               onChange={(e) => setTomorrowPlan(e.target.value)}
+              placeholder="e.g. Conduct client dry run and reception hostess briefing..."
               rows={2}
             />
             <Input
               label="Recorded By (Authoritative Signatory)"
               value={recordedBy}
               onChange={(e) => setRecordedBy(e.target.value)}
+              placeholder="e.g. Site Field Supervisor"
               required
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
@@ -1290,6 +1323,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               label="Verification Notes & Snagging Sign-off"
               value={installerNotes}
               onChange={(e) => setInstallerNotes(e.target.value)}
+              placeholder="e.g. Inspected and verified by Site Supervisor"
               rows={3}
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
@@ -1320,6 +1354,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 label="Authorized Signatory Name"
                 value={authBy}
                 onChange={(e) => setAuthBy(e.target.value)}
+                placeholder="e.g. Lead Project Director"
                 required
               />
               <Select
@@ -1340,6 +1375,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               label="Sign-Off Justification & Formal Assessment"
               value={authJustification}
               onChange={(e) => setAuthJustification(e.target.value)}
+              placeholder="e.g. All operational dimensions verified passed. Safety certificate endorsed. Authorized for public doors opening."
               rows={3}
               required
             />
@@ -1347,6 +1383,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               label="Operational Conditions / Safety Caveats"
               value={authConditions}
               onChange={(e) => setAuthConditions(e.target.value)}
+              placeholder="e.g. Standard medical & fire safety response teams stationed at venue."
               rows={2}
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>

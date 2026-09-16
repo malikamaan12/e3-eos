@@ -233,24 +233,30 @@ export const FieldOpsView: React.FC = () => {
   const [podCondition, setPodCondition] = useState<'intact' | 'damaged_partial' | 'packaging_damaged'>('intact');
   const [signatureConfirmed, setSignatureConfirmed] = useState<boolean>(false);
 
+  const isSyntheticDemo = selectedProjectId === 'f1111111-1111-4111-8111-111111111111' || selectedProjectId === '00000000-0000-4000-8000-000000000001';
+
   // 3. Snag State
-  const [snags, setSnags] = useState<SnagItem[]>([
-    {
-      id: 'sng-01',
-      title: 'Cracked edge banding on Counter #14',
-      location: 'DECC Hall 1 - East Foyer',
-      trade: 'Scenic / Joinery',
-      severity: 'moderate',
-      photos: ['snag-counter14-edge.jpg', 'snag-counter14-full.jpg'],
-      status: 'open',
-      loggedAt: '2026-09-12 09:15 AST',
-    },
-  ]);
-  const [snagTitle, setSnagTitle] = useState<string>('Lighting truss safety cable missing lock pin');
-  const [snagLocation, setSnagLocation] = useState<string>('DECC Hall 1 - Grid Sector B');
+  const [snags, setSnags] = useState<SnagItem[]>(() =>
+    isSyntheticDemo
+      ? [
+          {
+            id: 'sng-01',
+            title: 'Cracked edge banding on Counter #14',
+            location: 'Main Hall 1 - East Foyer',
+            trade: 'Scenic / Joinery',
+            severity: 'moderate',
+            photos: ['snag-counter14-edge.jpg', 'snag-counter14-full.jpg'],
+            status: 'open',
+            loggedAt: '2026-09-12 09:15 AST',
+          },
+        ]
+      : []
+  );
+  const [snagTitle, setSnagTitle] = useState<string>('');
+  const [snagLocation, setSnagLocation] = useState<string>('');
   const [snagTrade, setSnagTrade] = useState<string>('Rigging / AV');
   const [snagSeverity, setSnagSeverity] = useState<'critical' | 'moderate' | 'cosmetic'>('critical');
-  const [snagPhotos, setSnagPhotos] = useState<string[]>(['snag-truss-pin-missing.jpg']);
+  const [snagPhotos, setSnagPhotos] = useState<string[]>([]);
   const [newPhotoName, setNewPhotoName] = useState<string>('');
 
   // 4. Barcode / QR Scanner State
@@ -699,10 +705,12 @@ export const FieldOpsView: React.FC = () => {
 
         {/* Mobile Tab Navigation */}
         <div
+          id="field-ops-mobile-tabs"
           style={{
             display: 'flex',
-            gap: '6px',
+            gap: '8px',
             overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
             paddingBottom: '8px',
             marginBottom: '14px',
             borderBottom: '1px solid #e2e8f0',
@@ -724,7 +732,7 @@ export const FieldOpsView: React.FC = () => {
                 id={`mobile-tab-${tab.id}`}
                 onClick={() => setMobileTab(tab.id as any)}
                 style={{
-                  padding: '8px 12px',
+                  padding: '10px 14px',
                   borderRadius: '6px',
                   fontSize: '12px',
                   fontWeight: 700,
@@ -736,7 +744,8 @@ export const FieldOpsView: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  minHeight: '40px',
+                  minHeight: '44px',
+                  flexShrink: 0,
                   boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                   transition: 'all 0.15s ease',
                 }}
@@ -903,6 +912,7 @@ export const FieldOpsView: React.FC = () => {
                     label="Zone / Location"
                     value={snagLocation}
                     onChange={(e) => setSnagLocation(e.target.value)}
+                    placeholder="e.g. Hall 1 - Sector B"
                     required
                   />
                   <Select
@@ -948,11 +958,11 @@ export const FieldOpsView: React.FC = () => {
                         border: '1px solid #cbd5e1',
                         borderRadius: '4px',
                         fontSize: '11px',
-                        minHeight: '38px',
+                        minHeight: '44px',
                         boxSizing: 'border-box',
                       }}
                     />
-                    <Button type="button" size="sm" variant="secondary" onClick={handleAddPhoto} style={{ minHeight: '38px' }}>
+                    <Button type="button" size="sm" variant="secondary" onClick={handleAddPhoto} style={{ minHeight: '44px' }}>
                       📷 Snap Photo
                     </Button>
                   </div>
@@ -1185,7 +1195,7 @@ export const FieldOpsView: React.FC = () => {
                   size="sm"
                   variant={isCameraActive ? 'danger' : 'primary'}
                   onClick={toggleCamera}
-                  style={{ flex: 1, minHeight: '36px', fontSize: '11px' }}
+                  style={{ flex: 1, minHeight: '44px', fontSize: '11px' }}
                 >
                   {isCameraActive ? '🔴 Stop Camera' : '📸 Start Camera'}
                 </Button>
@@ -1196,7 +1206,7 @@ export const FieldOpsView: React.FC = () => {
                       size="sm"
                       variant="secondary"
                       onClick={switchFacingMode}
-                      style={{ fontSize: '11px', minHeight: '36px' }}
+                      style={{ fontSize: '11px', minHeight: '44px' }}
                       title="Switch between front and rear cameras"
                     >
                       🔄 Flip Camera
@@ -1205,7 +1215,7 @@ export const FieldOpsView: React.FC = () => {
                       size="sm"
                       variant="secondary"
                       onClick={toggleTorch}
-                      style={{ fontSize: '11px', minHeight: '36px' }}
+                      style={{ fontSize: '11px', minHeight: '44px' }}
                       title="Toggle hardware flashlight"
                     >
                       {isTorchOn ? '⚡ Torch OFF' : '⚡ Torch ON'}
@@ -1227,7 +1237,7 @@ export const FieldOpsView: React.FC = () => {
                     fontWeight: 600,
                     color: '#334155',
                     cursor: 'pointer',
-                    minHeight: '36px',
+                    minHeight: '44px',
                     flex: isNarrowScreen ? 1 : 'none',
                   }}
                 >

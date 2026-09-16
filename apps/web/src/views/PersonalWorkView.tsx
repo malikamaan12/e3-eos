@@ -90,8 +90,8 @@ export const PersonalWorkView: React.FC = () => {
         </h1>
         <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
           {currentLanguage === 'ar'
-            ? `مرحباً ${currentUser.name}. مراجعة المستندات الدقيقة، أوامر الشراء، والتوقيعات المزدوجة.`
-            : `Welcome, ${currentUser.name}. Review exact versioned drawings, purchase orders, and signoffs.`}
+            ? `مرحباً ${currentUser?.name || ''}. مراجعة المستندات الدقيقة، أوامر الشراء، والتوقيعات المزدوجة.`
+            : `Welcome, ${currentUser?.name || 'User'}. Review exact versioned drawings, purchase orders, and signoffs.`}
         </p>
       </div>
 

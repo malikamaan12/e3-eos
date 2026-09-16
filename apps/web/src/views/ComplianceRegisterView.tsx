@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const ComplianceRegisterView: React.FC = () => {
   const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -12,11 +14,11 @@ export const ComplianceRegisterView: React.FC = () => {
 
   // Alternative Physical Verification Modal (AT-060)
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState<boolean>(false);
-  const [inspectorName, setInspectorName] = useState<string>('Eng. Tareq Mansoor');
-  const [badgeId, setBadgeId] = useState<string>('MMUP-ENG-8472');
-  const [siteOfficeRef, setSiteOfficeRef] = useState<string>('DOHA-MUNI-ONST-2026/04');
-  const [stampSighted, setStampSighted] = useState<boolean>(true);
-  const [verificationNotes, setVerificationNotes] = useState<string>('Physical wet stamp sighted on A0 structural drawings in site trailer.');
+  const [inspectorName, setInspectorName] = useState<string>(() => (isDemo ? 'Eng. Tareq Mansoor' : ''));
+  const [badgeId, setBadgeId] = useState<string>(() => (isDemo ? 'MMUP-ENG-8472' : ''));
+  const [siteOfficeRef, setSiteOfficeRef] = useState<string>(() => (isDemo ? 'DOHA-MUNI-ONST-2026/04' : ''));
+  const [stampSighted, setStampSighted] = useState<boolean>(isDemo);
+  const [verificationNotes, setVerificationNotes] = useState<string>(() => (isDemo ? 'Physical wet stamp sighted on A0 structural drawings in site trailer.' : ''));
   const [isSubmittingVerify, setIsSubmittingVerify] = useState<boolean>(false);
 
   // Detail Drawer / Modal
@@ -35,6 +37,12 @@ export const ComplianceRegisterView: React.FC = () => {
   };
 
   useEffect(() => {
+    const demo = isSyntheticDemo(projectId);
+    setInspectorName(demo ? 'Eng. Tareq Mansoor' : '');
+    setBadgeId(demo ? 'MMUP-ENG-8472' : '');
+    setSiteOfficeRef(demo ? 'DOHA-MUNI-ONST-2026/04' : '');
+    setStampSighted(demo);
+    setVerificationNotes(demo ? 'Physical wet stamp sighted on A0 structural drawings in site trailer.' : '');
     loadCompliance();
   }, [projectId]);
 
@@ -60,7 +68,7 @@ export const ComplianceRegisterView: React.FC = () => {
 
   const obligations = data?.obligations || [];
   const evaluation = data?.evaluation;
-  const canOpen = evaluation?.canOpenZone ?? true;
+  const canOpen = evaluation?.canOpenZone ?? false;
 
   return (
     <div style={{ padding: '24px', maxWidth: '1600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -276,6 +284,7 @@ export const ComplianceRegisterView: React.FC = () => {
               <Input
                 value={inspectorName}
                 onChange={(e) => setInspectorName(e.target.value)}
+                placeholder="e.g. Eng. Tareq Mansoor"
                 id="input-inspector-name"
               />
             </div>
@@ -285,6 +294,7 @@ export const ComplianceRegisterView: React.FC = () => {
               <Input
                 value={badgeId}
                 onChange={(e) => setBadgeId(e.target.value)}
+                placeholder="e.g. MMUP-ENG-8472"
                 id="input-inspector-badge"
               />
             </div>
@@ -294,6 +304,7 @@ export const ComplianceRegisterView: React.FC = () => {
               <Input
                 value={siteOfficeRef}
                 onChange={(e) => setSiteOfficeRef(e.target.value)}
+                placeholder="e.g. DOHA-MUNI-ONST-2026/04"
                 id="input-office-ref"
               />
             </div>
@@ -315,6 +326,7 @@ export const ComplianceRegisterView: React.FC = () => {
               <Textarea
                 value={verificationNotes}
                 onChange={(e) => setVerificationNotes(e.target.value)}
+                placeholder="Physical wet stamp sighted on A0 structural drawings in site trailer..."
                 rows={2}
                 id="input-verify-notes"
               />
@@ -325,7 +337,7 @@ export const ComplianceRegisterView: React.FC = () => {
               <Button
                 variant="primary"
                 onClick={handleVerifyAlternative}
-                disabled={isSubmittingVerify || !stampSighted}
+                disabled={isSubmittingVerify || !stampSighted || !inspectorName || !siteOfficeRef}
                 id="btn-confirm-alt-verify"
               >
                 {isSubmittingVerify ? 'Recording Seal...' : 'Confirm Physical Verification'}

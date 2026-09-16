@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const LiveRunSheetView: React.FC = () => {
   const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -12,8 +14,8 @@ export const LiveRunSheetView: React.FC = () => {
 
   // Delay propagation modal
   const [isDelayModalOpen, setIsDelayModalOpen] = useState<boolean>(false);
-  const [delayMinutes, setDelayMinutes] = useState<number>(10);
-  const [delayReason, setDelayReason] = useState<string>('VIP Motorcade delayed on Corniche access road.');
+  const [delayMinutes, setDelayMinutes] = useState<number>(() => (isDemo ? 10 : 0));
+  const [delayReason, setDelayReason] = useState<string>(() => (isDemo ? 'VIP Motorcade delayed on Corniche access road.' : ''));
   const [isApplyingDelay, setIsApplyingDelay] = useState<boolean>(false);
 
   const loadRunSheet = async () => {
@@ -29,6 +31,9 @@ export const LiveRunSheetView: React.FC = () => {
   };
 
   useEffect(() => {
+    const demo = isSyntheticDemo(projectId);
+    setDelayMinutes(demo ? 10 : 0);
+    setDelayReason(demo ? 'VIP Motorcade delayed on Corniche access road.' : '');
     loadRunSheet();
   }, [projectId]);
 
@@ -233,6 +238,13 @@ export const LiveRunSheetView: React.FC = () => {
                   </tr>
                 );
               })}
+              {items.length === 0 && (
+                <tr>
+                  <td colSpan={9} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                    No run sheet cues scheduled for this project.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -263,6 +275,7 @@ export const LiveRunSheetView: React.FC = () => {
                 value={String(delayMinutes)}
                 onChange={(e) => setDelayMinutes(Number(e.target.value))}
                 min="1"
+                placeholder="0"
                 id="input-delay-minutes"
               />
             </div>
@@ -272,6 +285,7 @@ export const LiveRunSheetView: React.FC = () => {
               <Textarea
                 value={delayReason}
                 onChange={(e) => setDelayReason(e.target.value)}
+                placeholder="State operational root cause (e.g. Protocol delay, weather hold, technical reboot)..."
                 rows={3}
                 id="input-delay-reason"
               />

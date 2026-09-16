@@ -52,7 +52,7 @@ import { EnterprisePortfolioIntelligenceView } from './views/EnterprisePortfolio
 import { ProductionRolloutView } from './views/ProductionRolloutView.js';
 
 const AppRouter: React.FC = () => {
-  const { currentPath } = useEosContext();
+  const { currentPath, currentUser } = useEosContext();
 
   // Standalone Authentication Screens (No Shell)
   if (currentPath === '/login') {
@@ -63,6 +63,32 @@ const AppRouter: React.FC = () => {
   }
   if (currentPath === '/accept-invite') {
     return <AcceptInviteView />;
+  }
+
+  // Unauthenticated Visitors Fail Closed -> Redirect to Login
+  if (!currentUser) {
+    return <LoginView />;
+  }
+
+  // Audience Isolation: Client Portal Persona Guard (C02 Zero-Leak)
+  const isClient = currentUser.role === 'client' || currentUser.email?.includes('client');
+  if (isClient) {
+    if (currentPath === '/client/results' || currentPath.startsWith('/portal/projects/')) {
+      return <LayoutShell><ClientResultsRoomView /></LayoutShell>;
+    }
+    if (currentPath === '/account') {
+      return <LayoutShell><AccountView /></LayoutShell>;
+    }
+    return <LayoutShell><ClientPortalView /></LayoutShell>;
+  }
+
+  // Audience Isolation: Supplier Portal Persona Guard
+  const isSupplier = currentUser.role === 'supplier' || currentUser.email?.includes('supplier');
+  if (isSupplier) {
+    if (currentPath === '/account') {
+      return <LayoutShell><AccountView /></LayoutShell>;
+    }
+    return <LayoutShell><SupplierPortalView /></LayoutShell>;
   }
 
   // Shell-Wrapped Views

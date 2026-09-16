@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const BumpOutCloseoutView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const { currentLanguage, apiClient, selectedProjectId, currentUser, currentProject } = useEosContext();
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
   const [activeTab, setActiveTab] = useState<'bumpout' | 'returns' | 'claims' | 'venue' | 'closure'>('bumpout');
   const [loading, setLoading] = useState<boolean>(true);
@@ -18,23 +20,23 @@ export const BumpOutCloseoutView: React.FC = () => {
 
   // Return Inspection Modal (AT-064)
   const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
-  const [returnAssetId, setReturnAssetId] = useState<string>('AST-AUDIO-DIGICO-SD7');
+  const [returnAssetId, setReturnAssetId] = useState<string>(() => (isDemo ? 'AST-AUDIO-DIGICO-SD7' : ''));
   const [returnCondition, setReturnCondition] = useState<string>('pristine');
   const [repairEstimate, setRepairEstimate] = useState<number>(0);
   const [responsibility, setResponsibility] = useState<string>('venue');
-  const [inspectionNotes, setInspectionNotes] = useState<string>('Returned in flight case with all snake cables.');
+  const [inspectionNotes, setInspectionNotes] = useState<string>(() => (isDemo ? 'Returned in flight case with all snake cables.' : ''));
 
   // Operational Closure 7-Pillars Checklist (AT-065)
   const [checklist, setChecklist] = useState({
-    eventOperationComplete: true,
-    bumpOutComplete: true,
-    venueHandoverComplete: true,
-    assetsReturned: true,
-    majorClaimsIdentified: true,
-    criticalIncidentsClosed: true,
-    siteEvidenceComplete: true,
+    eventOperationComplete: isDemo,
+    bumpOutComplete: isDemo,
+    venueHandoverComplete: isDemo,
+    assetsReturned: isDemo,
+    majorClaimsIdentified: isDemo,
+    criticalIncidentsClosed: isDemo,
+    siteEvidenceComplete: isDemo,
   });
-  const [openReceivablesAck, setOpenReceivablesAck] = useState<boolean>(true);
+  const [openReceivablesAck, setOpenReceivablesAck] = useState<boolean>(isDemo);
   const [isSubmittingClosure, setIsSubmittingClosure] = useState<boolean>(false);
 
   const loadData = async () => {
@@ -60,10 +62,24 @@ export const BumpOutCloseoutView: React.FC = () => {
   };
 
   useEffect(() => {
+    const demo = isSyntheticDemo(projectId);
+    setReturnAssetId(demo ? 'AST-AUDIO-DIGICO-SD7' : '');
+    setInspectionNotes(demo ? 'Returned in flight case with all snake cables.' : '');
+    setChecklist({
+      eventOperationComplete: demo,
+      bumpOutComplete: demo,
+      venueHandoverComplete: demo,
+      assetsReturned: demo,
+      majorClaimsIdentified: demo,
+      criticalIncidentsClosed: demo,
+      siteEvidenceComplete: demo,
+    });
+    setOpenReceivablesAck(demo);
     loadData();
   }, [projectId]);
 
   const handleInspectReturn = async () => {
+    if (!returnAssetId) return;
     try {
       await apiClient.inspectAssetReturn({
         projectId,
@@ -74,7 +90,7 @@ export const BumpOutCloseoutView: React.FC = () => {
         damageDescription: returnCondition !== 'pristine' ? inspectionNotes : undefined,
         claimPotential: returnCondition === 'damaged',
         claimValueEstimate: String(repairEstimate),
-        inspector: 'Warehouse Inspector Salim',
+        inspector: currentUser?.name ? `${currentUser.name} (Warehouse Inspector)` : 'Warehouse Inspector',
       });
       setIsReturnModalOpen(false);
       await loadData();
@@ -86,11 +102,12 @@ export const BumpOutCloseoutView: React.FC = () => {
   const handleAuthorizeClosure = async () => {
     setIsSubmittingClosure(true);
     try {
+      const clientDisplayName = currentProject?.clientName || (isDemo ? 'Qatar Tourism' : 'the client');
       const res = await apiClient.decideOperationalClosure({
         projectId,
         closureConfirmed: true,
-        authorizedBy: 'E3 Event Operations Director',
-        justification: 'All 7 operational pillars verified. Venue reinstatement accepted by Qatar Tourism. Retention receivables tracked separately.',
+        authorizedBy: currentUser?.name ? `${currentUser.name} (Operations Director)` : 'E3 Event Operations Director',
+        justification: `All 7 operational pillars verified. Venue reinstatement accepted by ${clientDisplayName}. Retention receivables tracked separately.`,
         dimensionsChecked: checklist,
         openReceivablesAcknowledged: openReceivablesAck,
       });
@@ -207,6 +224,13 @@ export const BumpOutCloseoutView: React.FC = () => {
                     <td style={{ padding: '12px' }}><Badge variant="neutral">{b.status.toUpperCase()}</Badge></td>
                   </tr>
                 ))}
+                {bumpOutActivities.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                      No bump-out activities scheduled for this project.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -263,6 +287,13 @@ export const BumpOutCloseoutView: React.FC = () => {
                     </td>
                   </tr>
                 ))}
+                {assetReturns.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                      No asset return inspections recorded for this project.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -297,6 +328,13 @@ export const BumpOutCloseoutView: React.FC = () => {
                     <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>{c.settlementNotes}</td>
                   </tr>
                 ))}
+                {claims.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                      No claims or loss exposures registered for this project.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -306,19 +344,25 @@ export const BumpOutCloseoutView: React.FC = () => {
       {/* Tab 4: Venue Handover */}
       {activeTab === 'venue' && (
         <Card title="Venue Reinstatement & Handover Sign-Off">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', fontSize: '13px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div>Delivery Completed: <Badge variant="success">CONFIRMED</Badge></div>
-              <div>Venue Reinstatement: <Badge variant="warning">{venueHandover?.venueReinstatementStatus?.toUpperCase() || 'INSPECTED'}</Badge></div>
-              <div>Keys Returned to Venue Authority: <strong>{venueHandover?.keysReturned ? 'YES' : 'NO'}</strong></div>
-              <div>Deposit Status: <Badge variant="neutral">{venueHandover?.depositStatus?.toUpperCase() || 'HELD'}</Badge></div>
+          {!venueHandover && !isDemo ? (
+            <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+              Venue reinstatement inspection has not been recorded yet for this project.
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div>Venue Rep: <strong>{venueHandover?.clientRepresentativeName || 'Jassim Al-Sulaiti (Venue Authority)'}</strong></div>
-              <div>Sign-off Authority: <strong>{venueHandover?.signoffBy || 'Operations Director E3'}</strong></div>
-              <div>Cryptographic Seal: <code style={{ fontSize: '11px', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{venueHandover?.auditHash || 'audit-seal-vh-99824'}</code></div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>Delivery Completed: <Badge variant="success">CONFIRMED</Badge></div>
+                <div>Venue Reinstatement: <Badge variant="warning">{venueHandover?.venueReinstatementStatus?.toUpperCase() || 'INSPECTED'}</Badge></div>
+                <div>Keys Returned to Venue Authority: <strong>{venueHandover?.keysReturned ? 'YES' : 'NO'}</strong></div>
+                <div>Deposit Status: <Badge variant="neutral">{venueHandover?.depositStatus?.toUpperCase() || 'HELD'}</Badge></div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>Venue Rep: <strong>{venueHandover?.clientRepresentativeName || (isDemo ? 'Jassim Al-Sulaiti (Venue Authority)' : '—')}</strong></div>
+                <div>Sign-off Authority: <strong>{venueHandover?.signoffBy || (isDemo ? 'Operations Director E3' : '—')}</strong></div>
+                <div>Cryptographic Seal: <code style={{ fontSize: '11px', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{venueHandover?.auditHash || (isDemo ? 'audit-seal-vh-99824' : '—')}</code></div>
+              </div>
             </div>
-          </div>
+          )}
         </Card>
       )}
 
@@ -412,6 +456,7 @@ export const BumpOutCloseoutView: React.FC = () => {
               <Input
                 value={returnAssetId}
                 onChange={(e) => setReturnAssetId(e.target.value)}
+                placeholder="e.g. AST-AUDIO-DIGICO-SD7"
                 id="input-return-asset-id"
               />
             </div>
@@ -460,6 +505,7 @@ export const BumpOutCloseoutView: React.FC = () => {
               <Textarea
                 value={inspectionNotes}
                 onChange={(e) => setInspectionNotes(e.target.value)}
+                placeholder="Enter inspection notes, physical damage or return condition..."
                 rows={2}
                 id="input-inspection-notes"
               />

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Textarea } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 interface LogisticsDeliveryViewProps {
   projectId: string;
 }
 
 export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ projectId }) => {
-  const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
+  const { apiClient, refreshTrigger, triggerRefresh, currentUser } = useEosContext();
+  const isDemo = isSyntheticDemo(projectId);
 
   const [packingLists, setPackingLists] = useState<any[]>([]);
   const [transportPlans, setTransportPlans] = useState<any[]>([]);
@@ -15,7 +17,9 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
 
   // Delivery Proof Modal
   const [podPackingList, setPodPackingList] = useState<any | null>(null);
-  const [receiverName, setReceiverName] = useState<string>('Omar Farooq (Site Field Supervisor)');
+  const [receiverName, setReceiverName] = useState<string>(
+    currentUser?.name ? `${currentUser.name} (Site Field Supervisor)` : ''
+  );
   const [isSubmittingPod, setIsSubmittingPod] = useState<boolean>(false);
 
   useEffect(() => {
@@ -79,80 +83,96 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Customs Clearance & ATA Carnet Cross-Border Gateway (AT-057 / P04-ST03) */}
-      <Card style={{ border: '2px solid #059669', backgroundColor: '#ecfdf5' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#065f46' }}>
-                🚢 Customs Clearance, ATA Carnet & Dock Manifest Engine (P04-ST03 / AT-057)
+      {isDemo ? (
+        <Card style={{ border: '2px solid #059669', backgroundColor: '#ecfdf5' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#065f46' }}>
+                  🚢 Customs Clearance, ATA Carnet & Dock Manifest Engine (P04-ST03 / AT-057)
+                </h3>
+                <Badge variant="success">CUSTOMS CLEARED</Badge>
+              </div>
+              <p style={{ fontSize: '13px', color: '#047857', margin: '4px 0 0 0' }}>
+                Bilateral customs transit tracking (General Authority of Customs Qatar / ZATCA Saudi Arabia), ATA Carnet bond verification, and 30-minute venue dock scheduling.
+              </p>
+            </div>
+
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>ACTIVE ATA CARNET:</span>
+              <div style={{ fontFamily: 'monospace', fontSize: '13px', color: '#064e3b', fontWeight: 900 }}>
+                QA-CARNET-2026-9908
+              </div>
+              <span style={{ fontSize: '10px', color: '#059669' }}>Abu Samra Land Port & Hamad Port</span>
+            </div>
+          </div>
+
+          {/* Dock Slot Scheduling Matrix */}
+          <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 01</span>
+                <Badge variant="success">30-MIN ACTIVE</Badge>
+              </div>
+              <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
+                Heavy Rigging & Trussing Manifest
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                Slot: <strong>08:30 – 09:00</strong> • Truck QA-TRK-771
+              </div>
+              <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700, marginTop: '4px' }}>
+                Driver: Tariq Al-Dosari (QID: 28463400192) • Gate Pass QR Valid
+              </div>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 02</span>
+                <Badge variant="primary">RESERVED</Badge>
+              </div>
+              <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
+                Scenic Carpentry & VIP Arch Units
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                Slot: <strong>09:00 – 09:30</strong> • 12m Flatbed QA-FLB-201
+              </div>
+              <div style={{ fontSize: '11px', color: '#2563eb', fontWeight: 700, marginTop: '4px' }}>
+                Security Clearance: Pre-vetted by MOI Security Command
+              </div>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 03</span>
+                <Badge variant="warning">CUSTOMS INSPECT</Badge>
+              </div>
+              <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
+                High-Value Laser Projection & LED Panels
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                Slot: <strong>09:30 – 10:00</strong> • Climate Box Van QA-CBX-442
+              </div>
+              <div style={{ fontSize: '11px', color: '#d97706', fontWeight: 700, marginTop: '4px' }}>
+                Bonded Transit Seal Intact • Tamper-evident Sensor OK
+              </div>
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <Card style={{ border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#334155' }}>
+                Customs Clearance & ATA Carnet Gateway
               </h3>
-              <Badge variant="success">CUSTOMS CLEARED</Badge>
+              <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0' }}>
+                No active customs transit bond or cross-border carnet manifest registered for this project.
+              </p>
             </div>
-            <p style={{ fontSize: '13px', color: '#047857', margin: '4px 0 0 0' }}>
-              Bilateral customs transit tracking (General Authority of Customs Qatar / ZATCA Saudi Arabia), ATA Carnet bond verification, and 30-minute venue dock scheduling.
-            </p>
+            <Badge variant="neutral">NOT APPLICABLE</Badge>
           </div>
-
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>ACTIVE ATA CARNET:</span>
-            <div style={{ fontFamily: 'monospace', fontSize: '13px', color: '#064e3b', fontWeight: 900 }}>
-              QA-CARNET-2026-9908
-            </div>
-            <span style={{ fontSize: '10px', color: '#059669' }}>Abu Samra Land Port & Hamad Port</span>
-          </div>
-        </div>
-
-        {/* Dock Slot Scheduling Matrix */}
-        <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
-          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 01</span>
-              <Badge variant="success">30-MIN ACTIVE</Badge>
-            </div>
-            <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
-              Heavy Rigging & Trussing Manifest
-            </div>
-            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-              Slot: <strong>08:30 – 09:00</strong> • Truck QA-TRK-771
-            </div>
-            <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700, marginTop: '4px' }}>
-              Driver: Tariq Al-Dosari (QID: 28463400192) • Gate Pass QR Valid
-            </div>
-          </div>
-
-          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 02</span>
-              <Badge variant="primary">RESERVED</Badge>
-            </div>
-            <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
-              Scenic Carpentry & VIP Arch Units
-            </div>
-            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-              Slot: <strong>09:00 – 09:30</strong> • 12m Flatbed QA-FLB-201
-            </div>
-            <div style={{ fontSize: '11px', color: '#2563eb', fontWeight: 700, marginTop: '4px' }}>
-              Security Clearance: Pre-vetted by MOI Security Command
-            </div>
-          </div>
-
-          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 03</span>
-              <Badge variant="warning">CUSTOMS INSPECT</Badge>
-            </div>
-            <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
-              High-Value Laser Projection & LED Panels
-            </div>
-            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-              Slot: <strong>09:30 – 10:00</strong> • Climate Box Van QA-CBX-442
-            </div>
-            <div style={{ fontSize: '11px', color: '#d97706', fontWeight: 700, marginTop: '4px' }}>
-              Bonded Transit Seal Intact • Tamper-evident Sensor OK
-            </div>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Transport Plans & Fleet Roster */}
       <Card>
@@ -201,6 +221,13 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
               </div>
             </div>
           ))}
+          {transportPlans.length === 0 && (
+            <div style={{ padding: '36px', textAlign: 'center', color: '#64748b', gridColumn: '1 / -1' }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>🚚</div>
+              <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Transport Plans Dispatched</div>
+              <div style={{ fontSize: '12px', marginTop: '4px' }}>Transport assignments and dock access slots will appear here once booked.</div>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -282,6 +309,15 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
                   </td>
                 </tr>
               ))}
+              {packingLists.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📋</div>
+                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Packing Lists Created</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Generate packing lists from warehouse reservations or subcontractor packages.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -305,6 +341,7 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
                 type="text"
                 value={receiverName}
                 onChange={(e) => setReceiverName(e.target.value)}
+                placeholder="e.g. Site Field Supervisor"
                 style={{ width: '100%', marginTop: '4px' }}
                 required
               />
@@ -313,7 +350,7 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
             <div>
               <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Photographic POD Evidence</label>
               <div style={{ padding: '10px', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '6px', fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                📸 [evidence/pl-fee-001-pod.jpg] Attached (Geotagged & Timestamped)
+                📸 [evidence/{podPackingList.packingListNumber ? podPackingList.packingListNumber.toLowerCase() : 'pod'}-verified.jpg] Attached (Geotagged & Timestamped)
               </div>
             </div>
 

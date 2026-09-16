@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Textarea } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const SupplierInvoicesView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const { currentLanguage, apiClient, selectedProjectId, currentUser, currentProject } = useEosContext();
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -19,9 +21,9 @@ export const SupplierInvoicesView: React.FC = () => {
   // OCR Drawer/Modal
   const [isOcrModalOpen, setIsOcrModalOpen] = useState<boolean>(false);
   const [ocrDraft, setOcrDraft] = useState<any>(null);
-  const [confirmedVendor, setConfirmedVendor] = useState<string>('Qatar Lighting Tech Systems');
-  const [confirmedInvNo, setConfirmedInvNo] = useState<string>('INV-QL-5519');
-  const [confirmedAmount, setConfirmedAmount] = useState<number>(65000);
+  const [confirmedVendor, setConfirmedVendor] = useState<string>(() => (isDemo ? 'Qatar Lighting Tech Systems' : ''));
+  const [confirmedInvNo, setConfirmedInvNo] = useState<string>(() => (isDemo ? 'INV-QL-5519' : ''));
+  const [confirmedAmount, setConfirmedAmount] = useState<number | string>(() => (isDemo ? 65000 : ''));
   const [isConfirmingOcr, setIsConfirmingOcr] = useState<boolean>(false);
   // Capability 33: Multi-Package PO Split & Milestone Partial Delivery Receipts (AT-053)
   const [splitSimulatedOverrun, setSplitSimulatedOverrun] = useState<boolean>(false);
@@ -30,7 +32,7 @@ export const SupplierInvoicesView: React.FC = () => {
     setLoading(true);
     try {
       const invs = await apiClient.getSupplierInvoices(projectId);
-      const sampleInvoices = (invs && invs.length > 0) ? invs : [
+      const sampleInvoices = (invs && invs.length > 0) ? invs : (isDemo ? [
         {
           id: 'inv-sample-matched',
           invoiceNumber: 'INV-QL-5519',
@@ -51,7 +53,7 @@ export const SupplierInvoicesView: React.FC = () => {
           threeWayMatchStatus: 'exception_detected',
           status: 'match_exception',
         }
-      ];
+      ] : []);
       setInvoices(sampleInvoices);
     } catch (err) {
       console.error('Failed to load supplier invoices', err);
@@ -110,7 +112,7 @@ export const SupplierInvoicesView: React.FC = () => {
       await apiClient.approveSupplierInvoice(selectedInvoice.id, {
         invoiceId: selectedInvoice.id,
         approvedAmount: parseFloat(selectedInvoice.totalAmount),
-        authorizedBy: 'Hamad Al-Kuwari (Finance Director)',
+        authorizedBy: currentUser?.name ? `${currentUser.name} (${currentUser.role || 'Finance Director'})` : (isDemo ? 'Hamad Al-Kuwari (Finance Director)' : 'Finance Director'),
         approverRole: 'commercial_director',
         justification: overrideReason || 'Standard 3-way match verified against PO and delivery inspection notes',
       });
@@ -127,9 +129,9 @@ export const SupplierInvoicesView: React.FC = () => {
     try {
       const res = await apiClient.ocrExtractSupplierInvoice({ fileName: 'INV-QL-5519_Scan.pdf' });
       setOcrDraft(res.ocrDraft);
-      setConfirmedVendor(res.ocrDraft?.extractedData?.vendorName || 'Qatar Lighting Tech Systems');
-      setConfirmedInvNo(res.ocrDraft?.extractedData?.invoiceNumber || 'INV-QL-5519');
-      setConfirmedAmount(res.ocrDraft?.extractedData?.totalAmount || 65000);
+      setConfirmedVendor(res.ocrDraft?.extractedData?.vendorName || (isDemo ? 'Qatar Lighting Tech Systems' : ''));
+      setConfirmedInvNo(res.ocrDraft?.extractedData?.invoiceNumber || (isDemo ? 'INV-QL-5519' : ''));
+      setConfirmedAmount(res.ocrDraft?.extractedData?.totalAmount ?? (isDemo ? 65000 : ''));
       setIsOcrModalOpen(true);
     } catch (err) {
       console.error('OCR extract failed', err);
@@ -137,6 +139,7 @@ export const SupplierInvoicesView: React.FC = () => {
   };
 
   const handleConfirmOcr = async () => {
+    if (!confirmedVendor || !confirmedInvNo || !confirmedAmount) return;
     setIsConfirmingOcr(true);
     try {
       await apiClient.confirmOcrExtraction({
@@ -146,10 +149,10 @@ export const SupplierInvoicesView: React.FC = () => {
         extractedInvoiceNumber: confirmedInvNo,
         extractedDate: '2026-08-25',
         extractedCurrency: 'QAR',
-        extractedSubtotal: confirmedAmount,
+        extractedSubtotal: Number(confirmedAmount),
         extractedTax: 0,
-        extractedTotal: confirmedAmount,
-        confirmedBy: 'Tariq Al-Mansoor (Cost Controller)',
+        extractedTotal: Number(confirmedAmount),
+        confirmedBy: currentUser?.name ? `${currentUser.name} (${currentUser.role || 'Cost Controller'})` : (isDemo ? 'Tariq Al-Mansoor (Cost Controller)' : 'Cost Controller'),
         confidenceScore: 0.96,
         poNumber: 'PO-QND-004',
       });
@@ -210,7 +213,7 @@ export const SupplierInvoicesView: React.FC = () => {
                   <td className="p-3">{inv.vendorName}</td>
                   <td className="p-3 font-mono text-slate-400">{inv.poId || 'N/A'}</td>
                   <td className="p-3 font-mono font-semibold text-white">
-                    {parseInt(inv.totalAmount).toLocaleString()} {inv.currency}
+                    {Number(inv.totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {inv.currency}
                   </td>
                   <td className="p-3">
                     {inv.threeWayMatchStatus === 'matched' ? (
@@ -233,140 +236,146 @@ export const SupplierInvoicesView: React.FC = () => {
                   </td>
                 </tr>
               ))}
+              {invoices.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                    No supplier invoices recorded for this project.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </Card>
 
       {/* Capability 33: Multi-Package Purchase Order Split & Milestone Partial Delivery Receipts Gate (P03-ST08 / AT-053) */}
-      <Card title="Multi-Package Purchase Order Split & Milestone Partial Delivery Receipts (P03-ST08 / AT-053)">
-        <div id="po-split-grn-workbench" className="space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-900/80 p-4 rounded-lg border border-slate-700">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📦</span>
-                <h4 className="font-bold text-white text-sm">Parent Commitment: PO-QND-004</h4>
-                <Badge variant="info">PARENT COMMITMENT: 65,000 QAR</Badge>
-                {splitSimulatedOverrun ? (
-                  <Badge variant="danger">AT-053 OVERRUN DETECTED</Badge>
-                ) : (
-                  <Badge variant="success">AT-053 PARITY VERIFIED</Badge>
-                )}
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Invariant AT-053 mandates that PO allocations across production packages sum exactly once to source commitment, and partial deliveries explicitly isolate rejected portions.
-              </p>
-            </div>
-
-            <Button
-              variant={splitSimulatedOverrun ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setSplitSimulatedOverrun(!splitSimulatedOverrun)}
-            >
-              {splitSimulatedOverrun ? 'Restore Exact Allocation Parity' : 'Simulate Package Allocation Overrun'}
-            </Button>
-          </div>
-
-          {/* Package Allocation Matrix */}
-          <div className="overflow-x-auto border border-slate-800 rounded-lg">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-800/90 text-slate-400">
-                <tr>
-                  <th className="p-2.5">Package ID & Scope</th>
-                  <th className="p-2.5">Production Discipline</th>
-                  <th className="p-2.5">Allocated PO Line</th>
-                  <th className="p-2.5">Allocation Share</th>
-                  <th className="p-2.5">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800 bg-slate-900/50">
-                <tr>
-                  <td className="p-2.5 font-medium text-white">PKG-JOIN-01 (Main Stage Portals)</td>
-                  <td className="p-2.5"><Badge variant="default">Joinery & Timber</Badge></td>
-                  <td className="p-2.5 font-mono text-emerald-400 font-bold">35,000 QAR</td>
-                  <td className="p-2.5 text-slate-400">53.8%</td>
-                  <td className="p-2.5"><span className="text-emerald-400">✓ Committed</span></td>
-                </tr>
-                <tr>
-                  <td className="p-2.5 font-medium text-white">PKG-RIG-02 (Overhead Aluminum Trusses)</td>
-                  <td className="p-2.5"><Badge variant="default">Rigging & Staging</Badge></td>
-                  <td className="p-2.5 font-mono text-emerald-400 font-bold">20,000 QAR</td>
-                  <td className="p-2.5 text-slate-400">30.8%</td>
-                  <td className="p-2.5"><span className="text-emerald-400">✓ Committed</span></td>
-                </tr>
-                <tr>
-                  <td className="p-2.5 font-medium text-white">PKG-SCN-03 (Flame-Retardant Drapes)</td>
-                  <td className="p-2.5"><Badge variant="default">Scenic Finishes</Badge></td>
-                  <td className="p-2.5 font-mono font-bold" style={{ color: splitSimulatedOverrun ? '#ef4444' : '#10b981' }}>
-                    {splitSimulatedOverrun ? '18,000 QAR (+8,000 QAR Overrun)' : '10,000 QAR'}
-                  </td>
-                  <td className="p-2.5 text-slate-400">{splitSimulatedOverrun ? '24.7%' : '15.4%'}</td>
-                  <td className="p-2.5">
-                    {splitSimulatedOverrun ? (
-                      <span className="text-red-400 font-bold">⛔ Over Ceiling</span>
-                    ) : (
-                      <span className="text-emerald-400">✓ Committed</span>
-                    )}
-                  </td>
-                </tr>
-              </tbody>
-              <tfoot className="bg-slate-800/80 font-semibold text-xs">
-                <tr>
-                  <td colSpan={2} className="p-2.5 text-slate-300 font-bold">Total Package Line Allocations:</td>
-                  <td className="p-2.5 font-mono text-white font-bold" style={{ color: splitSimulatedOverrun ? '#f87171' : '#34d399' }}>
-                    {splitSimulatedOverrun ? '73,000 QAR' : '65,000 QAR'}
-                  </td>
-                  <td colSpan={2} className="p-2.5">
-                    {splitSimulatedOverrun ? (
-                      <span className="text-red-400 font-bold">
-                        ⛔ AT-053 Violation: Total allocations (73k QAR) exceed PO parent ceiling (65k QAR) by +8,000 QAR.
-                      </span>
-                    ) : (
-                      <span className="text-emerald-400 font-bold">
-                        ✓ Invariant AT-053 Satisfied: Exact parity (Delta = 0 QAR). No double-counting.
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          {/* Partial Milestone GRN Receipts Tracker */}
-          <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700 space-y-3">
-            <div className="flex items-center justify-between">
-              <h5 className="font-bold text-slate-200 text-xs uppercase tracking-wide">
-                Milestone Partial Receipts Tracker (Accepted vs Rejected Discrepancies)
-              </h5>
-              <Badge variant="accent">2 MILESTONE RECEIPTS LOGGED</Badge>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-slate-900/90 rounded border border-slate-700">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-bold text-white">GRN-QA-2026-089 (Batch 1)</span>
-                  <Badge variant="warning">PARTIAL ACCEPTED</Badge>
+      {isDemo && (
+        <Card title="Multi-Package Purchase Order Split & Milestone Partial Delivery Receipts (P03-ST08 / AT-053)">
+          <div id="po-split-grn-workbench" className="space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-900/80 p-4 rounded-lg border border-slate-700">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📦</span>
+                  <h4 className="font-bold text-white text-sm">Parent Commitment: PO-QND-004</h4>
+                  <Badge variant="info">PARENT COMMITMENT: 65,000 QAR</Badge>
+                  {splitSimulatedOverrun ? (
+                    <Badge variant="danger">AT-053 OVERRUN DETECTED</Badge>
+                  ) : (
+                    <Badge variant="success">AT-053 PARITY VERIFIED</Badge>
+                  )}
                 </div>
-                <div className="text-slate-400 text-[11px]">Received: 15 units • Accepted: 14 units • Quarantined: 1 unit</div>
-                <div className="mt-2 text-amber-400 text-[11px] font-medium">
-                  ⚠ 1 Unit Scratched Housing: Excluded from usable stock; 1,500 QAR debit memo pending credit note.
-                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Invariant AT-053 mandates that PO allocations across production packages sum exactly once to source commitment, and partial deliveries explicitly isolate rejected portions.
+                </p>
               </div>
 
-              <div className="p-3 bg-slate-900/90 rounded border border-slate-700">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-bold text-white">GRN-QA-2026-092 (Batch 2)</span>
-                  <Badge variant="success">100% ACCEPTED</Badge>
+              <Button
+                variant={splitSimulatedOverrun ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setSplitSimulatedOverrun(!splitSimulatedOverrun)}
+              >
+                {splitSimulatedOverrun ? 'Restore Exact Allocation Parity' : 'Simulate Package Allocation Overrun'}
+              </Button>
+            </div>
+
+            {/* Package Allocation Matrix */}
+            <div className="overflow-x-auto border border-slate-800 rounded-lg">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-slate-800/90 text-slate-400">
+                  <tr>
+                    <th className="p-2.5">Package ID & Scope</th>
+                    <th className="p-2.5">Production Discipline</th>
+                    <th className="p-2.5">Allocated PO Line</th>
+                    <th className="p-2.5">Allocation Share</th>
+                    <th className="p-2.5">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800 bg-slate-900/50">
+                  <tr>
+                    <td className="p-2.5 font-medium text-white">PKG-JOIN-01 (Main Stage Portals)</td>
+                    <td className="p-2.5"><Badge variant="default">Joinery & Timber</Badge></td>
+                    <td className="p-2.5 font-mono text-emerald-400 font-bold">35,000 QAR</td>
+                    <td className="p-2.5 text-slate-400">53.8%</td>
+                    <td className="p-2.5"><span className="text-emerald-400">✓ Committed</span></td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-medium text-white">PKG-RIG-02 (Overhead Aluminum Trusses)</td>
+                    <td className="p-2.5"><Badge variant="default">Rigging & Staging</Badge></td>
+                    <td className="p-2.5 font-mono text-emerald-400 font-bold">20,000 QAR</td>
+                    <td className="p-2.5 text-slate-400">30.8%</td>
+                    <td className="p-2.5"><span className="text-emerald-400">✓ Committed</span></td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-medium text-white">PKG-AV-03 (Display Mount Brackets)</td>
+                    <td className="p-2.5"><Badge variant="default">Audio Visual & Rigging</Badge></td>
+                    <td className={`p-2.5 font-mono font-bold ${splitSimulatedOverrun ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      {splitSimulatedOverrun ? '18,000 QAR' : '10,000 QAR'}
+                    </td>
+                    <td className="p-2.5 text-slate-400">{splitSimulatedOverrun ? '27.7%' : '15.4%'}</td>
+                    <td className="p-2.5">
+                      {splitSimulatedOverrun ? (
+                        <span className="text-rose-400 font-bold">⚠ Sum Exceeds PO</span>
+                      ) : (
+                        <span className="text-emerald-400">✓ Committed</span>
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot className="bg-slate-800/80 font-semibold text-slate-200">
+                  <tr>
+                    <td colSpan={2} className="p-2.5">TOTAL ALLOCATED COMMITMENT:</td>
+                    <td className={`p-2.5 font-mono ${splitSimulatedOverrun ? 'text-rose-400 font-bold' : 'text-white'}`}>
+                      {splitSimulatedOverrun ? '73,000 QAR' : '65,000 QAR'}
+                    </td>
+                    <td className="p-2.5">{splitSimulatedOverrun ? '112.3%' : '100.0%'}</td>
+                    <td className="p-2.5">
+                      {splitSimulatedOverrun ? (
+                        <Badge variant="danger">+8,000 QAR OVERRUN</Badge>
+                      ) : (
+                        <Badge variant="success">EXACT BALANCE</Badge>
+                      )}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            {/* Milestone Delivery Receipts Tracker */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <h5 className="font-bold text-slate-200 text-xs uppercase tracking-wide">
+                  Milestone Partial Receipts Tracker (Accepted vs Rejected Discrepancies)
+                </h5>
+                <Badge variant="accent">2 MILESTONE RECEIPTS LOGGED</Badge>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-slate-900/90 rounded border border-slate-700">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-bold text-white">GRN-QA-2026-089 (Batch 1)</span>
+                    <Badge variant="warning">PARTIAL ACCEPTED</Badge>
+                  </div>
+                  <div className="text-slate-400 text-[11px]">Received: 15 units • Accepted: 14 units • Quarantined: 1 unit</div>
+                  <div className="mt-2 text-amber-400 text-[11px] font-medium">
+                    ⚠ 1 Unit Scratched Housing: Excluded from usable stock; 1,500 QAR debit memo pending credit note.
+                  </div>
                 </div>
-                <div className="text-slate-400 text-[11px]">Received: 5 units • Accepted: 5 units • Quarantined: 0 units</div>
-                <div className="mt-2 text-emerald-400 text-[11px] font-medium">
-                  ✓ Batch fully cleared by QC Inspector S. Al-Kuwari.
+
+                <div className="p-3 bg-slate-900/90 rounded border border-slate-700">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-bold text-white">GRN-QA-2026-092 (Batch 2)</span>
+                    <Badge variant="success">100% ACCEPTED</Badge>
+                  </div>
+                  <div className="text-slate-400 text-[11px]">Received: 5 units • Accepted: 5 units • Quarantined: 0 units</div>
+                  <div className="mt-2 text-emerald-400 text-[11px] font-medium">
+                    ✓ Batch fully cleared by QC Inspector S. Al-Kuwari.
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* 3-Way Match Inspector Modal */}
       <Modal
@@ -386,7 +395,7 @@ export const SupplierInvoicesView: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Invoiced Amount:</span>
-              <span className="font-mono text-white font-bold">{selectedInvoice?.totalAmount} QAR</span>
+              <span className="font-mono text-white font-bold">{Number(selectedInvoice?.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Overall Match State:</span>
@@ -496,7 +505,7 @@ export const SupplierInvoicesView: React.FC = () => {
           )}
 
           <div className="bg-slate-800/60 p-3 rounded text-xs text-slate-400">
-            <span className="font-semibold text-amber-400">Ledger Transition Invariant:</span> Approving this invoice will reduce PO remaining commitments by {selectedInvoice?.totalAmount} QAR and increase posted actual cost by {selectedInvoice?.totalAmount} QAR. Estimate at Completion (EAC) will remain strictly invariant with zero double-counting.
+            <span className="font-semibold text-amber-400">Ledger Transition Invariant:</span> Approving this invoice will reduce PO remaining commitments by {Number(selectedInvoice?.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR and increase posted actual cost by {Number(selectedInvoice?.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR. Estimate at Completion (EAC) will remain strictly invariant with zero double-counting.
           </div>
 
           <div className="flex justify-end gap-3 pt-3">
@@ -529,6 +538,7 @@ export const SupplierInvoicesView: React.FC = () => {
             label="Vendor Name"
             value={confirmedVendor}
             onChange={(e) => setConfirmedVendor(e.target.value)}
+            placeholder="Vendor Legal Name"
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -536,12 +546,14 @@ export const SupplierInvoicesView: React.FC = () => {
               label="Invoice Number"
               value={confirmedInvNo}
               onChange={(e) => setConfirmedInvNo(e.target.value)}
+              placeholder="e.g. INV-QL-5519"
             />
             <Input
               label="Total Amount (QAR)"
               type="number"
               value={confirmedAmount.toString()}
-              onChange={(e) => setConfirmedAmount(parseFloat(e.target.value))}
+              onChange={(e) => setConfirmedAmount(e.target.value)}
+              placeholder="0"
             />
           </div>
 
@@ -549,7 +561,11 @@ export const SupplierInvoicesView: React.FC = () => {
             <Button variant="secondary" onClick={() => setIsOcrModalOpen(false)}>
               Reject Draft
             </Button>
-            <Button variant="primary" onClick={handleConfirmOcr} disabled={isConfirmingOcr}>
+            <Button
+              variant="primary"
+              onClick={handleConfirmOcr}
+              disabled={isConfirmingOcr || !confirmedVendor || !confirmedInvNo || !confirmedAmount}
+            >
               {isConfirmingOcr ? 'Confirming...' : 'Confirm & Generate Supplier Invoice'}
             </Button>
           </div>

@@ -290,7 +290,7 @@ export const ProjectListView: React.FC = () => {
                         )}
                       </div>
                       <div style={{ fontSize: '12px', color: '#334155' }}>
-                        {p.clientName || 'Qatar Tourism Authority'}
+                        {p.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')}
                       </div>
                       <div>
                         <Badge variant="neutral">{p.originCode || 'DIRECT_AWARD'}</Badge>
@@ -394,7 +394,7 @@ export const ProjectListView: React.FC = () => {
                     {p.description || (isRtl ? 'مشروع فعالية مؤسسي خاضع للإدارة النشطة.' : 'Enterprise event project under active management.')}
                   </p>
                   <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b' }}>
-                    <span>{p.clientName || 'Qatar Tourism Authority'}</span>
+                    <span>{p.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')}</span>
                     <span style={{ color: '#2563eb', fontWeight: 600 }}>
                       {isRtl ? 'فتح لوحة القيادة ←' : 'Open Cockpit ➔'}
                     </span>

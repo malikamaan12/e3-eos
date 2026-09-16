@@ -15,6 +15,16 @@ export interface ApiClientConfig {
   userRoles?: string[];
 }
 
+export function isSyntheticDemo(projectId?: string): boolean {
+  return (
+    projectId === 'f1111111-1111-4111-8111-111111111111' ||
+    projectId === '00000000-0000-4000-8000-000000000001' ||
+    projectId === 'PRJ-QND-2026' ||
+    projectId === 'PRJ-2026-FEE-01' ||
+    projectId === 'PRJ-2026-DEMO'
+  );
+}
+
 export class EosApiClient {
   private baseUrl: string;
   private organisationId: string;
@@ -584,10 +594,10 @@ export class EosApiClient {
           description: payload.projectIdentity?.description || '',
           maturity: payload.maturity || 'onboarding',
           originCode: payload.originRoute || 'TENDER',
-          clientName: payload.clientStakeholders?.clientName || 'Qatar Tourism Authority',
-          clientOrganisationId: payload.clientStakeholders?.clientOrganisationId || '22222222-2222-4222-8222-222222222222',
+          clientName: payload.clientStakeholders?.clientName || 'To Be Confirmed',
+          clientOrganisationId: payload.clientStakeholders?.clientOrganisationId || null,
           isOnboardingComplete: payload.isOnboardingComplete ?? false,
-          onboardingCompletionPct: payload.onboardingCompletionPct ?? 57,
+          onboardingCompletionPct: payload.onboardingCompletionPct ?? (payload.isOnboardingComplete ? 100 : 0),
           missingSections: payload.missingSections || [],
         };
         const exists = stored.some((p: any) => p.id === projId);
@@ -946,6 +956,21 @@ export class EosApiClient {
       // offline fallback
     }
 
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        totalRequirements: 0,
+        applicableRequirements: 0,
+        negotiatedOutRequirements: 0,
+        fullyTraceableRequirements: 0,
+        unassignedRequirements: 0,
+        uncostedRequirements: 0,
+        unscheduledRequirements: 0,
+        overallTraceabilityPct: 100,
+        evaluations: [],
+      };
+    }
+
     return {
       projectId,
       totalRequirements: 4,
@@ -1085,6 +1110,14 @@ export class EosApiClient {
         return await res.json();
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        data: [],
+        meta: { total: 0, urgentCount: 0 },
+      };
+    }
+
     return {
       data: [
         {
@@ -1460,6 +1493,11 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'est-qnd-default',
@@ -1493,6 +1531,11 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'line-1',
@@ -1679,6 +1722,10 @@ export class EosApiClient {
       }
     } catch {}
 
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     // Fallback deterministic fixture
     return [
       {
@@ -1744,6 +1791,10 @@ export class EosApiClient {
       }
     } catch {}
 
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: '00000000-0000-4000-f000-000000000002',
@@ -1772,6 +1823,10 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
 
     return [
       {
@@ -1881,6 +1936,10 @@ export class EosApiClient {
       }
     } catch {}
 
+    if (!isSyntheticDemo(projectId)) {
+      return { purchaseOrders: [], committedCostTotal: '0', currency: 'QAR' };
+    }
+
     return {
       purchaseOrders: [
         {
@@ -1920,6 +1979,10 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
 
     return [
       {
@@ -1990,6 +2053,10 @@ export class EosApiClient {
       }
     } catch {}
 
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: '00000000-0000-4000-f000-000000000005',
@@ -2017,6 +2084,10 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
 
     return [
       {
@@ -2144,6 +2215,10 @@ export class EosApiClient {
       }
     } catch {}
 
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'alloc-fee-001',
@@ -2207,6 +2282,10 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
 
     return [
       {
@@ -2282,6 +2361,10 @@ export class EosApiClient {
       }
     } catch {}
 
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'trip-fee-001',
@@ -2312,6 +2395,10 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
 
     return [
       {
@@ -2371,6 +2458,10 @@ export class EosApiClient {
       }
     } catch {}
 
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'dsr-fee-001',
@@ -2415,6 +2506,10 @@ export class EosApiClient {
       }
     } catch {}
 
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'inst-fee-001',
@@ -2452,6 +2547,17 @@ export class EosApiClient {
         return json.data;
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        overallStatus: 'PENDING',
+        overallScorePercent: 0,
+        canOpen: false,
+        criticalBlockers: [],
+        exceptions: [],
+        dimensionChecks: [],
+      };
+    }
 
     return {
       overallStatus: 'READY',
@@ -2497,6 +2603,23 @@ export class EosApiClient {
         return json.data;
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        logistics: { totalPackingLists: 0, deliveredPackingLists: 0, inTransitPackingLists: 0 },
+        crew: { totalAssigned: 0, confirmed: 0, conflictsFlagged: 0 },
+        site: { reportsCount: 0, totalInstallationItems: 0, acceptedInstallationItems: 0 },
+        readiness: {
+          status: 'PENDING',
+          scorePercent: 0,
+          criticalBlockers: [],
+          exceptions: [],
+          eligibleForOpeningReview: false,
+          canOpen: false,
+        },
+      };
+    }
 
     return {
       projectId,
@@ -2846,6 +2969,10 @@ export class EosApiClient {
       }
     } catch {}
 
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'auth-show-001',
@@ -2890,6 +3017,19 @@ export class EosApiClient {
         return json.data;
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        totalRostered: 0,
+        checkedIn: 0,
+        attendancePercentage: 0,
+        activeQualificationsCount: 0,
+        fatiguePolicy: 'Standard Statutory Baseline',
+        records: [],
+      };
+    }
+
     return {
       projectId,
       totalRostered: 42,
@@ -2993,6 +3133,21 @@ export class EosApiClient {
         return json.data;
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        obligations: [],
+        evaluation: {
+          zone: 'ALL',
+          isCompliant: true,
+          canOpenZone: true,
+          criticalBlockers: [],
+          summaryReason: 'No compliance obligations registered.',
+        },
+      };
+    }
+
     return {
       projectId,
       obligations: [
@@ -3077,6 +3232,21 @@ export class EosApiClient {
         return json.data;
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        items: [],
+        overview: {
+          totalCues: 0,
+          completedCues: 0,
+          pendingCues: 0,
+          delayedCues: 0,
+          totalCumulativeDelayMinutes: 0,
+        },
+      };
+    }
+
     return {
       projectId,
       items: [
@@ -3172,6 +3342,34 @@ export class EosApiClient {
         return json.data;
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        generatedAt: new Date().toISOString(),
+        panels: {
+          incidentLog: { openIncidentsCount: 0, criticalIncidentsCount: 0, activeProtectiveActions: [] },
+          crewDuty: { rosteredWorkers: 0, checkedInWorkers: 0, attendancePercentage: 0, fatigueWarningsActive: 0 },
+          compliance: { totalObligations: 0, activeObligations: 0, criticalBlockersCount: 0, canOperate: true },
+          runSheet: { totalCues: 0, completedCues: 0, delayedCues: 0, currentCueTitle: 'None', cumulativeDelayMinutes: 0 },
+          zoneReadiness: { totalZones: 0, readyZones: 0, blockedZones: 0, readinessPercentage: 0 },
+          maintenance: { openFaultsCount: 0, criticalFaultsCount: 0 },
+          clientRequests: { pendingRequestsCount: 0, approvedVariationsCount: 0 },
+          shiftHandover: { lastHandoverTime: null, pendingHandoverIssuesCount: 0, incomingLeadAcknowledged: true },
+        },
+        audienceProjection: {
+          venueCapacity: 0,
+          currentInside: 0,
+          occupancyPercentage: 0,
+          ingressRatePerHour: 0,
+          egressRatePerHour: 0,
+          peakProjectedHeadcount: 0,
+          densityLevel: 'normal',
+          meteringRequired: false,
+        },
+      };
+    }
+
     return {
       projectId,
       generatedAt: new Date().toISOString(),
@@ -3241,6 +3439,11 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'inc-001',
@@ -3354,6 +3557,11 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'zn-001',
@@ -3410,6 +3618,11 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'bmp-001',
@@ -3432,6 +3645,11 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'ret-001',
@@ -3469,6 +3687,11 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'clm-001',
@@ -3503,6 +3726,11 @@ export class EosApiClient {
         return json.data;
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return null;
+    }
+
     return {
       id: 'vh-001',
       projectId,
@@ -3571,6 +3799,32 @@ export class EosApiClient {
       const res = await fetch(`${this.baseUrl}/commercial/financial-control/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        currency: 'QAR',
+        originalBudget: '0',
+        approvedBudgetChanges: '0',
+        currentAuthorisedBudget: '0',
+        postedActualCost: '0',
+        acceptedAccruedCost: '0',
+        remainingCommitments: '0',
+        uncommittedForecast: '0',
+        estimateAtCompletion: '0',
+        budgetVariance: '0',
+        approvedRevenueBasis: '0',
+        forecastContribution: '0',
+        forecastContributionMarginPercent: '0.00%',
+        invariants: {
+          budgetFormula: 'Current Budget = Original Budget + Approved Changes',
+          eacFormula: 'EAC = Posted Actual + Accepted Accrued + Remaining Commitments + ETC',
+          vacFormula: 'VAC = Current Budget - EAC',
+          zeroDoubleCountingEnforced: true,
+        },
+      };
+    }
+
     return {
       projectId,
       currency: 'QAR',
@@ -3600,6 +3854,25 @@ export class EosApiClient {
       const res = await fetch(`${this.baseUrl}/commercial/cash-position/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        currency: 'QAR',
+        contractValue: '0',
+        billedAmount: '0',
+        collectedAmount: '0',
+        receivablesAmount: '0',
+        unbilledContractAmount: '0',
+        postedActualCost: '0',
+        remainingCommitments: '0',
+        netCashFlow: '0',
+        netCashExposure: '0',
+        billedPercent: '0.0%',
+        collectedPercent: '0.0%',
+      };
+    }
+
     return {
       projectId,
       currency: 'QAR',
@@ -3622,12 +3895,20 @@ export class EosApiClient {
       const res = await fetch(`${this.baseUrl}/commercial/margin-bridge/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        waterfall: [],
+      };
+    }
+
     return {
       projectId,
       waterfall: [
         { step: 'Tender Original Contract', revenue: '2300000', cost: '1850000', margin: '450000', marginPercent: '19.57%' },
         { step: 'Approved Client Variations', revenue: '+150000', cost: '+100000', margin: '+50000', marginPercent: '33.33%' },
-        { step: 'Current Authorized Baseline', revenue: '2450000', cost: '1950000', margin: '500000', marginPercent: '20.83%' },
+        { step: 'Current Authorized Baseline', revenue: '2450000', cost: '1950000', margin: '500000', marginPercent: '20.41%' },
         { step: 'Procurement Savings & Cost Optimization', revenue: '0', cost: '-150000', margin: '+150000', marginPercent: 'N/A' },
         { step: 'Final Forecast At Completion (EAC)', revenue: '2450000', cost: '1800000', margin: '650000', marginPercent: '26.53%' },
       ],
@@ -3642,6 +3923,11 @@ export class EosApiClient {
         return json.snapshots || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'SNAP-2026-07',
@@ -3684,6 +3970,11 @@ export class EosApiClient {
         return json.invoices || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'INV-SUP-001',
@@ -3843,6 +4134,11 @@ export class EosApiClient {
         return json.clientInvoices || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       { id: 'INV-CLI-001', projectId, invoiceNumber: 'E3-CLI-2026-001', billingType: 'advance', currency: 'QAR', invoiceDate: '2026-06-01', grossAmount: '735000', netDueAmount: '735000', collectedAmount: '735000', outstandingAmount: '0', status: 'paid' },
       { id: 'INV-CLI-002', projectId, invoiceNumber: 'E3-CLI-2026-002', billingType: 'milestone', currency: 'QAR', invoiceDate: '2026-07-15', grossAmount: '735000', netDueAmount: '735000', collectedAmount: '735000', outstandingAmount: '0', status: 'paid' },
@@ -3868,6 +4164,11 @@ export class EosApiClient {
         return json.milestones || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       { id: 'MS-01', projectId, milestoneCode: 'MS-01-ADV', milestoneName: 'Mobilization & Advance Payment', percentageOfContract: '30', contractualAmount: '735000', collectionStatus: 'fully_collected' },
       { id: 'MS-02', projectId, milestoneCode: 'MS-02-DELIV', milestoneName: 'Site Delivery & Structural Erection', percentageOfContract: '30', contractualAmount: '735000', collectionStatus: 'fully_collected' },
@@ -3884,6 +4185,11 @@ export class EosApiClient {
         return json.collections || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       { id: 'COL-001', projectId, clientInvoiceId: 'INV-CLI-001', amountReceived: '735000', paymentDate: '2026-06-15', paymentReference: 'QNB-TRF-9021882', paymentMethod: 'bank_transfer' },
       { id: 'COL-002', projectId, clientInvoiceId: 'INV-CLI-002', amountReceived: '735000', paymentDate: '2026-08-01', paymentReference: 'QNB-TRF-9104721', paymentMethod: 'bank_transfer' },
@@ -3906,6 +4212,25 @@ export class EosApiClient {
       const res = await fetch(`${this.baseUrl}/commercial/receivables-aging/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        currency: 'QAR',
+        agingBuckets: {
+          current: '0',
+          days1to30: '0',
+          days31to60: '0',
+          days61to90: '0',
+          daysOver90: '0',
+          totalOutstanding: '0',
+          retentionWithheld: '0',
+        },
+        debtorName: '—',
+        paymentReliabilityScore: '—',
+      };
+    }
+
     return {
       projectId,
       currency: 'QAR',
@@ -3931,6 +4256,11 @@ export class EosApiClient {
         return json.variations || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       { id: 'VAR-001', projectId, variationNumber: 'VO-01', title: 'VIP Majlis Ambient Lighting Augmentation', additionalRevenue: '85000', additionalCost: '55000', status: 'approved_by_client', approvedAt: '2026-07-20' },
       { id: 'VAR-002', projectId, variationNumber: 'VO-02', title: 'Acoustic Sound Baffle Wind Shielding', additionalRevenue: '65000', additionalCost: '45000', status: 'approved_by_client', approvedAt: '2026-08-05' },
@@ -3945,6 +4275,11 @@ export class EosApiClient {
         return json.expenseClaims || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       { id: 'EXP-001', projectId, claimantName: 'Tariq Al-Mansoor', category: 'site_purchase', supplierName: 'Doha Hardware Center', amount: '3500', currency: 'QAR', reason: 'Emergency heavy-duty cable crossover ramps', approvalStatus: 'approved', reimbursementStatus: 'reimbursed' },
       { id: 'EXP-002', projectId, claimantName: 'Sarah Jenkins', category: 'crew_welfare', supplierName: 'Al Meera Hypermarket', amount: '1850', currency: 'QAR', reason: 'Electrolyte drinks and nutrition packs during heat advisory', approvalStatus: 'approved', reimbursementStatus: 'reimbursed' },
@@ -3956,6 +4291,11 @@ export class EosApiClient {
       const res = await fetch(`${this.baseUrl}/commercial/closeout/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return null;
+    }
+
     return {
       projectId,
       isCommerciallyClosed: true,
@@ -4003,6 +4343,11 @@ export class EosApiClient {
       const res = await fetch(`${this.baseUrl}/client/results/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return null;
+    }
+
     return {
       projectId,
       projectName: 'Qatar National Day 2026 Ceremonial Pavilion',
@@ -4057,6 +4402,11 @@ export class EosApiClient {
       const res = await fetch(`${this.baseUrl}/reports/post-event/${projectId}`, { headers: this.getHeaders() });
       if (res.ok) return await res.json();
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return null;
+    }
+
     return {
       projectId,
       reportTitle: 'Qatar National Day 2026 Pavilion — Post-Event Closeout Report',
@@ -4079,6 +4429,11 @@ export class EosApiClient {
         return json.kpis || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       { id: 'KPI-001', projectId, kpiCode: 'KPI-TIME-01', name: 'On-Time Opening Milestone', targetValue: '100', actualValue: '100', unit: '%', status: 'met', measurementMethod: 'Authority opening signoff at 16:00 on scheduled date' },
       { id: 'KPI-002', projectId, kpiCode: 'KPI-SNAG-01', name: 'Pre-Opening Snag Resolution', targetValue: '95', actualValue: '98', unit: '%', status: 'met', measurementMethod: '39 of 40 snags cleared before doors opened' },
@@ -4096,6 +4451,11 @@ export class EosApiClient {
         return json.feedback || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'FB-001',
@@ -4118,6 +4478,11 @@ export class EosApiClient {
         return json.lessons || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'LL-001',
@@ -4154,6 +4519,11 @@ export class EosApiClient {
         return json.evaluations || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'EV-01',

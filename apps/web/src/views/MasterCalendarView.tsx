@@ -166,10 +166,37 @@ export const MasterCalendarView: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Operational Window: September 2026
-  const monthName = isRtl ? 'سبتمبر ٢٠٢٦' : 'September 2026';
-  const daysInMonth = 30;
-  const firstDayWeekday = 2; // Tuesday (0=Sun, 1=Mon, 2=Tue)
+  // Operational Window: September 2026 (Interactive Navigation)
+  const [calendarYear, setCalendarYear] = useState<number>(2026);
+  const [calendarMonth, setCalendarMonth] = useState<number>(8); // 8 = September (0-indexed)
+
+  const handlePrevMonth = () => {
+    if (calendarMonth === 0) {
+      setCalendarMonth(11);
+      setCalendarYear((y) => y - 1);
+    } else {
+      setCalendarMonth((m) => m - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (calendarMonth === 11) {
+      setCalendarMonth(0);
+      setCalendarYear((y) => y + 1);
+    } else {
+      setCalendarMonth((m) => m + 1);
+    }
+  };
+
+  const handleResetToCurrent = () => {
+    setCalendarYear(2026);
+    setCalendarMonth(8);
+  };
+
+  const monthDate = new Date(calendarYear, calendarMonth, 1);
+  const monthName = monthDate.toLocaleString(isRtl ? 'ar-QA' : 'en-US', { month: 'long', year: 'numeric' });
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const firstDayWeekday = new Date(calendarYear, calendarMonth, 1).getDay();
 
   const filteredEvents = CANONICAL_EVENTS.filter((evt) => {
     if (selectedVenue !== 'all' && !evt.venue.toLowerCase().includes(selectedVenue.toLowerCase())) {
@@ -182,7 +209,8 @@ export const MasterCalendarView: React.FC = () => {
   });
 
   const getDayEvents = (dayNum: number) => {
-    const dayStr = `2026-09-${dayNum.toString().padStart(2, '0')}`;
+    const monthStr = (calendarMonth + 1).toString().padStart(2, '0');
+    const dayStr = `${calendarYear}-${monthStr}-${dayNum.toString().padStart(2, '0')}`;
     return filteredEvents.filter((e) => e.date === dayStr);
   };
 
@@ -418,9 +446,22 @@ export const MasterCalendarView: React.FC = () => {
       {viewMode === 'month' && (
         <Card style={{ padding: '16px' }} noPadding>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
-              {monthName}
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                {monthName}
+              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Button size="sm" variant="secondary" onClick={handlePrevMonth} style={{ height: '28px', padding: '0 8px' }} title={isRtl ? 'الشهر السابق' : 'Previous Month'}>
+                  {isRtl ? '→' : '←'}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={handleResetToCurrent} style={{ height: '28px', padding: '0 8px', fontSize: '11px' }}>
+                  {isRtl ? 'سبتمبر ٢٠٢٦' : 'Sep 2026'}
+                </Button>
+                <Button size="sm" variant="secondary" onClick={handleNextMonth} style={{ height: '28px', padding: '0 8px' }} title={isRtl ? 'الشهر التالي' : 'Next Month'}>
+                  {isRtl ? '←' : '→'}
+                </Button>
+              </div>
+            </div>
             <div style={{ fontSize: '12px', color: '#64748b' }}>
               {isRtl ? 'انقر على أي حدث لمعاينة التفاصيل الفنية' : 'Click on any event chip to view operational details'}
             </div>
@@ -435,41 +476,43 @@ export const MasterCalendarView: React.FC = () => {
             </div>
           )}
 
-          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-            <div style={{ minWidth: '760px' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+            <div style={{ minWidth: '760px', width: '100%' }}>
               {/* Days of Week Header */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
                 {weekdays.map((wd, i) => (
-                  <div key={i} style={{ padding: '10px 4px', fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                  <div key={i} style={{ padding: '10px 4px', fontSize: '12px', fontWeight: 700, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {wd}
                   </div>
                 ))}
               </div>
 
               {/* Month Calendar Cells */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', borderBottom: '1px solid #e2e8f0' }}>
                 {Array.from({ length: firstDayWeekday }).map((_, i) => (
-                  <div key={`blank-${i}`} style={{ minHeight: '110px', backgroundColor: '#fafbfc', borderRight: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }} />
+                  <div key={`blank-${i}`} style={{ minHeight: '110px', minWidth: 0, backgroundColor: '#fafbfc', borderRight: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }} />
                 ))}
 
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                   const dayNum = i + 1;
                   const evts = getDayEvents(dayNum);
-                  const isToday = dayNum === 14;
+                  const isToday = calendarYear === 2026 && calendarMonth === 8 && dayNum === 14;
 
                   return (
                     <div
                       key={`day-${dayNum}`}
                       style={{
                         minHeight: '110px',
+                        minWidth: 0,
                         padding: '8px',
                         borderRight: '1px solid #f1f5f9',
                         borderBottom: '1px solid #f1f5f9',
                         backgroundColor: isToday ? '#fffbeb' : '#ffffff',
                         transition: 'background-color 0.15s',
+                        overflow: 'hidden',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', minWidth: 0 }}>
                         <span
                           style={{
                             fontSize: '12px',
@@ -482,19 +525,20 @@ export const MasterCalendarView: React.FC = () => {
                             height: '22px',
                             borderRadius: '50%',
                             backgroundColor: isToday ? '#fef3c7' : 'transparent',
+                            flexShrink: 0,
                           }}
                         >
                           {dayNum}
                         </span>
                         {evts.length > 0 && (
-                          <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {evts.length} {evts.length === 1 ? (isRtl ? 'فعالية' : 'item') : (isRtl ? 'فعاليات' : 'items')}
                           </span>
                         )}
                       </div>
 
                       {/* Event Chips */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
                         {evts.map((evt) => {
                           const col = getTypeColor(evt.type);
                           return (
@@ -514,11 +558,13 @@ export const MasterCalendarView: React.FC = () => {
                                 alignItems: 'center',
                                 gap: '4px',
                                 lineHeight: 1.2,
+                                minWidth: 0,
+                                overflow: 'hidden',
                               }}
                               title={`${evt.startTime} - ${evt.title}`}
                             >
                               <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: col.dot, flexShrink: 0 }} />
-                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                                 {evt.title}
                               </span>
                             </div>

@@ -17,6 +17,7 @@ export const projects = pgTable(
     maturity: text('maturity').default('idea').notNull(), // 'idea', 'developing', etc.
     outcome: text('outcome').default('undetermined').notNull(), // 'undetermined', 'delivered', etc.
     rowVersion: integer('row_version').default(1).notNull(),
+    metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid('created_by').references(() => users.id).notNull(),

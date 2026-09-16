@@ -15,7 +15,7 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
   onClose,
   onProjectCreated,
 }) => {
-  const { currentLanguage, setSelectedProjectId, setActiveWorkspace } = useEosContext();
+  const { currentLanguage, setSelectedProjectId, setActiveWorkspace, currentUser } = useEosContext();
   const { client } = useEosApi();
 
   const [step, setStep] = useState<number>(1);
@@ -25,37 +25,37 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
   // Form state across 9 steps
   const [formData, setFormData] = useState({
     // Step 1: Client & Commercial Basis
-    clientOrgId: '22222222-2222-4222-8222-222222222222',
-    clientName: 'Qatar Tourism Authority (Synthetic)',
+    clientOrgId: '',
+    clientName: '',
     route: 'tender' as 'tender' | 'direct_award' | 'call_off' | 'internal_idea',
-    originCode: 'TENDER-QT-2026-09',
+    originCode: '',
 
     // Step 2: Project Identity & Scope
-    title: 'Qatar Tourism Annual Exhibition & Gala 2026',
-    projectCode: 'PRJ-2026-QT-' + Math.floor(100 + Math.random() * 900),
-    description: 'Premier national tourism showcase featuring immersive projection domes, 120-meter kinetic light truss, VIP protocol banquet, and live international broadcast.',
-    venue: 'Doha Exhibition & Convention Center (DECC) — Halls 1 & 2',
+    title: '',
+    projectCode: `PRJ-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+    description: '',
+    venue: '',
 
     // Step 3: Financial Baseline
     currency: 'QAR',
-    estimatedCost: '1850000',
-    expectedRevenue: '2950000',
+    estimatedCost: '',
+    expectedRevenue: '',
 
     // Step 4: Commercial Value States
     commercialState: 'estimate',
-    marginFloorPercent: 25,
+    marginFloorPercent: 20,
 
     // Step 5: Lifecycle Dates
-    moveInDate: '2026-11-10',
-    eventStartDate: '2026-11-15',
-    eventEndDate: '2026-11-18',
-    moveOutDate: '2026-11-20',
+    moveInDate: '',
+    eventStartDate: '',
+    eventEndDate: '',
+    moveOutDate: '',
 
     // Step 6: Team & Roles
-    leadPmId: '10000000-0000-4000-8000-000000000004', // Zaid Mansour (PM)
-    projectDirectorId: '10000000-0000-4000-8000-000000000003', // Fatima Al-Sulaiti
-    technicalDirectorId: '10000000-0000-4000-8000-000000000007', // Karim Haddad
-    financialControllerId: '10000000-0000-4000-8000-000000000005', // Rashid Al-Hajri
+    leadPmId: currentUser?.id || '10000000-0000-4000-8000-000000000004',
+    projectDirectorId: '',
+    technicalDirectorId: '',
+    financialControllerId: '',
 
     // Step 7: Governance & Gating Rules
     enforceDrawingFreeze: true,
@@ -254,9 +254,18 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
                 </label>
                 <select
                   value={formData.clientOrgId}
-                  onChange={(e) => setFormData({ ...formData, clientOrgId: e.target.value })}
+                  onChange={(e) => {
+                    const sel = e.target;
+                    const optText = sel.options[sel.selectedIndex]?.text || '';
+                    setFormData({
+                      ...formData,
+                      clientOrgId: e.target.value,
+                      clientName: e.target.value ? optText.replace(/^[^\s]+\s*/, '') : '',
+                    });
+                  }}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                 >
+                  <option value="">-- {currentLanguage === 'ar' ? 'اختر جهة العميل' : 'Select Client Organisation'} --</option>
                   <option value="22222222-2222-4222-8222-222222222222">🏛️ Qatar Tourism Authority (QTA) — Doha, Qatar</option>
                   <option value="33333333-3333-4333-8333-333333333333">🏢 Supreme Committee for Delivery & Legacy</option>
                   <option value="44444444-4444-4444-8444-444444444444">🇶🇦 Ministry of Culture & Youth</option>
@@ -301,6 +310,7 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
                 <input
                   type="text"
                   value={formData.originCode}
+                  placeholder="e.g. TENDER-2026-01"
                   onChange={(e) => setFormData({ ...formData, originCode: e.target.value })}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                 />
@@ -319,6 +329,7 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
                   <input
                     type="text"
                     value={formData.title}
+                    placeholder="e.g. Global Tech Expo & Summit 2026"
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', fontWeight: 600 }}
                   />
@@ -343,6 +354,7 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
                 <input
                   type="text"
                   value={formData.venue}
+                  placeholder="e.g. National Convention Center, Hall 1 & 2"
                   onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                 />
@@ -355,6 +367,7 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
                 <textarea
                   rows={4}
                   value={formData.description}
+                  placeholder="Enter project description, scope and key deliverables..."
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', lineHeight: '1.5' }}
                 />
@@ -388,6 +401,7 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
                   <input
                     type="number"
                     value={formData.estimatedCost}
+                    placeholder="e.g. 1200000"
                     onChange={(e) => setFormData({ ...formData, estimatedCost: e.target.value })}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                   />
@@ -400,6 +414,7 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
                   <input
                     type="number"
                     value={formData.expectedRevenue}
+                    placeholder="e.g. 1800000"
                     onChange={(e) => setFormData({ ...formData, expectedRevenue: e.target.value })}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                   />

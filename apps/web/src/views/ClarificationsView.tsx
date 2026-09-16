@@ -14,7 +14,7 @@ interface ClarificationsViewProps {
 }
 
 export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectId }) => {
-  const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
+  const { apiClient, refreshTrigger, triggerRefresh, currentProject, currentUser } = useEosContext();
 
   const [clarifications, setClarifications] = useState<ClarificationItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -23,20 +23,18 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
 
   // New Clarification Modal
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
-  const [newCode, setNewCode] = useState<string>('RFI-QND-003');
-  const [newTitle, setNewTitle] = useState<string>('Kinetic LED Arch Structural Tie-in Anchor Capacity');
-  const [newQuestion, setNewQuestion] = useState<string>(
-    'Please confirm permissible dynamic point loads and anchor bolting specifications for central median truss towers.'
-  );
+  const [newCode, setNewCode] = useState<string>('');
+  const [newTitle, setNewTitle] = useState<string>('');
+  const [newQuestion, setNewQuestion] = useState<string>('');
   const [newCategory, setNewCategory] = useState<ClarificationCategory>('technical');
   const [newDiscipline, setNewDiscipline] = useState<string>('staging');
   const [newTargetHours, setNewTargetHours] = useState<number>(48);
-  const [newReqId, setNewReqId] = useState<string>('REQ-QND-001');
-  const [newDesignId, setNewDesignId] = useState<string>('DES-QND-001');
-  const [newBoqCode, setNewBoqCode] = useState<string>('BOQ-AV-001');
-  const [newTaskCode, setNewTaskCode] = useState<string>('TSK-002');
-  const [newDocNum, setNewDocNum] = useState<string>('E3-QND26-AV-DWG-0001');
-  const [hasCostImpact, setHasCostImpact] = useState<boolean>(true);
+  const [newReqId, setNewReqId] = useState<string>('');
+  const [newDesignId, setNewDesignId] = useState<string>('');
+  const [newBoqCode, setNewBoqCode] = useState<string>('');
+  const [newTaskCode, setNewTaskCode] = useState<string>('');
+  const [newDocNum, setNewDocNum] = useState<string>('');
+  const [hasCostImpact, setHasCostImpact] = useState<boolean>(false);
   const [hasSchedImpact, setHasSchedImpact] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -56,7 +54,8 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
       try {
         const res = await apiClient.getClarifications(projectId).catch(() => ({ data: [] }));
         if (isMounted) {
-          const items: ClarificationItem[] = res?.data?.length > 0 ? res.data : getSeedClarifications(projectId);
+          const isSyntheticDemo = projectId === 'f1111111-1111-4111-8111-111111111111' || projectId === '00000000-0000-4000-8000-000000000001';
+          const items: ClarificationItem[] = res?.data?.length > 0 ? res.data : (isSyntheticDemo ? getSeedClarifications(projectId) : []);
           setClarifications(items);
         }
       } catch (err) {
@@ -191,8 +190,8 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
         category: newCategory,
         discipline: newDiscipline,
         source: 'bidder_inquiry',
-        author: 'Zaid Mansour (Lead PM)',
-        assignedResponder: 'Qatar Tourism Technical Committee',
+        author: currentUser?.name ? `${currentUser.name} (${currentUser.role || 'PM'})` : 'Project Manager',
+        assignedResponder: currentProject?.clientName ? `${currentProject.clientName} Technical Committee` : 'Client Technical Committee',
         dateRaised: now.toISOString(),
         targetResponseDate: targetDate,
         dueAt: targetDate,
@@ -672,6 +671,7 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
               label="Clarification Subject"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="e.g. Structural Tie-in Anchor Capacity"
               required
             />
 
@@ -679,6 +679,7 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
               label="Detailed Technical Question"
               value={newQuestion}
               onChange={(e) => setNewQuestion(e.target.value)}
+              placeholder="Enter detailed clarification inquiry for client / technical authority..."
               rows={3}
               required
             />
@@ -717,25 +718,25 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
                   label="Linked Scope Requirement"
                   value={newReqId}
                   onChange={(e) => setNewReqId(e.target.value)}
-                  placeholder="e.g. REQ-QND-001"
+                  placeholder="e.g. REQ-001"
                 />
                 <Input
                   label="Linked Design Package"
                   value={newDesignId}
                   onChange={(e) => setNewDesignId(e.target.value)}
-                  placeholder="e.g. DES-QND-001"
+                  placeholder="e.g. DES-001"
                 />
                 <Input
                   label="Linked BOQ Line"
                   value={newBoqCode}
                   onChange={(e) => setNewBoqCode(e.target.value)}
-                  placeholder="e.g. BOQ-AV-001"
+                  placeholder="e.g. BOQ-001"
                 />
                 <Input
                   label="Linked Schedule Task"
                   value={newTaskCode}
                   onChange={(e) => setNewTaskCode(e.target.value)}
-                  placeholder="e.g. TSK-002"
+                  placeholder="e.g. TSK-001"
                 />
               </div>
               <div style={{ marginTop: '8px' }}>
@@ -743,7 +744,7 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
                   label="Linked Controlled Document"
                   value={newDocNum}
                   onChange={(e) => setNewDocNum(e.target.value)}
-                  placeholder="e.g. E3-QND26-AV-DWG-0001"
+                  placeholder="e.g. DOC-DWG-0001"
                 />
               </div>
             </div>

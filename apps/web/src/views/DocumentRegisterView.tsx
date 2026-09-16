@@ -23,9 +23,9 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
   const [isSubmittingDoc, setIsSubmittingDoc] = useState<boolean>(false);
 
   const [isTransmittalModalOpen, setIsTransmittalModalOpen] = useState<boolean>(false);
-  const [recipientOrg, setRecipientOrg] = useState<string>('Qatar National Day Committee');
-  const [recipientName, setRecipientName] = useState<string>('Sheikh Mansoor Al-Thani');
-  const [recipientEmail, setRecipientEmail] = useState<string>('client@qnd.qa');
+  const [recipientOrg, setRecipientOrg] = useState<string>('');
+  const [recipientName, setRecipientName] = useState<string>('');
+  const [recipientEmail, setRecipientEmail] = useState<string>('');
   const [transmittalPurpose, setTransmittalPurpose] = useState<string>('for_client_approval');
   const [isClientFacing, setIsClientFacing] = useState<boolean>(true);
   const [isSubmittingTr, setIsSubmittingTr] = useState<boolean>(false);
@@ -97,6 +97,9 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
         items,
       });
       setIsTransmittalModalOpen(false);
+      setRecipientOrg('');
+      setRecipientName('');
+      setRecipientEmail('');
       triggerRefresh();
     } catch (err: any) {
       alert(err.message || 'Failed to issue transmittal');
@@ -398,7 +401,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
             <Input
               value={recipientOrg}
               onChange={(e) => setRecipientOrg(e.target.value)}
-              placeholder="e.g. Qatar National Day Steering Committee"
+              placeholder="e.g. Client Steering Committee / Authority"
               required
             />
           </div>
@@ -409,7 +412,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
               <Input
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
-                placeholder="e.g. Sheikh Mansoor Al-Thani"
+                placeholder="e.g. Lead Client Representative"
                 required
               />
             </div>
@@ -420,7 +423,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
                 type="email"
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
-                placeholder="e.g. client@qnd.qa"
+                placeholder="e.g. client.rep@example.com"
                 required
               />
             </div>

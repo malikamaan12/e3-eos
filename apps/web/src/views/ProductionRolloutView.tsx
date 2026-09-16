@@ -21,7 +21,7 @@ export type RolloutTab =
   | 'production-sign-off';
 
 export const ProductionRolloutView: React.FC = () => {
-  const { currentPath } = useEosContext();
+  const { currentPath, currentProject } = useEosContext();
 
   const getInitialTab = (): RolloutTab => {
     if (typeof window !== 'undefined' && window.location.search.includes('role=')) return 'uat-progress';
@@ -950,7 +950,7 @@ export const ProductionRolloutView: React.FC = () => {
       roleTitle: roleItem?.role || selectedUatRoleCode,
       screen: `Human UAT: ${roleItem?.role || 'Active View'}`,
       route: `/admin/release/human-uat?role=${selectedUatRoleCode.replace(/_/g, '-')}`,
-      project: 'PRJ-QA-2026-DOH-01 (Qatar National Day)',
+      project: currentProject?.name ? `${currentProject.projectCode || 'PRJ'} (${currentProject.name})` : 'PRJ-QA-2026-DOH-01 (Production Pilot)',
       browser: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Chrome') ? 'Google Chrome 128+' : 'Safari / WebKit') : 'Chrome 128',
       device: selectedUatRoleCode === 'field_supervisor' ? 'Mobile Tablet (iPad Air)' : 'Desktop Workstation',
       timestamp: new Date().toISOString(),
@@ -1002,6 +1002,9 @@ export const ProductionRolloutView: React.FC = () => {
     showToast(`Defect ${defectId} moved to ${nextStatus}.`);
   };
 
+  const completedUatCount = humanUatList.filter((r) => r.status === 'Passed' || r.status === 'Passed With Issues').length;
+  const isUatComplete = completedUatCount >= 11;
+
   const tabs: { id: RolloutTab; label: string; icon: string; badge?: string }[] = [
     { id: 'release-readiness', label: '1. Release Readiness', icon: '🚀' },
     { id: 'feature-flags', label: '2. Feature Flags', icon: '🚩', badge: '12 Flags' },
@@ -1011,13 +1014,13 @@ export const ProductionRolloutView: React.FC = () => {
     { id: 'backup-status', label: '6. Backup Status', icon: '💾', badge: 'Active' },
     { id: 'restore-drill', label: '7. Restore Drill', icon: '🔄', badge: 'RPO 2.4m' },
     { id: 'security-findings', label: '8. Security Audit', icon: '🛡️', badge: '0 High' },
-    { id: 'uat-progress', label: '9. Human UAT Control Centre', icon: '👥', badge: '11 Roles Pending' },
+    { id: 'uat-progress', label: '9. Human UAT Control Centre', icon: '👥', badge: `${11 - completedUatCount} Roles Pending` },
     { id: 'uat-defects', label: '10. UAT Defect Triage Board', icon: '🐞', badge: '0 P0/P1' },
     { id: 'training-adoption', label: '11. Training & Adoption', icon: '🎓', badge: '4 Modules' },
     { id: 'support-health', label: '11. Support Runbooks', icon: '🩺', badge: 'RB01-RB12' },
     { id: 'exception-register', label: '12. Exception Register', icon: '📋', badge: '1 Governed' },
     { id: 'cutover-checklist', label: '13. Cutover Checklist', icon: '⏱️', badge: 'T-0 Ready' },
-    { id: 'go-no-go-board', label: '14. Go / No-Go Board', icon: '⚖️', badge: 'UNANIMOUS GO' },
+    { id: 'go-no-go-board', label: '14. Go / No-Go Board', icon: '⚖️', badge: isUatComplete ? 'UNANIMOUS GO' : `BLOCKED (${completedUatCount}/11 UAT)` },
     { id: 'production-sign-off', label: '15. Production Sign-Off', icon: '📜', badge: 'Certificate' },
   ];
 
@@ -2650,10 +2653,10 @@ export const ProductionRolloutView: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
             <MetricCard
               title="Ready Pillars"
-              value="8 / 9"
-              subtitle="100% Mandatory Invariants Met"
-              badge={{ label: "8 Ready", variant: "success" }}
-              accentColor="#059669"
+              value={isUatComplete ? "8 / 9" : "7 / 9"}
+              subtitle={isUatComplete ? "100% Mandatory Invariants Met" : "Awaiting Human UAT Signoffs"}
+              badge={{ label: isUatComplete ? "8 Ready" : "1 Blocked", variant: isUatComplete ? "success" : "danger" }}
+              accentColor={isUatComplete ? "#059669" : "#dc2626"}
             />
             <MetricCard
               title="Ready With Exceptions"
@@ -2664,24 +2667,24 @@ export const ProductionRolloutView: React.FC = () => {
             />
             <MetricCard
               title="Production Blockers"
-              value="0"
-              subtitle="Zero Mock Connectors (AT-089 PASS)"
-              badge={{ label: "Zero Blockers", variant: "success" }}
-              accentColor="#059669"
+              value={isUatComplete ? "0" : "1"}
+              subtitle={isUatComplete ? "Zero Mock Connectors (AT-089 PASS)" : `UAT Incomplete (${completedUatCount}/11 Signed)`}
+              badge={{ label: isUatComplete ? "Zero Blockers" : "UAT Blocked", variant: isUatComplete ? "success" : "danger" }}
+              accentColor={isUatComplete ? "#059669" : "#dc2626"}
             />
             <MetricCard
               title="Board Verdict"
-              value="CONDITIONAL GO"
-              subtitle="All 9 pillars signed off"
-              badge={{ label: "READY", variant: "success" }}
-              accentColor="#2563eb"
+              value={isUatComplete ? "CONDITIONAL GO" : "BLOCKED"}
+              subtitle={isUatComplete ? "All 9 pillars signed off" : `${completedUatCount}/11 UAT Roles Signed Off`}
+              badge={{ label: isUatComplete ? "READY" : `BLOCKED (${completedUatCount}/11 UAT Signed)`, variant: isUatComplete ? "success" : "danger" }}
+              accentColor={isUatComplete ? "#2563eb" : "#dc2626"}
             />
           </div>
 
           <Card
             title="Production Go / No-Go Decision Board (9 Pillars)"
             subtitle="Unanimous readiness criteria across Product, Data, Security, Recovery, Performance, Support, UAT, Sovereignty, and Governance"
-            action={<Badge variant="success">VERDICT: CONDITIONAL GO</Badge>}
+            action={<Badge variant={isUatComplete ? "success" : "danger"}>{isUatComplete ? "VERDICT: CONDITIONAL GO" : `BLOCKED (${completedUatCount}/11 UAT Signed)`}</Badge>}
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
@@ -2738,10 +2741,18 @@ export const ProductionRolloutView: React.FC = () => {
                 </tr>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>7. Human UAT Signoffs</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>7 User Personas Signed Off</td>
-                  <td style={{ padding: '12px', fontSize: '12px' }}>MD, PM, Finance, Procurement, Warehouse, Field, Client.</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: isUatComplete ? '#059669' : '#dc2626', fontWeight: 600 }}>11 User Personas Signed Off</td>
+                  <td style={{ padding: '12px', fontSize: '12px' }}>
+                    {isUatComplete
+                      ? 'All 11 user personas signed off with 0 P0/P1 defects.'
+                      : `${completedUatCount} / 11 user personas signed off. Release gate blocked until all 11 personas sign off.`}
+                  </td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>UAT Lead</td>
-                  <td style={{ padding: '12px' }}><Badge variant="success">READY</Badge></td>
+                  <td style={{ padding: '12px' }}>
+                    <Badge variant={isUatComplete ? "success" : "danger"}>
+                      {isUatComplete ? "READY" : `BLOCKED (${completedUatCount}/11)`}
+                    </Badge>
+                  </td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>8. Ownership & Sovereignty</td>
@@ -2951,7 +2962,7 @@ export const ProductionRolloutView: React.FC = () => {
               <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>Automatically Captured Telemetry:</div>
               <div>• <strong>UAT Role:</strong> {selectedUatRoleCode}</div>
               <div>• <strong>Route:</strong> /admin/release/human-uat?role={selectedUatRoleCode.replace(/_/g, '-')}</div>
-              <div>• <strong>Project:</strong> PRJ-QA-2026-DOH-01 (Qatar National Day Production)</div>
+              <div>• <strong>Project:</strong> {currentProject?.name ? `${currentProject.projectCode || 'PRJ'} (${currentProject.name})` : 'PRJ-QA-2026-DOH-01 (Production Pilot)'}</div>
               <div>• <strong>Browser:</strong> {typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Chrome') ? 'Google Chrome 128+' : 'Safari / WebKit') : 'Chrome 128'}</div>
               <div>• <strong>Device:</strong> {selectedUatRoleCode === 'field_supervisor' ? 'Mobile Phone / Tablet' : 'Desktop Workstation'}</div>
               <div>• <strong>Timestamp:</strong> {new Date().toISOString()}</div>

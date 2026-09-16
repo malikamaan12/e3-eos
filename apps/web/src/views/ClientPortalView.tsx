@@ -218,13 +218,13 @@ export const ClientPortalView: React.FC = () => {
 
                         {/* Redaction Guarantee Pill */}
                         <div style={{ padding: '8px 12px', backgroundColor: '#f8fafc', borderRadius: '6px', fontSize: '11px', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>🛡️ <strong>Zero-Leak Invariant (AT-077):</strong> Internal vendor buy rate (QAR 9,500) and gross margin (36.7%) cryptographically redacted from client bundle.</span>
+                          <span>🛡️ <strong>Zero-Leak Invariant (AT-077):</strong> Internal cost structures, vendor buy rates, and gross margins are cryptographically redacted from client view.</span>
                           <span style={{ color: '#059669', fontWeight: 600 }}>Governed by ISO 20121 & FIDIC Client Terms</span>
                         </div>
 
                         {isApproved && (
                           <div style={{ padding: '12px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '12px', color: '#166534' }}>
-                            ✓ <strong>Client Acceptance Recorded:</strong> Signed by Dr. Hessa Al-Thani (Director of Events, Qatar Tourism) on {new Date().toLocaleDateString()}. Baseline updated from 160,000 QAR to 175,000 QAR.
+                            ✓ <strong>Client Acceptance Recorded:</strong> Signed by {currentProject?.clientName ? `Authorized Representative (${currentProject.clientName})` : 'Dr. Hessa Al-Thani (Director of Events, Qatar Tourism)'} on {new Date().toLocaleDateString()}. Baseline updated from 160,000 QAR to 175,000 QAR.
                           </div>
                         )}
                       </div>

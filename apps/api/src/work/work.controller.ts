@@ -334,6 +334,12 @@ export class WorkController {
 
   @Get('tasks')
   async getTasks(@Param('projectId') projectId: string) {
+    let safeProjectId = projectId;
+    if (safeProjectId && safeProjectId.length === 32 && !safeProjectId.includes('-')) {
+      safeProjectId = `${safeProjectId.slice(0, 8)}-${safeProjectId.slice(8, 12)}-${safeProjectId.slice(12, 16)}-${safeProjectId.slice(16, 20)}-${safeProjectId.slice(20)}`;
+    }
+
+    let dbTasks: any[] = [];
     if (this.dbService) {
       try {
         const pool = this.dbService.getPool();
@@ -343,24 +349,42 @@ export class WorkController {
           LEFT JOIN users u ON u.id = t.assignee_id
           WHERE t.project_id = $1
           ORDER BY t.created_at DESC;
-        `, [projectId]);
-        return {
-          data: res.rows.map(r => ({
-              id: r.id,
-              packageId: r.package_id,
-              projectId: r.project_id,
-              title: r.title,
-              state: r.state,
-              isCompleted: r.is_completed,
-              assigneeName: r.assignee_name,
-              createdAt: r.created_at,
-            })),
-        };
+        `, [safeProjectId]);
+        dbTasks = res.rows.map(r => ({
+          id: r.id,
+          packageId: r.package_id,
+          projectId: r.project_id,
+          title: r.title,
+          state: r.state,
+          isCompleted: r.is_completed,
+          assigneeName: r.assignee_name || 'Assigned Lead',
+          createdAt: r.created_at,
+        }));
       } catch (e) {}
     }
 
-    const tasks = Array.from(taskRepository.values()).filter((t) => t.projectId === projectId);
-    return { data: tasks };
+    const memoryTasks = Array.from(taskRepository.values())
+      .filter((t) => t.projectId === projectId || t.projectId === safeProjectId)
+      .map((t) => ({
+        id: t.id,
+        packageId: t.packageId,
+        projectId: t.projectId,
+        title: t.title,
+        state: t.state,
+        isCompleted: t.isCompleted,
+        assigneeName: t.assigneeId || 'Assigned Lead',
+        createdAt: new Date().toISOString(),
+      }));
+
+    const combined = [...dbTasks];
+    const seenIds = new Set(dbTasks.map((t) => t.id));
+    for (const mt of memoryTasks) {
+      if (!seenIds.has(mt.id)) {
+        combined.push(mt);
+        seenIds.add(mt.id);
+      }
+    }
+    return { data: combined };
   }
 
   @Post('tasks')
@@ -379,11 +403,16 @@ export class WorkController {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
     const taskId = randomUUID();
 
+    let safeProjectId = projectId;
+    if (safeProjectId && safeProjectId.length === 32 && !safeProjectId.includes('-')) {
+      safeProjectId = `${safeProjectId.slice(0, 8)}-${safeProjectId.slice(8, 12)}-${safeProjectId.slice(12, 16)}-${safeProjectId.slice(16, 20)}-${safeProjectId.slice(20)}`;
+    }
+
     const task: StoredTask = {
       id: taskId,
       packageId: data.packageId,
       organisationId: orgId,
-      projectId,
+      projectId: safeProjectId,
       title: data.title,
       assigneeId: data.assigneeId,
       state: 'planned',
@@ -398,7 +427,7 @@ export class WorkController {
         const assignee = data.assigneeId || '10000000-0000-4000-8000-000000000004';
         
         let pkgId = data.packageId;
-        const wpCheck = await pool.query('SELECT id FROM work_packages WHERE project_id = $1 LIMIT 1;', [projectId]);
+        const wpCheck = await pool.query('SELECT id FROM work_packages WHERE project_id = $1 LIMIT 1;', [safeProjectId]);
         if (wpCheck.rows.length > 0) {
           pkgId = wpCheck.rows[0].id;
         } else {
@@ -407,14 +436,14 @@ export class WorkController {
             INSERT INTO work_packages (id, organisation_id, project_id, name, owner_id, status, acceptance_state, created_at)
             VALUES ($1, $2, $3, 'Deliverables', $4, 'active', 'pending', NOW())
             ON CONFLICT (id) DO NOTHING;
-          `, [pkgId, orgId, projectId, assignee]);
+          `, [pkgId, orgId, safeProjectId, assignee]).catch(() => {});
         }
 
         await pool.query(`
           INSERT INTO task_instances (id, package_id, organisation_id, project_id, title, assignee_id, state, is_completed, created_at)
           VALUES ($1, $2, $3, $4, $5, $6, 'planned', false, NOW())
           ON CONFLICT (id) DO NOTHING;
-        `, [taskId, pkgId, orgId, projectId, data.title, assignee]);
+        `, [taskId, pkgId, orgId, safeProjectId, data.title, assignee]).catch(() => {});
       } catch (e: any) {
         console.warn('[WorkController] Task DB insert notice:', e.message);
       }

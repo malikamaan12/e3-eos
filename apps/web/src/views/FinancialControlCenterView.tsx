@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Tabs, formatCurrency } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export interface CommercialVariation {
   id: string;
@@ -81,9 +82,10 @@ export const INITIAL_VARIATIONS: CommercialVariation[] = [
 ];
 
 export const FinancialControlCenterView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
+  const { currentLanguage, apiClient, selectedProjectId, currentUser, currentProject } = useEosContext();
   const isRtl = currentLanguage === 'ar';
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
   const [activeTab, setActiveTab] = useState<'control' | 'reconciliation' | 'variations' | 'bridge' | 'cash' | 'snapshots' | 'imports'>('reconciliation');
   const [isAccrualConverted, setIsAccrualConverted] = useState<boolean>(false);
@@ -96,12 +98,12 @@ export const FinancialControlCenterView: React.FC = () => {
   const [selectedCurrency, setSelectedCurrency] = useState<string>('QAR');
 
   // Commercial Variations State
-  const [variations, setVariations] = useState<CommercialVariation[]>(INITIAL_VARIATIONS);
+  const [variations, setVariations] = useState<CommercialVariation[]>(() => (isDemo ? INITIAL_VARIATIONS : []));
   const [isAddVariationModalOpen, setIsAddVariationModalOpen] = useState<boolean>(false);
   const [newVoTitle, setNewVoTitle] = useState<string>('');
   const [newVoCategory, setNewVoCategory] = useState<'client_request' | 'site_condition' | 'hse_requirement' | 'design_refinement'>('client_request');
-  const [newVoBuyQar, setNewVoBuyQar] = useState<string>('25000');
-  const [newVoSellQar, setNewVoSellQar] = useState<string>('40000');
+  const [newVoBuyQar, setNewVoBuyQar] = useState<string>('');
+  const [newVoSellQar, setNewVoSellQar] = useState<string>('');
   const [newVoNotes, setNewVoNotes] = useState<string>('');
 
   const [finControl, setFinControl] = useState<any>(null);
@@ -111,8 +113,8 @@ export const FinancialControlCenterView: React.FC = () => {
 
   // Lock Snapshot Modal
   const [isLockModalOpen, setIsLockModalOpen] = useState<boolean>(false);
-  const [lockPeriod, setLockPeriod] = useState<string>('2026-08');
-  const [lockNotes, setLockNotes] = useState<string>('August 2026 month-end final commercial ledger close');
+  const [lockPeriod, setLockPeriod] = useState<string>(() => new Date().toISOString().slice(0, 7));
+  const [lockNotes, setLockNotes] = useState<string>('');
   const [isLocking, setIsLocking] = useState<boolean>(false);
 
   const activeCurrency = CURRENCIES.find((c) => c.code === selectedCurrency) || CURRENCIES[0];
@@ -145,6 +147,7 @@ export const FinancialControlCenterView: React.FC = () => {
   };
 
   useEffect(() => {
+    setVariations(isSyntheticDemo(projectId) ? INITIAL_VARIATIONS : []);
     loadData();
   }, [projectId]);
 
@@ -154,7 +157,7 @@ export const FinancialControlCenterView: React.FC = () => {
       await apiClient.lockMonthEndSnapshot(projectId, {
         projectId,
         periodKey: lockPeriod,
-        lockedBy: 'Hamad Al-Kuwari (Finance Director)',
+        lockedBy: currentUser?.name ? `${currentUser.name} (${currentUser.role || 'Finance Director'})` : 'Finance Director',
         snapshotNotes: lockNotes,
       });
       setIsLockModalOpen(false);
@@ -252,18 +255,18 @@ export const FinancialControlCenterView: React.FC = () => {
       'Audit Verification Status',
     ];
 
-    const baseCost = finControl?.originalBudget || 1850000;
-    const approvedChanges = finControl?.approvedBudgetChanges || 150000;
-    const currentBudget = finControl?.currentAuthorisedBudget || 2000000;
-    const actuals = finControl?.postedActualCost || 1180000;
-    const accrued = finControl?.acceptedAccruedCost || 120000;
-    const commitments = finControl?.remainingCommitments || 350000;
-    const etc = finControl?.uncommittedForecast || 150000;
-    const eac = finControl?.estimateAtCompletion || 1800000;
-    const vac = finControl?.budgetVariance || 200000;
+    const baseCost = finControl?.originalBudget != null ? Number(finControl.originalBudget) : (isDemo ? 1850000 : 0);
+    const approvedChanges = finControl?.approvedBudgetChanges != null ? Number(finControl.approvedBudgetChanges) : (isDemo ? 150000 : 0);
+    const currentBudget = finControl?.currentAuthorisedBudget != null ? Number(finControl.currentAuthorisedBudget) : (isDemo ? 2000000 : 0);
+    const actuals = finControl?.postedActualCost != null ? Number(finControl.postedActualCost) : (isDemo ? 1180000 : 0);
+    const accrued = finControl?.acceptedAccruedCost != null ? Number(finControl.acceptedAccruedCost) : (isDemo ? 120000 : 0);
+    const commitments = finControl?.remainingCommitments != null ? Number(finControl.remainingCommitments) : (isDemo ? 350000 : 0);
+    const etc = finControl?.uncommittedForecast != null ? Number(finControl.uncommittedForecast) : (isDemo ? 150000 : 0);
+    const eac = finControl?.estimateAtCompletion != null ? Number(finControl.estimateAtCompletion) : (isDemo ? 1800000 : 0);
+    const vac = finControl?.budgetVariance != null ? Number(finControl.budgetVariance) : (isDemo ? 200000 : 0);
 
     const row = [
-      '"Master Project Architecture (QND-2026)"',
+      `"${currentProject?.name || (isDemo ? 'Master Project Architecture (QND-2026)' : 'Master Project Architecture')}"`,
       baseCost,
       Math.round(baseCost * curr.rate),
       approvedChanges,
@@ -383,7 +386,8 @@ export const FinancialControlCenterView: React.FC = () => {
           </div>
           <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
             {isRtl ? 'المشروع:' : 'Project:'}{' '}
-            <span style={{ color: '#d97706', fontWeight: 700, fontFamily: 'monospace' }}>{projectId}</span> — {isRtl ? 'جناح الاحتفالات الرسمية لليوم الوطني ٢٠٢٦' : 'Qatar National Day 2026 Ceremonial Pavilion'}
+            <span style={{ color: '#d97706', fontWeight: 700, fontFamily: 'monospace' }}>{projectId}</span>
+            {currentProject?.name ? ` — ${currentProject.name}` : (isDemo ? (isRtl ? ' — جناح الاحتفالات الرسمية لليوم الوطني ٢٠٢٦' : ' — Qatar National Day 2026 Ceremonial Pavilion') : '')}
           </p>
         </div>
 
@@ -493,165 +497,185 @@ export const FinancialControlCenterView: React.FC = () => {
         </div>
       </div>
 
-      {/* Top Metric Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '16px',
-          marginBottom: '20px',
-        }}
-      >
-        <MetricCard
-          title={isRtl ? 'أساس إيراد العقد' : 'Contract Revenue Basis'}
-          label={isRtl ? 'أساس إيراد العقد' : 'Contract Revenue Basis'}
-          value={formatWithCurrency(finControl?.approvedRevenueBasis || 2450000)}
-          unit=""
-          subtitle={selectedCurrency !== 'QAR' ? `Base: 2,450,000 QAR | 80% Billed` : (isRtl ? '٨٠٪ مفوتر حتى الآن' : '80% Billed to Date')}
-          accentColor="#3b82f6"
-        />
-        <MetricCard
-          title={isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorized Budget'}
-          label={isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorized Budget'}
-          value={formatWithCurrency(finControl?.currentAuthorisedBudget || 2000000)}
-          unit=""
-          subtitle={`Baseline: ${formatWithCurrency(finControl?.originalBudget || 1850000)} • Variations: ${formatWithCurrency(finControl?.approvedBudgetChanges || 150000)}`}
-          accentColor="#d97706"
-        />
-        <MetricCard
-          title={isRtl ? 'التكلفة المقدرة عند الاكتمال (EAC)' : 'Estimate at Completion (EAC)'}
-          label={isRtl ? 'التكلفة المقدرة عند الاكتمال (EAC)' : 'Estimate at Completion (EAC)'}
-          value={formatWithCurrency(finControl?.estimateAtCompletion || 1800000)}
-          unit=""
-          subtitle={`Incurred: ${formatWithCurrency(1300000)}`}
-          badge={{ label: isRtl ? 'معتمد' : 'Verified', variant: 'success' }}
-          accentColor="#10b981"
-        />
-        <MetricCard
-          title={isRtl ? 'وفر الميزانية الإيجابي (VAC)' : 'Variance at Completion (VAC)'}
-          label={isRtl ? 'وفر الميزانية الإيجابي (VAC)' : 'Variance at Completion (VAC)'}
-          value={`+${formatWithCurrency(finControl?.budgetVariance || 200000)}`}
-          unit=""
-          subtitle={`Forecast Margin: ${finControl?.forecastContributionMarginPercent || '26.53%'}`}
-          delta={{ text: isRtl ? 'وفر إيجابي دون الميزانية' : 'Under budget saving', isPositive: true }}
-          accentColor="#059669"
-        />
-      </div>
+      {(() => {
+        const revBasis = finControl?.approvedRevenueBasis != null ? Number(finControl.approvedRevenueBasis) : (isDemo ? 2450000 : 0);
+        const curBudget = finControl?.currentAuthorisedBudget != null ? Number(finControl.currentAuthorisedBudget) : (isDemo ? 2000000 : 0);
+        const origBudget = finControl?.originalBudget != null ? Number(finControl.originalBudget) : (isDemo ? 1850000 : 0);
+        const budgetChanges = finControl?.approvedBudgetChanges != null ? Number(finControl.approvedBudgetChanges) : (isDemo ? 150000 : 0);
+        const actualsVal = finControl?.postedActualCost != null ? Number(finControl.postedActualCost) : (isDemo ? 1180000 : 0);
+        const accruedVal = finControl?.acceptedAccruedCost != null ? Number(finControl.acceptedAccruedCost) : (isDemo ? 120000 : 0);
+        const commitmentsVal = finControl?.remainingCommitments != null ? Number(finControl.remainingCommitments) : (isDemo ? 350000 : 0);
+        const etcVal = finControl?.uncommittedForecast != null ? Number(finControl.uncommittedForecast) : (isDemo ? 150000 : 0);
+        const eacVal = finControl?.estimateAtCompletion != null ? Number(finControl.estimateAtCompletion) : (isDemo ? 1800000 : 0);
+        const vacVal = finControl?.budgetVariance != null ? Number(finControl.budgetVariance) : (isDemo ? 200000 : 0);
+        const marginPct = finControl?.forecastContributionMarginPercent || (isDemo ? '26.53%' : '0.00%');
+        const billedPct = cashPos?.billedPercent || (revBasis > 0 && cashPos?.billedAmount ? `${Math.round((Number(cashPos.billedAmount) / revBasis) * 100)}%` : (isDemo ? '80%' : '0%'));
+        const calcPct = (amt: number) => (revBasis > 0 ? `${((amt / revBasis) * 100).toFixed(1)}%` : '0.0%');
 
-      {/* Tab Navigation */}
-      <Tabs tabs={tabs} activeTab={activeTab} onChange={(id) => setActiveTab(id as any)} />
-
-      {/* TAB 1: Budget vs Actual Breakdown */}
-      {activeTab === 'control' && (
-        <div>
-          <Card title={isRtl ? 'هيكلية تفصيل الميزانية والتكاليف (معيار منع الازدواج الحسابي)' : 'Budget & Cost Breakdown Architecture (Zero Double-Counting Invariant)'} noPadding>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'بند هيكلية التكلفة' : 'Cost Architecture Component'}</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'right' }}>{isRtl ? 'المبلغ' : `Amount (${activeCurrency.code})`}</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'right' }}>{isRtl ? '٪ من العقد' : '% of Contract'}</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'الدور في حساب EAC / VAC' : 'Role in EAC / VAC'}</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'center' }}>{isRtl ? 'توثيق التدقيق' : 'Audit Verification'}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0f172a' }}>{isRtl ? 'ميزانية العطاء الأصلية' : 'Original Tender Budget'}</td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
-                      {formatWithCurrency(finControl?.originalBudget || 1850000)}
-                    </td>
-                    <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>75.5%</td>
-                    <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'الأساس التعاقدي المعتمد' : 'Contractual Baseline'}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="neutral">{isRtl ? 'إقفال العطاء' : 'Tender Lock'}</Badge></td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0f172a' }}>{isRtl ? 'أوامر التغيير المعتمدة' : 'Approved Scope Variations'}</td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#059669' }}>
-                      +{formatWithCurrency(finControl?.approvedBudgetChanges || 150000)}
-                    </td>
-                    <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>+6.1%</td>
-                    <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'تضاف إلى الميزانية المعتمدة الحالية' : 'Adds to Current Authorised Budget'}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'موقع من العميل' : 'Client Signed'}</Badge></td>
-                  </tr>
-                  <tr style={{ backgroundColor: '#fffbeb', borderTop: '2px solid #fde68a', borderBottom: '2px solid #fde68a', fontWeight: 700 }}>
-                    <td style={{ padding: '14px 16px', color: '#92400e' }}>{isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorised Budget'}</td>
-                    <td style={{ padding: '14px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#b45309' }}>
-                      {formatWithCurrency(finControl?.currentAuthorisedBudget || 2000000)}
-                    </td>
-                    <td style={{ padding: '14px 16px', color: '#92400e', textAlign: 'right', fontFamily: 'monospace' }}>81.6%</td>
-                    <td style={{ padding: '14px 16px', color: '#92400e' }}>{isRtl ? 'المعيار الحاكم لحساب وفر الميزانية (VAC)' : 'Benchmark for VAC Calculation'}</td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}><Badge variant="warning">{isRtl ? 'السقف الحاكم' : 'Governed Ceiling'}</Badge></td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
-                      {isRtl ? '١. التكلفة الفعلية المقيدة (مفوترة ومعتمدة)' : '1. Posted Actual Cost (Invoiced & Approved)'}
-                    </td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
-                      {formatWithCurrency(finControl?.postedActualCost || 1180000)}
-                    </td>
-                    <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>48.2%</td>
-                    <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'جزء من التكلفة الفعلية المنفقة' : 'Component of Cost Incurred'}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'مطابقة ثلاثية' : '3-Way Matched'}</Badge></td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
-                      {isRtl ? '٢. التكلفة المستحقة المقبولة (أعمال منجزة لم تفوتر بعد)' : '2. Accepted Accrued Cost (Unbilled Work Delivered)'}
-                    </td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
-                      {formatWithCurrency(finControl?.acceptedAccruedCost || 120000)}
-                    </td>
-                    <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>4.9%</td>
-                    <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'تم قبول تقدم العمل في الموقع' : 'Site Progress Accepted'}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="info">{isRtl ? 'توقيع الأعمال' : 'Work Signed-off'}</Badge></td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
-                      {isRtl ? '٣. الالتزامات المتبقية (أوامر الشراء المفتوحة)' : '3. Remaining Commitments (Open PO Balances)'}
-                    </td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
-                      {formatWithCurrency(finControl?.remainingCommitments || 350000)}
-                    </td>
-                    <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>14.3%</td>
-                    <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'أوامر شراء لم تنفذ بالكامل بعد' : 'Unperformed Purchase Orders'}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="neutral">{isRtl ? 'أمر شراء مختوم' : 'PO Sealed'}</Badge></td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
-                      {isRtl ? '٤. التقدير غير المرتبط (ETC حتى الإغلاق)' : '4. Uncommitted Forecast (ETC to Closeout)'}
-                    </td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
-                      {formatWithCurrency(finControl?.uncommittedForecast || 150000)}
-                    </td>
-                    <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>6.1%</td>
-                    <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'مخصص أعمال التفكيك النهائي والإرجاع' : 'Allowance for Final Bump-Out & Returns'}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="neutral">{isRtl ? 'تقدير مدير المشروع' : 'PM Forecast'}</Badge></td>
-                  </tr>
-                  <tr style={{ backgroundColor: '#ecfdf5', borderTop: '2px solid #a7f3d0', borderBottom: '1px solid #a7f3d0', fontWeight: 700 }}>
-                    <td style={{ padding: '14px 16px', color: '#065f46' }}>{isRtl ? 'التكلفة المقدرة عند الاكتمال (EAC = ١+٢+٣+٤)' : 'Estimate at Completion (EAC = 1+2+3+4)'}</td>
-                    <td style={{ padding: '14px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#047857' }}>
-                      {formatWithCurrency(finControl?.estimateAtCompletion || 1800000)}
-                    </td>
-                    <td style={{ padding: '14px 16px', color: '#065f46', textAlign: 'right', fontFamily: 'monospace' }}>73.5%</td>
-                    <td style={{ padding: '14px 16px', color: '#065f46' }}>{isRtl ? 'إجمالي التكلفة المتوقعة للمشروع' : 'Total Projected Project Cost'}</td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'مطابق للمعادلة' : 'Invariant Verified'}</Badge></td>
-                  </tr>
-                  <tr style={{ backgroundColor: '#f0fdf4', fontWeight: 800 }}>
-                    <td style={{ padding: '14px 16px', color: '#047857' }}>{isRtl ? 'وفر الميزانية عند الاكتمال (VAC = الميزانية - EAC)' : 'Variance at Completion (VAC = Budget - EAC)'}</td>
-                    <td style={{ padding: '14px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#047857' }}>
-                      +{formatWithCurrency(finControl?.budgetVariance || 200000)}
-                    </td>
-                    <td style={{ padding: '14px 16px', color: '#047857', textAlign: 'right', fontFamily: 'monospace' }}>+8.2% Favorable</td>
-                    <td style={{ padding: '14px 16px', color: '#047857' }}>{isRtl ? 'صافي الوفر المحقق عبر مراحل التنفيذ' : 'Net Cost Saving Across Delivery'}</td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'تحت الميزانية' : 'Under Budget'}</Badge></td>
-                  </tr>
-                </tbody>
-              </table>
+        return (
+          <>
+            {/* Top Metric Cards */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '16px',
+                marginBottom: '20px',
+              }}
+            >
+              <MetricCard
+                title={isRtl ? 'أساس إيراد العقد' : 'Contract Revenue Basis'}
+                label={isRtl ? 'أساس إيراد العقد' : 'Contract Revenue Basis'}
+                value={formatWithCurrency(revBasis)}
+                unit=""
+                subtitle={selectedCurrency !== 'QAR' ? `Base: ${formatCurrency(revBasis, 'QAR')} | ${billedPct} Billed` : (revBasis > 0 ? (isRtl ? `${billedPct} مفوتر حتى الآن` : `${billedPct} Billed to Date`) : '')}
+                accentColor="#3b82f6"
+              />
+              <MetricCard
+                title={isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorized Budget'}
+                label={isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorized Budget'}
+                value={formatWithCurrency(curBudget)}
+                unit=""
+                subtitle={`Baseline: ${formatWithCurrency(origBudget)} • Variations: ${formatWithCurrency(budgetChanges)}`}
+                accentColor="#d97706"
+              />
+              <MetricCard
+                title={isRtl ? 'التكلفة المقدرة عند الاكتمال (EAC)' : 'Estimate at Completion (EAC)'}
+                label={isRtl ? 'التكلفة المقدرة عند الاكتمال (EAC)' : 'Estimate at Completion (EAC)'}
+                value={formatWithCurrency(eacVal)}
+                unit=""
+                subtitle={`Incurred: ${formatWithCurrency(actualsVal + accruedVal)}`}
+                badge={{ label: isRtl ? 'معتمد' : 'Verified', variant: 'success' }}
+                accentColor="#10b981"
+              />
+              <MetricCard
+                title={isRtl ? 'وفر الميزانية الإيجابي (VAC)' : 'Variance at Completion (VAC)'}
+                label={isRtl ? 'وفر الميزانية الإيجابي (VAC)' : 'Variance at Completion (VAC)'}
+                value={`${vacVal >= 0 ? '+' : ''}${formatWithCurrency(vacVal)}`}
+                unit=""
+                subtitle={`Forecast Margin: ${marginPct}`}
+                delta={{ text: vacVal >= 0 ? (isRtl ? 'وفر إيجابي دون الميزانية' : 'Under budget saving') : (isRtl ? 'تجاوز الميزانية' : 'Over budget'), isPositive: vacVal >= 0 }}
+                accentColor="#059669"
+              />
             </div>
-          </Card>
-        </div>
-      )}
+
+            {/* Tab Navigation */}
+            <Tabs tabs={tabs} activeTab={activeTab} onChange={(id) => setActiveTab(id as any)} />
+
+            {/* TAB 1: Budget vs Actual Breakdown */}
+            {activeTab === 'control' && (
+              <div>
+                <Card title={isRtl ? 'هيكلية تفصيل الميزانية والتكاليف (معيار منع الازدواج الحسابي)' : 'Budget & Cost Breakdown Architecture (Zero Double-Counting Invariant)'} noPadding>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'بند هيكلية التكلفة' : 'Cost Architecture Component'}</th>
+                          <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'right' }}>{isRtl ? 'المبلغ' : `Amount (${activeCurrency.code})`}</th>
+                          <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'right' }}>{isRtl ? '٪ من العقد' : '% of Contract'}</th>
+                          <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'الدور في حساب EAC / VAC' : 'Role in EAC / VAC'}</th>
+                          <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'center' }}>{isRtl ? 'توثيق التدقيق' : 'Audit Verification'}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0f172a' }}>{isRtl ? 'ميزانية العطاء الأصلية' : 'Original Tender Budget'}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                            {formatWithCurrency(origBudget)}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(origBudget)}</td>
+                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'الأساس التعاقدي المعتمد' : 'Contractual Baseline'}</td>
+                          <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="neutral">{isRtl ? 'إقفال العطاء' : 'Tender Lock'}</Badge></td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0f172a' }}>{isRtl ? 'أوامر التغيير المعتمدة' : 'Approved Scope Variations'}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#059669' }}>
+                            +{formatWithCurrency(budgetChanges)}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>+{calcPct(budgetChanges)}</td>
+                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'تضاف إلى الميزانية المعتمدة الحالية' : 'Adds to Current Authorised Budget'}</td>
+                          <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'موقع من العميل' : 'Client Signed'}</Badge></td>
+                        </tr>
+                        <tr style={{ backgroundColor: '#fffbeb', borderTop: '2px solid #fde68a', borderBottom: '2px solid #fde68a', fontWeight: 700 }}>
+                          <td style={{ padding: '14px 16px', color: '#92400e' }}>{isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorised Budget'}</td>
+                          <td style={{ padding: '14px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#b45309' }}>
+                            {formatWithCurrency(curBudget)}
+                          </td>
+                          <td style={{ padding: '14px 16px', color: '#92400e', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(curBudget)}</td>
+                          <td style={{ padding: '14px 16px', color: '#92400e' }}>{isRtl ? 'المعيار الحاكم لحساب وفر الميزانية (VAC)' : 'Benchmark for VAC Calculation'}</td>
+                          <td style={{ padding: '14px 16px', textAlign: 'center' }}><Badge variant="warning">{isRtl ? 'السقف الحاكم' : 'Governed Ceiling'}</Badge></td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
+                            {isRtl ? '١. التكلفة الفعلية المقيدة (مفوترة ومعتمدة)' : '1. Posted Actual Cost (Invoiced & Approved)'}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                            {formatWithCurrency(actualsVal)}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(actualsVal)}</td>
+                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'جزء من التكلفة الفعلية المنفقة' : 'Component of Cost Incurred'}</td>
+                          <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'مطابقة ثلاثية' : '3-Way Matched'}</Badge></td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
+                            {isRtl ? '٢. التكلفة المستحقة المقبولة (أعمال منجزة لم تفوتر بعد)' : '2. Accepted Accrued Cost (Unbilled Work Delivered)'}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                            {formatWithCurrency(accruedVal)}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(accruedVal)}</td>
+                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'تم قبول تقدم العمل في الموقع' : 'Site Progress Accepted'}</td>
+                          <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="info">{isRtl ? 'توقيع الأعمال' : 'Work Signed-off'}</Badge></td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
+                            {isRtl ? '٣. الالتزامات المتبقية (أوامر الشراء المفتوحة)' : '3. Remaining Commitments (Open PO Balances)'}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                            {formatWithCurrency(commitmentsVal)}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(commitmentsVal)}</td>
+                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'أوامر شراء لم تنفذ بالكامل بعد' : 'Unperformed Purchase Orders'}</td>
+                          <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="neutral">{isRtl ? 'أمر شراء مختوم' : 'PO Sealed'}</Badge></td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
+                            {isRtl ? '٤. التقدير غير المرتبط (ETC حتى الإغلاق)' : '4. Uncommitted Forecast (ETC to Closeout)'}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                            {formatWithCurrency(etcVal)}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(etcVal)}</td>
+                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'مخصص أعمال التفكيك النهائي والإرجاع' : 'Allowance for Final Bump-Out & Returns'}</td>
+                          <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="neutral">{isRtl ? 'تقدير مدير المشروع' : 'PM Forecast'}</Badge></td>
+                        </tr>
+                        <tr style={{ backgroundColor: '#ecfdf5', borderTop: '2px solid #a7f3d0', borderBottom: '1px solid #a7f3d0', fontWeight: 700 }}>
+                          <td style={{ padding: '14px 16px', color: '#065f46' }}>{isRtl ? 'التكلفة المقدرة عند الاكتمال (EAC = ١+٢+٣+٤)' : 'Estimate at Completion (EAC = 1+2+3+4)'}</td>
+                          <td style={{ padding: '14px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#047857' }}>
+                            {formatWithCurrency(eacVal)}
+                          </td>
+                          <td style={{ padding: '14px 16px', color: '#065f46', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(eacVal)}</td>
+                          <td style={{ padding: '14px 16px', color: '#065f46' }}>{isRtl ? 'إجمالي التكلفة المتوقعة للمشروع' : 'Total Projected Project Cost'}</td>
+                          <td style={{ padding: '14px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'مطابق للمعادلة' : 'Invariant Verified'}</Badge></td>
+                        </tr>
+                        <tr style={{ backgroundColor: '#f0fdf4', fontWeight: 800 }}>
+                          <td style={{ padding: '14px 16px', color: '#047857' }}>{isRtl ? 'وفر الميزانية عند الاكتمال (VAC = الميزانية - EAC)' : 'Variance at Completion (VAC = Budget - EAC)'}</td>
+                          <td style={{ padding: '14px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#047857' }}>
+                            {vacVal >= 0 ? '+' : ''}{formatWithCurrency(vacVal)}
+                          </td>
+                          <td style={{ padding: '14px 16px', color: '#047857', textAlign: 'right', fontFamily: 'monospace' }}>{vacVal >= 0 ? '+' : ''}{calcPct(vacVal)} Favorable</td>
+                          <td style={{ padding: '14px 16px', color: '#047857' }}>{isRtl ? 'صافي الوفر المحقق عبر مراحل التنفيذ' : 'Net Cost Saving Across Delivery'}</td>
+                          <td style={{ padding: '14px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'تحت الميزانية' : 'Under Budget'}</Badge></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {/* TAB: Accrual & Invoice Reconciliation (AT-066 / AT-068) */}
       {activeTab === 'reconciliation' && (
@@ -854,47 +878,53 @@ export const FinancialControlCenterView: React.FC = () => {
             </div>
 
             {/* Summary Metrics Strip for Variations */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
-              <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Total Approved Variations</div>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '2px 0' }}>{variations.length} VOs</div>
-                <div style={{ fontSize: '11px', color: '#059669' }}>100% Contractually Sealed</div>
-              </div>
+            {(() => {
+              const approvedVariations = variations.filter((v) => v.status === 'approved');
+              const approvedSell = approvedVariations.reduce((acc, v) => acc + v.clientSellQar, 0);
+              const approvedCost = approvedVariations.reduce((acc, v) => acc + v.contractorCostQar, 0);
+              const approvedNetMargin = approvedSell - approvedCost;
+              const approvedMarginPct = approvedSell > 0 ? ((approvedNetMargin / approvedSell) * 100).toFixed(1) : '0.0';
 
-              <div style={{ padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
-                <div style={{ fontSize: '11px', color: '#166534', fontWeight: 700, textTransform: 'uppercase' }}>Total Sell Price Addition</div>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#15803d', margin: '2px 0' }}>
-                  +{formatWithCurrency(variations.reduce((acc, v) => acc + v.clientSellQar, 0))}
-                </div>
-                <div style={{ fontSize: '11px', color: '#166534' }}>
-                  Base: +{variations.reduce((acc, v) => acc + v.clientSellQar, 0).toLocaleString()} QAR
-                </div>
-              </div>
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                  <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Total Approved Variations</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '2px 0' }}>{approvedVariations.length} VOs</div>
+                    <div style={{ fontSize: '11px', color: '#059669' }}>100% Contractually Sealed ({variations.length} Total Logged)</div>
+                  </div>
 
-              <div style={{ padding: '12px', backgroundColor: '#eff6ff', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
-                <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: 700, textTransform: 'uppercase' }}>Total Contractor Buy Cost</div>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#1d4ed8', margin: '2px 0' }}>
-                  +{formatWithCurrency(variations.reduce((acc, v) => acc + v.contractorCostQar, 0))}
-                </div>
-                <div style={{ fontSize: '11px', color: '#1e40af' }}>
-                  Base: +{variations.reduce((acc, v) => acc + v.contractorCostQar, 0).toLocaleString()} QAR
-                </div>
-              </div>
+                  <div style={{ padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+                    <div style={{ fontSize: '11px', color: '#166534', fontWeight: 700, textTransform: 'uppercase' }}>Approved Sell Price Addition</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#15803d', margin: '2px 0' }}>
+                      +{formatWithCurrency(approvedSell)}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#166534' }}>
+                      Base: +{approvedSell.toLocaleString()} QAR
+                    </div>
+                  </div>
 
-              <div style={{ padding: '12px', backgroundColor: '#fefce8', borderRadius: '6px', border: '1px solid #fef08a' }}>
-                <div style={{ fontSize: '11px', color: '#854d0e', fontWeight: 700, textTransform: 'uppercase' }}>Blended Gross Margin</div>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#a16207', margin: '2px 0' }}>
-                  {(
-                    ((variations.reduce((acc, v) => acc + v.clientSellQar, 0) - variations.reduce((acc, v) => acc + v.contractorCostQar, 0)) /
-                      (variations.reduce((acc, v) => acc + v.clientSellQar, 0) || 1)) *
-                    100
-                  ).toFixed(1)}%
+                  <div style={{ padding: '12px', backgroundColor: '#eff6ff', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
+                    <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: 700, textTransform: 'uppercase' }}>Approved Contractor Buy Cost</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#1d4ed8', margin: '2px 0' }}>
+                      +{formatWithCurrency(approvedCost)}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#1e40af' }}>
+                      Base: +{approvedCost.toLocaleString()} QAR
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '12px', backgroundColor: '#fefce8', borderRadius: '6px', border: '1px solid #fef08a' }}>
+                    <div style={{ fontSize: '11px', color: '#854d0e', fontWeight: 700, textTransform: 'uppercase' }}>Blended Gross Margin</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#a16207', margin: '2px 0' }}>
+                      {approvedMarginPct}%
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#854d0e' }}>
+                      Net Margin: +{formatWithCurrency(approvedNetMargin)}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize: '11px', color: '#854d0e' }}>
-                  Net Margin: +{formatWithCurrency(variations.reduce((acc, v) => acc + (v.clientSellQar - v.contractorCostQar), 0))}
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Variations Table */}
             <div style={{ overflowX: 'auto' }}>
@@ -1037,63 +1067,90 @@ export const FinancialControlCenterView: React.FC = () => {
       )}
 
       {/* TAB 3: Cash Position */}
-      {activeTab === 'cash' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-          <Card title={isRtl ? 'سجل مستحقات العميل' : 'Client Receivables Ledger'}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: '#64748b' }}>{isRtl ? 'إجمالي قيمة العقد:' : 'Total Contract Value:'}</span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0f172a' }}>{formatCurrency(2450000, 'QAR')}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: '#64748b' }}>{isRtl ? 'إجمالي المفوتر حتى الآن:' : 'Total Billed to Date:'}</span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#d97706' }}>{formatCurrency(1960000, 'QAR')} (80%)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: '#64748b' }}>{isRtl ? 'إجمالي النقد المحصل:' : 'Total Cash Collected:'}</span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#059669' }}>{formatCurrency(1715000, 'QAR')} (70%)</span>
-              </div>
-              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
-                <span style={{ color: '#dc2626' }}>{isRtl ? 'المستحقات المتبقية للتحصيل:' : 'Open Accounts Receivable:'}</span>
-                <span style={{ fontFamily: 'monospace', color: '#dc2626' }}>{formatCurrency(2450000 - 1715000, 'QAR')}</span>
-              </div>
-            </div>
-          </Card>
+      {activeTab === 'cash' && (() => {
+        const contractVal = Number(cashPos?.contractValue ?? (isDemo ? 2450000 : 0));
+        const billedAmt = Number(cashPos?.billedAmount ?? (isDemo ? 1960000 : 0));
+        const collectedAmt = Number(cashPos?.collectedAmount ?? (isDemo ? 1715000 : 0));
+        const openReceivables = Number(cashPos?.receivablesAmount ?? (billedAmt - collectedAmt));
+        const unbilledContractAmount = Number(cashPos?.unbilledContractAmount ?? (contractVal - billedAmt));
+        const postedActual = Number(cashPos?.postedActualCost ?? (isDemo ? 1180000 : 0));
+        const activeCommitments = Number(cashPos?.remainingCommitments ?? (isDemo ? 350000 : 0));
+        const totalOutflow = postedActual + activeCommitments;
+        const netCash = Number(cashPos?.netCashFlow ?? (collectedAmt - postedActual));
+        const netExposure = Number(cashPos?.netCashExposure ?? (collectedAmt - totalOutflow));
+        const billedPct = cashPos?.billedPercent || (contractVal > 0 ? `${Math.round((billedAmt / contractVal) * 100)}%` : '0%');
+        const collectedPct = cashPos?.collectedPercent || (contractVal > 0 ? `${Math.round((collectedAmt / contractVal) * 100)}%` : '0%');
 
-          <Card title={isRtl ? 'التزامات الموردين وتدفقات التكلفة' : 'Supplier Commitments & Cost Outflow'}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: '#64748b' }}>{isRtl ? 'المدفوع والفعلي المعتمد:' : 'Posted Actual Paid/Approved:'}</span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0f172a' }}>{formatCurrency(1180000, 'QAR')}</span>
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+            <Card title={isRtl ? 'سجل مستحقات العميل' : 'Client Receivables Ledger'}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: '#64748b' }}>{isRtl ? 'إجمالي قيمة العقد:' : 'Total Contract Value:'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0f172a' }}>{formatCurrency(contractVal, 'QAR')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: '#64748b' }}>{isRtl ? 'إجمالي المفوتر حتى الآن:' : 'Total Billed to Date:'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#d97706' }}>{formatCurrency(billedAmt, 'QAR')} ({billedPct})</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: '#64748b' }}>{isRtl ? 'إجمالي النقد المحصل:' : 'Total Cash Collected:'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#059669' }}>{formatCurrency(collectedAmt, 'QAR')} ({collectedPct})</span>
+                </div>
+                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
+                  <span style={{ color: '#dc2626' }}>{isRtl ? 'المستحقات المفتوحة (مفوترة غير محصلة):' : 'Open Receivables (Billed Uncollected):'}</span>
+                  <span style={{ fontFamily: 'monospace', color: '#dc2626' }}>{formatCurrency(openReceivables, 'QAR')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#64748b' }}>
+                  <span>{isRtl ? 'قيمة العقد غير المفوترة بعد:' : 'Unbilled Contract Value:'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#475569' }}>{formatCurrency(unbilledContractAmount, 'QAR')}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: '#64748b' }}>{isRtl ? 'التزامات أوامر الشراء النشطة:' : 'Active PO Commitments:'}</span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#d97706' }}>{formatCurrency(350000, 'QAR')}</span>
-              </div>
-              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
-                <span style={{ color: '#334155' }}>{isRtl ? 'إجمالي التدفقات الخارجة والالتزامات:' : 'Total Outflow & Liability:'}</span>
-                <span style={{ fontFamily: 'monospace', color: '#0f172a' }}>{formatCurrency(1530000, 'QAR')}</span>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card title={isRtl ? 'صافي السيولة ومؤشر التعرض' : 'Net Cash & Exposure Index'}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: '#64748b' }}>{isRtl ? 'صافي التدفق النقدي:' : 'Net Cash Flow:'}</span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#059669' }}>+{formatCurrency(535000, 'QAR')}</span>
+            <Card title={isRtl ? 'التزامات الموردين وتدفقات التكلفة' : 'Supplier Commitments & Cost Outflow'}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: '#64748b' }}>{isRtl ? 'المدفوع والفعلي المعتمد:' : 'Posted Actual Paid/Approved:'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0f172a' }}>{formatCurrency(postedActual, 'QAR')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: '#64748b' }}>{isRtl ? 'التزامات أوامر الشراء النشطة:' : 'Active PO Commitments:'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#d97706' }}>{formatCurrency(activeCommitments, 'QAR')}</span>
+                </div>
+                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
+                  <span style={{ color: '#334155' }}>{isRtl ? 'إجمالي التدفقات الخارجة والالتزامات:' : 'Total Outflow & Liability:'}</span>
+                  <span style={{ fontFamily: 'monospace', color: '#0f172a' }}>{formatCurrency(totalOutflow, 'QAR')}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: '#64748b' }}>{isRtl ? 'صافي التعرض المالي (مع أوامر الشراء):' : 'Net Exposure (incl. POs):'}</span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#059669' }}>+{formatCurrency(185000, 'QAR')}</span>
+            </Card>
+
+            <Card title={isRtl ? 'صافي السيولة ومؤشر التعرض' : 'Net Cash & Exposure Index'}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: '#64748b' }}>{isRtl ? 'صافي التدفق النقدي:' : 'Net Cash Flow:'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: netCash >= 0 ? '#059669' : '#dc2626' }}>
+                    {netCash >= 0 ? '+' : ''}{formatCurrency(netCash, 'QAR')}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: '#64748b' }}>{isRtl ? 'صافي التعرض المالي (مع أوامر الشراء):' : 'Net Exposure (incl. POs):'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: netExposure >= 0 ? '#059669' : '#dc2626' }}>
+                    {netExposure >= 0 ? '+' : ''}{formatCurrency(netExposure, 'QAR')}
+                  </span>
+                </div>
+                <div style={{ paddingTop: '6px' }}>
+                  <Badge variant={netExposure >= 0 ? "success" : "danger"}>
+                    {netExposure >= 0
+                      ? (isRtl ? 'رأس مال عامل إيجابي' : 'POSITIVE WORKING CAPITAL')
+                      : (isRtl ? 'عجز في رأس المال العامل' : 'NEGATIVE WORKING CAPITAL')}
+                  </Badge>
+                </div>
               </div>
-              <div style={{ paddingTop: '6px' }}>
-                <Badge variant="success">{isRtl ? 'رأس مال عامل إيجابي' : 'POSITIVE WORKING CAPITAL'}</Badge>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+            </Card>
+          </div>
+        );
+      })()}
 
       {/* TAB 4: Month-End Snapshots */}
       {activeTab === 'snapshots' && (
@@ -1322,6 +1379,7 @@ export const FinancialControlCenterView: React.FC = () => {
             label={isRtl ? 'ملاحظات الإقفال والمبرر التنفيذي' : 'Lock Notes & Executive Rationale'}
             value={lockNotes}
             onChange={(e) => setLockNotes(e.target.value)}
+            placeholder={isRtl ? 'أدخل ملاحظات الإقفال والمبرر التنفيذي...' : 'Enter month-end commercial ledger close notes...'}
           />
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '8px' }}>
@@ -1373,6 +1431,7 @@ export const FinancialControlCenterView: React.FC = () => {
                   type="number"
                   value={newVoBuyQar}
                   onChange={(e) => setNewVoBuyQar(e.target.value)}
+                  placeholder="0"
                 />
               </div>
 
@@ -1382,6 +1441,7 @@ export const FinancialControlCenterView: React.FC = () => {
                   type="number"
                   value={newVoSellQar}
                   onChange={(e) => setNewVoSellQar(e.target.value)}
+                  placeholder="0"
                 />
               </div>
             </div>

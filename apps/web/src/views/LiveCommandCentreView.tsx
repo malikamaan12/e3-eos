@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export interface CommandPushEvent {
   id: string;
@@ -133,14 +134,16 @@ const INITIAL_SHOW_CUES: ShowCue[] = [
 ];
 
 export const LiveCommandCentreView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
+  const { currentLanguage, apiClient, selectedProjectId, currentProject, currentUser } = useEosContext();
   const isRtl = currentLanguage === 'ar';
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
+  const projectName = currentProject?.name || (isDemo ? 'Qatar National Day Celebrations 2026' : (projectId || 'Live Project'));
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'panels' | 'cues' | 'audience' | 'emergency'>('panels');
-  const [emergencyIncidents, setEmergencyIncidents] = useState<any[]>([
+  const [emergencyIncidents, setEmergencyIncidents] = useState<any[]>(isDemo ? [
     {
       id: 'INC-EMG-01',
       tier: 'L3_CRITICAL',
@@ -174,10 +177,10 @@ export const LiveCommandCentreView: React.FC = () => {
       status: 'contained',
       auditHash: 'SHA256:7f9a1b3c5e7d9e1f',
     },
-  ]);
+  ] : []);
 
   // Push Feed & Ticker States
-  const [pushEvents, setPushEvents] = useState<CommandPushEvent[]>(INITIAL_PUSH_EVENTS);
+  const [pushEvents, setPushEvents] = useState<CommandPushEvent[]>(isDemo ? INITIAL_PUSH_EVENTS : []);
   const [feedFilter, setFeedFilter] = useState<'all' | 'gate' | 'snag' | 'safety' | 'vip'>('all');
   const [isTickerPaused, setIsTickerPaused] = useState<boolean>(false);
   const [tickerIndex, setTickerIndex] = useState<number>(0);
@@ -187,17 +190,19 @@ export const LiveCommandCentreView: React.FC = () => {
   const [simDetail, setSimDetail] = useState<string>('');
 
   // Show Caller Countdown & VIP Cue States
-  const [showCues, setShowCues] = useState<ShowCue[]>(INITIAL_SHOW_CUES);
-  const [countdownSeconds, setCountdownSeconds] = useState<number>(14 * 60 + 32); // 14m 32s default
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
-  const [cumulativeDelayMinutes, setCumulativeDelayMinutes] = useState<number>(10);
+  const [showCues, setShowCues] = useState<ShowCue[]>(isDemo ? INITIAL_SHOW_CUES : []);
+  const [countdownSeconds, setCountdownSeconds] = useState<number>(isDemo ? 14 * 60 + 32 : 0);
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(isDemo);
+  const [cumulativeDelayMinutes, setCumulativeDelayMinutes] = useState<number>(isDemo ? 10 : 0);
   const [cueFeedbackToast, setCueFeedbackToast] = useState<string | null>(null);
 
   // Protective Action Modal
   const [isActionModalOpen, setIsActionModalOpen] = useState<boolean>(false);
   const [selectedIncident, setSelectedIncident] = useState<any>(null);
   const [actionType, setActionType] = useState<string>('stop_work');
-  const [justification, setJustification] = useState<string>('Severe wind gust warning above 45 knots near kinetic rig.');
+  const [justification, setJustification] = useState<string>(
+    isDemo ? 'Severe wind gust warning above 45 knots near kinetic rig.' : ''
+  );
   const [isSubmittingAction, setIsSubmittingAction] = useState<boolean>(false);
 
   // New Incident Modal
@@ -354,7 +359,7 @@ export const LiveCommandCentreView: React.FC = () => {
         incidentId: selectedIncident.id,
         protectiveAction: actionType,
         justification,
-        authorizedBy: 'E3 Show Caller & Safety Lead',
+        authorizedBy: currentUser?.name ? `${currentUser.name} (${currentUser.role || 'Safety Lead'})` : 'Show Caller & Safety Lead',
         zone: selectedIncident.zone,
       });
       setIsActionModalOpen(false);
@@ -428,7 +433,7 @@ export const LiveCommandCentreView: React.FC = () => {
             </div>
           </div>
           <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>
-            {isRtl ? 'مسرح اليوم الوطني لدولة قطر وجناح كبار الشخصيات — القياس الفوري، تدابير الحماية الوقائية، وذكاء إدارة الفعاليات.' : 'Qatar National Day Main Stage & Royal Pavilion — Real-time telemetry, protective controls, and event intelligence.'}
+            {isRtl ? `${projectName} — القياس الفوري، تدابير الحماية الوقائية، وذكاء إدارة الفعاليات.` : `${projectName} — Real-time telemetry, protective controls, and event intelligence.`}
           </p>
         </div>
 
@@ -562,7 +567,7 @@ export const LiveCommandCentreView: React.FC = () => {
         </div>
 
         {/* Moving Ticker Banner Content */}
-        {activeTickerEvent && (
+        {activeTickerEvent ? (
           <div
             style={{
               display: 'flex',
@@ -608,6 +613,10 @@ export const LiveCommandCentreView: React.FC = () => {
               </button>
             </div>
           </div>
+        ) : (
+          <div style={{ padding: '8px 12px', fontSize: '11px', color: '#64748b', backgroundColor: '#0f172a', borderRadius: '4px' }}>
+            {isRtl ? 'لا توجد تنبيهات ميدانية حالياً — بانتظار أحداث البث المباشر' : 'No active field alerts in queue — Telemetry listener standing by'}
+          </div>
         )}
       </div>
 
@@ -646,7 +655,7 @@ export const LiveCommandCentreView: React.FC = () => {
                 T-{formatCountdown(countdownSeconds)}
               </span>
               <span style={{ fontSize: '12px', color: '#cbd5e1' }}>
-                to <strong style={{ color: '#ffffff' }}>{nextArmedCue?.code}</strong>: {nextArmedCue?.title}
+                to <strong style={{ color: '#ffffff' }}>{nextArmedCue?.code || 'CUE-00'}</strong>: {nextArmedCue?.title || (isRtl ? 'بانتظار بدء العرض' : 'Standby for Show Start')}
               </span>
             </div>
           </div>
@@ -702,7 +711,8 @@ export const LiveCommandCentreView: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleHoldCue(nextArmedCue.id)}
+            onClick={() => nextArmedCue && handleHoldCue(nextArmedCue.id)}
+            disabled={!nextArmedCue}
             style={{ color: '#fcd34d', borderColor: '#f59e0b' }}
           >
             {isTimerRunning ? '⏸️ HOLD CLOCK' : '▶️ RESUME CLOCK'}
@@ -711,11 +721,12 @@ export const LiveCommandCentreView: React.FC = () => {
           <Button
             variant="primary"
             size="sm"
-            onClick={() => handleExecuteCue(nextArmedCue.id)}
+            onClick={() => nextArmedCue && handleExecuteCue(nextArmedCue.id)}
+            disabled={!nextArmedCue}
             style={{ backgroundColor: '#10b981', color: '#ffffff', fontWeight: 800 }}
             id="btn-trigger-next-cue"
           >
-            ⚡ GO / EXECUTE {nextArmedCue.code}
+            ⚡ GO / EXECUTE {nextArmedCue?.code || ''}
           </Button>
         </div>
       </div>
@@ -725,10 +736,10 @@ export const LiveCommandCentreView: React.FC = () => {
         <MetricCard
           title={isRtl ? 'حضور طاقم العمل المباشر' : 'Live Attendance'}
           label={isRtl ? 'حضور طاقم العمل المباشر' : 'Live Attendance'}
-          value={`${panels?.crewDuty?.checkedInWorkers || 38} / ${panels?.crewDuty?.rosteredWorkers || 42}`}
+          value={`${panels?.crewDuty?.checkedInWorkers ?? (isDemo ? 38 : 0)} / ${panels?.crewDuty?.rosteredWorkers ?? (isDemo ? 42 : 0)}`}
           unit={isRtl ? 'فنيين' : 'Workers'}
-          subtitle={isRtl ? `${panels?.crewDuty?.attendancePercentage || 90}% نسبة التواجد الميداني` : `${panels?.crewDuty?.attendancePercentage || 90}% on site (Rostered: 42)`}
-          change={`${panels?.crewDuty?.attendancePercentage || 90}% on site`}
+          subtitle={isRtl ? `${panels?.crewDuty?.attendancePercentage ?? (isDemo ? 90 : 0)}% نسبة التواجد الميداني` : `${panels?.crewDuty?.attendancePercentage ?? (isDemo ? 90 : 0)}% on site (Rostered: ${panels?.crewDuty?.rosteredWorkers ?? (isDemo ? 42 : 0)})`}
+          change={`${panels?.crewDuty?.attendancePercentage ?? (isDemo ? 90 : 0)}% on site`}
           trend="positive"
           accentColor="#059669"
         />
@@ -737,28 +748,28 @@ export const LiveCommandCentreView: React.FC = () => {
           label={isRtl ? 'بوابة الامتثال التنظيمي' : 'Regulatory Gate'}
           value={panels?.compliance?.canOperate ? (isRtl ? 'مسموح التشغيل' : 'PERMITTED') : (isRtl ? 'محظور' : 'BLOCKED')}
           unit={isRtl ? 'حالة الاعتماد' : 'QCDD Gate'}
-          subtitle={isRtl ? `${panels?.compliance?.activeObligations || 3} تصاريح نظامية نشطة` : `${panels?.compliance?.activeObligations || 3} verified active permits`}
-          change={`${panels?.compliance?.activeObligations || 3} verified active`}
+          subtitle={isRtl ? `${panels?.compliance?.activeObligations ?? (isDemo ? 3 : 0)} تصاريح نظامية نشطة` : `${panels?.compliance?.activeObligations ?? (isDemo ? 3 : 0)} verified active permits`}
+          change={`${panels?.compliance?.activeObligations ?? (isDemo ? 3 : 0)} verified active`}
           trend={panels?.compliance?.canOperate ? 'positive' : 'negative'}
           accentColor={panels?.compliance?.canOperate ? '#059669' : '#dc2626'}
         />
         <MetricCard
           title={isRtl ? 'جدول إشارات العرض' : 'Show Cue Schedule'}
           label={isRtl ? 'جدول إشارات العرض' : 'Show Cue Schedule'}
-          value={`+${panels?.runSheet?.cumulativeDelayMinutes || 10}`}
+          value={`+${panels?.runSheet?.cumulativeDelayMinutes ?? (isDemo ? 10 : 0)}`}
           unit={isRtl ? 'دقائق تأخير' : 'Minutes Delay'}
-          subtitle={isRtl ? `${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} إشارات منجزة` : `${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} cues done (CUE-02 Active)`}
-          change={`${panels?.runSheet?.completedCues || 1}/${panels?.runSheet?.totalCues || 4} cues done`}
+          subtitle={isRtl ? `${panels?.runSheet?.completedCues ?? (isDemo ? 1 : 0)}/${panels?.runSheet?.totalCues ?? (isDemo ? 4 : 0)} إشارات منجزة` : `${panels?.runSheet?.completedCues ?? (isDemo ? 1 : 0)}/${panels?.runSheet?.totalCues ?? (isDemo ? 4 : 0)} cues done`}
+          change={`${panels?.runSheet?.completedCues ?? (isDemo ? 1 : 0)}/${panels?.runSheet?.totalCues ?? (isDemo ? 4 : 0)} cues done`}
           trend="neutral"
           accentColor="#d97706"
         />
         <MetricCard
           title={isRtl ? 'تعداد دخول الجمهور' : 'Venue Ingress Headcount'}
           label={isRtl ? 'تعداد دخول الجمهور' : 'Venue Ingress Headcount'}
-          value={`${audience?.currentInside?.toLocaleString() || '10,850'}`}
+          value={`${(audience?.currentInside ?? (isDemo ? 10850 : 0)).toLocaleString()}`}
           unit={isRtl ? 'زائر' : 'Attendees'}
-          subtitle={isRtl ? `${audience?.occupancyPercentage || 72}% نسبة الإشغال (السعة: ١٥,٠٠٠)` : `${audience?.occupancyPercentage || 72}% venue occupancy (15,000 Capacity)`}
-          change={`${audience?.occupancyPercentage || 72}% venue occupancy`}
+          subtitle={isRtl ? `${audience?.occupancyPercentage ?? (isDemo ? 72 : 0)}% نسبة الإشغال` : `${audience?.occupancyPercentage ?? (isDemo ? 72 : 0)}% venue occupancy`}
+          change={`${audience?.occupancyPercentage ?? (isDemo ? 72 : 0)}% venue occupancy`}
           trend="positive"
           accentColor="#2563eb"
         />
@@ -805,15 +816,15 @@ export const LiveCommandCentreView: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Rostered Technicians:</span>
-                <strong>42</strong>
+                <strong>{panels?.crewDuty?.rosteredWorkers ?? (isDemo ? 42 : 0)}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Checked-in via Biometric/QR:</span>
-                <strong style={{ color: '#059669' }}>38 Present</strong>
+                <strong style={{ color: '#059669' }}>{panels?.crewDuty?.checkedInWorkers ?? (isDemo ? 38 : 0)} Present</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Statutory Hours Exceeded:</span>
-                <strong style={{ color: '#059669' }}>0 (All under 10h)</strong>
+                <strong style={{ color: '#059669' }}>0 (All within limit)</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Mandatory Rest Interval:</span>
@@ -940,102 +951,108 @@ export const LiveCommandCentreView: React.FC = () => {
                 Operational cue execution with Web Audio chime feedback, multi-department telemetry integration, and dynamic show clock variance adjustment.
               </p>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>Total Sequence: <strong>5 Governed Cues</strong></span>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>Total Sequence: <strong>{showCues.length} Governed Cues</strong></span>
                 <Badge variant="info">Amiri Protocol Signed</Badge>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-              {showCues.map((cue, index) => {
-                const isCurrentArmed = cue.status === 'armed';
-                const isLive = cue.status === 'live';
-                const isCompleted = cue.status === 'completed';
-                const isHold = cue.status === 'hold';
+            {showCues.length === 0 ? (
+              <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                {isRtl ? 'لا توجد إشارات مسجلة لهذا العرض' : 'No cues registered in the run sheet for this project.'}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+                {showCues.map((cue, index) => {
+                  const isCurrentArmed = cue.status === 'armed';
+                  const isLive = cue.status === 'live';
+                  const isCompleted = cue.status === 'completed';
+                  const isHold = cue.status === 'hold';
 
-                return (
-                  <div
-                    key={cue.id}
-                    style={{
-                      backgroundColor: isLive ? '#faf5ff' : isCurrentArmed ? '#f0fdf4' : isHold ? '#fffbeb' : '#ffffff',
-                      border: `2px solid ${isLive ? '#a855f7' : isCurrentArmed ? '#22c55e' : isHold ? '#f59e0b' : '#e2e8f0'}`,
-                      borderRadius: '8px',
-                      padding: '16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                      boxShadow: isCurrentArmed ? '0 0 12px rgba(34, 197, 94, 0.2)' : isLive ? '0 0 12px rgba(168, 85, 247, 0.2)' : 'none',
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: '#0f172a' }}>
-                          {cue.code}
-                        </span>
-                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                          {cue.vipProtocol && (
-                            <Badge variant="danger">👑 VIP PROTOCOL</Badge>
-                          )}
-                          <Badge
-                            variant={isCompleted ? 'neutral' : isLive ? 'danger' : isCurrentArmed ? 'success' : isHold ? 'warning' : 'neutral'}
+                  return (
+                    <div
+                      key={cue.id}
+                      style={{
+                        backgroundColor: isLive ? '#faf5ff' : isCurrentArmed ? '#f0fdf4' : isHold ? '#fffbeb' : '#ffffff',
+                        border: `2px solid ${isLive ? '#a855f7' : isCurrentArmed ? '#22c55e' : isHold ? '#f59e0b' : '#e2e8f0'}`,
+                        borderRadius: '8px',
+                        padding: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        boxShadow: isCurrentArmed ? '0 0 12px rgba(34, 197, 94, 0.2)' : isLive ? '0 0 12px rgba(168, 85, 247, 0.2)' : 'none',
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: '#0f172a' }}>
+                            {cue.code}
+                          </span>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            {cue.vipProtocol && (
+                              <Badge variant="danger">👑 VIP PROTOCOL</Badge>
+                            )}
+                            <Badge
+                              variant={isCompleted ? 'neutral' : isLive ? 'danger' : isCurrentArmed ? 'success' : isHold ? 'warning' : 'neutral'}
+                            >
+                              {isCompleted ? 'COMPLETED' : isLive ? 'LIVE NOW' : isCurrentArmed ? 'ARMED / STANDBY' : isHold ? 'HELD' : 'PENDING'}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                          {cue.title}
+                        </h4>
+
+                        <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#475569' }}>
+                          {cue.notes}
+                        </p>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', color: '#64748b' }}>
+                          <div>Dept: <strong style={{ color: '#334155' }}>{cue.department}</strong></div>
+                          <div>Target: <strong style={{ color: '#334155' }}>{cue.scheduledTime} AST</strong></div>
+                          <div>Duration: <strong style={{ color: '#334155' }}>{cue.durationMinutes} mins</strong></div>
+                          <div>Seq Index: <strong style={{ color: '#334155' }}>#{index + 1}</strong></div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '12px', marginTop: '4px' }}>
+                        {!isCompleted && (
+                          <Button
+                            variant={isCurrentArmed ? 'primary' : 'outline'}
+                            size="sm"
+                            onClick={() => handleExecuteCue(cue.id)}
+                            style={{
+                              flex: 1,
+                              backgroundColor: isCurrentArmed ? '#10b981' : undefined,
+                              borderColor: isCurrentArmed ? '#10b981' : undefined,
+                              fontWeight: 800,
+                            }}
                           >
-                            {isCompleted ? 'COMPLETED' : isLive ? 'LIVE NOW' : isCurrentArmed ? 'ARMED / STANDBY' : isHold ? 'HELD' : 'PENDING'}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
-                        {cue.title}
-                      </h4>
-
-                      <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#475569' }}>
-                        {cue.notes}
-                      </p>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', color: '#64748b' }}>
-                        <div>Dept: <strong style={{ color: '#334155' }}>{cue.department}</strong></div>
-                        <div>Target: <strong style={{ color: '#334155' }}>{cue.scheduledTime} AST</strong></div>
-                        <div>Duration: <strong style={{ color: '#334155' }}>{cue.durationMinutes} mins</strong></div>
-                        <div>Seq Index: <strong style={{ color: '#334155' }}>#{index + 1}</strong></div>
+                            ⚡ GO / EXECUTE
+                          </Button>
+                        )}
+                        {!isCompleted && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleHoldCue(cue.id)}
+                            style={{ color: isHold ? '#10b981' : '#d97706', borderColor: '#f59e0b' }}
+                          >
+                            {isHold ? '▶️ RELEASE' : '⏸️ HOLD'}
+                          </Button>
+                        )}
+                        {isCompleted && (
+                          <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            ✓ Cue Successfully Executed & Time-Stamped
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '12px', marginTop: '4px' }}>
-                      {!isCompleted && (
-                        <Button
-                          variant={isCurrentArmed ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => handleExecuteCue(cue.id)}
-                          style={{
-                            flex: 1,
-                            backgroundColor: isCurrentArmed ? '#10b981' : undefined,
-                            borderColor: isCurrentArmed ? '#10b981' : undefined,
-                            fontWeight: 800,
-                          }}
-                        >
-                          ⚡ GO / EXECUTE
-                        </Button>
-                      )}
-                      {!isCompleted && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleHoldCue(cue.id)}
-                          style={{ color: isHold ? '#10b981' : '#d97706', borderColor: '#f59e0b' }}
-                        >
-                          {isHold ? '▶️ RELEASE' : '⏸️ HOLD'}
-                        </Button>
-                      )}
-                      {isCompleted && (
-                        <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          ✓ Cue Successfully Executed & Time-Stamped
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </Card>
       )}
@@ -1045,9 +1062,9 @@ export const LiveCommandCentreView: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
             <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0f172a' }}>Capacity Utilization</h4>
-              <div style={{ fontSize: '32px', fontWeight: 800, color: '#0284c7' }}>{audience?.occupancyPercentage || 72}%</div>
+              <div style={{ fontSize: '32px', fontWeight: 800, color: '#0284c7' }}>{audience?.occupancyPercentage ?? (isDemo ? 72 : 0)}%</div>
               <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                Current Inside: <strong>{audience?.currentInside?.toLocaleString() || '10,850'}</strong> / Venue Max: <strong>{audience?.venueCapacity?.toLocaleString() || '15,000'}</strong>
+                Current Inside: <strong>{(audience?.currentInside ?? (isDemo ? 10850 : 0)).toLocaleString()}</strong> / Venue Max: <strong>{(audience?.venueCapacity ?? (isDemo ? 15000 : 0)).toLocaleString()}</strong>
               </p>
             </div>
 
@@ -1055,18 +1072,18 @@ export const LiveCommandCentreView: React.FC = () => {
               <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0f172a' }}>Flow Rate Telemetry</h4>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', margin: '8px 0' }}>
                 <span>Ingress Gates:</span>
-                <strong>+{audience?.ingressRatePerHour || 1400} pax/hr</strong>
+                <strong>+{(audience?.ingressRatePerHour ?? (isDemo ? 1400 : 0))} pax/hr</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', margin: '8px 0' }}>
                 <span>Egress Portals:</span>
-                <strong>-{audience?.egressRatePerHour || 350} pax/hr</strong>
+                <strong>-{(audience?.egressRatePerHour ?? (isDemo ? 350 : 0))} pax/hr</strong>
               </div>
             </div>
 
             <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0f172a' }}>Peak Forecast & Metering</h4>
               <div style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
-                {audience?.peakProjectedHeadcount?.toLocaleString() || '12,950'} pax peak
+                {(audience?.peakProjectedHeadcount ?? (isDemo ? 12950 : 0)).toLocaleString()} pax peak
               </div>
               <div style={{ marginTop: '8px' }}>
                 <Badge variant={audience?.meteringRequired ? 'danger' : 'success'}>
@@ -1149,7 +1166,13 @@ export const LiveCommandCentreView: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {emergencyIncidents.map((inc) => (
+                  {emergencyIncidents.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                        {isRtl ? 'لا توجد حوادث طوارئ مفتوحة — كافة الأنظمة آمنة' : 'No active emergency incidents recorded — All systems normal'}
+                      </td>
+                    </tr>
+                  ) : emergencyIncidents.map((inc) => (
                     <tr key={inc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '12px 16px', fontWeight: 700, fontFamily: 'monospace' }}>{inc.id}</td>
                       <td style={{ padding: '12px 16px' }}>
@@ -1230,6 +1253,7 @@ export const LiveCommandCentreView: React.FC = () => {
               <Textarea
                 value={justification}
                 onChange={(e) => setJustification(e.target.value)}
+                placeholder="Specify technical justification or safety rationale..."
                 rows={3}
               />
             </div>

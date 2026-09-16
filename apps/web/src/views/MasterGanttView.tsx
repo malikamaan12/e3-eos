@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Badge, Card, Button, Modal, Input } from '../components/DesignSystem.js';
 import { calculateCpmSchedule, GanttTaskInput } from '@e3-eos/domain';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export interface CanonicalStageMeta {
   stageNumber: number;
@@ -13,19 +14,19 @@ export interface CanonicalStageMeta {
 }
 
 export const CANONICAL_13_STAGES: CanonicalStageMeta[] = [
-  { stageNumber: 1, code: 'STAGE-01', name: 'Intake & Classification', description: 'Origin, route selection, and initial project boundary', prerequisiteStages: [], mandatoryGateEvidence: 'Charter Signed & Account Opened' },
-  { stageNumber: 2, code: 'STAGE-02', name: 'Concept & Feasibility', description: 'Creative treatment, technical scoping, and venue fit', prerequisiteStages: [1], mandatoryGateEvidence: 'Concept Deck Approved' },
-  { stageNumber: 3, code: 'STAGE-03', name: 'Estimating & BOQ Proposal', description: 'Commercial cost build-up, rate library, and client quote', prerequisiteStages: [2], mandatoryGateEvidence: 'Client Formal Quotation' },
-  { stageNumber: 4, code: 'STAGE-04', name: 'Client Award & Contract', description: 'PO issuance, payment terms, and legal execution', prerequisiteStages: [3], mandatoryGateEvidence: 'Signed Contract / Binding LOI' },
-  { stageNumber: 5, code: 'STAGE-05', name: 'Detailed Design & WBS', description: 'Source-to-deliverable traceability and 3D technical drawings', prerequisiteStages: [4], mandatoryGateEvidence: 'Frozen Technical Drawings' },
-  { stageNumber: 6, code: 'STAGE-06', name: 'Procurement & Sourcing', description: 'Vendor bids, PO commitment, and material reservations', prerequisiteStages: [5], mandatoryGateEvidence: 'Committed Subcontractor POs' },
-  { stageNumber: 7, code: 'STAGE-07', name: 'Technical Submissions & Permits', description: 'Civil defense, municipality approvals, and engineering stamps', prerequisiteStages: [5], mandatoryGateEvidence: 'Civil Defense & Venue Access Permit' },
-  { stageNumber: 8, code: 'STAGE-08', name: 'Off-Site Fabrication & Prep', description: 'Joinery, metalwork, scenic paint, and warehouse staging', prerequisiteStages: [6], mandatoryGateEvidence: 'Off-Site QA Release Certificate' },
-  { stageNumber: 9, code: 'STAGE-09', name: 'Logistics & Venue Bump-In', description: 'Truck convoys, dock access, and hall material distribution', prerequisiteStages: [7, 8], mandatoryGateEvidence: 'Permits Verified & Loading Bay Pass' },
-  { stageNumber: 10, code: 'STAGE-10', name: 'Main Rigging & Rehearsals', description: 'Overhead trusses, audio alignment, lighting cues, and dress run', prerequisiteStages: [9], mandatoryGateEvidence: 'Third-Party Rigging Load Sign-Off' },
-  { stageNumber: 11, code: 'STAGE-11', name: 'Live Show Execution', description: 'Show caller cues, telemetry, VIP protocol, and audience flow', prerequisiteStages: [10], mandatoryGateEvidence: 'Show Readiness Endorsement' },
-  { stageNumber: 12, code: 'STAGE-12', name: 'Bump-Out & Strike', description: 'De-rigging, packing, cargo dispatch, and venue handover', prerequisiteStages: [11], mandatoryGateEvidence: 'Venue Dilapidation Sign-Off' },
-  { stageNumber: 13, code: 'STAGE-13', name: 'Commercial Closeout & Audit', description: 'Final account, 3-way supplier match, and margin realization', prerequisiteStages: [12], mandatoryGateEvidence: 'Audited Final Account & Variance Report' },
+  { stageNumber: 1, code: 'STAGE-01', name: 'Strategic Intake & Feasibility Assessment', description: 'Origin, route selection, and initial project boundary', prerequisiteStages: [], mandatoryGateEvidence: 'Charter Signed & Account Opened' },
+  { stageNumber: 2, code: 'STAGE-02', name: 'Commercial Proposal & Bid Pricing', description: 'Commercial cost build-up, rate library, and client quote', prerequisiteStages: [1], mandatoryGateEvidence: 'Client Formal Quotation' },
+  { stageNumber: 3, code: 'STAGE-03', name: 'Four-Eyes Executive Gate Sign-off', description: 'Executive partner approval and margin validation', prerequisiteStages: [2], mandatoryGateEvidence: 'Executive Four-Eyes Sign-Off' },
+  { stageNumber: 4, code: 'STAGE-04', name: 'Client Contracting & PO Issuance', description: 'Client award, contract execution, and advance billing', prerequisiteStages: [3], mandatoryGateEvidence: 'Signed Contract / Binding LOI' },
+  { stageNumber: 5, code: 'STAGE-05', name: 'Creative Concept & 3D Spatial Renders', description: 'Visual identity, spatial designs, and concept approval', prerequisiteStages: [4], mandatoryGateEvidence: 'Approved Creative Concept & Key Visuals' },
+  { stageNumber: 6, code: 'STAGE-06', name: 'Technical Production & Structural CAD Rigging', description: 'Engineering WBS, rigging calculations, and MEP specs', prerequisiteStages: [5], mandatoryGateEvidence: 'Frozen Technical Drawings & CAD Specs' },
+  { stageNumber: 7, code: 'STAGE-07', name: 'Procurement Packages & Contractor Call-offs', description: 'Subcontractor packages, PO commitment, and RFQs', prerequisiteStages: [6], mandatoryGateEvidence: 'Committed Subcontractor POs' },
+  { stageNumber: 8, code: 'STAGE-08', name: 'Logistics Dispatch & Asset Allocation', description: 'Warehouse allocation, fleet transport, and gear prep', prerequisiteStages: [7], mandatoryGateEvidence: 'Fleet & Gear Dispatch Confirmation' },
+  { stageNumber: 9, code: 'STAGE-09', name: 'Civil Defence & HSE Zone Safety Clearance', description: 'Statutory approvals, venue permits, and site possession', prerequisiteStages: [7, 8], mandatoryGateEvidence: 'Civil Defense & Venue Access Permit' },
+  { stageNumber: 10, code: 'STAGE-10', name: 'Technical Readiness & Rehearsals', description: 'Truss load tests, system tuning, and run-through lock', prerequisiteStages: [9], mandatoryGateEvidence: 'Third-Party Rigging Load Sign-Off' },
+  { stageNumber: 11, code: 'STAGE-11', name: 'Live Event Operational Delivery', description: 'Telemetry, incident triage, and show calling', prerequisiteStages: [10], mandatoryGateEvidence: 'Show Readiness Endorsement' },
+  { stageNumber: 12, code: 'STAGE-12', name: 'Strike, Bump-out & Venue Handover', description: 'Teardown, inventory return, and dilapidation signoff', prerequisiteStages: [11], mandatoryGateEvidence: 'Venue Dilapidation Sign-Off' },
+  { stageNumber: 13, code: 'STAGE-13', name: 'Financial Closeout, EAC Finalization & Debrief', description: '3-way invoice matching, margin audit, and lessons learned', prerequisiteStages: [12], mandatoryGateEvidence: 'Audited Final Account & Variance Report' },
 ];
 
 export const INITIAL_CANONICAL_TASKS = [
@@ -37,7 +38,7 @@ export const INITIAL_CANONICAL_TASKS = [
   { id: 'TSK-06', code: 'TSK-060', title: 'Long-Lead AV & Lighting Subcontractor POs', durationHours: 14, stageNumber: 6, isCritical: false, completed: true, predecessorIds: [{ id: 'TSK-05' }] },
   { id: 'TSK-07', code: 'TSK-070', title: 'Civil Defense & Venue Access Permits', durationHours: 10, stageNumber: 7, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-05' }] },
   { id: 'TSK-08', code: 'TSK-080', title: 'Scenic Joinery Off-Site Mockup QA', durationHours: 18, stageNumber: 8, isCritical: false, completed: true, predecessorIds: [{ id: 'TSK-06' }] },
-  { id: 'TSK-09', code: 'TSK-090', title: 'Convoy Logistics & Venue Bump-In (DECC Bay 4)', durationHours: 12, stageNumber: 9, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-07' }, { id: 'TSK-08' }] },
+  { id: 'TSK-09', code: 'TSK-090', title: 'Convoy Logistics & Venue Bump-In', durationHours: 12, stageNumber: 9, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-07' }, { id: 'TSK-08' }] },
   { id: 'TSK-10', code: 'TSK-100', title: 'Overhead Truss Rigging & Line Array Tuning', durationHours: 14, stageNumber: 10, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-09' }] },
   { id: 'TSK-11', code: 'TSK-110', title: 'Live Show Execution & Protocol VIP Cue Run', durationHours: 8, stageNumber: 11, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-10' }] },
   { id: 'TSK-12', code: 'TSK-120', title: 'Venue Strike, Cargo Packing & Dilapidation Sign-off', durationHours: 10, stageNumber: 12, isCritical: false, completed: false, predecessorIds: [{ id: 'TSK-11' }] },
@@ -50,6 +51,7 @@ interface MasterGanttViewProps {
 
 export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) => {
   const { apiClient, refreshTrigger } = useEosContext();
+  const isDemo = isSyntheticDemo(projectId);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [ganttData, setGanttData] = useState<any>(null);
@@ -68,11 +70,11 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
 
   // Form states for Verify Modal
   const [verifyForm, setVerifyForm] = useState({
-    pageClauseSection: 'Section 3.2',
-    extractedRuleValue: '2.5 T/m² (2,500 kg/m²)',
-    applicabilityStatement: 'Exhibition Halls 1 to 5 Ground Slab',
+    pageClauseSection: '',
+    extractedRuleValue: '',
+    applicabilityStatement: '',
     reviewerRole: 'technical_director',
-    reviewerComment: 'Authoritative compliance verification approved against controlled technical drawings.',
+    reviewerComment: '',
   });
 
   // Form states for Create Modal (Draft only — Verified is strictly prohibited)
@@ -80,10 +82,10 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
     constraintType: 'venue_operational_noise',
     limitValue: 85,
     unit: 'dB(A)',
-    locationZone: 'Exhibition Halls 1 to 5',
-    timeWindow: '08:00 - 20:00',
+    locationZone: '',
+    timeWindow: '',
     priority: 'medium',
-    sourceOrganization: 'DECC Operations',
+    sourceOrganization: '',
     overrideAuthority: 'Technical Director',
     notes: '',
   });
@@ -91,9 +93,13 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
   // Interactive Gantt & Drag-and-Drop State
   const [viewMode, setViewMode] = useState<'timeline' | 'stages'>('stages');
   const [localTasks, setLocalTasks] = useState<any[]>(() => {
+    const rawTasks = INITIAL_CANONICAL_TASKS.map((t) => ({
+      ...t,
+      completed: isDemo ? t.completed : false,
+    }));
     // Initial CPM calculation across 13 stages
     const cpm = calculateCpmSchedule(
-      INITIAL_CANONICAL_TASKS.map((t) => ({
+      rawTasks.map((t) => ({
         id: t.id,
         code: t.code,
         title: t.title,
@@ -102,7 +108,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         predecessorIds: t.predecessorIds,
       }))
     );
-    return INITIAL_CANONICAL_TASKS.map((t) => {
+    return rawTasks.map((t) => {
       const cpmTask = cpm.tasks.find((ct) => ct.id === t.id);
       return { ...t, ...cpmTask };
     });
@@ -149,7 +155,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
           taskTitle: task.title,
           targetStage: targetStageNum,
           blockingStages: incompletePrereqs,
-          message: `Stage Graph Dependency Blocked: You cannot advance "${task.title}" into ${stageMeta?.code} (${stageMeta?.name}) because predecessor stage(s) ${incompletePrereqs.map((p) => `STAGE-0${p}`.slice(-8)).join(', ')} contain incomplete gate activities.`,
+          message: `Stage Graph Dependency Blocked: You cannot advance "${task.title}" into ${stageMeta?.code} (${stageMeta?.name}) because predecessor stage(s) ${incompletePrereqs.map((p) => `STAGE-${String(p).padStart(2, '0')}`).join(', ')} contain incomplete gate activities.`,
         });
         setDraggedTaskId(null);
         return;
@@ -324,7 +330,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             <div style={{ marginBottom: '10px' }}>
               <strong>Required Action:</strong> Complete the mandatory deliverables and inspection permits in{' '}
               <span style={{ color: '#0284c7', fontWeight: 700 }}>
-                {dependencyViolationModal.blockingStages.map((p) => `STAGE-0${p}`.slice(-8)).join(', ')}
+                {dependencyViolationModal.blockingStages.map((p) => `STAGE-${String(p).padStart(2, '0')}`).join(', ')}
               </span>{' '}
               before scheduling activities into downstream stage {dependencyViolationModal.targetStage}.
             </div>
@@ -612,7 +618,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                     {/* Blocker Notice if Predecessor is Incomplete */}
                     {isBlocked && (
                       <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '4px', padding: '6px 8px', fontSize: '10px', color: '#991b1b', marginBottom: '8px' }}>
-                        ⛔ Requires: Stage {stage.prerequisiteStages.map((p) => `STAGE-0${p}`.slice(-8)).join(', ')} Gate Sign-Off
+                        ⛔ Requires: Stage {stage.prerequisiteStages.map((p) => `STAGE-${String(p).padStart(2, '0')}`).join(', ')} Gate Sign-Off
                       </div>
                     )}
 
@@ -1470,6 +1476,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                 type="text"
                 value={createForm.locationZone}
                 onChange={(e) => setCreateForm({ ...createForm, locationZone: e.target.value })}
+                placeholder="e.g. Main Exhibition Hall 1"
                 style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
               />
             </div>
@@ -1481,6 +1488,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                 type="text"
                 value={createForm.timeWindow}
                 onChange={(e) => setCreateForm({ ...createForm, timeWindow: e.target.value })}
+                placeholder="e.g. 08:00 - 20:00"
                 style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
               />
             </div>
@@ -1494,6 +1502,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
               type="text"
               value={createForm.sourceOrganization}
               onChange={(e) => setCreateForm({ ...createForm, sourceOrganization: e.target.value })}
+              placeholder="e.g. Venue Authority Operations"
               style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
             />
           </div>
@@ -1505,6 +1514,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             <textarea
               value={createForm.notes}
               onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
+              placeholder="e.g. Venue acoustic and operational regulations manual..."
               rows={2}
               style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
             />

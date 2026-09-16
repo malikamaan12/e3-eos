@@ -148,8 +148,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
   };
 
   const userRole = (currentUser as any)?.role || 'super_admin';
-  const isClientUser = userRole === 'client' || currentUser.email.includes('client');
-  const isFieldUser = userRole === 'field_supervisor' || currentUser.email.includes('field');
+  const isClientUser = userRole === 'client' || (currentUser?.email ? currentUser.email.includes('client') : false);
+  const isFieldUser = userRole === 'field_supervisor' || (currentUser?.email ? currentUser.email.includes('field') : false);
 
   // ==========================================
   // 7 CANONICAL NAVIGATION GROUPS (SECTION 10)
@@ -420,7 +420,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>⚠️</span>
             <span>
-              <strong>Impersonation Audit Active:</strong> Operating as <strong>{currentUser.name}</strong> ({currentUser.role}). All mutations logged under <em>{impersonatedBy || 'Super Admin'}</em>.
+              <strong>Impersonation Audit Active:</strong> Operating as <strong>{currentUser?.name || 'User'}</strong> ({currentUser?.role || 'Role'}). All mutations logged under <em>{impersonatedBy || 'Super Admin'}</em>.
             </span>
           </div>
           <button
@@ -683,9 +683,9 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             >
               <span style={{ fontSize: '13px' }}>👤</span>
               <span style={{ fontWeight: 700, color: '#f8fafc' }}>
-                <span dir="ltr">{currentUser.name}</span>
+                <span dir="ltr">{currentUser?.name || 'User'}</span>
               </span>
-              <span style={{ fontSize: '11px', color: '#94a3b8' }}>({currentUser.role})</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>({currentUser?.role || 'Role'})</span>
             </div>
           )}
 

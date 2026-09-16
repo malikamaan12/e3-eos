@@ -699,7 +699,7 @@ export class CommercialFinanceController {
       waterfall: [
         { step: 'Tender Original Contract', revenue: bridge.tenderRevenue.toString(), cost: bridge.tenderCost.toString(), margin: bridge.tenderMargin.toString(), marginPercent: bridge.tenderMarginPercent },
         { step: 'Approved Client Variations', revenue: `+${bridge.variationRevenue.toString()}`, cost: `+${bridge.variationCost.toString()}`, margin: `+${bridge.variationMargin.toString()}`, marginPercent: '33.33%' },
-        { step: 'Current Authorized Baseline', revenue: bridge.currentBudgetRevenue.toString(), cost: bridge.currentBudgetCost.toString(), margin: bridge.currentBudgetMargin.toString(), marginPercent: '20.83%' },
+        { step: 'Current Authorized Baseline', revenue: bridge.currentBudgetRevenue.toString(), cost: bridge.currentBudgetCost.toString(), margin: bridge.currentBudgetMargin.toString(), marginPercent: '20.41%' },
         { step: 'Procurement Savings & Cost Optimization', revenue: '0', cost: '-150000', margin: '+150000', marginPercent: 'N/A' },
         { step: 'Final Forecast At Completion (EAC)', revenue: bridge.finalForecastRevenue.toString(), cost: bridge.finalForecastCost.toString(), margin: bridge.finalForecastMargin.toString(), marginPercent: bridge.finalForecastMarginPercent },
       ],

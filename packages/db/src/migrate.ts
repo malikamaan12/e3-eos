@@ -39,6 +39,8 @@ export async function runMigrations() {
       '0003_sprint_03_physical_delivery.sql',
       '0004_sprint_04_live_operations.sql',
       '0005_sprint_05_finance_commercial_reconciliation.sql',
+      '0006_sprint_06_enterprise_intelligence.sql',
+      '0007_project_metadata.sql',
     ];
 
     await client.query(`

@@ -220,12 +220,9 @@ export async function runSeed(): Promise<SeedDataManifest> {
       `, [org.id, org.name, org.code]);
     }
 
-    // 2. Seed Users & Accounts for 13 Roles with Distinct Strong Passwords
-    const getInitialUserPassword = (email: string): string => {
+    const getInitialUserPassword = (_email?: string): string => {
       if (process.env.INITIAL_ADMIN_PASSWORD) return process.env.INITIAL_ADMIN_PASSWORD;
-      const prefix = email.split('@')[0];
-      const capitalized = prefix.charAt(0).toUpperCase() + prefix.slice(1);
-      return `E3#${capitalized}*Doha2026!`;
+      return 'E3#Doha2026!';
     };
 
     for (const u of CANONICAL_E3_ROLES_USERS) {

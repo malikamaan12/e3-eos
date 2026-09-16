@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button } from '../components/DesignSystem.js';
 import { ClientResultsEngine } from '@e3-eos/domain';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const ClientResultsRoomView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const { currentLanguage, apiClient, selectedProjectId, currentUser, currentProject } = useEosContext();
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
   const [resultsRoom, setResultsRoom] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -15,31 +17,46 @@ export const ClientResultsRoomView: React.FC = () => {
   const isLeakFree = resultsRoom ? ClientResultsEngine.verifyZeroSensitiveLeaks(resultsRoom) : true;
 
   const handleExportDeliveryReport = () => {
+    const projName = resultsRoom?.projectName || currentProject?.name || projectId;
+    const venue = resultsRoom?.venueName || currentProject?.venueName || (isDemo ? 'Lusail Boulevard Arena' : 'Venue TBD');
+    const totalAtt = (resultsRoom?.attendanceMetrics?.totalAttendance ?? (isDemo ? 48500 : 0)).toLocaleString();
+    const vipAtt = (resultsRoom?.attendanceMetrics?.vipAttendance ?? (isDemo ? 1200 : 0)).toLocaleString();
+    const pace = resultsRoom?.attendanceMetrics?.accessPacePerHour ?? (isDemo ? 4200 : 0);
+
+    const deliveredText = resultsRoom?.deliveredScope?.length
+      ? resultsRoom.deliveredScope.map((s: any) => `- ${s.name} (${s.status})`).join('\n')
+      : isDemo
+      ? `- Main Ceremonial Stage & Royal Canopy (Delivered)\n- 4K Outdoor LED Facade Wall (Delivered)\n- VIP Protocol Pavilion & Egress Network (Delivered)`
+      : '- No delivered physical assets recorded';
+
+    const esgText = isDemo
+      ? `2. ISO 20121 SUSTAINABILITY & ESG PERFORMANCE
+- Waste Diversion Rate: 86.4% diverted from landfill (18.4 Tons Recycled)
+- Power Grid vs Biofuel: 74% Grid / 26% B20 Low-Sulphur Biodiesel
+- Local Procurement Ratio: 82.5% sourced within 50km
+- Carbon Footprint: 39.8 tCO2e (100% Certified Regional Solar Offset)`
+      : `2. ISO 20121 SUSTAINABILITY & ESG PERFORMANCE
+- Sustainability metrics pending post-event audit calculation`;
+
     const content = `
 ========================================================================
 E3-EOS OFFICIAL CLIENT DELIVERY REPORT & EXECUTIVE SUMMARY
 ========================================================================
-Project: ${resultsRoom?.projectName || 'PRJ-QND-2026'}
-Venue: ${resultsRoom?.venueName || 'Lusail Boulevard Arena'}
+Project: ${projName}
+Venue: ${venue}
 Handover Status: DELIVERED & OPERATIONALLY ACCEPTED
 Audit Seal: VERIFIED ZERO LEAKS - SERVER REDACTED
 
 1. PUBLIC ATTENDANCE & OPERATIONS
-- Total Public Attendance: ${(resultsRoom?.attendanceMetrics?.totalAttendance || 48500).toLocaleString()}
-- VIP & Dignitary Protocol Escorts: ${(resultsRoom?.attendanceMetrics?.vipAttendance || 1200).toLocaleString()}
-- Peak Ingress Pace: ${resultsRoom?.attendanceMetrics?.accessPacePerHour || 4200}/hr
-- Safety Incident Free Site Hours: 42,000 Safe Hours (Zero LTI)
+- Total Public Attendance: ${totalAtt}
+- VIP & Dignitary Protocol Escorts: ${vipAtt}
+- Peak Ingress Pace: ${pace}/hr
+- Safety Incident Free Site Hours: ${isDemo ? '42,000 Safe Hours (Zero LTI)' : 'Zero LTI'}
 
-2. ISO 20121 SUSTAINABILITY & ESG PERFORMANCE
-- Waste Diversion Rate: 86.4% diverted from landfill (18.4 Tons Recycled)
-- Power Grid vs Biofuel: 74% Grid / 26% B20 Low-Sulphur Biodiesel
-- Local Procurement Ratio: 82.5% sourced within 50km
-- Carbon Footprint: 39.8 tCO2e (100% Certified Regional Solar Offset)
+${esgText}
 
 3. DELIVERED PHYSICAL ASSETS & ARCHITECTURE
-- Main Ceremonial Stage & Royal Canopy (Delivered)
-- 4K Outdoor LED Facade Wall (Delivered)
-- VIP Protocol Pavilion & Egress Network (Delivered)
+${deliveredText}
 
 Signed on behalf of Executive Production Delivery.
 ========================================================================
@@ -54,13 +71,17 @@ Signed on behalf of Executive Production Delivery.
   };
 
   const handleExportCertificate = () => {
+    const clientName = currentProject?.clientName || (isDemo ? 'State Ceremonial Committee' : 'Client Organization');
+    const projName = resultsRoom?.projectName || currentProject?.name || (isDemo ? 'National Day Celebrations 2026' : projectId);
+    const signatory = currentUser?.name ? `${currentUser.name}, Technical Director` : (isDemo ? 'Hamad Al-Kuwari, Technical Director' : 'Technical Director');
+
     const cert = `
 ========================================================================
 CERTIFICATE OF PRACTICAL COMPLETION & HANDOVER
 ========================================================================
 Project Reference: ${projectId}
-Client: State Ceremonial Committee
-Project Name: ${resultsRoom?.projectName || 'National Day Celebrations 2026'}
+Client: ${clientName}
+Project Name: ${projName}
 Handover Date: ${new Date().toLocaleDateString()}
 
 This is to certify that the temporary event infrastructure and production
@@ -71,7 +92,7 @@ Delivered Scope Items: ${(resultsRoom?.deliveredScope || []).length} Deliverable
 Safety Record: ZERO LOST TIME INJURIES (LTI)
 Sustainability Index: ISO 20121 GOLD LEVEL COMPLIANT
 
-Authorized Signatory: Hamad Al-Kuwari, Technical Director
+Authorized Signatory: ${signatory}
 ========================================================================
 `;
     const blob = new Blob([cert], { type: 'text/plain' });
@@ -121,6 +142,21 @@ Authorized Signatory: Hamad Al-Kuwari, Technical Director
     );
   }
 
+  if (!resultsRoom && !isDemo) {
+    return (
+      <div className="p-12 text-center text-slate-400 bg-slate-800/40 rounded-lg border border-slate-700/60 max-w-2xl mx-auto my-12">
+        <div className="text-4xl mb-3">🏛️</div>
+        <h3 className="text-lg font-bold text-white mb-2">No Client Results Room Published Yet</h3>
+        <p className="text-sm text-slate-400 mb-6">
+          The Client Results Room will be available once deliverables, attendance metrics, and ESG data are compiled and published.
+        </p>
+        <Button variant="primary" onClick={handlePublish} disabled={isPublishing}>
+          {isPublishing ? 'Publishing...' : 'Initialize & Publish Client Room'}
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header & Server Redaction Security Gate Banner */}
@@ -134,7 +170,8 @@ Authorized Signatory: Hamad Al-Kuwari, Technical Director
             <Badge variant="info">PUBLISHED</Badge>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            {resultsRoom?.projectName} — {resultsRoom?.venueName}
+            {resultsRoom?.projectName || currentProject?.name || projectId}
+            {(resultsRoom?.venueName || currentProject?.venueName) ? ` — ${resultsRoom?.venueName || currentProject?.venueName}` : ''}
           </p>
         </div>
 
@@ -172,20 +209,20 @@ Authorized Signatory: Hamad Al-Kuwari, Technical Director
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Total Public Attendance"
-          value={(resultsRoom?.attendanceMetrics?.totalAttendance || 48500).toLocaleString()}
+          value={(resultsRoom?.attendanceMetrics?.totalAttendance ?? (isDemo ? 48500 : 0)).toLocaleString()}
           subtext="Verified Turnstile Admissions"
-          trend="100% Target Met"
+          trend={isDemo ? "100% Target Met" : ""}
           trendDirection="up"
         />
         <MetricCard
           label="VIP & Dignitary Guests"
-          value={(resultsRoom?.attendanceMetrics?.vipAttendance || 1200).toLocaleString()}
+          value={(resultsRoom?.attendanceMetrics?.vipAttendance ?? (isDemo ? 1200 : 0)).toLocaleString()}
           subtext="Protocol Escort Completed"
         />
         <MetricCard
           label="Peak Entry Flow Rate"
-          value={`${resultsRoom?.attendanceMetrics?.accessPacePerHour || 4200}/hr`}
-          subtext="Peak: Aug 22, 19:45"
+          value={`${resultsRoom?.attendanceMetrics?.accessPacePerHour ?? (isDemo ? 4200 : 0)}/hr`}
+          subtext={isDemo ? "Peak: Aug 22, 19:45" : ""}
         />
         <MetricCard
           label="Safety Milestone"
@@ -243,6 +280,13 @@ Authorized Signatory: Hamad Al-Kuwari, Technical Director
                   <td className="p-3 text-slate-400">{item.completionDate}</td>
                 </tr>
               ))}
+              {(!resultsRoom?.deliveredScope || resultsRoom.deliveredScope.length === 0) && (
+                <tr>
+                  <td colSpan={6} className="p-6 text-center text-slate-400">
+                    No delivered physical scope records found for this project.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -250,49 +294,57 @@ Authorized Signatory: Hamad Al-Kuwari, Technical Director
 
       {/* ISO 20121 Sustainability & Carbon Footprint Ledger (Item 9) */}
       <Card title="ISO 20121 Event Sustainability & Environmental Impact Ledger">
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
-              <span className="text-slate-400 text-xs block mb-1">Landfill Waste Diversion</span>
-              <span className="text-xl font-bold text-emerald-400">86.4% Diverted</span>
-              <span className="text-[11px] text-slate-400 block mt-1">18.4 Metric Tons Recycled</span>
+        {isDemo ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
+                <span className="text-slate-400 text-xs block mb-1">Landfill Waste Diversion</span>
+                <span className="text-xl font-bold text-emerald-400">86.4% Diverted</span>
+                <span className="text-[11px] text-slate-400 block mt-1">18.4 Metric Tons Recycled</span>
+              </div>
+              <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
+                <span className="text-slate-400 text-xs block mb-1">Power Grid vs Generator</span>
+                <span className="text-xl font-bold text-sky-400">74% Grid / 26% Bio</span>
+                <span className="text-[11px] text-slate-400 block mt-1">4,200 L B20 Biodiesel</span>
+              </div>
+              <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
+                <span className="text-slate-400 text-xs block mb-1">Local Procurement</span>
+                <span className="text-xl font-bold text-amber-400">82.5% Local</span>
+                <span className="text-[11px] text-slate-400 block mt-1">Within 50km Radius</span>
+              </div>
+              <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
+                <span className="text-slate-400 text-xs block mb-1">Carbon Footprint Offset</span>
+                <span className="text-xl font-bold text-purple-400">100% Offset</span>
+                <span className="text-[11px] text-slate-400 block mt-1">39.8 tCO2e (Cert #QA-042)</span>
+              </div>
             </div>
-            <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
-              <span className="text-slate-400 text-xs block mb-1">Power Grid vs Generator</span>
-              <span className="text-xl font-bold text-sky-400">74% Grid / 26% Bio</span>
-              <span className="text-[11px] text-slate-400 block mt-1">4,200 L B20 Biodiesel</span>
-            </div>
-            <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
-              <span className="text-slate-400 text-xs block mb-1">Local Qatar Procurement</span>
-              <span className="text-xl font-bold text-amber-400">82.5% Local</span>
-              <span className="text-[11px] text-slate-400 block mt-1">Within 50km Radius</span>
-            </div>
-            <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
-              <span className="text-slate-400 text-xs block mb-1">Carbon Footprint Offset</span>
-              <span className="text-xl font-bold text-purple-400">100% Offset</span>
-              <span className="text-[11px] text-slate-400 block mt-1">39.8 tCO2e (Cert #QA-042)</span>
-            </div>
-          </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-4 text-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-300">
-              <span>Modular Aluminum Truss & Scaffolding Fleet:</span>
-              <span className="font-mono text-emerald-400 font-bold">100% Reusable Fleet Asset</span>
-            </div>
-            <div className="flex items-center justify-between text-slate-300">
-              <span>Custom Scenic Timber Repurposing:</span>
-              <span className="font-mono text-emerald-400 font-bold">92% Donated to Community Workshops</span>
-            </div>
-            <div className="flex items-center justify-between text-slate-300">
-              <span>Single-Use Plastics Eliminated:</span>
-              <span className="font-mono text-emerald-400 font-bold">0 Single-Use Items (100% Water Stations)</span>
-            </div>
-            <div className="flex items-center justify-between text-slate-300">
-              <span>Crew Mass Transit Efficiency:</span>
-              <span className="font-mono text-emerald-400 font-bold">84% Transit Carbon Reduction via Shuttles</span>
+            <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-4 text-xs space-y-2">
+              <div className="flex items-center justify-between text-slate-300">
+                <span>Modular Aluminum Truss & Scaffolding Fleet:</span>
+                <span className="font-mono text-emerald-400 font-bold">100% Reusable Fleet Asset</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-300">
+                <span>Custom Scenic Timber Repurposing:</span>
+                <span className="font-mono text-emerald-400 font-bold">92% Donated to Community Workshops</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-300">
+                <span>Single-Use Plastics Eliminated:</span>
+                <span className="font-mono text-emerald-400 font-bold">0 Single-Use Items (100% Water Stations)</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-300">
+                <span>Crew Mass Transit Efficiency:</span>
+                <span className="font-mono text-emerald-400 font-bold">84% Transit Carbon Reduction via Shuttles</span>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-8 text-center text-slate-400">
+            <div className="text-2xl mb-2">🌱</div>
+            <div className="font-semibold text-slate-300">Sustainability & ESG Audit Pending</div>
+            <div className="text-xs text-slate-400 mt-1">Waste diversion, grid power ratio, and carbon footprint telemetry will populate following post-event environmental reconciliation.</div>
+          </div>
+        )}
       </Card>
 
       {/* Curated Photographic Gallery */}
@@ -313,6 +365,11 @@ Authorized Signatory: Hamad Al-Kuwari, Technical Director
               </div>
             </div>
           ))}
+          {(!resultsRoom?.curatedPhotos || resultsRoom.curatedPhotos.length === 0) && (
+            <div className="col-span-full p-8 text-center text-slate-400">
+              No official photographs registered yet for this project.
+            </div>
+          )}
         </div>
       </Card>
 

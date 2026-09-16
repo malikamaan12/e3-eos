@@ -99,69 +99,66 @@ export const LoginView: React.FC = () => {
       <div
         style={{
           position: 'absolute',
-          top: 24,
-          left: isAr ? 'auto' : 28,
-          right: isAr ? 28 : 'auto',
+          top: 16,
+          left: 16,
+          right: 16,
           display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
-          gap: '10px',
+          zIndex: 20,
+          pointerEvents: 'none',
         }}
       >
-        <span
-          id="staging-badge"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            backgroundColor: 'rgba(217, 119, 6, 0.15)',
-            color: '#f59e0b',
-            border: '1px solid rgba(217, 119, 6, 0.4)',
-            fontWeight: 700,
-            fontSize: '11px',
-            padding: '3px 10px',
-            borderRadius: '12px',
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-          }}
-        >
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-          STAGING
-        </span>
+        <div style={{ pointerEvents: 'auto' }}>
+          <span
+            id="staging-badge"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: 'rgba(217, 119, 6, 0.15)',
+              color: '#f59e0b',
+              border: '1px solid rgba(217, 119, 6, 0.4)',
+              fontWeight: 700,
+              fontSize: '11px',
+              padding: '3px 10px',
+              borderRadius: '12px',
+              letterSpacing: '1px',
+              textTransform: 'uppercase',
+            }}
+          >
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+            STAGING
+          </span>
+        </div>
+
+        <div style={{ pointerEvents: 'auto' }}>
+          <button
+            id="btn-login-toggle-lang"
+            onClick={toggleLanguage}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: 'rgba(30, 41, 59, 0.7)',
+              color: '#cbd5e1',
+              border: '1px solid rgba(217, 119, 6, 0.3)',
+              borderRadius: '6px',
+              padding: '6px 14px',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              backdropFilter: 'blur(8px)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <span>🌐</span>
+            <span>{isAr ? 'English' : 'العربية (RTL)'}</span>
+          </button>
+        </div>
       </div>
 
-      <div
-        style={{
-          position: 'absolute',
-          top: 24,
-          right: isAr ? 'auto' : 28,
-          left: isAr ? 28 : 'auto',
-        }}
-      >
-        <button
-          id="btn-login-toggle-lang"
-          onClick={toggleLanguage}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: 'rgba(30, 41, 59, 0.7)',
-            color: '#cbd5e1',
-            border: '1px solid rgba(217, 119, 6, 0.3)',
-            borderRadius: '6px',
-            padding: '6px 14px',
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            backdropFilter: 'blur(8px)',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <span>🌐</span>
-          <span>{isAr ? 'English' : 'العربية (RTL)'}</span>
-        </button>
-      </div>
-
-      <div style={{ width: '100%', maxWidth: '460px', zIndex: 10 }}>
+      <div style={{ width: '100%', maxWidth: '460px', zIndex: 10, marginTop: '48px' }}>
         {/* Brand Monogram & Product Identity */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div
@@ -225,7 +222,7 @@ export const LoginView: React.FC = () => {
               </div>
               <div
                 style={{
-                  color: '#94a3b8',
+                  color: '#cbd5e1',
                   fontSize: '11px',
                   fontWeight: 500,
                   letterSpacing: '0.5px',
@@ -240,7 +237,7 @@ export const LoginView: React.FC = () => {
           <h2 style={{ color: '#f8fafc', margin: '0 0 6px', fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>
             {isAr ? 'تسجيل الدخول إلى النظام المؤسسي' : 'Sign in to Enterprise EOS'}
           </h2>
-          <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px', lineHeight: 1.5 }}>
+          <p style={{ color: '#cbd5e1', margin: 0, fontSize: '13px', lineHeight: 1.5 }}>
             {isAr
               ? 'المنصة القيادية لإدارة وإنتاج الفعاليات الكبرى والحوكمة الصارمة'
               : 'Mission-critical delivery, four-eyes governance & live financial control'}

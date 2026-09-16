@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, MetricCard, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const LiveRosterAttendanceView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const { currentLanguage, apiClient, selectedProjectId, currentUser } = useEosContext();
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
   const [rosterData, setRosterData] = useState<any>(null);
   const [qualifications, setQualifications] = useState<any[]>([]);
@@ -13,9 +15,9 @@ export const LiveRosterAttendanceView: React.FC = () => {
 
   // Check-In Modal (AT-059)
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState<boolean>(false);
-  const [workerId, setWorkerId] = useState<string>('worker-ahmed-01');
-  const [workerName, setWorkerName] = useState<string>('Ahmed Al-Kuwari');
-  const [location, setLocation] = useState<string>('MAIN_STAGE');
+  const [workerId, setWorkerId] = useState<string>(isDemo ? 'worker-ahmed-01' : '');
+  const [workerName, setWorkerName] = useState<string>(isDemo ? 'Ahmed Al-Kuwari' : '');
+  const [location, setLocation] = useState<string>(isDemo ? 'MAIN_STAGE' : 'MAIN_STAGE');
   const [verificationMode, setVerificationMode] = useState<string>('biometric');
   const [fatigueAcknowledged, setFatigueAcknowledged] = useState<boolean>(false);
   const [isSubmittingCheckIn, setIsSubmittingCheckIn] = useState<boolean>(false);
@@ -23,7 +25,9 @@ export const LiveRosterAttendanceView: React.FC = () => {
   // Revocation Modal (AT-055)
   const [isRevokeModalOpen, setIsRevokeModalOpen] = useState<boolean>(false);
   const [selectedQual, setSelectedQual] = useState<any>(null);
-  const [revokeReason, setRevokeReason] = useState<string>('Certification expired; pending renewal audit.');
+  const [revokeReason, setRevokeReason] = useState<string>(
+    isDemo ? 'Certification expired; pending renewal audit.' : ''
+  );
   const [isSubmittingRevoke, setIsSubmittingRevoke] = useState<boolean>(false);
 
   const loadRoster = async () => {
@@ -124,14 +128,14 @@ export const LiveRosterAttendanceView: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         <MetricCard
           label="Rostered Shift Crew"
-          value={`${rosterData?.totalRostered || 42}`}
-          change="Qatar Pavilion Shift A"
+          value={`${rosterData?.totalRostered ?? (isDemo ? 42 : 0)}`}
+          change={isDemo ? "Qatar Pavilion Shift A" : "Active Shift Roster"}
           trend="neutral"
         />
         <MetricCard
           label="Present On Site"
-          value={`${rosterData?.checkedIn || 38}`}
-          change={`${rosterData?.attendancePercentage || 90}% attendance`}
+          value={`${rosterData?.checkedIn ?? (isDemo ? 38 : 0)}`}
+          change={`${rosterData?.attendancePercentage ?? (isDemo ? 90 : 0)}% attendance`}
           trend="positive"
         />
         <MetricCard
@@ -279,11 +283,17 @@ export const LiveRosterAttendanceView: React.FC = () => {
                   const q = qualifications.find((item) => item.workerId === e.target.value);
                   if (q) setWorkerName(q.workerName);
                 }}
-                options={[
-                  { value: 'worker-ahmed-01', label: 'Ahmed Al-Kuwari (Lead Rigging Technician)' },
-                  { value: 'worker-john-02', label: 'John Doe (Heavy Rigging Supervisor - Revoked)' },
-                  { value: 'worker-sami-03', label: 'Sami Haddad (Stage Hand)' },
-                ]}
+                options={
+                  qualifications.length > 0
+                    ? qualifications.map((item) => ({ value: item.workerId, label: `${item.workerName} (${item.qualificationType || 'Crew'})` }))
+                    : isDemo
+                      ? [
+                          { value: 'worker-ahmed-01', label: 'Ahmed Al-Kuwari (Lead Rigging Technician)' },
+                          { value: 'worker-john-02', label: 'John Doe (Heavy Rigging Supervisor - Revoked)' },
+                          { value: 'worker-sami-03', label: 'Sami Haddad (Stage Hand)' },
+                        ]
+                      : [{ value: '', label: 'Select worker...' }]
+                }
               />
             </div>
 
@@ -364,6 +374,7 @@ export const LiveRosterAttendanceView: React.FC = () => {
               <Textarea
                 value={revokeReason}
                 onChange={(e) => setRevokeReason(e.target.value)}
+                placeholder="Enter justification for revocation..."
                 rows={3}
                 id="input-revoke-reason"
               />

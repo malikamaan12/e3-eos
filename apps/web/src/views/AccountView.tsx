@@ -6,7 +6,7 @@ export const AccountView: React.FC = () => {
   const { currentUser, currentOrg, logout, currentLanguage, toggleLanguage, apiClient } = useEosContext();
   const [mfaSetupData, setMfaSetupData] = useState<{ secret: string; otpauthUrl: string } | null>(null);
   const [mfaCode, setMfaCode] = useState<string>('');
-  const [mfaEnabled, setMfaEnabled] = useState<boolean>(currentUser.mfaEnabled || false);
+  const [mfaEnabled, setMfaEnabled] = useState<boolean>(currentUser?.mfaEnabled || false);
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -86,19 +86,19 @@ export const AccountView: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           <div>
             <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Full Name</div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a' }}>{currentUser.name}</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a' }}>{currentUser?.name || 'User'}</div>
           </div>
           <div>
             <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Work Email</div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a' }}>{currentUser.email}</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a' }}>{currentUser?.email || ''}</div>
           </div>
           <div>
             <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Active Role</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Badge variant={currentUser.isSuperAdmin ? 'purple' : 'info'}>
-                {currentUser.role || 'Super Admin'}
+              <Badge variant={currentUser?.isSuperAdmin ? 'purple' : 'info'}>
+                {currentUser?.role || 'Super Admin'}
               </Badge>
-              {currentUser.isSuperAdmin && (
+              {currentUser?.isSuperAdmin && (
                 <span style={{ fontSize: '11px', color: '#7c3aed', fontWeight: 600 }}>Root Governance</span>
               )}
             </div>

@@ -7,6 +7,7 @@ import { ViewStateRenderer } from '../components/ViewStateRenderer.js';
 import { ViewStateFactory } from '../view-states.js';
 import { getStageTitleInLocale, formatCurrencyInLocale } from '../localization.js';
 import { getActivitiesForStage } from '@e3-eos/domain';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const ProjectWorkspaceView: React.FC = () => {
   const {
@@ -21,10 +22,13 @@ export const ProjectWorkspaceView: React.FC = () => {
   } = useEosContext();
   const { client } = useEosApi();
 
-  const [activeStage, setActiveStage] = useState<number>(10); // Default to Stage 10 (Readiness)
+  const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
+  const isDemo = isSyntheticDemo(currentProject?.id);
+
+  const [activeStage, setActiveStage] = useState<number>(() => currentProject?.currentStage || (isDemo ? 10 : 1));
   const [activeTab, setActiveTab] = useState<'activities' | 'drilldown'>('activities');
-  const [isDrawingFrozen, setIsDrawingFrozen] = useState<boolean>(true);
-  const [isPermitVerified, setIsPermitVerified] = useState<boolean>(true);
+  const [isDrawingFrozen, setIsDrawingFrozen] = useState<boolean>(isDemo);
+  const [isPermitVerified, setIsPermitVerified] = useState<boolean>(isDemo);
   const [activityStatuses, setActivityStatuses] = useState<Record<string, 'completed' | 'in_progress' | 'blocked' | 'not_started'>>({});
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [cockpitData, setCockpitData] = useState<any | null>(null);
@@ -59,17 +63,18 @@ export const ProjectWorkspaceView: React.FC = () => {
     }
   };
 
-  const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
   const viewState = ViewStateFactory.ready(currentProject);
 
   const stageActivities = getActivitiesForStage(activeStage);
 
   const getActivityStatus = (actId: string): 'completed' | 'in_progress' | 'blocked' | 'not_started' => {
     if (activityStatuses[actId]) return activityStatuses[actId];
-    if (activeStage < 10) return 'completed';
-    if (activeStage === 10) {
-      const idx = parseInt(actId.split('-')[1], 10);
-      return idx <= 18 ? 'completed' : 'in_progress';
+    if (isDemo) {
+      if (activeStage < 10) return 'completed';
+      if (activeStage === 10) {
+        const idx = parseInt(actId.split('-')[1], 10);
+        return idx <= 18 ? 'completed' : 'in_progress';
+      }
     }
     return 'not_started';
   };
@@ -90,14 +95,13 @@ export const ProjectWorkspaceView: React.FC = () => {
 
   const title = cockpitData?.title || currentProject.title;
   const projectCode = cockpitData?.projectCode || currentProject.projectCode;
-  const originCode = currentProject.originCode || 'TENDER-QATAR-2026';
-  const daysRemaining = cockpitData?.dates?.daysRemaining ?? 67;
-  const isSyntheticDemo = currentProject.id === 'f1111111-1111-4111-8111-111111111111';
+  const originCode = currentProject.originCode || (isDemo ? 'TENDER-QATAR-2026' : (currentProject.originType || 'DIRECT'));
+  const daysRemaining = cockpitData?.dates?.daysRemaining ?? (isDemo ? 67 : null);
   const venueDesc = cockpitData?.venue?.name
     ? `${cockpitData.venue.name} • ${cockpitData.venue.location || 'Doha, Qatar'}`
-    : (isSyntheticDemo ? 'Doha Exhibition & Convention Centre (DECC) — West Bay, Doha, Qatar' : 'Venue to be confirmed');
+    : (isDemo ? 'Doha Exhibition & Convention Centre (DECC) — West Bay, Doha, Qatar' : 'Venue to be confirmed');
 
-  const financials = cockpitData?.financials || (isSyntheticDemo ? {
+  const financials = cockpitData?.financials || (isDemo ? {
     budget: 1850000,
     eac: 1740000,
     expectedRevenue: 2950000,
@@ -112,14 +116,14 @@ export const ProjectWorkspaceView: React.FC = () => {
     forecastMarginPercent: 0,
     actualCost: 0,
     committedCost: 0,
-    currency: 'QAR',
+    currency: currentProject.currency || 'QAR',
   });
 
-  const blockers = cockpitData?.criticalBlockers || (isSyntheticDemo ? [
+  const blockers = cockpitData?.criticalBlockers || (isDemo ? [
     { title: 'Awaiting Civil Defence Fire Safety Clearance', impact: 'Cannot fly main truss without certificate', owner: 'Dr. Sarah Ibrahim' },
   ] : []);
 
-  const attentionQueue = cockpitData?.needsAttention || (isSyntheticDemo ? [
+  const attentionQueue = cockpitData?.needsAttention || (isDemo ? [
     'Civil Defence inspection scheduled for tomorrow 09:00 AM',
     'Contractor insurance certificate renewal pending from SoundTech WLL',
     'Client design review meeting confirmed for Thursday 14:00',
@@ -145,7 +149,7 @@ export const ProjectWorkspaceView: React.FC = () => {
             <span style={{ fontSize: '13px', fontWeight: 800, color: '#2563eb' }}>{projectCode}</span>
             <Badge variant="info">Stage {activeStage}: {getStageTitleInLocale(activeStage, currentLanguage)}</Badge>
             <Badge variant="purple">{originCode}</Badge>
-            <Badge variant="success">⏳ {daysRemaining} Days to Opening</Badge>
+            {daysRemaining !== null && <Badge variant="success">⏳ {daysRemaining} Days to Opening</Badge>}
           </div>
           <h1 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
             {title}

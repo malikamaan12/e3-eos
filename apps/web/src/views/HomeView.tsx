@@ -52,12 +52,12 @@ export const HomeView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
             <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
               {isRtl ? (
-                <>مرحباً، <span dir="ltr" style={{ unicodeBidi: 'isolate' }}>{currentUser.name}</span></>
+                <>مرحباً، <span dir="ltr" style={{ unicodeBidi: 'isolate' }}>{currentUser?.name || ''}</span></>
               ) : (
-                `Good morning, ${currentUser.name}`
+                `Good morning, ${currentUser?.name || 'User'}`
               )}
             </h1>
-            <Badge variant="accent">{currentUser.role || 'Super Admin'}</Badge>
+            <Badge variant="accent">{currentUser?.role || 'Super Admin'}</Badge>
           </div>
           <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
             {isRtl
@@ -70,9 +70,11 @@ export const HomeView: React.FC = () => {
           <Button variant="secondary" size="md" onClick={() => navigate('/my-work')}>
             📋 {isRtl ? 'مهامي' : 'My Work'}
           </Button>
-          <Button id="home-create-project-btn" variant="primary" size="md" onClick={() => navigate('/projects/new')}>
-            + {isRtl ? 'مشروع جديد' : 'New Project'}
-          </Button>
+          {currentUser?.role !== 'client' && !currentUser?.email?.includes('client') && (
+            <Button id="home-create-project-btn" variant="primary" size="md" onClick={() => navigate('/projects/new')}>
+              + {isRtl ? 'مشروع جديد' : 'New Project'}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -86,8 +88,8 @@ export const HomeView: React.FC = () => {
         }}
       >
         {isRtl
-          ? 'الموافقة على المواصفات الفنية ومحركات الرفع (Rigging Motors) لفعالية اليوم الوطني معلقة بانتظار توقيع المدير التنفيذي.'
-          : 'Qatar National Day 2026 kinetic truss motor approval is pending Four-Eyes executive sign-off before vendor PO release.'}
+          ? (projects[0] ? `الموافقة الفنية لمشروع ${projects[0].title} معلقة بانتظار توقيع الإدارة التنفيذية.` : 'لا توجد تنبيهات حرجة في الوقت الحالي.')
+          : (projects[0] ? `Technical approval for project ${projects[0].title} is pending executive sign-off before vendor PO release.` : 'No urgent alerts requiring intervention.')}
       </AlertBanner>
 
       {/* KPI Metrics Row */}
@@ -187,7 +189,7 @@ export const HomeView: React.FC = () => {
                       </span>
                     </div>
                     <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                      {p.clientName || 'Qatar Tourism Authority'} • {isRtl ? 'المصدر:' : 'Origin:'} {p.originCode || 'Tender'}
+                      {p.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')} • {isRtl ? 'المصدر:' : 'Origin:'} {p.originCode || 'Tender'}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -226,12 +228,16 @@ export const HomeView: React.FC = () => {
                   </Badge>
                 </div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '4px' }}>
-                  {isRtl ? 'اعتماد حزمة تقديم مناقصة قطر للسياحة' : 'Approval of Qatar Tourism Tender Submission Package'}
+                  {projects[0]
+                    ? (isRtl ? `اعتماد حزمة التقديم لمشروع: ${projects[0].title}` : `Approval of Submission Package: ${projects[0].title}`)
+                    : (isRtl ? 'لا توجد موافقات معلقة' : 'No pending approval packages')}
                 </div>
                 <div style={{ fontSize: '12px', color: '#78350f', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
-                  {isRtl
-                    ? `مطلوبة من: زيد منصور (مدير المشروع) • القيمة المستهدفة: ${formatCurrency(3500000, 'QAR')}`
-                    : `Requested by Zaid Mansour (PM) • Target Value: ${formatCurrency(3500000, 'QAR')}`}
+                  {projects[0]
+                    ? (isRtl
+                      ? `مدير المشروع: ${projects[0].pmName || 'المعين'} • القيمة التقديرية: ${formatCurrency(projects[0].contractValue || projects[0].estimatedCost || 0, 'QAR')}`
+                      : `Lead PM: ${projects[0].pmName || 'Assigned Lead'} • Estimated Value: ${formatCurrency(projects[0].contractValue || projects[0].estimatedCost || 0, 'QAR')}`)
+                    : (isRtl ? 'النظام في حالة تشغيل اعتيادية' : 'System operational and up to date')}
                 </div>
                 <div style={{ marginTop: '10px' }}>
                   <Button size="sm" variant="primary" onClick={() => navigate(projects[0] ? `/projects/${projects[0].id}` : '/approvals')}>
@@ -257,14 +263,22 @@ export const HomeView: React.FC = () => {
                   </Badge>
                 </div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '4px' }}>
-                  {isRtl
-                    ? 'الجولة الفنية الميدانية وتصريح تعليق الهياكل في مركز الدوحة للمعارض'
-                    : 'DECC Venue Technical Walkthrough & Rigging Access Check'}
+                  {projects[0]?.venue
+                    ? (isRtl
+                      ? `الجولة الفنية الميدانية وتصريح تعليق الهياكل في ${projects[0].venue}`
+                      : `${projects[0].venue} Venue Technical Walkthrough & Rigging Access Check`)
+                    : (isRtl
+                      ? 'الجولة الفنية الميدانية وتصريح تعليق الهياكل للموقع'
+                      : 'Venue Technical Walkthrough & Rigging Access Check')}
                 </div>
                 <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                  {isRtl
-                    ? 'مُسندة إلى: سالم المري (رئيس العمليات الميدانية)'
-                    : 'Assigned to Salem Al-Marri (Head of Live Ops)'}
+                  {projects[0]?.pmName
+                    ? (isRtl
+                      ? `مُسندة إلى: ${projects[0].pmName}`
+                      : `Assigned to ${projects[0].pmName}`)
+                    : (isRtl
+                      ? 'مُسندة إلى: مدير العمليات الميدانية'
+                      : 'Assigned to Site Operations Lead')}
                 </div>
               </div>
             </div>

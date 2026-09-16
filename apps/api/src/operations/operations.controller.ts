@@ -1353,17 +1353,22 @@ export class OperationsController {
     }
 
     if (!gate) {
+      const isDemo = projectId === 'PRJ-2026-FEE-01' ||
+        projectId === 'a1111111-1111-4111-8111-111111111111' ||
+        projectId === 'f1111111-1111-4111-8111-111111111111' ||
+        projectId.startsWith('PRJ-QND');
+
       const defaultChecks: DimensionReadinessCheck[] = [
-        { dimension: 'Scope', isPassed: true, isCritical: true, scorePercent: 100, details: 'Scope defined' },
-        { dimension: 'Design', isPassed: true, isCritical: true, scorePercent: 100, details: 'Design approved' },
-        { dimension: 'Production', isPassed: true, isCritical: true, scorePercent: 100, details: 'Production completed' },
-        { dimension: 'Assets', isPassed: true, isCritical: true, scorePercent: 100, details: 'Assets allocated' },
-        { dimension: 'Logistics', isPassed: true, isCritical: true, scorePercent: 100, details: 'Logistics delivered' },
-        { dimension: 'Installation', isPassed: true, isCritical: true, scorePercent: 100, details: 'Installation completed' },
-        { dimension: 'HSE', isPassed: true, isCritical: true, scorePercent: 100, details: 'Safety clearance passed' },
-        { dimension: 'Permits', isPassed: true, isCritical: true, scorePercent: 100, details: 'Permits cleared' },
-        { dimension: 'Staffing', isPassed: true, isCritical: true, scorePercent: 100, details: 'Staff rostered' },
-        { dimension: 'Technical Testing', isPassed: true, isCritical: true, scorePercent: 100, details: 'Systems tested' },
+        { dimension: 'Scope', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Scope defined' : 'Scope pending formal signoff' },
+        { dimension: 'Design', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Design approved' : 'Design review pending' },
+        { dimension: 'Production', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Production completed' : 'Production in progress' },
+        { dimension: 'Assets', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Assets allocated' : 'Assets pending reservation' },
+        { dimension: 'Logistics', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Logistics delivered' : 'Logistics dispatch pending' },
+        { dimension: 'Installation', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Installation completed' : 'Site installation pending' },
+        { dimension: 'HSE', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Safety clearance passed' : 'Civil Defence inspection pending' },
+        { dimension: 'Permits', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Permits cleared' : 'Statutory permits pending clearance' },
+        { dimension: 'Staffing', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Staff rostered' : 'Crew roster pending confirmation' },
+        { dimension: 'Technical Testing', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Systems tested' : 'Commissioning incomplete' },
       ];
       const report = ComprehensiveReadinessEvaluator.evaluate(projectId, defaultChecks);
       gate = {

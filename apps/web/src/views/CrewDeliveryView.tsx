@@ -20,8 +20,8 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
   const [employer, setEmployer] = useState<string>('E3 Live Operations');
   const [personnelType, setPersonnelType] = useState<string>('e3_employee');
   const [department, setDepartment] = useState<string>('Site Operations');
-  const [location, setLocation] = useState<string>('DECC Hall 1 Entry');
-  const [accreditation, setAccreditation] = useState<string>('DECC Gold Badge Supervisor');
+  const [location, setLocation] = useState<string>('');
+  const [accreditation, setAccreditation] = useState<string>('');
   const [shiftStart, setShiftStart] = useState<string>(
     new Date(Date.now() + 86400000).toISOString().slice(0, 16)
   );
@@ -515,11 +515,13 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                 label="Location / Zone"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Main Hall 1 Entry / Foyer"
               />
               <Input
                 label="Accreditation / Badge"
                 value={accreditation}
                 onChange={(e) => setAccreditation(e.target.value)}
+                placeholder="e.g. Venue Gold Badge Supervisor"
               />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

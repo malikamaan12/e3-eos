@@ -9,11 +9,11 @@ export function useEosApi() {
 
   const client = useMemo(() => {
     return new EosApiClient({
-      organisationId: currentOrg.id,
-      userId: currentUser.id,
-      userRoles: currentUser.isSuperAdmin ? ['super_admin'] : ['project_manager'],
+      organisationId: currentOrg?.id || '',
+      userId: currentUser?.id || '',
+      userRoles: currentUser?.isSuperAdmin ? ['super_admin'] : ['project_manager'],
     });
-  }, [currentOrg.id, currentUser.id, currentUser.isSuperAdmin]);
+  }, [currentOrg?.id, currentUser?.id, currentUser?.isSuperAdmin]);
 
   const [portfolioState, setPortfolioState] = useState<ViewState>(ViewStateFactory.loading());
   const [clientPortalState, setClientPortalState] = useState<ViewState<ClientPortalProjectView>>(ViewStateFactory.loading());

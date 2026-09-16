@@ -14,32 +14,59 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
   onClose,
   onProjectCreated,
 }) => {
-  const { currentLanguage, apiClient, navigate, triggerRefresh, setSelectedProjectId, direction } = useEosContext();
+  const { currentLanguage, apiClient, navigate, triggerRefresh, setSelectedProjectId, direction, currentUser } = useEosContext();
 
   const [step, setStep] = useState<1 | 2>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Step 1: Basic Info
-  const [title, setTitle] = useState<string>('National Day Celebration Immersive Arena');
+  const [title, setTitle] = useState<string>('');
   const [originRoute, setOriginRoute] = useState<string>('TENDER');
-  const [format, setFormat] = useState<string>('State Ceremony & Protocol');
+  const [format, setFormat] = useState<string>('Exhibition & Conference');
   const [clientTbc, setClientTbc] = useState<boolean>(false);
-  const [clientName, setClientName] = useState<string>('Qatar National Day Committee');
-  const [description, setDescription] = useState<string>('Large-scale immersive outdoor projection and 360-degree kinetic light show.');
+  const [clientName, setClientName] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
   const [country, setCountry] = useState<string>('Qatar');
-  const [submissionDeadline, setSubmissionDeadline] = useState<string>('2026-10-30');
+  const [submissionDeadline, setSubmissionDeadline] = useState<string>('');
   const [eventDateTbc, setEventDateTbc] = useState<boolean>(false);
-  const [eventDate, setEventDate] = useState<string>('2026-12-18');
+  const [eventDate, setEventDate] = useState<string>('');
   const [venueTbc, setVenueTbc] = useState<boolean>(false);
-  const [venueName, setVenueName] = useState<string>('Lusail Boulevard & Plaza');
+  const [venueName, setVenueName] = useState<string>('');
 
   // Step 2: Commercials & Ownership
-  const [expectedValue, setExpectedValue] = useState<string>('6,500,000');
-  const [expectedCost, setExpectedCost] = useState<string>('3,900,000');
-  const [valueClassification, setValueClassification] = useState<string>('Quoted');
-  const [leadPm, setLeadPm] = useState<string>('Zaid Mansour');
-  const [priority, setPriority] = useState<'Critical' | 'High' | 'Medium' | 'Low'>('High');
+  const [expectedValue, setExpectedValue] = useState<string>('');
+  const [expectedCost, setExpectedCost] = useState<string>('');
+  const [valueClassification, setValueClassification] = useState<string>('Estimate');
+  const [leadPm, setLeadPm] = useState<string>(currentUser?.name || 'Zaid Mansour');
+  const [priority, setPriority] = useState<'Critical' | 'High' | 'Medium' | 'Low'>('Medium');
+
+  const resetForm = () => {
+    setStep(1);
+    setTitle('');
+    setOriginRoute('TENDER');
+    setFormat('Exhibition & Conference');
+    setClientTbc(false);
+    setClientName('');
+    setDescription('');
+    setCountry('Qatar');
+    setSubmissionDeadline('');
+    setEventDateTbc(false);
+    setEventDate('');
+    setVenueTbc(false);
+    setVenueName('');
+    setExpectedValue('');
+    setExpectedCost('');
+    setValueClassification('Estimate');
+    setLeadPm(currentUser?.name || 'Zaid Mansour');
+    setPriority('Medium');
+    setError(null);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -128,6 +155,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
       setSelectedProjectId(newProjectId);
       if (onProjectCreated) onProjectCreated(payload);
       triggerRefresh();
+      resetForm();
       onClose();
       navigate(`/projects/${newProjectId}`);
     } catch (err: any) {
@@ -209,7 +237,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
 
           <button
             id="close-fast-track-modal"
-            onClick={onClose}
+            onClick={handleClose}
             style={{
               backgroundColor: 'transparent',
               border: 'none',
@@ -254,7 +282,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. National Day Celebration Immersive Arena"
+                  placeholder="e.g. Global Tech Expo & Summit 2026"
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                 />
               </div>
@@ -319,7 +347,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   disabled={clientTbc}
                   value={clientTbc ? (isAr ? 'قيد التحديد' : 'To Be Confirmed') : clientName}
                   onChange={(e) => setClientName(e.target.value)}
-                  placeholder="e.g. Qatar National Day Committee"
+                  placeholder="e.g. Acme Corporation / Government Ministry"
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -439,7 +467,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                     disabled={venueTbc}
                     value={venueTbc ? (isAr ? 'قيد التحديد' : 'To Be Confirmed') : venueName}
                     onChange={(e) => setVenueName(e.target.value)}
-                    placeholder="e.g. Lusail Boulevard & Plaza"
+                    placeholder="e.g. National Convention Center / Arena"
                     style={{
                       width: '100%',
                       padding: '9px 12px',
@@ -475,7 +503,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                     required
                     value={expectedValue}
                     onChange={(e) => setExpectedValue(e.target.value)}
-                    placeholder="e.g. 6,500,000"
+                    placeholder="e.g. 1,500,000"
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
@@ -489,7 +517,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                     type="text"
                     value={expectedCost}
                     onChange={(e) => setExpectedCost(e.target.value)}
-                    placeholder="e.g. 3,900,000"
+                    placeholder="e.g. 950,000"
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
@@ -542,6 +570,9 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   onChange={(e) => setLeadPm(e.target.value)}
                   style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                 >
+                  {currentUser?.name && (
+                    <option value={currentUser.name}>{currentUser.name} (Current User)</option>
+                  )}
                   <option value="Zaid Mansour">Zaid Mansour (pm@e3.qa)</option>
                   <option value="Fatima Al-Sulaiti">Fatima Al-Sulaiti (Project Director)</option>
                   <option value="Karim Haddad">Karim Haddad (Technical Director)</option>
@@ -617,7 +648,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                 variant="ghost"
                 size="md"
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
               >
                 {isAr ? 'إلغاء' : 'Cancel'}
               </Button>

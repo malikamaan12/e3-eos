@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 interface ProcurementDeliveryViewProps {
   projectId: string;
@@ -8,6 +9,7 @@ interface ProcurementDeliveryViewProps {
 
 export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = ({ projectId }) => {
   const { apiClient, refreshTrigger, triggerRefresh } = useEosContext();
+  const isDemo = isSyntheticDemo(projectId);
 
   const [requirements, setRequirements] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
@@ -20,8 +22,8 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
   // Source decision modal
   const [decisionReq, setDecisionReq] = useState<any | null>(null);
   const [selectedDecision, setSelectedDecision] = useState<string>('use_e3_asset');
-  const [internalQty, setInternalQty] = useState<number>(8);
-  const [externalQty, setExternalQty] = useState<number>(22);
+  const [internalQty, setInternalQty] = useState<number>(0);
+  const [externalQty, setExternalQty] = useState<number>(0);
   const [isSubmittingDecision, setIsSubmittingDecision] = useState<boolean>(false);
 
   useEffect(() => {
@@ -194,8 +196,8 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
                       onClick={() => {
                         setDecisionReq(req);
                         setSelectedDecision(req.sourceDecision || 'use_e3_asset');
-                        setInternalQty(req.internalAssetQuantity || 8);
-                        setExternalQty(req.externalSourcingQuantity || 22);
+                        setInternalQty(req.internalAssetQuantity ?? (isDemo ? 8 : 0));
+                        setExternalQty(req.externalSourcingQuantity ?? (isDemo ? 22 : req.quantity || 0));
                       }}
                     >
                       Source Decision
@@ -203,6 +205,15 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
                   </td>
                 </tr>
               ))}
+              {requirements.length === 0 && (
+                <tr>
+                  <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📦</div>
+                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Procurement Requirements Generated</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Procurement items will appear once BOQ lines or design deliverables are released.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -226,15 +237,15 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
 
           {/* Sealed Bid Status Box */}
           <div style={{ padding: '8px 14px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', fontSize: '12px', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>🔒 <strong>Sealed-Bid Integrity:</strong> Unsealed post-deadline (2026-09-10 12:00 UTC)</span>
-            <Badge variant="success">Unsealing Authorized</Badge>
+            <span>🔒 <strong>Sealed-Bid Integrity:</strong> {isDemo ? 'Unsealed post-deadline (2026-09-10 12:00 UTC)' : 'Automated deadline audit lock active'}</span>
+            <Badge variant={isDemo ? 'success' : 'neutral'}>{isDemo ? 'Unsealing Authorized' : 'Protocol Enforced'}</Badge>
           </div>
         </div>
 
         {/* Anti-Collusion & Outlier Variance Banner */}
         <div style={{ padding: '12px 16px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', marginBottom: '16px', fontSize: '12px', color: '#1e40af', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>🛡️ <strong>Anti-Collusion Governance:</strong> Sealed bids unlocked simultaneously with public SHA-256 tender hashes. Bids within ±12% of parametric P50 baseline (QAR 3,150/unit).</span>
-          <span style={{ fontWeight: 600 }}>Tender Officer: H. Al-Kuwari</span>
+          <span>🛡️ <strong>Anti-Collusion Governance:</strong> Sealed bids unlocked simultaneously with public SHA-256 tender hashes. Bids evaluated against parametric baseline.</span>
+          <span style={{ fontWeight: 600 }}>{isDemo ? 'Tender Officer: H. Al-Kuwari' : 'Tender Evaluation Board'}</span>
         </div>
 
         {rfqs.length > 0 && (
@@ -321,9 +332,24 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
                       </td>
                     </tr>
                   ))}
+                  {quotes.length === 0 && (
+                    <tr>
+                      <td colSpan={9} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                        <div style={{ fontSize: '24px', marginBottom: '8px' }}>📑</div>
+                        <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Bids Received Yet</div>
+                        <div style={{ fontSize: '12px', marginTop: '4px' }}>Awaiting vendor tender submission and sealed-bid deadline expiration.</div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+        {rfqs.length === 0 && (
+          <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+            <div style={{ fontWeight: 600, fontSize: '13px' }}>No Active RFQ Tenders</div>
+            <div style={{ fontSize: '12px', marginTop: '2px' }}>Create an RFQ package from procurement requirements to solicit vendor bids.</div>
           </div>
         )}
       </Card>
@@ -358,8 +384,8 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
               {purchaseOrdersData.purchaseOrders?.map((po: any) => (
                 <tr key={po.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '12px', fontWeight: 800, color: '#2563eb' }}>{po.poNumber}</td>
-                  <td style={{ padding: '12px' }}>{po.vendorName || 'ABC Joinery & Fabrication'}</td>
-                  <td style={{ padding: '12px' }}>{po.lines?.[0]?.description || 'Fabrication package'}</td>
+                  <td style={{ padding: '12px' }}>{po.vendorName || (isDemo ? 'ABC Joinery & Fabrication' : 'Vendor')}</td>
+                  <td style={{ padding: '12px' }}>{po.lines?.[0]?.description || (isDemo ? 'Fabrication package' : 'Procurement package')}</td>
                   <td style={{ padding: '12px', fontWeight: 800 }}>
                     {Number(po.totalAmount?.amount || po.totalAmount || 0).toLocaleString()} {po.currency}
                   </td>
@@ -376,6 +402,15 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
                   </td>
                 </tr>
               ))}
+              {(!purchaseOrdersData.purchaseOrders || purchaseOrdersData.purchaseOrders.length === 0) && (
+                <tr>
+                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📜</div>
+                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Purchase Orders Issued</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Purchase orders committed to vendors will appear here.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

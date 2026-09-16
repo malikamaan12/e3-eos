@@ -26,23 +26,23 @@ const STAGE_ROLES = [
 const GATE_EXPLANATIONS: Record<number, { title: string; rationale: string; authority: string }> = {
   3: {
     title: 'Stage 03: Four-Eyes Executive Gate Sign-off',
-    rationale: 'Protected governance gate: Requires two-person sign-off by Executive Partner Nasser Al-Attiyah and commercial margin validation before client contract issuance.',
-    authority: 'Executive Partner (Nasser Al-Attiyah)',
+    rationale: 'Protected governance gate: Requires two-person sign-off by Executive Partner and commercial margin validation before client contract issuance.',
+    authority: 'Executive Partner',
   },
   9: {
     title: 'Stage 09: Civil Defence & HSE Zone Safety Clearance',
-    rationale: 'Protected statutory gate: Enforced by Qatar Civil Defence statutory regulations. Structural rigging safety and flame-retardant certification must be verified before site possession.',
-    authority: 'HSE & Compliance Director (Dr. Sarah Ibrahim)',
+    rationale: 'Protected statutory gate: Enforced by statutory civil defense regulations. Structural rigging safety and flame-retardant certification must be verified before site possession.',
+    authority: 'HSE & Compliance Director',
   },
   10: {
     title: 'Stage 10: Technical Readiness & Rehearsals',
     rationale: 'Protected operational lock: Run-through lock invariant. Live show cue sheets, audio-visual failover, and comms check must be signed off by Operations Director.',
-    authority: 'Operations Director (Salem Al-Marri)',
+    authority: 'Operations Director',
   },
   13: {
     title: 'Stage 13: Financial Closeout, EAC Finalization & Debrief',
     rationale: 'Protected commercial gate: Final actual cost reconciliation, client retention sign-off, and subcontractor settlement.',
-    authority: 'Financial Controller (Rashid Al-Hajri)',
+    authority: 'Financial Controller',
   },
 };
 
@@ -63,7 +63,7 @@ const DEFAULT_STAGES: ConfigurableStage[] = [
 ];
 
 export const NewProjectWizardView: React.FC = () => {
-  const { currentLanguage, apiClient, navigate, triggerRefresh, setSelectedProjectId } = useEosContext();
+  const { currentLanguage, apiClient, navigate, triggerRefresh, setSelectedProjectId, currentUser } = useEosContext();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,43 +84,43 @@ export const NewProjectWizardView: React.FC = () => {
   // Form State
   const [originRoute, setOriginRoute] = useState<string>('TENDER');
   const [code, setCode] = useState<string>(`PRJ-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`);
-  const [title, setTitle] = useState<string>('Qatar Tourism Demo Tender');
-  const [description, setDescription] = useState<string>('Comprehensive turnkey event management for international tourism showcase in Doha.');
-  const [format, setFormat] = useState<string>('Exhibition & Gala Dinner');
+  const [title, setTitle] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [format, setFormat] = useState<string>('Exhibition');
   const [currency, setCurrency] = useState<string>('QAR');
 
   // Conditional Fields by Origin Route
-  const [rfpDeadline, setRfpDeadline] = useState<string>('2026-10-15');
-  const [tenderBondRequired, setTenderBondRequired] = useState<boolean>(true);
-  const [soleSourceJustification, setSoleSourceJustification] = useState<string>('E3 has exclusive regional IP agreements for the immersive stage system.');
-  const [frameworkContractId, setFrameworkContractId] = useState<string>('MSA-E3-QTA-2025-09');
-  const [frameworkCeilingValue, setFrameworkCeilingValue] = useState<string>('12,000,000 QAR');
-  const [priorEditionCode, setPriorEditionCode] = useState<string>('PRJ-2025-QTA-ANNUAL');
+  const [rfpDeadline, setRfpDeadline] = useState<string>('');
+  const [tenderBondRequired, setTenderBondRequired] = useState<boolean>(false);
+  const [soleSourceJustification, setSoleSourceJustification] = useState<string>('');
+  const [frameworkContractId, setFrameworkContractId] = useState<string>('');
+  const [frameworkCeilingValue, setFrameworkCeilingValue] = useState<string>('');
+  const [priorEditionCode, setPriorEditionCode] = useState<string>('');
 
   // TBC Toggles & Values
   const [clientTbc, setClientTbc] = useState<boolean>(false);
-  const [clientName, setClientName] = useState<string>('Qatar Tourism Authority');
-  const [clientContact, setClientContact] = useState<string>('Hessa Al-Nuaimi (Events Director)');
-  const [clientEmail, setClientEmail] = useState<string>('client@qatartourism.qa');
+  const [clientName, setClientName] = useState<string>('');
+  const [clientContact, setClientContact] = useState<string>('');
+  const [clientEmail, setClientEmail] = useState<string>('');
 
   const [datesTbc, setDatesTbc] = useState<boolean>(false);
-  const [submissionDeadline, setSubmissionDeadline] = useState<string>('2026-10-15');
-  const [eventDate, setEventDate] = useState<string>('2026-11-15');
-  const [bumpInDate, setBumpInDate] = useState<string>('2026-11-10');
-  const [bumpOutDate, setBumpOutDate] = useState<string>('2026-11-18');
+  const [submissionDeadline, setSubmissionDeadline] = useState<string>('');
+  const [eventDate, setEventDate] = useState<string>('');
+  const [bumpInDate, setBumpInDate] = useState<string>('');
+  const [bumpOutDate, setBumpOutDate] = useState<string>('');
 
   const [venueTbc, setVenueTbc] = useState<boolean>(false);
   const [venueStatus, setVenueStatus] = useState<string>('confirmed');
-  const [venueName, setVenueName] = useState<string>('Doha Exhibition & Convention Center');
-  const [hallZone, setHallZone] = useState<string>('Halls 1, 2 & Main Al Mayassa Theater');
+  const [venueName, setVenueName] = useState<string>('');
+  const [hallZone, setHallZone] = useState<string>('');
 
   const [commercialTbc, setCommercialTbc] = useState<boolean>(false);
-  const [commercialTag, setCommercialTag] = useState<string>('Quoted');
-  const [estimatedValue, setEstimatedValue] = useState<string>('3,500,000');
-  const [targetMargin, setTargetMargin] = useState<string>('43.75%');
+  const [commercialTag, setCommercialTag] = useState<string>('Estimate');
+  const [estimatedValue, setEstimatedValue] = useState<string>('');
+  const [targetMargin, setTargetMargin] = useState<string>('');
 
   // Team
-  const [pmName, setPmName] = useState<string>('Zaid Mansour (Lead PM)');
+  const [pmName, setPmName] = useState<string>(currentUser?.name ? `${currentUser.name} (Lead PM)` : 'Lead Event PM');
 
   // Step 8 Workflow Configuration
   const [stages, setStages] = useState<ConfigurableStage[]>(DEFAULT_STAGES);
@@ -143,6 +143,24 @@ export const NewProjectWizardView: React.FC = () => {
     { num: 8, title: currentLanguage === 'ar' ? 'سير عمل المراحل' : 'Stage Workflow' },
     { num: 9, title: currentLanguage === 'ar' ? 'المراجعة والإنشاء' : 'Review & Create' },
   ];
+
+  const handleNextStep = () => {
+    if (currentStep === 2 && (!code.trim() || !title.trim())) {
+      setError(currentLanguage === 'ar' ? 'يرجى تقديم رمز المشروع وعنوان المشروع قبل المتابعة.' : 'Please provide both Project Code and Project Title before proceeding.');
+      return;
+    }
+    setError(null);
+    setCurrentStep((prev) => prev + 1);
+  };
+
+  const handleStepClick = (targetStep: number) => {
+    if (currentStep === 2 && targetStep > 2 && (!code.trim() || !title.trim())) {
+      setError(currentLanguage === 'ar' ? 'يرجى تقديم رمز المشروع وعنوان المشروع قبل المتابعة.' : 'Please provide both Project Code and Project Title before proceeding.');
+      return;
+    }
+    setError(null);
+    setCurrentStep(targetStep);
+  };
 
   const handleToggleStageOptional = (index: number) => {
     setStages((prev) => {
@@ -236,46 +254,53 @@ export const NewProjectWizardView: React.FC = () => {
           city: 'Doha',
           currency,
           confidentiality: 'internal',
-          originMetadata: {
-            rfpDeadline,
-            tenderBondRequired,
-            soleSourceJustification,
-            frameworkContractId,
-            frameworkCeilingValue,
-            priorEditionCode,
-          },
+          originMetadata: (() => {
+            if (originRoute === 'TENDER') {
+              return { rfpDeadline, tenderBondRequired };
+            }
+            if (originRoute === 'DIRECT_AWARD') {
+              return { soleSourceJustification };
+            }
+            if (originRoute === 'FRAMEWORK') {
+              return { frameworkContractId, frameworkCeilingValue };
+            }
+            if (originRoute === 'RECURRING') {
+              return { priorEditionCode };
+            }
+            return {};
+          })(),
         },
         clientStakeholders: {
-          clientOrganisationId: clientTbc ? null : '22222222-2222-4222-8222-222222222222',
-          clientName: clientTbc ? 'To Be Confirmed' : clientName,
-          mainContact: clientTbc ? 'TBC' : clientContact,
-          clientEmail: clientTbc ? '' : clientEmail,
+          clientOrganisationId: clientTbc ? null : ((currentUser as any)?.organisationId || null),
+          clientName: clientTbc ? 'To Be Confirmed' : (clientName.trim() || 'To Be Confirmed'),
+          mainContact: clientTbc ? 'TBC' : (clientContact.trim() || 'TBC'),
+          clientEmail: clientTbc ? '' : clientEmail.trim(),
           isTbc: clientTbc,
         },
         dates: {
-          submissionDeadline: datesTbc ? null : submissionDeadline,
-          eventDate: datesTbc ? null : eventDate,
-          bumpInDate: datesTbc ? null : bumpInDate,
-          bumpOutDate: datesTbc ? null : bumpOutDate,
+          submissionDeadline: datesTbc ? null : (submissionDeadline.trim() || null),
+          eventDate: datesTbc ? null : (eventDate.trim() || null),
+          bumpInDate: datesTbc ? null : (bumpInDate.trim() || null),
+          bumpOutDate: datesTbc ? null : (bumpOutDate.trim() || null),
           isConfirmed: !datesTbc,
           isTbc: datesTbc,
         },
         venue: {
           status: venueTbc ? 'tbc' : venueStatus,
-          venueName: venueTbc ? 'To Be Confirmed' : venueName,
-          hallZone: venueTbc ? 'TBC' : hallZone,
+          venueName: venueTbc ? 'To Be Confirmed' : (venueName.trim() || 'To Be Confirmed'),
+          hallZone: venueTbc ? 'TBC' : (hallZone.trim() || 'TBC'),
           isTbc: venueTbc,
         },
         commercialStartingPoint: {
           classificationTag: commercialTbc ? 'TBC' : commercialTag,
-          revenueValue: commercialTbc ? 'To Be Confirmed' : estimatedValue,
-          targetMargin: commercialTbc ? 'TBC' : targetMargin,
+          revenueValue: commercialTbc ? 'To Be Confirmed' : (estimatedValue.trim() || '0'),
+          targetMargin: commercialTbc ? 'TBC' : (targetMargin.trim() || '0%'),
           currency,
           isTbc: commercialTbc,
         },
         team: {
-          projectManagerId: '10000000-0000-4000-8000-000000000004',
-          projectManagerName: pmName,
+          projectManagerId: currentUser?.id || '10000000-0000-4000-8000-000000000004',
+          projectManagerName: pmName || currentUser?.name || 'Lead Event PM',
         },
         workflowConfig: {
           stages: stages.map((s, idx) => ({
@@ -444,7 +469,7 @@ export const NewProjectWizardView: React.FC = () => {
             return (
               <button
                 key={s.num}
-                onClick={() => setCurrentStep(s.num)}
+                onClick={() => handleStepClick(s.num)}
                 style={{
                   padding: '8px 4px',
                   borderRadius: '6px',
@@ -674,7 +699,7 @@ export const NewProjectWizardView: React.FC = () => {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Qatar Tourism Demo Tender"
+                  placeholder="e.g. Global Innovation Summit & Exhibition 2026"
                   style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
@@ -753,7 +778,7 @@ export const NewProjectWizardView: React.FC = () => {
                 disabled={clientTbc}
                 value={clientTbc ? 'To Be Confirmed' : clientName}
                 onChange={(e) => setClientName(e.target.value)}
-                placeholder="e.g. Qatar Tourism Authority"
+                placeholder="e.g. Acme Global Corporation / Ministry of Culture"
                 style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
               />
             </div>
@@ -896,7 +921,7 @@ export const NewProjectWizardView: React.FC = () => {
                 disabled={venueTbc}
                 value={venueTbc ? 'To Be Confirmed' : venueName}
                 onChange={(e) => setVenueName(e.target.value)}
-                placeholder="e.g. Doha Exhibition & Convention Center"
+                placeholder="e.g. National Convention Center / Exhibition Hall"
                 style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
               />
             </div>
@@ -965,7 +990,7 @@ export const NewProjectWizardView: React.FC = () => {
                   disabled={commercialTbc}
                   value={commercialTbc ? 'To Be Confirmed' : estimatedValue}
                   onChange={(e) => setEstimatedValue(e.target.value)}
-                  placeholder="3,500,000"
+                  placeholder="e.g. 1,500,000"
                   style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
@@ -1023,7 +1048,7 @@ export const NewProjectWizardView: React.FC = () => {
                 onChange={(e) => setPmName(e.target.value)}
                 style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
               />
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Default: Zaid Mansour (pm@e3.qa)</span>
+              <span style={{ fontSize: '11px', color: '#64748b' }}>Assigned delivery manager</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -1318,7 +1343,7 @@ export const NewProjectWizardView: React.FC = () => {
                 size="md"
                 onClick={() => setCurrentStep(currentStep - 1)}
               >
-                {isRtl ? 'السابق ←' : '← Previous Step'}
+                {isRtl ? 'السابق →' : '← Previous Step'}
               </Button>
             )}
             <Button
@@ -1338,9 +1363,10 @@ export const NewProjectWizardView: React.FC = () => {
                 id="wizard-next-btn"
                 variant="primary"
                 size="md"
-                onClick={() => setCurrentStep(currentStep + 1)}
+                disabled={currentStep === 2 && (!code.trim() || !title.trim())}
+                onClick={handleNextStep}
               >
-                {isRtl ? 'التالي →' : 'Next Step →'}
+                {isRtl ? 'التالي ←' : 'Next Step →'}
               </Button>
             ) : (
               <Button

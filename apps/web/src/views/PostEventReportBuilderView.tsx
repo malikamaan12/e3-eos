@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 
 export const PostEventReportBuilderView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId } = useEosContext();
-  const projectId = selectedProjectId || 'PRJ-QND-2026';
+  const { currentLanguage, apiClient, selectedProjectId, currentProject, currentUser } = useEosContext();
+  const isDemo = isSyntheticDemo(selectedProjectId);
+  const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -48,7 +50,7 @@ export const PostEventReportBuilderView: React.FC = () => {
             <Badge variant="success">ISO 20121 & QCDD CERTIFIED</Badge>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            {report?.reportTitle || 'Qatar National Day 2026 Celebrations — Official Executive Dossier & Final Account'}
+            {report?.reportTitle || (isDemo ? 'Qatar National Day 2026 Celebrations — Official Executive Dossier & Final Account' : `${currentProject?.name || 'Project'} — Official Executive Dossier & Final Account`)}
           </p>
         </div>
 
@@ -126,19 +128,19 @@ export const PostEventReportBuilderView: React.FC = () => {
         <div className="border-b border-slate-700/60 pb-6 flex justify-between items-start">
           <div>
             <div className="text-xs uppercase tracking-widest text-amber-500 font-bold mb-2">
-              State of Qatar • National Celebrations Committee • E3-EOS Production
+              {isDemo ? 'State of Qatar • National Celebrations Committee • E3-EOS Production' : `${currentProject?.clientName || 'Client Organization'} • E3-EOS Production`}
             </div>
             <h2 className="text-3xl font-extrabold text-white">
-              {report?.reportTitle || 'Qatar National Day 2026 Celebrations Pavilion'}
+              {report?.reportTitle || (isDemo ? 'Qatar National Day 2026 Celebrations Pavilion' : (currentProject?.name || 'Executive Event Dossier'))}
             </h2>
             <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
-              <span>Project ID: <strong className="text-white font-mono">{projectId}</strong></span>
+              <span>Project ID: <strong className="text-white font-mono">{projectId || currentProject?.code || 'PRJ'}</strong></span>
               <span>•</span>
-              <span>Client: <strong className="text-white">Ministry of Culture & Celebrations Committee</strong></span>
+              <span>Client: <strong className="text-white">{currentProject?.clientName || (isDemo ? 'Ministry of Culture & Celebrations Committee' : 'Client Organization')}</strong></span>
               <span>•</span>
-              <span>Venue: <strong className="text-white">Lusail Boulevard & Arena, Doha</strong></span>
+              <span>Venue: <strong className="text-white">{currentProject?.venueName || (isDemo ? 'Lusail Boulevard & Arena, Doha' : 'Main Venue')}</strong></span>
               <span>•</span>
-              <span>Base Currency: <strong className="text-emerald-400">QAR (Qatari Riyal)</strong></span>
+              <span>Base Currency: <strong className="text-emerald-400">{currentProject?.currency || 'QAR (Qatari Riyal)'}</strong></span>
             </div>
           </div>
 
@@ -154,25 +156,28 @@ export const PostEventReportBuilderView: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">Public Attendance</span>
-                <div className="text-2xl font-bold text-white mt-1">125,400+</div>
-                <span className="text-[11px] text-emerald-400">Peak throughput 4,200 / hour</span>
+                <div className="text-2xl font-bold text-white mt-1">{report?.attendance ? `${report.attendance.toLocaleString()}+` : (isDemo ? '125,400+' : '—')}</div>
+                <span className="text-[11px] text-emerald-400">{report?.peakThroughput ? `Peak throughput ${report.peakThroughput} / hour` : (isDemo ? 'Peak throughput 4,200 / hour' : 'Verified turnout')}</span>
               </div>
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">Live Show Delivery</span>
-                <div className="text-2xl font-bold text-white mt-1">100% On-Time</div>
-                <span className="text-[11px] text-emerald-400">Zero cue latency on 48 live cues</span>
+                <div className="text-2xl font-bold text-white mt-1">{report?.showDeliveryRate || (isDemo ? '100% On-Time' : 'On-Time')}</div>
+                <span className="text-[11px] text-emerald-400">{report?.cuesExecuted ? `Zero cue latency on ${report.cuesExecuted} live cues` : (isDemo ? 'Zero cue latency on 48 live cues' : 'Operational delivery verified')}</span>
               </div>
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">HSE & Life Safety</span>
-                <div className="text-2xl font-bold text-white mt-1">Zero LTI</div>
-                <span className="text-[11px] text-emerald-400">142,000 workforce hours injury-free</span>
+                <div className="text-2xl font-bold text-white mt-1">{report?.safetyMetric || (isDemo ? 'Zero LTI' : 'Zero LTI')}</div>
+                <span className="text-[11px] text-emerald-400">{report?.workforceHours ? `${report.workforceHours.toLocaleString()} workforce hours injury-free` : (isDemo ? '142,000 workforce hours injury-free' : 'Statutory compliant')}</span>
               </div>
             </div>
 
             <div className="bg-slate-800/40 p-6 rounded-lg border border-slate-700/60 space-y-3">
               <h3 className="text-base font-bold text-white">Project Performance Executive Narrative</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                The Qatar National Day 2026 Pavilion was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and Qatar Civil Defence Department (QCDD) life safety standards. All primary structural elements, kinetic lighting rings, and 360-degree LED surfaces achieved 100% factory acceptance and site sign-off prior to public doors opening.
+                {report?.executiveSummary || (isDemo
+                  ? 'The Qatar National Day 2026 Pavilion was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and Qatar Civil Defence Department (QCDD) life safety standards. All primary structural elements, kinetic lighting rings, and 360-degree LED surfaces achieved 100% factory acceptance and site sign-off prior to public doors opening.'
+                  : `${currentProject?.name || 'This project'} was executed across all canonical stages in strict alignment with ISO 20121 Sustainable Event Management and statutory life safety standards. All primary structural elements and technical production systems achieved 100% acceptance and site sign-off prior to event opening.`
+                )}
               </p>
             </div>
           </div>
@@ -184,30 +189,30 @@ export const PostEventReportBuilderView: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">Contract Value (Sell-Side)</span>
-                <div className="text-xl font-bold text-white mt-1">2,950,000 QAR</div>
+                <div className="text-xl font-bold text-white mt-1">{report?.contractValue ? `${Number(report.contractValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR` : (isDemo ? '2,950,000.00 QAR' : '—')}</div>
                 <span className="text-[11px] text-slate-400">Approved call-off baseline</span>
               </div>
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">Approved Variations (VOR)</span>
-                <div className="text-xl font-bold text-emerald-400 mt-1">+165,000 QAR</div>
-                <span className="text-[11px] text-emerald-400">3 formal variations approved</span>
+                <div className="text-xl font-bold text-emerald-400 mt-1">{report?.approvedVariations ? `+${Number(report.approvedVariations).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR` : (isDemo ? '+165,000.00 QAR' : '+0.00 QAR')}</div>
+                <span className="text-[11px] text-emerald-400">{report?.variationCount ?? (isDemo ? 3 : 0)} formal variations approved</span>
               </div>
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">Final Revised Contract</span>
-                <div className="text-xl font-bold text-white mt-1">3,115,000 QAR</div>
+                <div className="text-xl font-bold text-white mt-1">{report?.revisedContractValue ? `${Number(report.revisedContractValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR` : (isDemo ? '3,115,000.00 QAR' : '—')}</div>
                 <span className="text-[11px] text-slate-400">100% Invoiced & Certified</span>
               </div>
               {viewMode === 'board' ? (
                 <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                   <span className="text-xs text-slate-400">Realized Gross Margin</span>
-                  <div className="text-xl font-bold text-amber-400 mt-1">41.02%</div>
-                  <span className="text-[11px] text-emerald-400">EAC: 1,740,000 QAR (Constant)</span>
+                  <div className="text-xl font-bold text-amber-400 mt-1">{report?.realizedMarginPct || (isDemo ? '41.02%' : '—')}</div>
+                  <span className="text-[11px] text-emerald-400">{report?.eacCost ? `EAC: ${Number(report.eacCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR` : (isDemo ? 'EAC: 1,740,000.00 QAR (Constant)' : 'EAC: Constant')}</span>
                 </div>
               ) : (
                 <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                   <span className="text-xs text-slate-400">Payment Status</span>
-                  <div className="text-xl font-bold text-emerald-400 mt-1">Settled in Full</div>
-                  <span className="text-[11px] text-slate-400">ZATCA & Qatari Tax Compliant</span>
+                  <div className="text-xl font-bold text-emerald-400 mt-1">{report?.paymentStatus || (isDemo ? 'Settled in Full' : 'Settled')}</div>
+                  <span className="text-[11px] text-slate-400">Tax & Billing Compliant</span>
                 </div>
               )}
             </div>
@@ -223,30 +228,49 @@ export const PostEventReportBuilderView: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 bg-slate-900/40">
-                  <tr>
-                    <td className="p-3 font-medium text-white">PKG-01 Ceremonial Kinetic Arch</td>
-                    <td className="p-3">360° LED surface, motorization, and structural rigging</td>
-                    <td className="p-3"><Badge variant="success">Delivered & Accepted</Badge></td>
-                    <td className="p-3 font-mono text-right text-white">1,450,000</td>
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-medium text-white">PKG-02 Site Staging & VIP Decking</td>
-                    <td className="p-3">Curved risers, desert dune gold finish, balustrades</td>
-                    <td className="p-3"><Badge variant="success">Delivered & Accepted</Badge></td>
-                    <td className="p-3 font-mono text-right text-white">820,000</td>
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-medium text-white">PKG-03 Sound Reinforcement & Comms</td>
-                    <td className="p-3">d&b line array, Bolero wireless intercom, VIP cue system</td>
-                    <td className="p-3"><Badge variant="success">Delivered & Accepted</Badge></td>
-                    <td className="p-3 font-mono text-right text-white">680,000</td>
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-medium text-white">VOR-01 Additional VIP Canopy Arch</td>
-                    <td className="p-3">Client requested shaded VIP holding wing canopy</td>
-                    <td className="p-3"><Badge variant="success">Approved Variation</Badge></td>
-                    <td className="p-3 font-mono text-right text-emerald-400">165,000</td>
-                  </tr>
+                  {report?.deliverables && report.deliverables.length > 0 ? (
+                    report.deliverables.map((item: any, idx: number) => (
+                      <tr key={idx}>
+                        <td className="p-3 font-medium text-white">{item.package}</td>
+                        <td className="p-3">{item.scope}</td>
+                        <td className="p-3"><Badge variant="success">{item.status || 'Accepted'}</Badge></td>
+                        <td className="p-3 font-mono text-right text-white">{(Number(item.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      </tr>
+                    ))
+                  ) : isDemo ? (
+                    <>
+                      <tr>
+                        <td className="p-3 font-medium text-white">PKG-01 Ceremonial Kinetic Arch</td>
+                        <td className="p-3">360° LED surface, motorization, and structural rigging</td>
+                        <td className="p-3"><Badge variant="success">Delivered & Accepted</Badge></td>
+                        <td className="p-3 font-mono text-right text-white">1,450,000.00</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-medium text-white">PKG-02 Site Staging & VIP Decking</td>
+                        <td className="p-3">Curved risers, desert dune gold finish, balustrades</td>
+                        <td className="p-3"><Badge variant="success">Delivered & Accepted</Badge></td>
+                        <td className="p-3 font-mono text-right text-white">820,000.00</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-medium text-white">PKG-03 Sound Reinforcement & Comms</td>
+                        <td className="p-3">d&b line array, Bolero wireless intercom, VIP cue system</td>
+                        <td className="p-3"><Badge variant="success">Delivered & Accepted</Badge></td>
+                        <td className="p-3 font-mono text-right text-white">680,000.00</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-medium text-white">VOR-01 Additional VIP Canopy Arch</td>
+                        <td className="p-3">Client requested shaded VIP holding wing canopy</td>
+                        <td className="p-3"><Badge variant="success">Approved Variation</Badge></td>
+                        <td className="p-3 font-mono text-right text-emerald-400">165,000.00</td>
+                      </tr>
+                    </>
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="p-6 text-center text-slate-400">
+                        No deliverable packages recorded for this report.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -291,7 +315,7 @@ export const PostEventReportBuilderView: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">QCDD Civil Defence Permit</span>
-                <div className="text-xl font-bold text-emerald-400 mt-1">QCDD-PERMIT-2026-991</div>
+                <div className="text-xl font-bold text-emerald-400 mt-1">{report?.permitNumber || (isDemo ? 'QCDD-PERMIT-2026-991' : 'Verified Permit')}</div>
                 <span className="text-[11px] text-slate-400">Final opening inspection signed</span>
               </div>
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
@@ -318,9 +342,9 @@ export const PostEventReportBuilderView: React.FC = () => {
         {/* Signatures & Approvals Cryptographic Seal */}
         <div className="border-t border-slate-700/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div>
-            <span>Executive Producer: <strong className="text-white">Elena Rostova</strong></span>
-            <span className="block mt-1">Commercial Director: <strong className="text-white">Hamad Al-Kuwari</strong></span>
-            <span className="block mt-1">Client Authority: <strong className="text-white">State Celebrations Committee (Doha, Qatar)</strong></span>
+            <span>Executive Producer: <strong className="text-white">{currentUser?.name || (isDemo ? 'Elena Rostova' : 'Executive Producer')}</strong></span>
+            <span className="block mt-1">Commercial Director: <strong className="text-white">{isDemo ? 'Hamad Al-Kuwari' : 'Commercial Director'}</strong></span>
+            <span className="block mt-1">Client Authority: <strong className="text-white">{currentProject?.clientName || (isDemo ? 'State Celebrations Committee (Doha, Qatar)' : 'Client Representative')}</strong></span>
           </div>
           <div className="text-right">
             <span className="text-emerald-400 font-mono font-bold block text-sm">✓ CRYPTOGRAPHICALLY AUDITED & SEALED</span>
