@@ -354,4 +354,88 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
       }
     });
   });
+
+  // ============================================================================
+  // AREA 7: H06 / C03 - Operational Evidence Isolation for Non-Demo Projects
+  // ============================================================================
+  describe('H06 / C03: Operational Evidence Isolation (No Mock Fallback Inheritance)', () => {
+    it('proves newly created projects do not inherit controlled documents, transmittals, or Gantt tasks', async () => {
+      const apiClient = new EosApiClient({
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: 'user-test',
+      });
+
+      const userProjectId = 'usr-prj-' + Date.now();
+
+      // 1. Controlled documents for non-demo must be empty
+      const docs = await apiClient.getControlledDocuments(userProjectId);
+      expect(docs).toEqual([]);
+
+      // 2. Transmittals for non-demo must be empty
+      const transmittals = await apiClient.getTransmittals(userProjectId);
+      expect(transmittals).toEqual([]);
+
+      // 3. Gantt schedule for non-demo must have zero tasks
+      const gantt = await apiClient.getGanttSchedule(userProjectId);
+      expect(gantt.schedule.tasks).toEqual([]);
+      expect(gantt.schedule.criticalTasksCount).toBe(0);
+
+      // 4. Project stages for non-demo must initialize with not_started and 0% completion
+      const stages = await apiClient.getProjectStages(userProjectId);
+      expect(stages).toHaveLength(13);
+      expect(stages.every((s) => s.status === 'not_started' && s.completionPercent === 0)).toBe(true);
+
+      // 5. Instantiated activities for non-demo must not have completed status for stages 1-9
+      const activities = await apiClient.getProjectActivities(userProjectId);
+      expect(activities.length).toBeGreaterThan(0);
+      expect(activities.every((a) => a.status === 'not_started')).toBe(true);
+    });
+  });
+
+  // ============================================================================
+  // AREA 8: H07 - Audit Trail Timestamp Stability
+  // ============================================================================
+  describe('H07: Audit Trail Timestamp Invariant Across Reloads', () => {
+    it('proves audit history timestamps remain static and immutable across cockpit reloads', async () => {
+      const internalReq = {
+        headers: {
+          'x-audience': 'internal',
+          'x-user-role': 'project_manager',
+          'x-organisation-id': '11111111-1111-4111-8111-111111111111',
+        },
+      } as any;
+
+      const cockpit1 = await projectsController.getCockpit('PRJ-QND-2026', internalReq);
+      const timestamps1 = cockpit1.data.activityHistory.map((a: any) => a.timestamp);
+
+      // Simulate delay
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const cockpit2 = await projectsController.getCockpit('PRJ-QND-2026', internalReq);
+      const timestamps2 = cockpit2.data.activityHistory.map((a: any) => a.timestamp);
+
+      expect(timestamps1).toEqual(timestamps2);
+      expect(timestamps1[0]).toBe('2026-09-12T08:00:00.000Z');
+      expect(timestamps1[1]).toBe('2026-09-13T10:30:00.000Z');
+      expect(timestamps1[2]).toBe('2026-09-14T14:15:00.000Z');
+    });
+  });
+
+  // ============================================================================
+  // AREA 9: H10 - Commercial Financial Consistency & Margin Bridge
+  // ============================================================================
+  describe('H10: Commercial Financial Consistency & Margin Bridge Isolation', () => {
+    it('proves margin bridge calculates exact canonical margins for demo and isolates user projects', async () => {
+      // Demo project bridge
+      const demoBridge = commercialFinanceController.getMarginBridge('PRJ-QND-2026');
+      expect(demoBridge.waterfall).toHaveLength(5);
+      expect(demoBridge.waterfall[2].marginPercent).toBe('20.41%'); // 500k / 2.45M
+      expect(demoBridge.waterfall[4].marginPercent).toBe('26.53%'); // 650k / 2.45M
+
+      // Non-demo project bridge must NOT leak QND figures
+      const nonDemoBridge = commercialFinanceController.getMarginBridge('usr-unregistered-proj');
+      expect(nonDemoBridge.waterfall).toEqual([]);
+      expect(nonDemoBridge.summary.tenderRevenue).toBe(0);
+    });
+  });
 });

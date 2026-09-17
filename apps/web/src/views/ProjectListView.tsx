@@ -311,7 +311,12 @@ export const ProjectListView: React.FC = () => {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              {isRtl ? `⚠️ غير مكتمل (${p.onboardingCompletionPct || 38}%)` : `⚠️ INCOMPLETE (${p.onboardingCompletionPct || 38}%)`}
+                              {(() => {
+                                const pct = (p.onboardingCompletionPct !== undefined && p.onboardingCompletionPct !== null)
+                                  ? p.onboardingCompletionPct
+                                  : (p.isOnboardingComplete ? 100 : 50);
+                                return isRtl ? `⚠️ غير مكتمل (${pct}%)` : `⚠️ INCOMPLETE (${pct}%)`;
+                              })()}
                             </span>
                             <button
                               id={`resume-onboarding-btn-${p.id}`}
@@ -381,7 +386,12 @@ export const ProjectListView: React.FC = () => {
                           borderRadius: '4px',
                         }}
                       >
-                        {isRtl ? `⚠️ غير مكتمل (${p.onboardingCompletionPct || 38}%)` : `⚠️ INCOMPLETE (${p.onboardingCompletionPct || 38}%)`}
+                        {(() => {
+                          const pct = (p.onboardingCompletionPct !== undefined && p.onboardingCompletionPct !== null)
+                            ? p.onboardingCompletionPct
+                            : (p.isOnboardingComplete ? 100 : 50);
+                          return isRtl ? `⚠️ غير مكتمل (${pct}%)` : `⚠️ INCOMPLETE (${pct}%)`;
+                        })()}
                       </span>
                     ) : (
                       <Badge variant={p.maturity === 'delivery' ? 'success' : 'info'}>

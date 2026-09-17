@@ -40,6 +40,7 @@ import {
   Money,
 } from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
+import { projectRepository } from '../projects/projects.controller.js';
 
 // In-Memory State Repositories for Sprint 05
 export const financialPositionsRepo = new Map<string, FinancialPositionInput>();
@@ -689,6 +690,37 @@ export class CommercialFinanceController {
   @Get('margin-bridge/:projectId')
   getMarginBridge(@Param('projectId') projectId: string) {
     seedCommercialData();
+    const isDemo =
+      projectId === 'PRJ-QND-2026' ||
+      projectId === 'f1111111-1111-4111-8111-111111111111' ||
+      projectId === '00000000-0000-4000-8000-000000000001';
+
+    if (!isDemo) {
+      const proj = projectRepository.get(projectId);
+      const startingRevenue = Number(String(proj?.financialAssumptions?.revenueValue || '0').replace(/,/g, '')) || 0;
+      const startingCost = Number(String(proj?.financialAssumptions?.estimatedCost || '0').replace(/,/g, '')) || 0;
+      const margin = startingRevenue - startingCost;
+      const marginPct = startingRevenue > 0 ? `${((margin / startingRevenue) * 100).toFixed(2)}%` : '0.00%';
+
+      return {
+        projectId,
+        waterfall: startingRevenue > 0 ? [
+          { step: 'Tender Original Contract', revenue: startingRevenue.toString(), cost: startingCost.toString(), margin: margin.toString(), marginPercent: marginPct },
+          { step: 'Approved Client Variations', revenue: '+0', cost: '+0', margin: '+0', marginPercent: '0.00%' },
+          { step: 'Current Authorized Baseline', revenue: startingRevenue.toString(), cost: startingCost.toString(), margin: margin.toString(), marginPercent: marginPct },
+          { step: 'Procurement Savings & Cost Optimization', revenue: '0', cost: '0', margin: '0', marginPercent: 'N/A' },
+          { step: 'Final Forecast At Completion (EAC)', revenue: startingRevenue.toString(), cost: startingCost.toString(), margin: margin.toString(), marginPercent: marginPct },
+        ] : [],
+        summary: {
+          currency: proj?.financialAssumptions?.currency || 'QAR',
+          tenderRevenue: startingRevenue,
+          tenderCost: startingCost,
+          tenderMargin: margin,
+          tenderMarginPercent: marginPct,
+        },
+      };
+    }
+
     const bridge = FinancialCalculator.calculateMarginBridge({
       currency: 'QAR',
       tenderRevenue: '2300000',

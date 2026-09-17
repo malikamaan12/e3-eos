@@ -648,6 +648,26 @@ export class ProjectsController {
       } catch (e) {}
     }
 
+    let auditList: any[] = [];
+    if (this.dbService) {
+      try {
+        const aRes = await this.dbService.getPool().query(`
+          SELECT a.id, a.action, a.created_at, u.name as actor_name
+          FROM audit_events a
+          LEFT JOIN users u ON u.id = a.actor_id
+          WHERE a.project_id = $1
+          ORDER BY a.created_at ASC
+          LIMIT 10;
+        `, [id]);
+        auditList = aRes.rows.map(r => ({
+          id: r.id,
+          action: r.action === 'PROJECT_CREATED' ? 'Project Onboarded & Initialized' : r.action,
+          actor: r.actor_name || ownerName,
+          timestamp: r.created_at ? new Date(r.created_at).toISOString() : '2026-09-15T12:00:00.000Z',
+        }));
+      } catch (e) {}
+    }
+
     // Merge tasks from taskRepository (Fixes H04)
     const memTasks = Array.from(taskRepository.values())
       .filter((t) => t.projectId === id)
@@ -795,19 +815,19 @@ export class ProjectsController {
               id: 'act-01',
               action: 'Project Onboarded',
               actor: 'Zaid Mansour',
-              timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
+              timestamp: '2026-09-12T08:00:00.000Z',
             },
             {
               id: 'act-02',
               action: 'Stage 1 Onboarding Completed',
               actor: 'Fatima Al-Sulaiti (Director)',
-              timestamp: new Date(Date.now() - 3600000 * 12).toISOString(),
+              timestamp: '2026-09-13T10:30:00.000Z',
             },
             {
               id: 'act-03',
               action: 'CAD Structural Task Completed',
               actor: 'Karim Haddad',
-              timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+              timestamp: '2026-09-14T14:15:00.000Z',
             },
           ],
         },
@@ -912,16 +932,16 @@ export class ProjectsController {
         ],
         tasks: taskList,
         stages,
-        activityHistory: (() => {
-          return [
-            {
-              id: `act-${id ? id.slice(0, 8) : 'init'}`,
-              action: 'Project Onboarding Initialized',
-              actor: ownerName,
-              timestamp: '2026-09-15T12:00:00.000Z',
-            },
-          ];
-        })(),
+        activityHistory: auditList.length > 0
+          ? auditList
+          : [
+              {
+                id: `act-${id ? id.slice(0, 8) : 'init'}`,
+                action: 'Project Onboarding Initialized',
+                actor: ownerName,
+                timestamp: '2026-09-15T12:00:00.000Z',
+              },
+            ],
       },
     };
   }

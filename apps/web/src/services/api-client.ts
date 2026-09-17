@@ -302,6 +302,20 @@ export class EosApiClient {
       // Fallback
     }
     // Fallback computed from default stages
+    if (!isSyntheticDemo(projectId)) {
+      return Array.from({ length: 13 }, (_, i) => {
+        const num = i + 1;
+        return {
+          stageNumber: num,
+          stageCode: `STAGE-${String(num).padStart(2, '0')}`,
+          name: `Stage ${num}`,
+          description: `Lifecycle stage ${num}`,
+          status: 'not_started',
+          completionPercent: 0,
+          hasCriticalGate: num === 5 || num === 9 || num === 10 || num === 13,
+        };
+      });
+    }
     return Array.from({ length: 13 }, (_, i) => {
       const num = i + 1;
       return {
@@ -336,6 +350,9 @@ export class EosApiClient {
     // Fallback to local domain instantiation
     const stageNumbers = stageNumber ? [stageNumber] : Array.from({ length: 13 }, (_, i) => i + 1);
     const defaults = instantiateProjectActivities(projectId, stageNumbers);
+    if (!isSyntheticDemo(projectId)) {
+      return defaults;
+    }
     // Mark items in earlier stages as completed for demo realism
     return defaults.map((act) => {
       if (act.stageNumber < 10) {
@@ -1192,6 +1209,11 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'doc-001',
@@ -1264,6 +1286,11 @@ export class EosApiClient {
         return json.data || [];
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return [];
+    }
+
     return [
       {
         id: 'tr-001',
@@ -1319,6 +1346,21 @@ export class EosApiClient {
         return json.data;
       }
     } catch {}
+
+    if (!isSyntheticDemo(projectId)) {
+      return {
+        projectId,
+        schedule: {
+          projectDurationHours: 0,
+          criticalTasksCount: 0,
+          totalTasks: 0,
+          criticalPathTaskIds: [],
+          tasks: [],
+          shifts: [],
+        },
+      };
+    }
+
     return {
       projectId,
       schedule: {

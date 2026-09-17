@@ -300,7 +300,9 @@ export const ProjectCockpitView: React.FC = () => {
 
   // Fast-track incomplete detection
   const isIncomplete = cockpitData?.isOnboardingComplete === false || cockpitData?.isFastTrack;
-  const onboardingPct = cockpitData?.onboardingCompletionPct || 38;
+  const onboardingPct = (cockpitData?.onboardingCompletionPct !== undefined && cockpitData?.onboardingCompletionPct !== null)
+    ? cockpitData.onboardingCompletionPct
+    : (isIncomplete ? 50 : 100);
   const missingSectionsList: string[] = cockpitData?.missingSections || [
     'Client Approver & Signatory',
     'Confirmed Venue & Zone Specifications',
@@ -585,19 +587,19 @@ export const ProjectCockpitView: React.FC = () => {
         >
           {[
             { id: 'overview', icon: '📊', label: isRtl ? 'نظرة عامة والحوكمة' : 'Overview & Governance', badge: null },
-            { id: 'requirements', icon: '🎯', label: isRtl ? 'المصفوفة والمتطلبات' : 'Requirements', badge: '4' },
-            { id: 'clarifications', icon: '❓', label: isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI', badge: isRtl ? '٢ مفتوح' : '2 open' },
-            { id: 'documents', icon: '📑', label: isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents', badge: '3' },
-            { id: 'timeline', icon: '⏱️', label: isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt', badge: '72h CPM' },
-            { id: 'design', icon: '🎨', label: isRtl ? 'التصميم والإبداع' : 'Design & Creative', badge: isRtl ? '٤ حزم' : '4 pkgs' },
-            { id: 'commercial', icon: '💰', label: isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ', badge: isRtl ? '١.٥٢ م ر.ق' : 'QAR 1.52M' },
-            { id: 'procurement', icon: '🛒', label: isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ', badge: isRtl ? 'أمر شراء صادر' : 'PO Released' },
-            { id: 'production', icon: '🏭', label: isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC', badge: isRtl ? 'تم اجتياز QC' : 'QC Passed' },
-            { id: 'assets', icon: '📦', label: isRtl ? 'الأصول والمستودع' : 'Assets & Depot', badge: isRtl ? '٨ مقفلة' : '8 Locked' },
-            { id: 'logistics', icon: '🚚', label: isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet', badge: isRtl ? 'تم التوقيع' : 'POD Signed' },
-            { id: 'crew', icon: '👷', label: isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster', badge: isRtl ? '١١ س راحة' : '11h Rest' },
-            { id: 'site', icon: '📝', label: isRtl ? 'تقارير الموقع DSR' : 'Site & DSR', badge: isRtl ? 'مسجل' : 'DSR Logged' },
-            { id: 'readiness', icon: '🚦', label: isRtl ? 'بوابة الجاهزية' : 'Readiness Gate', badge: '100%' },
+            { id: 'requirements', icon: '🎯', label: isRtl ? 'المصفوفة والمتطلبات' : 'Requirements', badge: isDemo ? '4' : null },
+            { id: 'clarifications', icon: '❓', label: isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI', badge: isDemo ? (isRtl ? '٢ مفتوح' : '2 open') : null },
+            { id: 'documents', icon: '📑', label: isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents', badge: isDemo ? '3' : null },
+            { id: 'timeline', icon: '⏱️', label: isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt', badge: isDemo ? '72h CPM' : null },
+            { id: 'design', icon: '🎨', label: isRtl ? 'التصميم والإبداع' : 'Design & Creative', badge: isDemo ? (isRtl ? '٤ حزم' : '4 pkgs') : null },
+            { id: 'commercial', icon: '💰', label: isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ', badge: isDemo ? (isRtl ? '١.٥٢ م ر.ق' : 'QAR 1.52M') : null },
+            { id: 'procurement', icon: '🛒', label: isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ', badge: isDemo ? (isRtl ? 'أمر شراء صادر' : 'PO Released') : null },
+            { id: 'production', icon: '🏭', label: isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC', badge: isDemo ? (isRtl ? 'تم اجتياز QC' : 'QC Passed') : null },
+            { id: 'assets', icon: '📦', label: isRtl ? 'الأصول والمستودع' : 'Assets & Depot', badge: isDemo ? (isRtl ? '٨ مقفلة' : '8 Locked') : null },
+            { id: 'logistics', icon: '🚚', label: isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet', badge: isDemo ? (isRtl ? 'تم التوقيع' : 'POD Signed') : null },
+            { id: 'crew', icon: '👷', label: isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster', badge: isDemo ? (isRtl ? '١١ س راحة' : '11h Rest') : null },
+            { id: 'site', icon: '📝', label: isRtl ? 'تقارير الموقع DSR' : 'Site & DSR', badge: isDemo ? (isRtl ? 'مسجل' : 'DSR Logged') : null },
+            { id: 'readiness', icon: '🚦', label: isRtl ? 'بوابة الجاهزية' : 'Readiness Gate', badge: isDemo ? '100%' : null },
           ].map((tab) => {
             const isActive = cockpitModuleTab === tab.id;
             return (

@@ -92,6 +92,15 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
   ];
 
   const handleNext = () => {
+    if (step === 1 && !formData.clientOrgId) {
+      setError(currentLanguage === 'ar' ? 'يرجى اختيار جهة العميل قبل المتابعة.' : 'Please select a client organisation before proceeding.');
+      return;
+    }
+    if (step === 2 && (!formData.title.trim() || !formData.projectCode.trim())) {
+      setError(currentLanguage === 'ar' ? 'يرجى تقديم رمز المشروع وعنوان المشروع قبل المتابعة.' : 'Please provide both Project Code and Project Title before proceeding.');
+      return;
+    }
+    setError(null);
     if (step < 9) {
       setStep(step + 1);
     } else {
@@ -99,7 +108,26 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
     }
   };
 
+  const handleStepClick = (targetStep: number) => {
+    if (targetStep <= step) {
+      setError(null);
+      setStep(targetStep);
+      return;
+    }
+    if (step === 1 && !formData.clientOrgId) {
+      setError(currentLanguage === 'ar' ? 'يرجى اختيار جهة العميل قبل المتابعة.' : 'Please select a client organisation before proceeding.');
+      return;
+    }
+    if (step === 2 && (!formData.title.trim() || !formData.projectCode.trim())) {
+      setError(currentLanguage === 'ar' ? 'يرجى تقديم رمز المشروع وعنوان المشروع قبل المتابعة.' : 'Please provide both Project Code and Project Title before proceeding.');
+      return;
+    }
+    setError(null);
+    setStep(targetStep);
+  };
+
   const handleBack = () => {
+    setError(null);
     if (step > 1) {
       setStep(step - 1);
     }
@@ -234,7 +262,7 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
           {Array.from({ length: 9 }, (_, i) => i + 1).map((s) => (
             <div
               key={s}
-              onClick={() => s < step && setStep(s)}
+              onClick={() => handleStepClick(s)}
               style={{
                 flex: 1,
                 height: '6px',
@@ -747,7 +775,7 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
               id={step === 9 ? 'wizard-submit-btn' : 'wizard-next-btn'}
               variant="primary"
               onClick={handleNext}
-              disabled={isSubmitting}
+              disabled={isSubmitting || (step === 1 && !formData.clientOrgId) || (step === 2 && (!formData.title.trim() || !formData.projectCode.trim()))}
             >
               {isSubmitting
                 ? (currentLanguage === 'ar' ? 'جارِ التفعيل في قاعدة البيانات...' : 'Persisting to PostgreSQL...')
