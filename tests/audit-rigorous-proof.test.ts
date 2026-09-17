@@ -438,4 +438,162 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
       expect(nonDemoBridge.summary.tenderRevenue).toBe(0);
     });
   });
+
+  // ============================================================================
+  // AREA 10: Complete End-to-End Reproduction of 'The New Project Test' (Pages 2-3)
+  // ============================================================================
+  describe('Audit Report Pages 2-3: The New Project Test Reproduction & Fix Verification', () => {
+    const qaProjectCode = `QA-EOS-${Date.now()}`;
+    const qaProjectTitle = 'QA ONLY - EOS Lifecycle Audit - 2026-09-15';
+    const qaClientName = 'E3 INTERNAL QA - DO NOT OPERATE';
+    const qaVenueName = 'QA virtual venue - no booking; unknown status';
+    const qaManagerName = 'QA Test Manager - no operational assignment';
+    let qaProjectId: string;
+
+    it('proves creating a project preserves submitted identity, client, venue, dates, and zero baseline without leaking demo fixtures', async () => {
+      const createRes = await projectsController.createProject({
+        projectIdentity: {
+          code: qaProjectCode,
+          title: qaProjectTitle,
+          description: 'Automated reproduction of the audit test on Page 2 of report',
+        },
+        originRoute: 'DIRECT_AWARD',
+        clientStakeholders: {
+          clientOrganisationId: '22222222-2222-4222-8222-222222222222',
+          clientName: qaClientName,
+        },
+        venue: {
+          venueName: qaVenueName,
+          hallZone: 'virtual',
+        },
+        team: {
+          projectManagerName: qaManagerName,
+          projectManagerId: userId,
+        },
+        dates: {
+          eventStartDate: '2026-12-20',
+          bumpInDate: '2026-12-18',
+          bumpOutDate: '2026-12-21',
+        },
+        commercialStartingPoint: {
+          revenueValue: '0',
+          targetMargin: '0%',
+          classificationTag: 'Lump Sum Fixed Price',
+          currency: 'QAR',
+        },
+      }, {
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        headers: {},
+      } as any);
+
+      expect(createRes.data.status).toBe('draft_created');
+      qaProjectId = createRes.data.id;
+      expect(qaProjectId).toBeDefined();
+
+      // Verify cockpit projection for internal user
+      const internalCockpit = await projectsController.getCockpit(qaProjectId, {
+        headers: {
+          'x-audience': 'internal',
+          'x-user-role': 'project_manager',
+          'x-organisation-id': '11111111-1111-4111-8111-111111111111',
+        },
+      } as any);
+
+      const d = internalCockpit.data;
+      // 1. Identity & Origin
+      expect(d.projectCode).toBe(qaProjectCode);
+      expect(d.title).toBe(qaProjectTitle);
+      expect(d.clientName).toBe(qaClientName);
+      expect(d.venue.name).toBe(qaVenueName);
+      expect(d.pm.name).toBe(qaManagerName);
+
+      // 2. Dates
+      expect(d.dates.eventStart).toBe('2026-12-20');
+      expect(d.dates.moveIn).toBe('2026-12-18');
+      expect(d.dates.moveOut).toBe('2026-12-21');
+
+      // 3. Zero Baseline Financials (Fixes finding where 2.95M / 1.85M / 720k / 215k appeared)
+      expect(d.financials.contractValue).toBe(0);
+      expect(d.financials.committedCost).toBe(0);
+      expect(d.financials.actualCost).toBe(0);
+      expect(d.financials.budget).toBe(0);
+      expect(d.financials.expectedRevenue).toBe(0);
+      expect(d.financials.forecastMarginPercent).toBe(0);
+
+      // 4. Zero Initial Stage Progress (Fixes finding where stage 1 showed 100% and stage 2 showed 40%)
+      expect(d.stages).toHaveLength(13);
+      expect(d.stages.every((s: any) => s.status === 'not_started' && s.progressPercent === 0)).toBe(true);
+
+      // 5. Zero Initial Workstream Progress
+      expect(d.workstreamProgress.every((ws: any) => ws.progress === 0)).toBe(true);
+
+      // 6. Zero Inherited Outstanding Approvals & Blockers
+      expect(d.outstandingApprovals).toEqual([]);
+      expect(d.criticalBlockers).toEqual([]);
+    });
+
+    it('proves newly created task is persisted, discoverable in task list, and can progress to completed', async () => {
+      // Step 4 in Page 3 Audit: Create task returned 201, but Task GET returned []
+      const taskRes = await workController.createTask(
+        qaProjectId,
+        {
+          title: 'Perform Rigorous Venue Acoustic Pre-Inspection',
+          packageId: 'e1111111-1111-4111-8111-111111111111',
+          assigneeId: userId,
+        },
+        { organisationId: '11111111-1111-4111-8111-111111111111' } as any
+      );
+
+      const taskId = (taskRes as any).data?.id || (taskRes as any).id;
+      const payload = (taskRes as any).data?.payload || taskRes;
+      expect(taskId).toBeDefined();
+      expect(payload.title).toBe('Perform Rigorous Venue Acoustic Pre-Inspection');
+
+      // GET tasks must discover the new task
+      const taskListRes = await workController.getTasks(qaProjectId);
+      const taskList = Array.isArray(taskListRes) ? taskListRes : (taskListRes as any).data;
+      expect(taskList.length).toBeGreaterThan(0);
+      const found = taskList.find((t: any) => t.id === taskId);
+      expect(found).toBeDefined();
+      expect(found?.title).toBe('Perform Rigorous Venue Acoustic Pre-Inspection');
+      expect(found?.isCompleted).toBe(false);
+
+      // Complete the task and verify progression
+      await workController.completeTask(qaProjectId, taskId, { remarks: 'Inspection completed with zero acoustic flutter' });
+      const updatedListRes = await workController.getTasks(qaProjectId);
+      const updatedList = Array.isArray(updatedListRes) ? updatedListRes : (updatedListRes as any).data;
+      const updated = updatedList.find((t: any) => t.id === taskId);
+      expect(updated?.isCompleted).toBe(true);
+      expect(updated?.state).toBe('completed');
+    });
+
+    it('proves directory list discovers the QA project with non-inflated completion percentage', async () => {
+      const listRes = await projectsController.listProjects({
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        role: 'project_manager',
+        audience: 'internal',
+      } as any);
+
+      const foundProj = listRes.data.find((p) => p.projectCode === qaProjectCode || p.id === qaProjectId);
+      expect(foundProj).toBeDefined();
+      expect(foundProj?.title).toBe(qaProjectTitle);
+      expect(foundProj?.clientName).toBe(qaClientName);
+    });
+
+    it('proves client audience viewing this QA project receives strict zero-leak financial redaction', async () => {
+      const clientCockpit = await projectsController.getCockpit(qaProjectId, {
+        headers: {
+          'x-audience': 'client',
+          'x-user-role': 'client_representative',
+        },
+      } as any);
+
+      expect(clientCockpit.data.financials.isClientRedacted).toBe(true);
+      expect(clientCockpit.data.financials.budget).toBeNull();
+      expect(clientCockpit.data.financials.committedCost).toBeNull();
+      expect(clientCockpit.data.financials.actualCost).toBeNull();
+      expect(clientCockpit.data.outstandingApprovals).toEqual([]);
+    });
+  });
 });
+

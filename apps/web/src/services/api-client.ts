@@ -3287,7 +3287,7 @@ export class EosApiClient {
       status: 'healthy',
       service: 'e3-eos-api',
       environment: 'staging',
-      gitCommit: '22eb92b',
+      gitCommit: '4646673',
       timestamp: new Date().toISOString(),
     };
   }

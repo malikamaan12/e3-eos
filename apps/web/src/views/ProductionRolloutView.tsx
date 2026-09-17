@@ -22,7 +22,7 @@ export type RolloutTab =
 
 export const ProductionRolloutView: React.FC = () => {
   const { currentPath, currentProject, apiClient } = useEosContext();
-  const [liveCommit, setLiveCommit] = useState<string>('22eb92b');
+  const [liveCommit, setLiveCommit] = useState<string>('4646673');
 
   const getInitialTab = (): RolloutTab => {
     if (typeof window !== 'undefined' && window.location.search.includes('role=')) return 'uat-progress';
@@ -1166,7 +1166,7 @@ export const ProductionRolloutView: React.FC = () => {
             <MetricCard
               title="Test Suite Pass Rate"
               value="100% (49 Files)"
-              subtitle="496 tests passing, 0 failures"
+              subtitle="503 tests passing, 0 failures"
               badge={{ label: "100% Passed", variant: "success" }}
               accentColor="#059669"
             />

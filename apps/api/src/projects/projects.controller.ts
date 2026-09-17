@@ -906,6 +906,7 @@ export class ProjectsController {
             }
           : {
               currency,
+              contractValue: startingRevenue,
               budget: startingRevenue,
               committedCost: 0,
               actualCost: 0,
