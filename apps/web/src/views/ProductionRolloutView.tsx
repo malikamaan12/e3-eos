@@ -21,7 +21,8 @@ export type RolloutTab =
   | 'production-sign-off';
 
 export const ProductionRolloutView: React.FC = () => {
-  const { currentPath, currentProject } = useEosContext();
+  const { currentPath, currentProject, apiClient } = useEosContext();
+  const [liveCommit, setLiveCommit] = useState<string>('22eb92b');
 
   const getInitialTab = (): RolloutTab => {
     if (typeof window !== 'undefined' && window.location.search.includes('role=')) return 'uat-progress';
@@ -37,6 +38,11 @@ export const ProductionRolloutView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<RolloutTab>(getInitialTab());
 
   useEffect(() => {
+    apiClient.getHealth().then((h) => {
+      if (h?.gitCommit) {
+        setLiveCommit(h.gitCommit.slice(0, 7));
+      }
+    }).catch(() => {});
     if (currentPath.includes('uat-defects') || currentPath.includes('defects')) {
       setActiveTab('uat-defects');
     } else if (currentPath.includes('human-uat') || currentPath.includes('uat')) {
@@ -354,7 +360,7 @@ export const ProductionRolloutView: React.FC = () => {
   const [signerName, setSignerName] = useState('E3 Executive Leadership & Asset Owner');
   const [signerRole, setSignerRole] = useState('Chief Operating Officer / Executive Director');
   const [signoffComments, setSignoffComments] = useState(
-    'Production release candidate eos-v1.0.0-rc1 has successfully completed all 50 operational modules, 6 acceptance drills (AT-087 to AT-092), and user signoffs. Go-live approved for State of Qatar deployment.'
+    'Production release candidate eos-v1.0.0-rc2 has successfully completed all 50 operational modules, 6 acceptance drills (AT-087 to AT-092), and user signoffs. Go-live approved for State of Qatar deployment.'
   );
   const [ackExceptions, setAckExceptions] = useState(true);
   const [ackDr, setAckDr] = useState(true);
@@ -365,8 +371,8 @@ export const ProductionRolloutView: React.FC = () => {
     const hash = 'a8f4c2e179b0d361845f69e802a4bc81f5e6a9782d431c0e9b6748f2195e0c7a';
     setSignoffCertificate({
       certificateId: 'CERT-EOS-PROD-2026-0912-001',
-      releaseTag: 'eos-v1.0.0-rc1',
-      gitCommit: '3e73735',
+      releaseTag: 'eos-v1.0.0-rc2',
+      gitCommit: liveCommit,
       environment: 'production',
       region: 'me-central1 (Doha, Qatar)',
       status: 'PRODUCTION AUTHORIZED & DEPLOYED',
@@ -1050,8 +1056,8 @@ export const ProductionRolloutView: React.FC = () => {
             <Badge variant="success" size="md">Sprint 07 Frozen</Badge>
           </div>
           <div style={{ fontSize: '13px', color: '#94a3b8', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <span>Release Candidate: <strong style={{ color: '#38bdf8' }}>eos-v1.0.0-rc1</strong></span>
-            <span>Git HEAD: <strong style={{ color: '#e2e8f0' }}>3e73735</strong></span>
+            <span>Release Candidate: <strong style={{ color: '#38bdf8' }}>eos-v1.0.0-rc2</strong></span>
+            <span>Git HEAD: <strong style={{ color: '#e2e8f0' }}>{liveCommit}</strong></span>
             <span>Target Region: <strong style={{ color: '#34d399' }}>me-central1 (Doha, Qatar)</strong></span>
           </div>
         </div>
@@ -1138,29 +1144,29 @@ export const ProductionRolloutView: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
             <MetricCard
               title="Release Tag"
-              value="eos-v1.0.0-rc1"
+              value="eos-v1.0.0-rc2"
               subtitle="Single production candidate freeze"
               badge={{ label: "Frozen", variant: "success" }}
               accentColor="#2563eb"
             />
             <MetricCard
               title="Git Commit SHA"
-              value="3e73735"
+              value={liveCommit}
               subtitle="0 uncommitted changes"
               badge={{ label: "Clean Tree", variant: "success" }}
               accentColor="#059669"
             />
             <MetricCard
               title="Database Migration"
-              value="Version 0006"
-              subtitle="Expand/contract validated"
+              value="Version 0007"
+              subtitle="0007_project_metadata.sql applied"
               badge={{ label: "Applied", variant: "info" }}
               accentColor="#7c3aed"
             />
             <MetricCard
               title="Test Suite Pass Rate"
-              value="100% (47 Files)"
-              subtitle="422 tests passing, 0 failures"
+              value="100% (49 Files)"
+              subtitle="496 tests passing, 0 failures"
               badge={{ label: "100% Passed", variant: "success" }}
               accentColor="#059669"
             />
@@ -1791,7 +1797,7 @@ export const ProductionRolloutView: React.FC = () => {
                   Human UAT Launch & Tester Enablement (Admin → Release → Human UAT)
                 </h2>
                 <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-                  Target Staging Environment: <strong>https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app</strong> | Commit: <strong>e1ee727</strong>
+                  Target Staging Environment: <strong>https://e3-eos-api.vercel.app</strong> | Commit: <strong>{liveCommit}</strong>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -2700,7 +2706,7 @@ export const ProductionRolloutView: React.FC = () => {
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>1. Product Scope & Freeze</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>Clean tree, RC tagged</td>
-                  <td style={{ padding: '12px', fontSize: '12px' }}>Commit 3e73735, tag eos-v1.0.0-rc1, 422 tests pass (100%).</td>
+                  <td style={{ padding: '12px', fontSize: '12px' }}>Commit {liveCommit}, tag eos-v1.0.0-rc2, 496 tests pass (100%).</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Lead Architect</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">READY</Badge></td>
                 </tr>

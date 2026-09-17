@@ -14,17 +14,19 @@ function getEnvironment(): string {
   return env || 'staging';
 }
 
-function resolveGitCommit(): string {
+export function resolveGitCommit(): string {
   if (process.env.GIT_COMMIT) return process.env.GIT_COMMIT;
   if (process.env.BUILD_SHA) return process.env.BUILD_SHA;
+  if (process.env.VERCEL_GIT_COMMIT_SHA) return process.env.VERCEL_GIT_COMMIT_SHA;
   try {
     const rev = execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
     if (rev) return rev;
   } catch {}
-  return '2810586b627cfc1f6b55359a35e406aa8c7d6dfa';
+  return '22eb92b7617b700140798e1467bece201991d798';
 }
 
-const GIT_COMMIT = resolveGitCommit();
+export const GIT_COMMIT = resolveGitCommit();
+
 
 @Controller('health')
 export class HealthController {

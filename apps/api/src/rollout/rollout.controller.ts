@@ -48,6 +48,7 @@ import {
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
+import { GIT_COMMIT } from '../common/health.controller.js';
 import { poRepository } from '../procurement/procurement.controller.js';
 
 export interface StoredProductionGate extends ProductionGateResult {
@@ -852,8 +853,8 @@ export class RolloutController {
     const env = (process.env.NODE_ENV === 'production' ? 'production' : 'staging') as 'production' | 'staging';
     const evaluation = GoLiveEngine.evaluate({
       environment: env,
-      releaseTag: 'eos-v1.0.0-rc1',
-      gitCommit: 'e1ee727',
+      releaseTag: 'eos-v1.0.0-rc2',
+      gitCommit: GIT_COMMIT.slice(0, 7),
       evaluatedBy: (req.headers['x-user-id'] as string) || 'E3 Operational Readiness Board',
     });
 
@@ -890,7 +891,7 @@ export class RolloutController {
     const payloadToHash = {
       ...parseResult.data,
       signedAt,
-      systemNonce: 'eos-prod-release-v1.0.0-rc1-e1ee727',
+      systemNonce: `eos-prod-release-${parseResult.data.releaseTag}-${parseResult.data.gitCommit}`,
     };
     const auditHash = safeSha256(payloadToHash);
 

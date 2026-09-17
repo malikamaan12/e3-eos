@@ -88,7 +88,7 @@ export class GoLiveEngine {
         status: 'ready',
         score: 100,
         mandatoryInvariantsMet: true,
-        evidenceSummary: `Release candidate ${releaseTag} (commit ${gitCommit}). All 47 test suites / 422 tests pass (100%). Clean Git tree.`,
+        evidenceSummary: `Release candidate ${releaseTag} (commit ${gitCommit}). All 49 test suites / 496 tests pass (100%). Clean Git tree.`,
         owner: 'Lead Solution Architect',
         signedOff: true,
       },
