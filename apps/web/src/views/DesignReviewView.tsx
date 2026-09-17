@@ -327,7 +327,7 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
             <span style={{ fontSize: '12px', fontWeight: 800, color: '#f43f5e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Design Register & Creative Review
             </span>
-            <Badge variant="info">Stage 04: Technical Design Development</Badge>
+            <Badge variant="info">Stage 04: Clarification and Design Development</Badge>
           </div>
           <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
             {designPackage.title}

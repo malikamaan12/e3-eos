@@ -311,6 +311,13 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
               </div>
             </div>
           ))}
+          {transmittals.length === 0 && (
+            <div style={{ padding: '24px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
+              <div style={{ fontSize: '20px', marginBottom: '4px' }}>📦</div>
+              <div style={{ fontWeight: 700, color: '#334155', fontSize: '13px' }}>No transmittals issued yet</div>
+              <div style={{ fontSize: '11px', marginTop: '2px' }}>Issue a transmittal pack to distribute controlled documents with strict profit margin redaction.</div>
+            </div>
+          )}
         </div>
       </Card>
 

@@ -479,6 +479,13 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 </div>
               </Card>
             ))}
+            {reports.length === 0 && (
+              <Card style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                <div style={{ fontSize: '28px', marginBottom: '8px' }}>📅</div>
+                <div style={{ fontWeight: 700, color: '#334155', fontSize: '15px' }}>No Daily Site Reports Recorded</div>
+                <div style={{ fontSize: '13px', marginTop: '4px' }}>Click "+ Record Daily Site Report" to log daily shift progress, manpower, and safety tracking.</div>
+              </Card>
+            )}
           </div>
         </div>
       )}
@@ -559,6 +566,13 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 </Card>
               );
             })}
+            {installationItems.length === 0 && (
+              <Card style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                <div style={{ fontSize: '28px', marginBottom: '8px' }}>🏗️</div>
+                <div style={{ fontWeight: 700, color: '#334155', fontSize: '15px' }}>No Installation Elements Assigned</div>
+                <div style={{ fontSize: '13px', marginTop: '4px' }}>Staging, AV, lighting, and scenic items will appear here as materials arrive on site.</div>
+              </Card>
+            )}
           </div>
         </div>
       )}
@@ -877,6 +891,21 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             </div>
           </Card>
         </div>
+      )}
+
+      {activeSection === 'readiness' && !readinessData && (
+        <Card style={{ padding: '48px 24px', textAlign: 'center', color: '#64748b' }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>🚦</div>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0' }}>
+            10-Dimension Readiness Gate Not Yet Evaluated
+          </h3>
+          <p style={{ fontSize: '13px', margin: '0 0 16px 0', maxWidth: '500px', marginInline: 'auto' }}>
+            Compute real-time operational readiness across all 10 canonical delivery dimensions (structural, fire safety, permits, logistics, AV/rigging, crew, catering, security, protocol, and rehearsal).
+          </p>
+          <Button variant="primary" onClick={handleEvaluateReadiness}>
+            ⚡ Evaluate Operational Readiness Now
+          </Button>
+        </Card>
       )}
 
       {/* SECTION 4: SAFETY PUNCH-LIST & READY-TO-OPEN (RTO) GATE (AT-058 / P04-ST05) */}

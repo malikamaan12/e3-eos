@@ -218,6 +218,15 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
                   </td>
                 </tr>
               ))}
+              {allocations.length === 0 && (
+                <tr>
+                  <td colSpan={6} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📦</div>
+                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Confirmed Asset Allocations</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Internal warehouse assets will appear here once reserved for this project.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -471,6 +480,15 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
                   </td>
                 </tr>
               ))}
+              {assets.length === 0 && (
+                <tr>
+                  <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>🏢</div>
+                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Assets in Warehouse Inventory</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Registered serialized assets and staging equipment will appear here.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

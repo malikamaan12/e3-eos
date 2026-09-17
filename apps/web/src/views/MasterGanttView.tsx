@@ -14,35 +14,35 @@ export interface CanonicalStageMeta {
 }
 
 export const CANONICAL_13_STAGES: CanonicalStageMeta[] = [
-  { stageNumber: 1, code: 'STAGE-01', name: 'Strategic Intake & Feasibility Assessment', description: 'Origin, route selection, and initial project boundary', prerequisiteStages: [], mandatoryGateEvidence: 'Charter Signed & Account Opened' },
-  { stageNumber: 2, code: 'STAGE-02', name: 'Commercial Proposal & Bid Pricing', description: 'Commercial cost build-up, rate library, and client quote', prerequisiteStages: [1], mandatoryGateEvidence: 'Client Formal Quotation' },
-  { stageNumber: 3, code: 'STAGE-03', name: 'Four-Eyes Executive Gate Sign-off', description: 'Executive partner approval and margin validation', prerequisiteStages: [2], mandatoryGateEvidence: 'Executive Four-Eyes Sign-Off' },
-  { stageNumber: 4, code: 'STAGE-04', name: 'Client Contracting & PO Issuance', description: 'Client award, contract execution, and advance billing', prerequisiteStages: [3], mandatoryGateEvidence: 'Signed Contract / Binding LOI' },
-  { stageNumber: 5, code: 'STAGE-05', name: 'Creative Concept & 3D Spatial Renders', description: 'Visual identity, spatial designs, and concept approval', prerequisiteStages: [4], mandatoryGateEvidence: 'Approved Creative Concept & Key Visuals' },
-  { stageNumber: 6, code: 'STAGE-06', name: 'Technical Production & Structural CAD Rigging', description: 'Engineering WBS, rigging calculations, and MEP specs', prerequisiteStages: [5], mandatoryGateEvidence: 'Frozen Technical Drawings & CAD Specs' },
-  { stageNumber: 7, code: 'STAGE-07', name: 'Procurement Packages & Contractor Call-offs', description: 'Subcontractor packages, PO commitment, and RFQs', prerequisiteStages: [6], mandatoryGateEvidence: 'Committed Subcontractor POs' },
-  { stageNumber: 8, code: 'STAGE-08', name: 'Logistics Dispatch & Asset Allocation', description: 'Warehouse allocation, fleet transport, and gear prep', prerequisiteStages: [7], mandatoryGateEvidence: 'Fleet & Gear Dispatch Confirmation' },
-  { stageNumber: 9, code: 'STAGE-09', name: 'Civil Defence & HSE Zone Safety Clearance', description: 'Statutory approvals, venue permits, and site possession', prerequisiteStages: [7, 8], mandatoryGateEvidence: 'Civil Defense & Venue Access Permit' },
-  { stageNumber: 10, code: 'STAGE-10', name: 'Technical Readiness & Rehearsals', description: 'Truss load tests, system tuning, and run-through lock', prerequisiteStages: [9], mandatoryGateEvidence: 'Third-Party Rigging Load Sign-Off' },
-  { stageNumber: 11, code: 'STAGE-11', name: 'Live Event Operational Delivery', description: 'Telemetry, incident triage, and show calling', prerequisiteStages: [10], mandatoryGateEvidence: 'Show Readiness Endorsement' },
-  { stageNumber: 12, code: 'STAGE-12', name: 'Strike, Bump-out & Venue Handover', description: 'Teardown, inventory return, and dilapidation signoff', prerequisiteStages: [11], mandatoryGateEvidence: 'Venue Dilapidation Sign-Off' },
-  { stageNumber: 13, code: 'STAGE-13', name: 'Financial Closeout, EAC Finalization & Debrief', description: '3-way invoice matching, margin audit, and lessons learned', prerequisiteStages: [12], mandatoryGateEvidence: 'Audited Final Account & Variance Report' },
+  { stageNumber: 1, code: 'STAGE-01', name: 'Project Onboarding', description: 'Intake and brief capture', prerequisiteStages: [], mandatoryGateEvidence: 'Charter Signed & Account Opened' },
+  { stageNumber: 2, code: 'STAGE-02', name: 'Qualification and Feasibility', description: 'Go/No-go decisions and origin verification', prerequisiteStages: [1], mandatoryGateEvidence: 'Feasibility Approval' },
+  { stageNumber: 3, code: 'STAGE-03', name: 'Idea, Concept and First Draft', description: 'Creative development and 3D concept', prerequisiteStages: [2], mandatoryGateEvidence: 'Concept Sign-Off' },
+  { stageNumber: 4, code: 'STAGE-04', name: 'Clarification and Design Development', description: 'Design revisions and engineering alignment', prerequisiteStages: [3], mandatoryGateEvidence: 'Design Freeze' },
+  { stageNumber: 5, code: 'STAGE-05', name: 'Proposal, Submission and Authorisation', description: 'Commercial client submission and four-eyes gate', prerequisiteStages: [4], mandatoryGateEvidence: 'Proposal Formal Sign-Off' },
+  { stageNumber: 6, code: 'STAGE-06', name: 'Detailed Delivery Planning', description: 'Work packages and schedules', prerequisiteStages: [5], mandatoryGateEvidence: 'Baseline Schedule Locked' },
+  { stageNumber: 7, code: 'STAGE-07', name: 'Vendor Selection and Orders', description: 'Procurement and RFQs', prerequisiteStages: [6], mandatoryGateEvidence: 'Committed Subcontractor POs' },
+  { stageNumber: 8, code: 'STAGE-08', name: 'Production and Resource Preparation', description: 'Fabrication and reservations', prerequisiteStages: [7], mandatoryGateEvidence: 'QC Approval & Dispatch Release' },
+  { stageNumber: 9, code: 'STAGE-09', name: 'Logistics, Bump-in and Installation', description: 'Site build and transport', prerequisiteStages: [7, 8], mandatoryGateEvidence: 'Civil Defense & Venue Access Permit' },
+  { stageNumber: 10, code: 'STAGE-10', name: 'Finishing, Testing and Opening Readiness', description: 'Inspections and opening sign-off', prerequisiteStages: [9], mandatoryGateEvidence: 'Third-Party Rigging Load Sign-Off' },
+  { stageNumber: 11, code: 'STAGE-11', name: 'Operations and Delivery', description: 'Live event delivery', prerequisiteStages: [10], mandatoryGateEvidence: 'Show Readiness Endorsement' },
+  { stageNumber: 12, code: 'STAGE-12', name: 'Bump-out and Reconciliation', description: 'Dismantle and venue handover', prerequisiteStages: [11], mandatoryGateEvidence: 'Venue Dilapidation Sign-Off' },
+  { stageNumber: 13, code: 'STAGE-13', name: 'Post-event Report, Closure and Learning', description: 'Settlement and lessons learned', prerequisiteStages: [12], mandatoryGateEvidence: 'Audited Final Account & Variance Report' },
 ];
 
 export const INITIAL_CANONICAL_TASKS = [
   { id: 'TSK-01', code: 'TSK-010', title: 'Charter & Project Inception Brief', durationHours: 6, stageNumber: 1, isCritical: true, completed: true, predecessorIds: [] },
-  { id: 'TSK-02', code: 'TSK-020', title: 'Creative Concept & 3D Spatial Visualizer', durationHours: 8, stageNumber: 2, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-01' }] },
-  { id: 'TSK-03', code: 'TSK-030', title: 'Commercial BOQ & Vendor Cost Build-up', durationHours: 8, stageNumber: 3, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-02' }] },
-  { id: 'TSK-04', code: 'TSK-040', title: 'Client Award & Legal Contract Execution', durationHours: 6, stageNumber: 4, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-03' }] },
-  { id: 'TSK-05', code: 'TSK-050', title: 'Engineering WBS & Structural CAD Release', durationHours: 12, stageNumber: 5, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-04' }] },
-  { id: 'TSK-06', code: 'TSK-060', title: 'Long-Lead AV & Lighting Subcontractor POs', durationHours: 14, stageNumber: 6, isCritical: false, completed: true, predecessorIds: [{ id: 'TSK-05' }] },
-  { id: 'TSK-07', code: 'TSK-070', title: 'Civil Defense & Venue Access Permits', durationHours: 10, stageNumber: 7, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-05' }] },
-  { id: 'TSK-08', code: 'TSK-080', title: 'Scenic Joinery Off-Site Mockup QA', durationHours: 18, stageNumber: 8, isCritical: false, completed: true, predecessorIds: [{ id: 'TSK-06' }] },
+  { id: 'TSK-02', code: 'TSK-020', title: 'Qualification & Technical Feasibility', durationHours: 8, stageNumber: 2, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-01' }] },
+  { id: 'TSK-03', code: 'TSK-030', title: 'Creative Concept & 3D Spatial Visualizer', durationHours: 8, stageNumber: 3, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-02' }] },
+  { id: 'TSK-04', code: 'TSK-040', title: 'Clarifications & Engineering Alignment', durationHours: 6, stageNumber: 4, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-03' }] },
+  { id: 'TSK-05', code: 'TSK-050', title: 'Proposal Submission & Executive Sign-off', durationHours: 12, stageNumber: 5, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-04' }] },
+  { id: 'TSK-06', code: 'TSK-060', title: 'Detailed Delivery Planning & WBS', durationHours: 14, stageNumber: 6, isCritical: false, completed: true, predecessorIds: [{ id: 'TSK-05' }] },
+  { id: 'TSK-07', code: 'TSK-070', title: 'Vendor Packages & Subcontractor POs', durationHours: 10, stageNumber: 7, isCritical: true, completed: true, predecessorIds: [{ id: 'TSK-06' }] },
+  { id: 'TSK-08', code: 'TSK-080', title: 'Production & Resource Preparation', durationHours: 18, stageNumber: 8, isCritical: false, completed: true, predecessorIds: [{ id: 'TSK-06' }] },
   { id: 'TSK-09', code: 'TSK-090', title: 'Convoy Logistics & Venue Bump-In', durationHours: 12, stageNumber: 9, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-07' }, { id: 'TSK-08' }] },
-  { id: 'TSK-10', code: 'TSK-100', title: 'Overhead Truss Rigging & Line Array Tuning', durationHours: 14, stageNumber: 10, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-09' }] },
-  { id: 'TSK-11', code: 'TSK-110', title: 'Live Show Execution & Protocol VIP Cue Run', durationHours: 8, stageNumber: 11, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-10' }] },
-  { id: 'TSK-12', code: 'TSK-120', title: 'Venue Strike, Cargo Packing & Dilapidation Sign-off', durationHours: 10, stageNumber: 12, isCritical: false, completed: false, predecessorIds: [{ id: 'TSK-11' }] },
-  { id: 'TSK-13', code: 'TSK-130', title: 'Final Account Commercial Audit & 3-Way Match', durationHours: 8, stageNumber: 13, isCritical: false, completed: false, predecessorIds: [{ id: 'TSK-12' }] },
+  { id: 'TSK-10', code: 'TSK-100', title: 'Testing, System Tuning & Opening Readiness', durationHours: 14, stageNumber: 10, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-09' }] },
+  { id: 'TSK-11', code: 'TSK-110', title: 'Live Show Execution & Operations', durationHours: 8, stageNumber: 11, isCritical: true, completed: false, predecessorIds: [{ id: 'TSK-10' }] },
+  { id: 'TSK-12', code: 'TSK-120', title: 'Venue Strike, Cargo Packing & Dilapidation', durationHours: 10, stageNumber: 12, isCritical: false, completed: false, predecessorIds: [{ id: 'TSK-11' }] },
+  { id: 'TSK-13', code: 'TSK-130', title: 'Final Account Commercial Audit & Debrief', durationHours: 8, stageNumber: 13, isCritical: false, completed: false, predecessorIds: [{ id: 'TSK-12' }] },
 ];
 
 interface MasterGanttViewProps {
@@ -59,12 +59,15 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
 
   // Operational Constraints state & modals
   const [constraints, setConstraints] = useState<any[]>([]);
-  const [selectedConstraint, setSelectedConstraint] = useState<any | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [isAttachModalOpen, setIsAttachModalOpen] = useState(false);
+  const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
   const [isInspectModalOpen, setIsInspectModalOpen] = useState<boolean>(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState<boolean>(false);
+  const [selectedConstraint, setSelectedConstraint] = useState<any | null>(null);
   const [constraintToVerify, setConstraintToVerify] = useState<any | null>(null);
-  const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [activeConstraint, setActiveConstraint] = useState<any | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
@@ -93,9 +96,10 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
   // Interactive Gantt & Drag-and-Drop State
   const [viewMode, setViewMode] = useState<'timeline' | 'stages'>('stages');
   const [localTasks, setLocalTasks] = useState<any[]>(() => {
+    if (!isDemo) return [];
     const rawTasks = INITIAL_CANONICAL_TASKS.map((t) => ({
       ...t,
-      completed: isDemo ? t.completed : false,
+      completed: t.completed,
     }));
     // Initial CPM calculation across 13 stages
     const cpm = calculateCpmSchedule(
@@ -266,11 +270,13 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
   const baselineDuration = 72;
   const activeTasks = localTasks.length > 0 ? localTasks : (ganttData?.schedule?.tasks || []);
   const shifts = ganttData?.shifts || [];
-  const projectDuration = Math.max(...activeTasks.map((t: any) => (t.earlyFinishHours || t.durationHours || 0)), 86);
+  const projectDuration = activeTasks.length > 0
+    ? Math.max(...activeTasks.map((t: any) => (t.earlyFinishHours || t.durationHours || 0)), isDemo ? 86 : 0)
+    : 0;
   const criticalCount = activeTasks.filter((t: any) => t.isCritical).length;
-  const scheduleVariance = projectDuration - baselineDuration;
-  const slippagePercent = ((scheduleVariance / baselineDuration) * 100).toFixed(1);
-  const hasSlippage = scheduleVariance > 0 && !isRecoveryApplied;
+  const scheduleVariance = activeTasks.length > 0 ? projectDuration - baselineDuration : 0;
+  const slippagePercent = activeTasks.length > 0 ? ((scheduleVariance / baselineDuration) * 100).toFixed(1) : '0.0';
+  const hasSlippage = activeTasks.length > 0 && scheduleVariance > 0 && !isRecoveryApplied;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -703,9 +709,16 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         {/* 2. VIEW MODE: CPM BAR TIMELINE */}
         {viewMode === 'timeline' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {activeTasks.map((t: any) => {
-              const leftPct = ((t.earlyStartHours || 0) / projectDuration) * 100;
-              const widthPct = Math.max(3, ((t.durationHours || 6) / projectDuration) * 100);
+            {activeTasks.length === 0 ? (
+              <div style={{ padding: '36px 20px', textAlign: 'center', color: '#64748b' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>No timeline activities scheduled</div>
+                <div style={{ fontSize: '12px' }}>Add canonical tasks or drag items from the stage board to populate the Critical Path Method timeline.</div>
+              </div>
+            ) : (
+              activeTasks.map((t: any) => {
+                const maxHours = projectDuration > 0 ? projectDuration : 72;
+                const leftPct = ((t.earlyStartHours || 0) / maxHours) * 100;
+                const widthPct = Math.max(3, ((t.durationHours || 6) / maxHours) * 100);
 
               return (
                 <div
@@ -794,7 +807,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                   </div>
                 </div>
               );
-            })}
+            }))}
           </div>
         )}
 

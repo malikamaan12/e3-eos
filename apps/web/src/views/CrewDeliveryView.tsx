@@ -455,6 +455,15 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                   </tr>
                 );
               })}
+              {crewAssignments.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>👥</div>
+                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Crew Members Assigned</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Assign field personnel, supervisors, and technicians to monitor work-rest and fatigue compliance.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

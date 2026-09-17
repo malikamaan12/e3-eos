@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Textarea, Select } from '../components/DesignSystem.js';
+import { isSyntheticDemo } from '../services/api-client.js';
 import {
   ClarificationItem,
   ClarificationStatus,
@@ -54,8 +55,8 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
       try {
         const res = await apiClient.getClarifications(projectId).catch(() => ({ data: [] }));
         if (isMounted) {
-          const isSyntheticDemo = projectId === 'f1111111-1111-4111-8111-111111111111' || projectId === '00000000-0000-4000-8000-000000000001';
-          const items: ClarificationItem[] = res?.data?.length > 0 ? res.data : (isSyntheticDemo ? getSeedClarifications(projectId) : []);
+          const isDemo = isSyntheticDemo(projectId);
+          const items: ClarificationItem[] = res?.data?.length > 0 ? res.data : (isDemo ? getSeedClarifications(projectId) : []);
           setClarifications(items);
         }
       } catch (err) {
