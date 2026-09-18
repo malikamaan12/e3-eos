@@ -3,6 +3,14 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "installCommand": "pnpm install",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "x-e3-release", "value": "1.0.1-scope-patch" }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
