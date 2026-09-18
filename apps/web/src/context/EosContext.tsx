@@ -150,7 +150,15 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return false;
   });
   const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceType>('leadership');
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('f1111111-1111-4111-8111-111111111111');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const parts = window.location.pathname.split('/');
+      if (parts[1] === 'projects' && parts[2] && parts[2] !== 'new') {
+        return parts[2];
+      }
+    }
+    return 'f1111111-1111-4111-8111-111111111111';
+  });
   const [pendingMutations, setPendingMutations] = useState<PendingOfflineMutation[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -273,7 +281,14 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     const handlePop = () => {
-      setCurrentPathState(window.location.pathname || '/');
+      const p = window.location.pathname || '/';
+      setCurrentPathState(p);
+      if (p.startsWith('/projects/') && p !== '/projects/new') {
+        const parts = p.split('/');
+        if (parts[2]) {
+          setSelectedProjectId(parts[2]);
+        }
+      }
     };
     window.addEventListener('popstate', handlePop);
     return () => window.removeEventListener('popstate', handlePop);

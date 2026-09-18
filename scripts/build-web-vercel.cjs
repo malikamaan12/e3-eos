@@ -38,6 +38,9 @@ const targetLocations = [
 
 for (const target of targetLocations) {
   if (target !== srcDist) {
+    if (fs.existsSync(target)) {
+      fs.rmSync(target, { recursive: true, force: true });
+    }
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.cpSync(srcDist, target, { recursive: true });
   }
