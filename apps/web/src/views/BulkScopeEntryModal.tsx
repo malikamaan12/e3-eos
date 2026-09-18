@@ -1,6 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Badge, Button, Modal, Textarea } from '../components/DesignSystem.js';
+import {
+  formatQuantityAndUnit,
+  inferPhysicalUnitAndQuantity,
+  normalizeEngineeringUnit,
+} from '@e3-eos/domain';
 
 interface BulkScopeEntryModalProps {
   isOpen: boolean;
@@ -131,6 +136,13 @@ export const BulkScopeEntryModal: React.FC<BulkScopeEntryModalProps> = ({
 
     const errors: any[] = [];
     rows.forEach((r) => {
+      // Normalize and infer physical engineering unit and quantity
+      const inferred = inferPhysicalUnitAndQuantity(r.title, r.description, r.quantity, r.unit);
+      r.quantity = r.quantity !== undefined ? r.quantity : inferred.quantity;
+      r.unit = (r.unit && !['units', 'unit'].includes(r.unit.trim().toLowerCase()))
+        ? normalizeEngineeringUnit(r.unit)
+        : inferred.unit;
+
       const rowErrors: string[] = [];
       if (!r.title || r.title.trim().length === 0) {
         rowErrors.push('Requirement Title is required');
@@ -544,7 +556,7 @@ export const BulkScopeEntryModal: React.FC<BulkScopeEntryModalProps> = ({
                           />
                         </td>
                         <td className="p-2.5 text-slate-300">
-                          {row.quantity ? `${row.quantity} ${row.unit || ''}` : '—'}
+                          {formatQuantityAndUnit(row.quantity, row.unit, row.title, row.description)}
                         </td>
                         <td className="p-2.5 text-center">
                           {rowError ? (

@@ -106,6 +106,8 @@ import {
   calculateRequirementReconciliation,
   generateSuggestedWorkPackages,
   generateDraftFulfilmentItems,
+  inferPhysicalUnitAndQuantity,
+  normalizeEngineeringUnit,
 } from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
@@ -214,6 +216,8 @@ function seedInitialScope() {
       linkedDesignVersion: 'Rev 01',
       linkedBoqLineCode: 'BOQ-AV-001',
       targetCostQar: 450000,
+      quantity: 45,
+      unit: 'meter',
       approvalRequestId: 'appr-req-001',
       isApproved: true,
       deliveryEvidenceHash: 'sha256-d41d8cd98f00b204e9800998ecf8427e',
@@ -245,6 +249,8 @@ function seedInitialScope() {
       linkedDesignVersion: 'Rev A',
       linkedBoqLineCode: 'BOQ-STG-002',
       targetCostQar: 780000,
+      quantity: 1200,
+      unit: 'sqm',
       approvalRequestId: 'appr-req-002',
       isApproved: true,
       fulfillmentStatus: 'in_design',
@@ -273,6 +279,8 @@ function seedInitialScope() {
       linkedDocumentNumber: 'E3-QND26-HSE-SPC-0003',
       linkedBoqLineCode: 'BOQ-HSE-003',
       targetCostQar: 125000,
+      quantity: 3500,
+      unit: 'sqm',
       fulfillmentStatus: 'costed',
       createdAt: '2026-09-07T09:00:00Z',
     };
@@ -293,6 +301,8 @@ function seedInitialScope() {
       priority: 'medium',
       status: 'draft',
       disposition: 'applicable',
+      quantity: 850,
+      unit: 'sqm',
       fulfillmentStatus: 'unassigned',
       createdAt: '2026-09-10T12:00:00Z',
     };
@@ -440,6 +450,10 @@ export class ScopeController {
         ? 'active'
         : 'draft');
 
+    const inferred = inferPhysicalUnitAndQuantity(data.title, data.description, data.quantity, data.unit);
+    const finalQuantity = data.quantity !== undefined && data.quantity !== null && data.quantity > 0 ? data.quantity : inferred.quantity;
+    const finalUnit = data.unit !== undefined && data.unit !== null && String(data.unit).trim() !== '' ? data.unit : inferred.unit;
+
     const newReq: StoredRequirement = {
       id: reqId,
       organisationId: orgId,
@@ -471,8 +485,8 @@ export class ScopeController {
       status: initialStatus,
       progress: data.progress ?? 0,
       acceptanceCriteria: data.acceptanceCriteria,
-      quantity: data.quantity,
-      unit: data.unit,
+      quantity: finalQuantity,
+      unit: finalUnit,
       locationZone: data.locationZone,
       notes: data.notes,
       disposition: (data.disposition as any) || 'applicable',
@@ -832,7 +846,7 @@ export class ScopeController {
     if (data.progress !== undefined) existing.progress = data.progress;
     if (data.acceptanceCriteria !== undefined) existing.acceptanceCriteria = data.acceptanceCriteria;
     if (data.quantity !== undefined) existing.quantity = data.quantity;
-    if (data.unit !== undefined) existing.unit = data.unit;
+    if (data.unit !== undefined) existing.unit = normalizeEngineeringUnit(data.unit);
     if (data.locationZone !== undefined) existing.locationZone = data.locationZone;
     if (data.notes !== undefined) existing.notes = data.notes;
     if (data.disposition !== undefined) existing.disposition = data.disposition as any;
@@ -1151,6 +1165,11 @@ export class ScopeController {
         row.ownerName ||
         (row.ownerId ? LOCAL_TEAM_ACCOUNTS.find((u) => u.id === row.ownerId)?.name || 'Discipline Lead' : undefined);
 
+      const rowNormUnit = row.unit ? normalizeEngineeringUnit(row.unit) : undefined;
+      const rowInferred = inferPhysicalUnitAndQuantity(row.title, row.description, row.quantity, rowNormUnit);
+      const rowFinalQuantity = row.quantity !== undefined && row.quantity !== null && row.quantity > 0 ? row.quantity : rowInferred.quantity;
+      const rowFinalUnit = row.unit !== undefined && row.unit !== null && String(row.unit).trim() !== '' ? row.unit : rowInferred.unit;
+
       const newReq: StoredRequirement = {
         id: reqId,
         organisationId: orgId,
@@ -1176,8 +1195,8 @@ export class ScopeController {
         status: (row.status as any) || 'draft',
         progress: row.progress ?? 0,
         acceptanceCriteria: row.acceptanceCriteria,
-        quantity: row.quantity,
-        unit: row.unit,
+        quantity: rowFinalQuantity,
+        unit: rowFinalUnit,
         locationZone: row.locationZone,
         notes: row.notes,
         disposition: (row.disposition as any) || 'applicable',

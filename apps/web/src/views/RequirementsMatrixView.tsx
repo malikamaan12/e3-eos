@@ -5,6 +5,12 @@ import { RequirementDetailDrawer } from './RequirementDetailDrawer.js';
 import { BulkScopeEntryModal } from './BulkScopeEntryModal.js';
 import { DocumentParsingModal } from './DocumentParsingModal.js';
 import { ALL_LOCAL_TEAM_USERS } from '../context/canonical-users.js';
+import {
+  STANDARD_ENGINEERING_UNITS,
+  normalizeEngineeringUnit,
+  inferPhysicalUnitAndQuantity,
+  formatQuantityAndUnit,
+} from '@e3-eos/domain';
 
 interface RequirementsMatrixViewProps {
   projectId: string;
@@ -83,6 +89,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   const [quickOwnerName, setQuickOwnerName] = useState<string>('');
   const [quickDueDate, setQuickDueDate] = useState<string>('');
   const [quickPriority, setQuickPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('high');
+  const [quickQuantity, setQuickQuantity] = useState<string>('');
+  const [quickUnit, setQuickUnit] = useState<string>('sqm');
   const [isSubmittingQuick, setIsSubmittingQuick] = useState<boolean>(false);
 
   // Detailed Modal State
@@ -99,6 +107,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   const [reqOwnerName, setReqOwnerName] = useState<string>('');
   const [reqDueDate, setReqDueDate] = useState<string>('');
   const [reqTargetCost, setReqTargetCost] = useState<number>(0);
+  const [reqQuantity, setReqQuantity] = useState<string>('');
+  const [reqUnit, setReqUnit] = useState<string>('sqm');
   const [isSubmittingReq, setIsSubmittingReq] = useState<boolean>(false);
 
   // RFI Modal State
@@ -120,6 +130,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   const [editOwnerName, setEditOwnerName] = useState<string>('');
   const [editDueDate, setEditDueDate] = useState<string>('');
   const [editCost, setEditCost] = useState<string>('');
+  const [editQuantity, setEditQuantity] = useState<string>('');
+  const [editUnit, setEditUnit] = useState<string>('sqm');
   const [isSubmittingEdit, setIsSubmittingEdit] = useState<boolean>(false);
 
   useEffect(() => {
@@ -177,6 +189,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       const progressiveDesc = cleanTitle.length >= 5
         ? cleanTitle
         : `${cleanTitle} - Scope requirement`;
+      const numQty = quickQuantity && !isNaN(Number(quickQuantity)) && Number(quickQuantity) > 0
+        ? Number(quickQuantity)
+        : undefined;
       const res = await apiClient.createRequirement(projectId, {
         title: cleanTitle,
         description: progressiveDesc,
@@ -184,10 +199,14 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         ownerName: quickOwnerName ? quickOwnerName.trim() : undefined,
         dueDate: quickDueDate ? quickDueDate.trim() : undefined,
         priority: quickPriority,
+        quantity: numQty,
+        unit: quickUnit || undefined,
       });
       setQuickTitle('');
       setQuickOwnerName('');
       setQuickDueDate('');
+      setQuickQuantity('');
+      setQuickUnit('sqm');
       setIsQuickAddModalOpen(false);
       triggerRefresh();
       // If created with an id, open detail drawer for progressive enrichment
@@ -214,6 +233,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       const validCost = reqTargetCost && !isNaN(Number(reqTargetCost)) && Number(reqTargetCost) > 0
         ? Number(reqTargetCost)
         : undefined;
+      const numQty = reqQuantity && !isNaN(Number(reqQuantity)) && Number(reqQuantity) > 0
+        ? Number(reqQuantity)
+        : undefined;
 
       await apiClient.createRequirement(projectId, {
         code: reqCode.trim() ? reqCode.trim() : undefined,
@@ -228,6 +250,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         ownerName: reqOwnerName.trim() ? reqOwnerName.trim() : undefined,
         dueDate: reqDueDate.trim() ? reqDueDate.trim() : undefined,
         targetCostQar: validCost,
+        quantity: numQty,
+        unit: reqUnit || undefined,
       });
       setIsAddReqModalOpen(false);
       setReqTitle('');
@@ -239,6 +263,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       setReqOwnerName('');
       setReqDueDate('');
       setReqTargetCost(0);
+      setReqQuantity('');
+      setReqUnit('sqm');
       triggerRefresh();
     } catch (err: any) {
       alert(err.message || 'Failed to register requirement');
@@ -396,6 +422,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
     setEditOwnerName(ev.ownerName || '');
     setEditDueDate(ev.dueDate ? ev.dueDate.slice(0, 10) : '');
     setEditCost(ev.targetCostQar ? String(ev.targetCostQar) : '');
+    setEditQuantity(ev.quantity !== undefined && ev.quantity !== null ? String(ev.quantity) : '');
+    setEditUnit(ev.unit || 'sqm');
     setIsEditModalOpen(true);
   };
 
@@ -404,6 +432,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
     if (!editingReq || !editTitle.trim()) return;
     setIsSubmittingEdit(true);
     try {
+      const numQty = editQuantity && !isNaN(Number(editQuantity)) && Number(editQuantity) > 0
+        ? Number(editQuantity)
+        : undefined;
+
       await apiClient.updateRequirement(projectId, editingReq.requirementId || editingReq.id, {
         title: editTitle.trim(),
         description: editDescription.trim(),
@@ -413,6 +445,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         ownerName: editOwnerName.trim() || undefined,
         dueDate: editDueDate.trim() || undefined,
         targetCostQar: editCost ? parseFloat(editCost) : undefined,
+        quantity: numQty,
+        unit: editUnit || undefined,
       });
       setIsEditModalOpen(false);
       setEditingReq(null);
@@ -1326,7 +1360,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   {/* Quantity Tracking */}
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap', fontSize: '11px' }}>
                     <span style={{ backgroundColor: '#f1f5f9', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, color: '#0f172a' }}>
-                      Req: {ev.quantity ?? 1} {ev.unit || 'units'}
+                      Req: {formatQuantityAndUnit(ev.quantity, ev.unit, ev.title, ev.description)}
                     </span>
                     <span style={{ backgroundColor: (ev.allocatedQuantity || 0) >= (ev.quantity || 1) ? '#dcfce7' : '#fef3c7', color: (ev.allocatedQuantity || 0) >= (ev.quantity || 1) ? '#15803d' : '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Alloc: {ev.allocatedQuantity ?? 0}
@@ -1516,7 +1550,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   {/* Phase 2 Quantity Breakdown Pill */}
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap', fontSize: '11px' }}>
                     <span style={{ backgroundColor: '#f1f5f9', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, color: '#0f172a' }}>
-                      Req: {ev.quantity ?? 1} {ev.unit || 'units'}
+                      Req: {formatQuantityAndUnit(ev.quantity, ev.unit, ev.title, ev.description)}
                     </span>
                     <span style={{ backgroundColor: (ev.allocatedQuantity || 0) >= (ev.quantity || 1) ? '#dcfce7' : '#fef3c7', color: (ev.allocatedQuantity || 0) >= (ev.quantity || 1) ? '#15803d' : '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Alloc: {ev.allocatedQuantity ?? 0}
@@ -2379,6 +2413,36 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
           </div>
 
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Scope Quantity (Optional)</label>
+              <Input
+                type="number"
+                value={quickQuantity}
+                onChange={(e) => setQuickQuantity(e.target.value)}
+                placeholder="e.g. 45, 1200, 3500"
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Physical Engineering Unit</label>
+              <Select value={quickUnit} onChange={(e) => setQuickUnit(e.target.value)}>
+                <option value="sqm">sqm (Square Meters - m²)</option>
+                <option value="meter">meter (Linear Meters - m)</option>
+                <option value="lm">lm (Linear Meters)</option>
+                <option value="kg">kg (Kilograms)</option>
+                <option value="tonnes">tonnes (Metric Tonnes)</option>
+                <option value="set">set (Complete Assembly / Rig)</option>
+                <option value="pcs">pcs (Pieces / Units)</option>
+                <option value="nos">nos (Numbers)</option>
+                <option value="towers">towers (Delay / Scaffold Towers)</option>
+                <option value="panels">panels (LED Wall Panels)</option>
+                <option value="fixtures">fixtures (Lighting Fixtures)</option>
+                <option value="sqft">sqft (Square Feet)</option>
+              </Select>
+            </div>
+          </div>
+
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
             <Button variant="secondary" onClick={() => setIsQuickAddModalOpen(false)}>
               Cancel
@@ -2522,13 +2586,43 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
           </div>
 
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Due Date</label>
-            <Input
-              type="date"
-              value={reqDueDate}
-              onChange={(e) => setReqDueDate(e.target.value)}
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Required Quantity</label>
+              <Input
+                type="number"
+                value={reqQuantity}
+                onChange={(e) => setReqQuantity(e.target.value)}
+                placeholder="e.g. 1200, 45, 3500"
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Physical Unit of Measure</label>
+              <Select value={reqUnit} onChange={(e) => setReqUnit(e.target.value)}>
+                <option value="sqm">sqm (Square Meters - m²)</option>
+                <option value="meter">meter (Linear Meters - m)</option>
+                <option value="lm">lm (Linear Meters)</option>
+                <option value="kg">kg (Kilograms)</option>
+                <option value="tonnes">tonnes (Metric Tonnes)</option>
+                <option value="set">set (Complete Assembly / Rig)</option>
+                <option value="pcs">pcs (Pieces / Units)</option>
+                <option value="nos">nos (Numbers)</option>
+                <option value="towers">towers (Delay / Scaffold Towers)</option>
+                <option value="panels">panels (LED Wall Panels)</option>
+                <option value="fixtures">fixtures (Lighting Fixtures)</option>
+                <option value="sqft">sqft (Square Feet)</option>
+              </Select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Due Date</label>
+              <Input
+                type="date"
+                value={reqDueDate}
+                onChange={(e) => setReqDueDate(e.target.value)}
+              />
+            </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
@@ -2670,6 +2764,36 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 onChange={(e: any) => setEditOwnerName(e.target.value)}
                 placeholder="e.g. Karim Haddad"
               />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Scope Quantity</label>
+              <Input
+                type="number"
+                value={editQuantity}
+                onChange={(e: any) => setEditQuantity(e.target.value)}
+                placeholder="e.g. 1200"
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Physical Engineering Unit</label>
+              <Select value={editUnit} onChange={(e: any) => setEditUnit(e.target.value)}>
+                <option value="sqm">sqm (Square Meters - m²)</option>
+                <option value="meter">meter (Linear Meters - m)</option>
+                <option value="lm">lm (Linear Meters)</option>
+                <option value="kg">kg (Kilograms)</option>
+                <option value="tonnes">tonnes (Metric Tonnes)</option>
+                <option value="set">set (Complete Assembly / Rig)</option>
+                <option value="pcs">pcs (Pieces / Units)</option>
+                <option value="nos">nos (Numbers)</option>
+                <option value="towers">towers (Delay / Scaffold Towers)</option>
+                <option value="panels">panels (LED Wall Panels)</option>
+                <option value="fixtures">fixtures (Lighting Fixtures)</option>
+                <option value="sqft">sqft (Square Feet)</option>
+              </Select>
             </div>
           </div>
 

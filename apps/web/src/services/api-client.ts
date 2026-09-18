@@ -6,6 +6,9 @@ import {
   InstantiatedActivity,
   instantiateProjectActivities,
   parseIntelligentDocument,
+  inferPhysicalUnitAndQuantity,
+  normalizeEngineeringUnit,
+  formatQuantityAndUnit,
 } from '@e3-eos/domain';
 import { ClientPortalProjectView, ClientProjectionAdapter } from '../client-projection.js';
 import {
@@ -1076,19 +1079,24 @@ export class EosApiClient {
       !this.deletedRequirementsSet.has(e.id)
     );
 
-    // Apply cache updates (hold, freeze, edits)
+    // Apply cache updates (hold, freeze, edits) and ensure physical engineering units
     filtered = filtered.map((e: any) => {
       const id = e.requirementId || e.id;
       const cached = this.recentRequirementsCache.get(id);
-      if (cached) {
-        return {
-          ...e,
-          ...cached,
-          status: cached.status || e.status,
-          isBaselineFrozen: cached.isBaselineFrozen ?? e.isBaselineFrozen,
-        };
-      }
-      return e;
+      const merged = cached
+        ? {
+            ...e,
+            ...cached,
+            status: cached.status || e.status,
+            isBaselineFrozen: cached.isBaselineFrozen ?? e.isBaselineFrozen,
+          }
+        : e;
+      const inferred = inferPhysicalUnitAndQuantity(merged.title, merged.description, merged.quantity, merged.unit);
+      return {
+        ...merged,
+        quantity: merged.quantity !== undefined && merged.quantity !== null && Number(merged.quantity) > 0 ? merged.quantity : inferred.quantity,
+        unit: (merged.unit && !['units', 'unit'].includes(merged.unit.trim().toLowerCase())) ? merged.unit : inferred.unit,
+      };
     });
 
     // Merge in newly added cached items that might not be in the backend list yet
@@ -1096,6 +1104,7 @@ export class EosApiClient {
       if (!this.deletedRequirementsSet.has(id) && req.projectId === projectId) {
         const exists = filtered.some((e: any) => (e.requirementId === id || e.id === id));
         if (!exists) {
+          const inferred = inferPhysicalUnitAndQuantity(req.title, req.description, req.quantity, req.unit);
           filtered.unshift({
             requirementId: id,
             id,
@@ -1111,8 +1120,8 @@ export class EosApiClient {
             status: req.status || 'active',
             isBaselineFrozen: req.isBaselineFrozen || false,
             targetCostQar: req.targetCostQar,
-            quantity: req.quantity || 1,
-            unit: req.unit || 'units',
+            quantity: req.quantity !== undefined && req.quantity !== null && Number(req.quantity) > 0 ? req.quantity : inferred.quantity,
+            unit: (req.unit && !['units', 'unit'].includes(req.unit.trim().toLowerCase())) ? req.unit : inferred.unit,
             completedPoints: (req.ownerName ? 1 : 0) + (req.dueDate ? 1 : 0),
             totalPoints: 7,
             traceabilityScorePct: Math.round(((req.ownerName ? 1 : 0) + (req.dueDate ? 1 : 0)) / 7 * 100),
@@ -1175,6 +1184,19 @@ export class EosApiClient {
         {
           requirementId: 'req-001',
           code: 'REQ-QND-001',
+          title: 'Main Ceremony 360-Degree Kinetic LED Arch — General Elevation',
+          description: 'Continuous 360-degree motorized kinetic LED arch spanning Lusail Boulevard central court.',
+          category: 'creative_visual',
+          ownerName: 'Karim Haddad (Technical Director)',
+          dueDate: '2026-11-15T00:00:00Z',
+          targetCostQar: 450000,
+          status: 'approved',
+          quantity: 45,
+          unit: 'meter',
+          allocatedQuantity: 45,
+          releasedQuantity: 45,
+          producedQuantity: 45,
+          installedQuantity: 45,
           hasOwner: true,
           hasTargetDate: true,
           hasControlledDocument: true,
@@ -1192,6 +1214,19 @@ export class EosApiClient {
         {
           requirementId: 'req-002',
           code: 'REQ-QND-002',
+          title: 'Lusail Boulevard Royal Pavilion Structural Load Calculations & Footings',
+          description: 'Engineered footings, ballast calculations, and deadweight wind stability up to 75 km/h.',
+          category: 'staging_technical',
+          ownerName: 'Civil Defence Certified Structural Engineer',
+          dueDate: '2026-11-10T00:00:00Z',
+          targetCostQar: 780000,
+          status: 'active',
+          quantity: 1200,
+          unit: 'sqm',
+          allocatedQuantity: 1200,
+          releasedQuantity: 1200,
+          producedQuantity: 600,
+          installedQuantity: 0,
           hasOwner: true,
           hasTargetDate: true,
           hasControlledDocument: true,
@@ -1209,6 +1244,19 @@ export class EosApiClient {
         {
           requirementId: 'req-003',
           code: 'REQ-QND-003',
+          title: 'Fire Safety & Flame-Retardant Material Specifications (Law No. 13 Compliance)',
+          description: 'Qatar Civil Defence Department (QCDD) certified fire-resistant drapes, scenic fabrics, and ingress lanes.',
+          category: 'health_safety',
+          ownerName: 'HSE & Civil Defence Lead',
+          dueDate: '2026-11-01T00:00:00Z',
+          targetCostQar: 125000,
+          status: 'under_review',
+          quantity: 3500,
+          unit: 'sqm',
+          allocatedQuantity: 1000,
+          releasedQuantity: 0,
+          producedQuantity: 0,
+          installedQuantity: 0,
           hasOwner: true,
           hasTargetDate: true,
           hasControlledDocument: true,
@@ -1226,6 +1274,17 @@ export class EosApiClient {
         {
           requirementId: 'req-004',
           code: 'REQ-QND-004',
+          title: 'VIP Royal Protocol Red Carpet & Shaded Holding Majlis',
+          description: 'Ceremonial protocol carpet, shaded arrival portico, and Amiri Diwan secure access perimeter.',
+          category: 'protocol_ceremony',
+          dueDate: '2026-11-20T00:00:00Z',
+          status: 'draft',
+          quantity: 850,
+          unit: 'sqm',
+          allocatedQuantity: 0,
+          releasedQuantity: 0,
+          producedQuantity: 0,
+          installedQuantity: 0,
           hasOwner: false,
           hasTargetDate: true,
           hasControlledDocument: false,
@@ -1326,12 +1385,41 @@ export class EosApiClient {
       }
     }
 
+    let cleanQuantity: number | undefined = undefined;
+    if (payload.quantity !== undefined && payload.quantity !== null && payload.quantity !== '') {
+      const num = Number(payload.quantity);
+      if (!isNaN(num) && num > 0) {
+        cleanQuantity = num;
+      }
+    }
+
+    let cleanUnit: string | undefined = undefined;
+    if (payload.unit && String(payload.unit).trim()) {
+      cleanUnit = normalizeEngineeringUnit(String(payload.unit));
+    }
+
+    // If unit is generic 'units', 'unit', or missing, infer physical engineering unit from scope deliverable
+    if (!cleanUnit || ['units', 'unit', 'default'].includes(cleanUnit.toLowerCase())) {
+      const inferred = inferPhysicalUnitAndQuantity(cleanTitle, cleanDesc, cleanQuantity, cleanUnit);
+      cleanUnit = inferred.unit;
+      if (cleanQuantity === undefined) {
+        cleanQuantity = inferred.quantity;
+      }
+    }
+
     const cleaned: any = {
       title: cleanTitle,
       description: cleanDesc,
       priority: cleanPriority,
       category: cleanCategory,
     };
+
+    if (cleanQuantity !== undefined) {
+      cleaned.quantity = cleanQuantity;
+    }
+    if (cleanUnit) {
+      cleaned.unit = cleanUnit;
+    }
 
     if (payload.code && String(payload.code).trim()) {
       cleaned.code = String(payload.code).trim();
@@ -1446,6 +1534,7 @@ export class EosApiClient {
           status: ev.status || (ev.isApproved ? 'approved' : 'active'),
           targetCostQar: ev.targetCostQar,
           quantity: ev.quantity || 1,
+          unit: ev.unit || 'set',
           revisions: [],
           attachments: [],
         };
@@ -1465,6 +1554,7 @@ export class EosApiClient {
         priority: 'medium',
         category: 'staging_technical',
         quantity: 1,
+        unit: 'set',
         revisions: [],
         attachments: [],
       };
@@ -1490,14 +1580,15 @@ export class EosApiClient {
         priority: 'critical',
         status: 'approved',
         currentRevision: 1,
-        quantity: 1,
-        allocatedQuantity: 1,
-        designApprovedQuantity: 1,
-        releasedQuantity: 1,
-        producedQuantity: 1,
-        deliveredQuantity: 1,
-        installedQuantity: 1,
-        acceptedQuantity: 1,
+        quantity: 45,
+        unit: 'meter',
+        allocatedQuantity: 45,
+        designApprovedQuantity: 45,
+        releasedQuantity: 45,
+        producedQuantity: 45,
+        deliveredQuantity: 45,
+        installedQuantity: 45,
+        acceptedQuantity: 45,
         targetCostQar: 450000,
         currency: 'QAR',
         dueDate: '2026-11-15',
@@ -1523,6 +1614,7 @@ export class EosApiClient {
         status: 'approved',
         currentRevision: 1,
         quantity: 12,
+        unit: 'towers',
         allocatedQuantity: 12,
         designApprovedQuantity: 12,
         releasedQuantity: 12,
@@ -1554,7 +1646,8 @@ export class EosApiClient {
         priority: 'high',
         status: 'in_review',
         currentRevision: 1,
-        quantity: 1,
+        quantity: 850,
+        unit: 'sqm',
         allocatedQuantity: 0,
         designApprovedQuantity: 0,
         releasedQuantity: 0,
@@ -1579,6 +1672,7 @@ export class EosApiClient {
         status: 'draft',
         currentRevision: 1,
         quantity: 24,
+        unit: 'tonnes',
         allocatedQuantity: 0,
         designApprovedQuantity: 0,
         releasedQuantity: 0,
@@ -1599,6 +1693,7 @@ export class EosApiClient {
       status: 'active',
       priority: 'medium',
       quantity: 1,
+      unit: 'set',
       revisions: [],
       attachments: [],
     };
@@ -2082,6 +2177,13 @@ export class EosApiClient {
           cachedJob.approvedCount = (cachedJob.approvedCount || 0) + 1;
           const merged = { ...cand, ...(payload.edits || {}) };
           // Auto-create live requirement so it appears in the requirements register & matrix!
+          const candQty = merged.extractedQuantities ? parseFloat(merged.extractedQuantities) : undefined;
+          const candInferred = inferPhysicalUnitAndQuantity(
+            merged.suggestedTitle || merged.title,
+            merged.scopeDescription || merged.description,
+            candQty,
+            merged.extractedUnit
+          );
           await this.createRequirement(projectId, {
             title: merged.suggestedTitle || merged.title || 'Scope Deliverable',
             description: merged.scopeDescription || merged.description || merged.originalWording || '',
@@ -2092,8 +2194,8 @@ export class EosApiClient {
             sourceType: 'Tender RFP Parser',
             sourceReference: merged.sourceClause || merged.sourceReference || cachedJob.documentName,
             status: 'active',
-            quantity: merged.extractedQuantities ? parseFloat(merged.extractedQuantities) || 1 : 1,
-            unit: merged.extractedUnit || 'units',
+            quantity: candInferred.quantity,
+            unit: candInferred.unit,
           });
         } else if (payload.action === 'reject') {
           cachedJob.rejectedCount = (cachedJob.rejectedCount || 0) + 1;

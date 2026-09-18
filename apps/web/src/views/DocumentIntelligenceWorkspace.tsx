@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Badge, Button, Input, Modal, Textarea } from '../components/DesignSystem.js';
+import { formatQuantityAndUnit } from '@e3-eos/domain';
 
 export interface DocumentIntelligenceWorkspaceProps {
   isOpen: boolean;
@@ -608,7 +609,7 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
                             </div>
                             <div className="font-semibold text-slate-100">
                               {currentCandidate.quantity !== undefined
-                                ? `${currentCandidate.quantity} ${currentCandidate.unit || 'units'}`
+                                ? formatQuantityAndUnit(currentCandidate.quantity, currentCandidate.unit, currentCandidate.title, currentCandidate.description)
                                 : 'Missing / Stated without numeric count'}
                             </div>
                           </div>

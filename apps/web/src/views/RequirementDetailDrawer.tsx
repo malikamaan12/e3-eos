@@ -696,7 +696,7 @@ export const RequirementDetailDrawer: React.FC<RequirementDetailDrawerProps> = (
                     <div>
                       <h3 className="text-sm font-bold text-slate-100">Location Allocations Breakdown</h3>
                       <p className="text-xs text-slate-400">
-                        Divide master quantity ({requirement.quantity} {requirement.unit || 'units'}) across venues, zones, and locations without duplicating records.
+                        Divide master quantity ({requirement.quantity} {requirement.unit || 'set'}) across venues, zones, and locations without duplicating records.
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -1165,7 +1165,7 @@ export const RequirementDetailDrawer: React.FC<RequirementDetailDrawerProps> = (
                       <div className="text-xs font-bold text-slate-300">Dispatch & Delivery Status</div>
                       <div className="text-xs text-slate-400 space-y-1">
                         <div>Logistics Trip Status: <Badge variant="info">{reconciliation?.logisticsStatus || 'pending'}</Badge></div>
-                        <div>Delivered to Venue: <strong className="text-slate-200">{reconciliation?.delivered || 0} units</strong></div>
+                        <div>Delivered to Venue: <strong className="text-slate-200">{reconciliation?.delivered || 0} {requirement?.unit || 'units'}</strong></div>
                         <div>Dock Access Slot: <strong className="text-slate-200">Slot A (Lusail North Dock)</strong></div>
                       </div>
                     </div>
@@ -1174,8 +1174,8 @@ export const RequirementDetailDrawer: React.FC<RequirementDetailDrawerProps> = (
                       <div className="text-xs font-bold text-slate-300">Site Installation & Handover</div>
                       <div className="text-xs text-slate-400 space-y-1">
                         <div>Installation Status: <Badge variant="success">{reconciliation?.installationStatus || 'not_started'}</Badge></div>
-                        <div>Erected & Installed: <strong className="text-emerald-400">{reconciliation?.installed || 0} units</strong></div>
-                        <div>Accepted by Client: <strong className="text-teal-300">{reconciliation?.accepted || 0} units</strong></div>
+                        <div>Erected & Installed: <strong className="text-emerald-400">{reconciliation?.installed || 0} {requirement?.unit || 'units'}</strong></div>
+                        <div>Accepted by Client: <strong className="text-teal-300">{reconciliation?.accepted || 0} {requirement?.unit || 'units'}</strong></div>
                       </div>
                     </div>
                   </div>
@@ -1257,9 +1257,9 @@ export const RequirementDetailDrawer: React.FC<RequirementDetailDrawerProps> = (
                         <div className="text-slate-300"><strong>Reason:</strong> {rev.reasonForChange}</div>
                         {rev.impact && (
                           <div className="p-2 bg-slate-900 border border-slate-800 rounded text-slate-400 text-[11px] space-y-0.5">
-                            {rev.impact.approvedVariation && <div><strong>Variation:</strong> {rev.impact.approvedVariation} units</div>}
-                            {rev.impact.originalBaseline && <div><strong>Original Baseline:</strong> {rev.impact.originalBaseline} units</div>}
-                            {rev.impact.currentRequirement && <div><strong>New Baseline:</strong> {rev.impact.currentRequirement} units</div>}
+                            {rev.impact.approvedVariation && <div><strong>Variation:</strong> {rev.impact.approvedVariation} {requirement?.unit || 'units'}</div>}
+                            {rev.impact.originalBaseline && <div><strong>Original Baseline:</strong> {rev.impact.originalBaseline} {requirement?.unit || 'units'}</div>}
+                            {rev.impact.currentRequirement && <div><strong>New Baseline:</strong> {rev.impact.currentRequirement} {requirement?.unit || 'units'}</div>}
                             {rev.impact.designImpact && <div><strong>Design Impact:</strong> {rev.impact.designImpact}</div>}
                           </div>
                         )}

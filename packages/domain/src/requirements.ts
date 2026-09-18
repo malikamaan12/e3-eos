@@ -1142,4 +1142,136 @@ export function generateDraftFulfilmentItems(
   }));
 }
 
+export const STANDARD_ENGINEERING_UNITS = [
+  'sqm',
+  'meter',
+  'lm',
+  'kg',
+  'tonnes',
+  'set',
+  'pcs',
+  'nos',
+  'towers',
+  'panels',
+  'fixtures',
+  'sqft',
+] as const;
+
+export type StandardEngineeringUnit = (typeof STANDARD_ENGINEERING_UNITS)[number];
+
+/**
+ * Normalizes user-entered or extracted unit strings to standard physical engineering units.
+ */
+export function normalizeEngineeringUnit(rawUnit?: string): string {
+  if (!rawUnit) return '';
+  const u = rawUnit.trim().toLowerCase().replace(/[^\w²]/g, '');
+  if (['sqm', 'm2', 'm²', 'sqmeter', 'sqmeters', 'squaremeters', 'squaremeter'].includes(u)) return 'sqm';
+  if (['lm', 'linearmeter', 'linearmeters', 'linm', 'linmeter'].includes(u)) return 'lm';
+  if (['meter', 'meters', 'm', 'mtr', 'mtrs'].includes(u)) return 'meter';
+  if (['kg', 'kgs', 'kilogram', 'kilograms', 'kilo'].includes(u)) return 'kg';
+  if (['tonne', 'tonnes', 'ton', 'tons', 't'].includes(u)) return 'tonnes';
+  if (['set', 'sets', 'kit', 'kits'].includes(u)) return 'set';
+  if (['pcs', 'pc', 'piece', 'pieces'].includes(u)) return 'pcs';
+  if (['nos', 'no', 'number', 'numbers'].includes(u)) return 'nos';
+  if (['tower', 'towers', 'mast', 'masts'].includes(u)) return 'towers';
+  if (['panel', 'panels', 'tile', 'tiles', 'module', 'modules'].includes(u)) return 'panels';
+  if (['fixture', 'fixtures', 'luminaire', 'luminaires', 'lamp', 'lamps'].includes(u)) return 'fixtures';
+  if (['sqft', 'ft2', 'ft²', 'squarefeet', 'squarefoot'].includes(u)) return 'sqft';
+  return rawUnit.trim();
+}
+
+/**
+ * Intelligently infers physical engineering units and realistic baseline quantities
+ * based on scope deliverable titles, descriptions, or keywords when not explicitly specified,
+ * avoiding generic default "1 units".
+ */
+export function inferPhysicalUnitAndQuantity(
+  title?: string,
+  description?: string,
+  existingQuantity?: number,
+  existingUnit?: string
+): { quantity: number; unit: string } {
+  const normUnit = normalizeEngineeringUnit(existingUnit);
+  const isGenericOrEmpty = !normUnit || ['units', 'unit', 'item', 'items', 'default'].includes(normUnit.toLowerCase());
+
+  if (!isGenericOrEmpty) {
+    return {
+      quantity: existingQuantity && existingQuantity > 0 ? existingQuantity : 1,
+      unit: normUnit,
+    };
+  }
+
+  const text = `${title || ''} ${description || ''}`.toLowerCase();
+
+  // Area: drapes, fabrics, carpets, tents, canopies, pavilions, turf, flooring
+  if (/\b(sqm|m2|m²|carpets?|majlis|pavilions?|canop(?:y|ies)|tensile|fabrics?|drapes?|flame-retardant|floorings?|turf|deckings?|membranes?|roofings?|claddings?|tarmac|footings?)\b/.test(text)) {
+    let q = existingQuantity && existingQuantity > 1 ? existingQuantity : 500;
+    if (!existingQuantity || existingQuantity === 1) {
+      if (text.includes('flame') || text.includes('qcdd') || text.includes('fabric')) q = 3500;
+      else if (text.includes('pavilion') || text.includes('footing')) q = 1200;
+      else if (text.includes('carpet') || text.includes('majlis')) q = 850;
+    }
+    return { quantity: q, unit: 'sqm' };
+  }
+
+  // Linear: spans, arches, cables, trenches, barriers, fences, railings, trusses
+  if (/\b(meters?|lm|spans?|arches?|arch|cables?|trenches?|corridors?|perimeters?|trusses?|railings?|fences?|pipes?|conduits?|wirings?|barriers?|run)\b/.test(text)) {
+    let q = existingQuantity && existingQuantity > 1 ? existingQuantity : 45;
+    if (!existingQuantity || existingQuantity === 1) {
+      if (text.includes('trench') || text.includes('cable')) q = 450;
+      else if (text.includes('arch') || text.includes('span')) q = 45;
+    }
+    return { quantity: q, unit: text.includes('trench') || text.includes('cable') ? 'lm' : 'meter' };
+  }
+
+  // Mass / Weight: ballast, counterweight, steel, concrete blocks
+  if (/\b(kg|ton|tonne|tonnes?|ballast|counterweights?|concrete|steels?|weights?|restraints?|load calculations?)\b/.test(text)) {
+    const q = existingQuantity && existingQuantity > 1 ? existingQuantity : 24;
+    return { quantity: q, unit: 'tonnes' };
+  }
+
+  // Towers / Structures: delay towers, line array masts, scaffold towers
+  if (/\b(towers?|delay towers?|masts?|scaffold towers?)\b/.test(text)) {
+    const q = existingQuantity && existingQuantity > 1 ? existingQuantity : 12;
+    return { quantity: q, unit: 'towers' };
+  }
+
+  // LED Panels / Video Screen Modules
+  if (/\b(led panels?|video walls?|screen panels?|tiles?|led walls?)\b/.test(text)) {
+    const q = existingQuantity && existingQuantity > 1 ? existingQuantity : 120;
+    return { quantity: q, unit: 'panels' };
+  }
+
+  // Discrete Fixtures / Luminaires / Audio
+  if (/\b(fixtures?|moving lights?|luminaires?|speakers?|subwoofers?|microphones?)\b/.test(text)) {
+    const q = existingQuantity && existingQuantity > 1 ? existingQuantity : 40;
+    return { quantity: q, unit: 'fixtures' };
+  }
+
+  return {
+    quantity: existingQuantity && existingQuantity > 0 ? existingQuantity : 1,
+    unit: 'set',
+  };
+}
+
+/**
+ * Cleanly formats requirement quantity and physical engineering unit.
+ * E.g. "45 meter", "1,200 sqm", "3,500 sqm", "850 sqm", "12 towers", "1 set".
+ */
+export function formatQuantityAndUnit(
+  quantity?: number,
+  unit?: string,
+  fallbackTitle?: string,
+  fallbackDesc?: string
+): string {
+  const normUnit = normalizeEngineeringUnit(unit);
+  const isSpecific = normUnit && !['units', 'unit', 'default'].includes(normUnit.toLowerCase());
+
+  if (isSpecific && quantity !== undefined && quantity !== null && quantity > 0) {
+    return `${Number(quantity).toLocaleString()} ${normUnit}`;
+  }
+
+  const inferred = inferPhysicalUnitAndQuantity(fallbackTitle, fallbackDesc, quantity, unit);
+  return `${Number(inferred.quantity).toLocaleString()} ${inferred.unit}`;
+}
 

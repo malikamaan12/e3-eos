@@ -3,6 +3,9 @@ import {
   ScopeRequirement,
   evaluateRequirementTraceability,
   generateRequirementsMatrix,
+  normalizeEngineeringUnit,
+  inferPhysicalUnitAndQuantity,
+  formatQuantityAndUnit,
 } from './requirements.js';
 
 describe('Requirements & Scope Traceability Engine', () => {
@@ -153,5 +156,76 @@ describe('Requirements & Scope Traceability Engine', () => {
     expect(apprDim?.status).toBe('Required Later');
     const delivDim = evalResult.dimensions.find((d) => d.key === 'deliveryEvidence');
     expect(delivDim?.status).toBe('Required Later');
+  });
+
+  describe('Physical Engineering Units & Normalization Engine', () => {
+    it('normalizes various area and linear unit strings to engineering standards', () => {
+      expect(normalizeEngineeringUnit('m2')).toBe('sqm');
+      expect(normalizeEngineeringUnit('m²')).toBe('sqm');
+      expect(normalizeEngineeringUnit('sqm')).toBe('sqm');
+      expect(normalizeEngineeringUnit('square meters')).toBe('sqm');
+      expect(normalizeEngineeringUnit('lm')).toBe('lm');
+      expect(normalizeEngineeringUnit('linear meters')).toBe('lm');
+      expect(normalizeEngineeringUnit('meters')).toBe('meter');
+      expect(normalizeEngineeringUnit('kg')).toBe('kg');
+      expect(normalizeEngineeringUnit('tonnes')).toBe('tonnes');
+      expect(normalizeEngineeringUnit('tons')).toBe('tonnes');
+      expect(normalizeEngineeringUnit('set')).toBe('set');
+      expect(normalizeEngineeringUnit('towers')).toBe('towers');
+      expect(normalizeEngineeringUnit('panels')).toBe('panels');
+    });
+
+    it('intelligently infers physical units and realistic baseline quantities from deliverable keywords', () => {
+      // Area deliverables
+      const fabric = inferPhysicalUnitAndQuantity('QCDD Flame-Retardant Fabric Drapes', 'Fire-resistant scenic textiles');
+      expect(fabric.unit).toBe('sqm');
+      expect(fabric.quantity).toBe(3500);
+
+      const carpet = inferPhysicalUnitAndQuantity('VIP Royal Protocol Red Carpet & Shaded Majlis', 'Ceremonial arrival portico');
+      expect(carpet.unit).toBe('sqm');
+      expect(carpet.quantity).toBe(850);
+
+      const pavilion = inferPhysicalUnitAndQuantity('Lusail Royal Pavilion Footings & Flooring', 'Engineered flooring');
+      expect(pavilion.unit).toBe('sqm');
+      expect(pavilion.quantity).toBe(1200);
+
+      // Linear deliverables
+      const arch = inferPhysicalUnitAndQuantity('Main Ceremony 360-Degree Kinetic LED Arch', 'Central boulevard span');
+      expect(arch.unit).toBe('meter');
+      expect(arch.quantity).toBe(45);
+
+      const cable = inferPhysicalUnitAndQuantity('Perimeter Cable Trenching & Protection', 'Boulevard cable trenching');
+      expect(cable.unit).toBe('lm');
+      expect(cable.quantity).toBe(450);
+
+      // Mass / ballast
+      const ballast = inferPhysicalUnitAndQuantity('Emergency Ballast & Wind Restraint Systems', 'Counterweight deadweight blocks');
+      expect(ballast.unit).toBe('tonnes');
+      expect(ballast.quantity).toBe(24);
+
+      // Towers
+      const towers = inferPhysicalUnitAndQuantity('Boulevard Audio Delay Towers', 'Weatherproof line array towers');
+      expect(towers.unit).toBe('towers');
+      expect(towers.quantity).toBe(12);
+    });
+
+    it('preserves explicitly defined physical units and non-generic quantities', () => {
+      const explicit = inferPhysicalUnitAndQuantity('Custom Lighting Rig', 'Lighting fixtures', 80, 'fixtures');
+      expect(explicit.quantity).toBe(80);
+      expect(explicit.unit).toBe('fixtures');
+    });
+
+    it('formats quantity and physical unit cleanly without defaulting to generic "1 units"', () => {
+      expect(formatQuantityAndUnit(45, 'meter')).toBe('45 meter');
+      expect(formatQuantityAndUnit(1200, 'sqm')).toBe('1,200 sqm');
+      expect(formatQuantityAndUnit(3500, 'sqm')).toBe('3,500 sqm');
+      expect(formatQuantityAndUnit(850, 'sqm')).toBe('850 sqm');
+      expect(formatQuantityAndUnit(24, 'tonnes')).toBe('24 tonnes');
+      expect(formatQuantityAndUnit(12, 'towers')).toBe('12 towers');
+
+      // Inferred format when unit is missing or generic 'units'
+      expect(formatQuantityAndUnit(undefined, 'units', 'Kinetic LED Arch', 'Boulevard central span')).toBe('45 meter');
+      expect(formatQuantityAndUnit(undefined, undefined, 'Red Carpet Majlis', 'VIP protocol')).toBe('850 sqm');
+    });
   });
 });
