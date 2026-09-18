@@ -3,6 +3,7 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "installCommand": "pnpm install",
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/:match*",
