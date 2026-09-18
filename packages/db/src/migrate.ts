@@ -41,6 +41,9 @@ export async function runMigrations() {
       '0005_sprint_05_finance_commercial_reconciliation.sql',
       '0006_sprint_06_enterprise_intelligence.sql',
       '0007_project_metadata.sql',
+      '0008_progressive_scope_management.sql',
+      '0009_scope_allocations_and_fulfilment.sql',
+      '0010_intelligent_document_parser.sql',
     ];
 
     await client.query(`

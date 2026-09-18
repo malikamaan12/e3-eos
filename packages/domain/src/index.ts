@@ -47,3 +47,4 @@ export * from './portfolio-intelligence.js';
 export * from './feature-flags.js';
 export * from './go-live-engine.js';
 export * from './rbac.js';
+export * from './scope-parser.js';

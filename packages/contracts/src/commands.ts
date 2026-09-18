@@ -44,20 +44,39 @@ export const ProjectCloneSchema = z.object({
 export type ProjectCloneDto = z.infer<typeof ProjectCloneSchema>;
 
 export const RequirementCreateSchema = z.object({
-  title: z.string().min(3).max(250),
-  description: z.string().min(5),
+  title: z.string().min(1).max(250),
+  description: z.string().optional(),
   originalWording: z.string().optional(),
   interpretation: z.string().optional(),
   sourceType: z.string().optional(),
   sourceReference: z.string().optional(),
+  scopePackage: z.string().optional(),
+  category: z.string().optional(),
+  discipline: z.string().optional(),
+  department: z.string().optional(),
   ownerId: z.string().optional(),
   ownerName: z.string().optional(),
+  supportingOwnerIds: z.array(z.string()).optional(),
+  approverId: z.string().optional(),
+  approverName: z.string().optional(),
+  disposition: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  risk: z.enum(['low', 'medium', 'high', 'critical']).optional(),
   status: z.string().optional(),
+  progress: z.number().min(0).max(100).optional(),
+  acceptanceCriteria: z.string().optional(),
+  quantity: z.number().optional(),
+  unit: z.string().optional(),
+  locationZone: z.string().optional(),
+  notes: z.string().optional(),
   deliverablePackageId: z.string().optional(),
   code: z.string().optional(),
-  category: z.string().optional(),
   dueDate: z.string().optional(),
+  startDate: z.string().optional(),
+  milestone: z.string().optional(),
+  dependency: z.string().optional(),
+  responsibleParty: z.enum(['e3', 'client', 'venue', 'authority', 'supplier', 'shared']).optional(),
+  externalResponsibleParty: z.string().optional(),
   linkedDocumentId: z.string().optional(),
   linkedDocumentNumber: z.string().optional(),
   linkedDesignId: z.string().optional(),
@@ -65,9 +84,387 @@ export const RequirementCreateSchema = z.object({
   linkedBoqLineCode: z.string().optional(),
   linkedTaskId: z.string().optional(),
   targetCostQar: z.number().optional(),
+  isApproved: z.boolean().optional(),
+  approvalRequestId: z.string().optional(),
+  deliveryEvidenceHash: z.string().optional(),
 });
 
 export type RequirementCreateDto = z.infer<typeof RequirementCreateSchema>;
+
+export const RequirementUpdateSchema = RequirementCreateSchema.partial().extend({
+  changeReason: z.string().optional(),
+  superAdminOverride: z.boolean().optional(),
+  overrideReason: z.string().optional(),
+});
+
+export type RequirementUpdateDto = z.infer<typeof RequirementUpdateSchema>;
+
+export const RequirementRevisionCreateSchema = z.object({
+  reasonForChange: z.string().min(3),
+  impact: z
+    .object({
+      costDeltaQar: z.number().optional(),
+      scheduleDeltaDays: z.number().optional(),
+      designImpact: z.string().optional(),
+      boqImpact: z.string().optional(),
+      scopeAltered: z.boolean().optional(),
+    })
+    .optional(),
+  changedFields: z.record(z.any()),
+  superAdminOverride: z.boolean().optional(),
+  overrideReason: z.string().optional(),
+});
+
+export type RequirementRevisionCreateDto = z.infer<typeof RequirementRevisionCreateSchema>;
+
+export const RequirementBulkCreateSchema = z.object({
+  items: z.array(RequirementCreateSchema),
+  saveIncompleteAsDraft: z.boolean().default(true),
+});
+
+export type RequirementBulkCreateDto = z.infer<typeof RequirementBulkCreateSchema>;
+
+export const RequirementBulkUpdateSchema = z.object({
+  requirementIds: z.array(z.string()).min(1),
+  updates: z.object({
+    department: z.string().optional(),
+    ownerId: z.string().optional(),
+    ownerName: z.string().optional(),
+    dueDate: z.string().optional(),
+    priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+    status: z.string().optional(),
+    isArchived: z.boolean().optional(),
+  }),
+});
+
+export type RequirementBulkUpdateDto = z.infer<typeof RequirementBulkUpdateSchema>;
+
+export const RequirementAttachmentCreateSchema = z.object({
+  fileName: z.string().min(1),
+  mediaCategory: z.string().min(1),
+  fileSize: z.number().optional(),
+  mimeType: z.string().optional(),
+  fileUrl: z.string().optional(),
+  description: z.string().optional(),
+  version: z.string().optional(),
+  approvalStatus: z.string().optional(),
+  relatedDesignPackageId: z.string().optional(),
+});
+
+export type RequirementAttachmentCreateDto = z.infer<typeof RequirementAttachmentCreateSchema>;
+
+// =========================================================================
+// PHASE 2: REQUIREMENT GROUPING, ALLOCATION & FULFILMENT SCHEMAS
+// =========================================================================
+
+export const RequirementAllocationCreateSchema = z.object({
+  zone: z.string().optional(),
+  zoneId: z.string().optional(),
+  zoneName: z.string().optional(),
+  location: z.string().optional(),
+  subLocation: z.string().optional(),
+  quantity: z.number().positive().optional(),
+  allocatedQuantity: z.number().positive().optional(),
+  unit: z.string().optional(),
+  designVariantId: z.string().optional(),
+  requiredDate: z.string().optional(),
+  targetDeliveryDate: z.string().optional(),
+  installationDate: z.string().optional(),
+  locationNotes: z.string().optional(),
+  responsibleParty: z.string().optional(),
+  responsibleTeam: z.string().optional(),
+  status: z.enum(['unassigned', 'assigned', 'in_progress', 'installed', 'accepted']).optional(),
+});
+
+export type RequirementAllocationCreateDto = z.infer<typeof RequirementAllocationCreateSchema>;
+
+export const RequirementAllocationUpdateSchema = RequirementAllocationCreateSchema.partial().extend({
+  completionPct: z.number().min(0).max(100).optional(),
+  evidenceRef: z.string().optional(),
+  revision: z.number().optional(),
+});
+
+export type RequirementAllocationUpdateDto = z.infer<typeof RequirementAllocationUpdateSchema>;
+
+export const RequirementAllocationSplitSchema = z.object({
+  allocationId: z.string().optional(),
+  splits: z.array(
+    z.object({
+      zone: z.string().optional(),
+      zoneId: z.string().optional(),
+      zoneName: z.string().optional(),
+      location: z.string().optional(),
+      subLocation: z.string().optional(),
+      quantity: z.number().positive().optional(),
+      allocatedQuantity: z.number().positive().optional(),
+      designVariantId: z.string().optional(),
+    }).transform((val) => ({
+      zone: val.zone || val.zoneName || val.zoneId || 'Unassigned Zone',
+      location: val.location || val.zoneName || val.zoneId || 'Main Area',
+      subLocation: val.subLocation,
+      quantity: (val.quantity !== undefined ? val.quantity : val.allocatedQuantity) || 0,
+      designVariantId: val.designVariantId,
+    }))
+  ).min(2),
+});
+
+export type RequirementAllocationSplitDto = z.infer<typeof RequirementAllocationSplitSchema>;
+
+export const RequirementAllocationMergeSchema = z.object({
+  allocationIds: z.array(z.string()).min(2),
+  targetZone: z.string().optional(),
+  targetZoneId: z.string().optional(),
+  targetZoneName: z.string().optional(),
+  targetLocation: z.string().optional(),
+  targetSubLocation: z.string().optional(),
+  designVariantId: z.string().optional(),
+}).transform((val) => ({
+  allocationIds: val.allocationIds,
+  targetZone: val.targetZone || val.targetZoneName || val.targetZoneId || 'Consolidated Zone',
+  targetLocation: val.targetLocation || val.targetZoneName || val.targetZoneId || 'Consolidated Location',
+  targetSubLocation: val.targetSubLocation,
+  designVariantId: val.designVariantId,
+}));
+
+export type RequirementAllocationMergeDto = z.infer<typeof RequirementAllocationMergeSchema>;
+
+export const RequirementAllocationMoveQtySchema = z.object({
+  sourceAllocationId: z.string(),
+  targetAllocationId: z.string(),
+  quantity: z.number().positive(),
+  reason: z.string().optional(),
+});
+
+export type RequirementAllocationMoveQtyDto = z.infer<typeof RequirementAllocationMoveQtySchema>;
+
+export const DesignPackageCreateSchema = z.object({
+  title: z.string().min(1),
+  packageCode: z.string().optional(),
+  drawingNumber: z.string().optional(),
+  cadRevision: z.string().optional(),
+  discipline: z.string().optional(),
+  leadDesignerId: z.string().optional(),
+  leadDesignerName: z.string().optional(),
+  brief: z.string().optional(),
+  specifications: z.string().optional(),
+  materials: z.string().optional(),
+  finishes: z.string().optional(),
+  dimensions: z.string().optional(),
+  linkedRequirementIds: z.array(z.string()).optional(),
+  linkedAllocationIds: z.array(z.string()).optional(),
+});
+
+export type DesignPackageCreateDto = z.infer<typeof DesignPackageCreateSchema>;
+
+export const DesignVariantCreateSchema = z.object({
+  designPackageId: z.string().optional(),
+  name: z.string().min(1),
+  code: z.string().optional(),
+  variantCode: z.string().optional(),
+  dimensions: z.string().optional(),
+  materials: z.string().optional(),
+  finish: z.string().optional(),
+  specificationNotes: z.string().optional(),
+  quantity: z.number().nonnegative().optional(),
+  targetQuantity: z.number().nonnegative().optional(),
+  linkedAllocationIds: z.array(z.string()).optional(),
+});
+
+export type DesignVariantCreateDto = z.infer<typeof DesignVariantCreateSchema>;
+
+export const DesignVariantApproveSchema = z.object({
+  approvedQuantity: z.number().nonnegative(),
+  approvedBy: z.string().optional(),
+  approvalNotes: z.string().optional(),
+  clientApproval: z.boolean().default(true),
+});
+
+export type DesignVariantApproveDto = z.infer<typeof DesignVariantApproveSchema>;
+
+export const DesignVariantReleaseSchema = z.object({
+  releasedQuantity: z.number().positive(),
+  releasedBy: z.string().optional(),
+  superAdminOverride: z.boolean().optional(),
+  overrideReason: z.string().optional(),
+  targetBatchCode: z.string().optional(),
+  batchCode: z.string().optional(),
+  department: z.string().optional(),
+  targetCompletionDate: z.string().optional(),
+  allocationDestinations: z.array(z.any()).optional(),
+});
+
+export type DesignVariantReleaseDto = z.infer<typeof DesignVariantReleaseSchema>;
+
+export const FulfilmentItemCreateSchema = z.object({
+  itemDescription: z.string().min(1),
+  quantity: z.number().positive(),
+  unit: z.string().optional(),
+  classification: z.enum(['make', 'buy', 'rent']).default('make'),
+  material: z.string().optional(),
+  department: z.string().optional(),
+  responsibleOwnerId: z.string().optional(),
+  responsibleOwnerName: z.string().optional(),
+  supplierId: z.string().optional(),
+  boqLineCode: z.string().optional(),
+  allocationId: z.string().optional(),
+  designVariantId: z.string().optional(),
+  requiredDate: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export type FulfilmentItemCreateDto = z.infer<typeof FulfilmentItemCreateSchema>;
+
+export const FulfilmentDraftGenerateSchema = z.object({
+  designPackageId: z.string().optional(),
+  designVariantId: z.string().optional(),
+  category: z.string().optional(),
+});
+
+export type FulfilmentDraftGenerateDto = z.infer<typeof FulfilmentDraftGenerateSchema>;
+
+export const FulfilmentReviewBatchSchema = z.object({
+  itemIds: z.array(z.string()).min(1),
+  action: z.enum(['approve', 'reject', 'release_to_production', 'link_boq']).optional(),
+  reviewStatus: z.string().optional(),
+  fulfilmentStage: z.string().optional(),
+  boqLineCode: z.string().optional(),
+  department: z.string().optional(),
+  responsibleOwnerId: z.string().optional(),
+  responsibleOwnerName: z.string().optional(),
+});
+
+export type FulfilmentReviewBatchDto = z.infer<typeof FulfilmentReviewBatchSchema>;
+
+export const DepartmentWorkPackageCreateSchema = z.object({
+  title: z.string().min(1),
+  department: z.string().min(1),
+  responsibleOwnerId: z.string().optional(),
+  responsibleOwnerName: z.string().optional(),
+  supportingDepartment: z.string().optional(),
+  supportingUserIds: z.array(z.string()).optional(),
+  approverId: z.string().optional(),
+  approverName: z.string().optional(),
+  startDate: z.string().optional(),
+  dueDate: z.string().optional(),
+  status: z.enum(['pending', 'in_progress', 'blocked', 'completed']).default('pending'),
+  progress: z.number().min(0).max(100).default(0),
+  dependency: z.string().optional(),
+  deliverables: z.string().optional(),
+  evidenceRef: z.string().optional(),
+});
+
+export type DepartmentWorkPackageCreateDto = z.infer<typeof DepartmentWorkPackageCreateSchema>;
+
+export const ProductionBatchCreateSchema = z.object({
+  batchCode: z.string().min(1),
+  designVariantId: z.string().optional(),
+  releasedQuantity: z.number().positive(),
+  items: z.array(
+    z.object({
+      fulfilmentItemId: z.string().optional(),
+      allocationId: z.string().optional(),
+      quantity: z.number().positive(),
+      destinationZone: z.string().optional(),
+      destinationLocation: z.string().optional(),
+    })
+  ).optional(),
+  notes: z.string().optional(),
+});
+
+export type ProductionBatchCreateDto = z.infer<typeof ProductionBatchCreateSchema>;
+
+export const ProductionBatchProgressSchema = z.object({
+  producedQuantity: z.number().nonnegative().optional(),
+  qcPassedQuantity: z.number().nonnegative().optional(),
+  deliveredQuantity: z.number().nonnegative().optional(),
+  installedQuantity: z.number().nonnegative().optional(),
+  acceptedQuantity: z.number().nonnegative().optional(),
+  status: z.string().optional(),
+  superAdminOverride: z.boolean().optional(),
+  overrideReason: z.string().optional(),
+});
+
+export type ProductionBatchProgressDto = z.infer<typeof ProductionBatchProgressSchema>;
+
+export const RequirementQuantityChangeSchema = z.object({
+  newQuantity: z.number().positive(),
+  reasonForChange: z.string().min(3).optional(),
+  reason: z.string().min(3).optional(),
+  sourceDocumentRef: z.string().optional(),
+  impactNotes: z.string().optional(),
+  costImpactQar: z.number().optional(),
+  scheduleImpactDays: z.number().optional(),
+  designImpact: z.string().optional(),
+  boqImpact: z.string().optional(),
+  superAdminOverride: z.boolean().optional(),
+  overrideReason: z.string().optional(),
+}).transform((val) => ({
+  ...val,
+  reasonForChange: val.reasonForChange || val.reason || 'Quantity change requested',
+}));
+
+export type RequirementQuantityChangeDto = z.infer<typeof RequirementQuantityChangeSchema>;
+
+export const DocumentParseRequestSchema = z.object({
+  documentId: z.string().optional(),
+  documentName: z.string().optional(),
+  documentType: z.string().optional(),
+  rawText: z.string().optional(),
+});
+
+export type DocumentParseRequestDto = z.infer<typeof DocumentParseRequestSchema>;
+
+export const ExtractionCandidateReviewSchema = z.object({
+  action: z.enum([
+    'approve',
+    'accept',
+    'accept_with_changes',
+    'reject',
+    'merge',
+    'convert_to_allocation',
+    'convert_to_design',
+    'convert_to_bom',
+    'convert_to_clarification',
+    'mark_as_clarification',
+    'mark_client_resp',
+    'mark_contractor_resp',
+    'mark_info_only',
+    'defer',
+  ]),
+  candidateId: z.string(),
+  edits: z.record(z.any()).optional(),
+  mergeTargetId: z.string().optional(),
+  targetRequirementId: z.string().optional(),
+  reviewerNotes: z.string().optional(),
+});
+
+export type ExtractionCandidateReviewDto = z.infer<typeof ExtractionCandidateReviewSchema>;
+
+export const BulkCandidateReviewSchema = z.object({
+  candidateIds: z.array(z.string()).min(1),
+  action: z.enum(['approve', 'reject', 'mark_info_only']),
+  forceLowConfidence: z.boolean().default(false),
+});
+
+export type BulkCandidateReviewDto = z.infer<typeof BulkCandidateReviewSchema>;
+
+export const DocumentComparisonRequestSchema = z.object({
+  priorJobId: z.string().optional(),
+  newJobId: z.string(),
+  priorDocumentName: z.string().optional(),
+  newDocumentName: z.string().optional(),
+});
+
+export type DocumentComparisonRequestDto = z.infer<typeof DocumentComparisonRequestSchema>;
+
+export const ApplyAddendumRevisionSchema = z.object({
+  deltaId: z.string(),
+  reason: z.string().default('Addendum quantity and specification change approved'),
+  confirmAllocations: z.boolean().default(true),
+  targetRequirementId: z.string().optional(),
+});
+
+export type ApplyAddendumRevisionDto = z.infer<typeof ApplyAddendumRevisionSchema>;
 
 export const RequirementDispositionSchema = z.object({
   disposition: z.enum([

@@ -16,9 +16,12 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
 }) => {
   const { currentLanguage, apiClient, navigate, triggerRefresh, setSelectedProjectId, direction, currentUser } = useEosContext();
 
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 'post_create'>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
+  const [createdProjectCode, setCreatedProjectCode] = useState<string>('');
+  const [createdProjectTitle, setCreatedProjectTitle] = useState<string>('');
 
   // Step 1: Basic Info
   const [title, setTitle] = useState<string>('');
@@ -43,6 +46,9 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
 
   const resetForm = () => {
     setStep(1);
+    setCreatedProjectId(null);
+    setCreatedProjectCode('');
+    setCreatedProjectTitle('');
     setTitle('');
     setOriginRoute('TENDER');
     setFormat('Exhibition & Conference');
@@ -155,9 +161,10 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
       setSelectedProjectId(newProjectId);
       if (onProjectCreated) onProjectCreated(payload);
       triggerRefresh();
-      resetForm();
-      onClose();
-      navigate(`/projects/${newProjectId}`);
+      setCreatedProjectId(newProjectId);
+      setCreatedProjectCode(code);
+      setCreatedProjectTitle(title);
+      setStep('post_create');
     } catch (err: any) {
       setError(err.message || 'Failed to save fast-track intake project.');
     } finally {
@@ -225,11 +232,15 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                 Fast-Track Intake
               </span>
               <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                {isAr ? `الخطوة ${step} من 2` : `Step ${step} of 2`} • {isAr ? 'التقاط سريع وإكمال لاحق' : 'Capture Now, Complete Later'}
+                {step === 'post_create'
+                  ? (isAr ? 'تهيئة نطاق العمل' : 'Scope Initialization')
+                  : (isAr ? `الخطوة ${step} من 2` : `Step ${step} of 2`)} • {isAr ? 'التقاط سريع وإكمال لاحق' : 'Capture Now, Complete Later'}
               </span>
             </div>
             <h2 style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
-              {step === 1
+              {step === 'post_create'
+                ? (isAr ? 'خيارات تهيئة نطاق العمل' : 'Scope Management Options')
+                : step === 1
                 ? (isAr ? 'البيانات الأساسية للفرصة / المناقصة' : 'Step 1: Basic Opportunity Details')
                 : (isAr ? 'القيمة التجارية ومسؤولية التنفيذ' : 'Step 2: Commercials & Ownership')}
             </h2>
@@ -252,7 +263,207 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
+        {step === 'post_create' ? (
+          <div style={{ padding: '24px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{ fontSize: '40px', marginBottom: '8px' }}>🎉</div>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+                {isAr ? 'تم إنشاء المشروع بنجاح!' : 'Project Initialized Successfully!'}
+              </h3>
+              <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{createdProjectCode}</span> • {createdProjectTitle}
+              </p>
+              <div style={{ marginTop: '12px', fontSize: '13px', color: '#334155', fontWeight: 600 }}>
+                {isAr ? 'كيف ترغب في بدء إدارة نطاق العمل والمتطلبات؟' : 'Choose how you want to configure project scope & requirements:'}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
+              {/* Option 1: Manual */}
+              <div
+                id="ft-post-action-manual"
+                onClick={() => {
+                  const id = createdProjectId;
+                  handleClose();
+                  navigate(`/projects/${id}?tab=requirements`);
+                }}
+                style={{
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  cursor: 'pointer',
+                  backgroundColor: '#f8fafc',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#2563eb';
+                  e.currentTarget.style.backgroundColor = '#eff6ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '20px' }}>📝</span>
+                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>
+                    {isAr ? 'إدخال المتطلبات يدوياً' : 'Add Scope Manually'}
+                  </strong>
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                  {isAr ? 'تسجيل عناصر النطاق عنصراً بعنصر في مصفوفة التتبع سباعية النقاط.' : 'Register deliverables item-by-item in the 7-Point Traceability Register.'}
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', marginTop: 'auto' }}>
+                  {isAr ? 'فتح المصفوفة ←' : 'Open Matrix →'}
+                </div>
+              </div>
+
+              {/* Option 2: Bulk */}
+              <div
+                id="ft-post-action-bulk"
+                onClick={() => {
+                  const id = createdProjectId;
+                  handleClose();
+                  navigate(`/projects/${id}?tab=requirements&action=bulk`);
+                }}
+                style={{
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  cursor: 'pointer',
+                  backgroundColor: '#f8fafc',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#2563eb';
+                  e.currentTarget.style.backgroundColor = '#eff6ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '20px' }}>📋</span>
+                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>
+                    {isAr ? 'لصق مجمع من إكسل' : 'Paste Scope in Bulk'}
+                  </strong>
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                  {isAr ? 'نسخ ولصق صفوف المتطلبات وجدول الكميات من جداول Excel و TSV.' : 'Copy & paste rows directly from Excel or BOQ schedules with auto-validation.'}
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', marginTop: 'auto' }}>
+                  {isAr ? 'فتح شبكة اللصق ←' : 'Open Bulk Grid →'}
+                </div>
+              </div>
+
+              {/* Option 3: Parse RFP */}
+              <div
+                id="ft-post-action-parse"
+                onClick={() => {
+                  const id = createdProjectId;
+                  handleClose();
+                  navigate(`/projects/${id}?tab=requirements&action=parse`);
+                }}
+                style={{
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  cursor: 'pointer',
+                  backgroundColor: '#f8fafc',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#6366f1';
+                  e.currentTarget.style.backgroundColor = '#eef2ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '20px' }}>📄</span>
+                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>
+                    {isAr ? 'استخراج وتحليل كراسة الشروط' : 'Upload & Parse RFP'}
+                  </strong>
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                  {isAr ? 'لصق نص كراسة المناقصة لاستخراج المتطلبات مع حفظ الاقتباسات الدقيقة.' : 'Parse tender text to extract candidate scope items with exact citations preserved.'}
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#6366f1', marginTop: 'auto' }}>
+                  {isAr ? 'فتح محرك الاستخراج ←' : 'Open Parsing Engine →'}
+                </div>
+              </div>
+
+              {/* Option 4: Skip */}
+              <div
+                id="ft-post-action-skip"
+                onClick={() => {
+                  const id = createdProjectId;
+                  handleClose();
+                  navigate(`/projects/${id}`);
+                }}
+                style={{
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  cursor: 'pointer',
+                  backgroundColor: '#f8fafc',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#64748b';
+                  e.currentTarget.style.backgroundColor = '#f1f5f9';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '20px' }}>🚀</span>
+                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>
+                    {isAr ? 'تخطي والإكمال لاحقاً' : 'Skip and Complete Later'}
+                  </strong>
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                  {isAr ? 'الانتقال مباشرة إلى قمرة قيادة المشروع ومتابعة بوابات الحوكمة.' : 'Proceed directly to Project Cockpit overview and configure scope later.'}
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', marginTop: 'auto' }}>
+                  {isAr ? 'إلى قمرة القيادة ←' : 'To Cockpit →'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const id = createdProjectId;
+                  handleClose();
+                  navigate(`/projects/${id}`);
+                }}
+              >
+                {isAr ? 'إغلاق والذهاب للمشروع' : 'Close & Proceed'}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
           {error && (
             <div
               style={{
@@ -272,6 +483,33 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
           {step === 1 ? (
             /* STEP 1: Basic Info */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Route A: Quick Auto-fill from RFP */}
+              <div style={{ padding: '10px 14px', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>📄</span> {isAr ? 'المسار أ: استخراج البيانات من وثائق المناقصة (Route A)' : 'Route A: Auto-Extract Project from Tender Document'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTitle('Lusail Boulevard National Day Celebrations 2026');
+                      setClientName('Ministry of Culture & Celebrations Authority');
+                      setVenueName('Lusail Boulevard Ceremonial Plaza');
+                      setCountry('Qatar');
+                      setSubmissionDeadline('2026-10-15');
+                      setEventDate('2026-12-18');
+                      setDescription('Turnkey temporary scenic architecture, 360-degree kinetic arch, and 20 themed information counters across 3 zones.');
+                      setExpectedValue('2,500,000');
+                      setOriginRoute('TENDER');
+                      setFormat('State Ceremony & Protocol');
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#d97706', fontSize: '11px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    {isAr ? 'استخراج من نموذج RFP' : 'Auto-Fill from Sample RFP'}
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
                   {isAr ? 'اسم المشروع أو الفعالية *' : 'Project Title / RFP Name *'}
@@ -671,6 +909,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
             </Button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

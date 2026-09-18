@@ -1186,19 +1186,20 @@ export class EosApiClient {
   }
 
   /**
-   * Fetches raw scope requirements list.
+   * Fetches raw scope requirements list with optional filters.
    */
-  async getRequirements(projectId: string): Promise<any[]> {
+  async getRequirements(projectId: string, params?: Record<string, string>): Promise<any> {
     try {
-      const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements`, {
+      const query = params ? '?' + new URLSearchParams(params).toString() : '';
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements${query}`, {
         headers: this.getHeaders(),
       });
       if (res.ok) {
         const json = await res.json();
-        return json.data?.requirements || [];
+        return json.data;
       }
     } catch {}
-    return [];
+    return { requirements: [], coverageReport: { totalRequirements: 0, satisfiedCount: 0 } };
   }
 
   /**
@@ -1216,6 +1217,670 @@ export class EosApiClient {
     }
     return await res.json();
   }
+
+  /**
+   * Fetches a single requirement with full details, revisions, and attachments.
+   */
+  async getRequirement(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to fetch requirement');
+    }
+    const json = await res.json();
+    return json.data;
+  }
+
+  /**
+   * Updates an existing requirement (with baseline protection).
+   */
+  async updateRequirement(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}`, {
+      method: 'PUT',
+      headers: this.getHeaders({ 'Idempotency-Key': `req-update-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to update requirement');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Creates a formal baseline revision.
+   */
+  async createRequirementRevision(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/revisions`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `req-rev-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to create requirement revision');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Gets all revisions for a requirement.
+   */
+  async getRequirementRevisions(projectId: string, reqId: string): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/revisions`, {
+      headers: this.getHeaders(),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      return json.data || [];
+    }
+    return [];
+  }
+
+  /**
+   * Compares two requirement revisions or current against revision.
+   */
+  async compareRequirementRevisions(projectId: string, reqId: string, from?: string, to?: string): Promise<any> {
+    const query = new URLSearchParams();
+    if (from) query.set('from', from);
+    if (to) query.set('to', to);
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/revisions/compare?${query.toString()}`, {
+      headers: this.getHeaders(),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      return json.data;
+    }
+    return null;
+  }
+
+  /**
+   * Archives a requirement.
+   */
+  async archiveRequirement(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/archive`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to archive requirement');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Restores an archived requirement.
+   */
+  async restoreRequirement(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/restore`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to restore requirement');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Duplicates a requirement.
+   */
+  async duplicateRequirement(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/duplicate`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to duplicate requirement');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Bulk creates requirements from Excel/CSV rows.
+   */
+  async bulkCreateRequirements(projectId: string, payload: { items: any[]; saveIncompleteAsDraft?: boolean }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/bulk`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `bulk-req-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to bulk create requirements');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Bulk updates multiple requirements.
+   */
+  async bulkUpdateRequirements(projectId: string, payload: { requirementIds: string[]; updates: any }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/bulk`, {
+      method: 'PUT',
+      headers: this.getHeaders({ 'Idempotency-Key': `bulk-update-req-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to bulk update requirements');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Fetches attachments for a requirement.
+   */
+  async getRequirementAttachments(projectId: string, reqId: string): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/attachments`, {
+      headers: this.getHeaders(),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      return json.data || [];
+    }
+    return [];
+  }
+
+  /**
+   * Adds an attachment to a requirement.
+   */
+  async addRequirementAttachment(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/attachments`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `att-add-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to add attachment');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Deletes an attachment from a requirement.
+   */
+  async deleteRequirementAttachment(projectId: string, reqId: string, attachmentId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/attachments/${attachmentId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to delete attachment');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Creates an RFI / Clarification directly linked to a requirement.
+   */
+  async createRequirementClarification(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/clarifications`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `rfi-req-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to create linked clarification');
+    }
+    return await res.json();
+  }
+
+  /**
+   * Parses tender/RFP document text into structured scope candidates.
+   */
+  async parseScopeDocument(
+    projectId: string,
+    payload: { documentId?: string; documentName?: string; documentType?: string; rawText: string }
+  ): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/parse`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `doc-parse-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to parse tender document');
+    }
+    const json = await res.json();
+    return json.data?.payload || json.data;
+  }
+
+  /**
+   * Retrieves parsing job by ID.
+   */
+  async getScopeParsingJob(projectId: string, jobId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to fetch parsing job');
+    }
+    const json = await res.json();
+    return json.data;
+  }
+
+  /**
+   * Retrieves candidates filtered by queue, status, confidence, or search.
+   */
+  async getScopeParsingCandidates(
+    projectId: string,
+    jobId: string,
+    filters?: { queueType?: string; status?: string; confidence?: string; search?: string }
+  ): Promise<any> {
+    const query = new URLSearchParams();
+    if (filters?.queueType) query.set('queueType', filters.queueType);
+    if (filters?.status) query.set('status', filters.status);
+    if (filters?.confidence) query.set('confidence', filters.confidence);
+    if (filters?.search) query.set('search', filters.search);
+
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}/candidates?${query.toString()}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.message || 'Failed to fetch parsing candidates');
+    }
+    const json = await res.json();
+    return json.data;
+  }
+
+  /**
+   * Reviews an extracted candidate (accept, edit & accept, reject, merge, convert).
+   */
+  async reviewScopeParsingCandidate(
+    projectId: string,
+    jobId: string,
+    payload: {
+      candidateId: string;
+      action: string;
+      edits?: any;
+      mergeTargetId?: string;
+      targetRequirementId?: string;
+      reviewerNotes?: string;
+    }
+  ): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}/review`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `cand-rev-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to review candidate');
+    }
+    const json = await res.json();
+    return json.data?.payload || json.data;
+  }
+
+  /**
+   * Bulk reviews candidates with safety interlocks.
+   */
+  async bulkReviewScopeCandidates(
+    projectId: string,
+    jobId: string,
+    payload: { candidateIds: string[]; action: 'approve' | 'reject' | 'mark_info_only'; forceLowConfidence?: boolean }
+  ): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}/bulk-review`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `cand-bulk-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to bulk review candidates');
+    }
+    const json = await res.json();
+    return json.data?.payload || json.data;
+  }
+
+  /**
+   * Compares document versions (Addenda Engine).
+   */
+  async compareScopeDocuments(
+    projectId: string,
+    payload: { priorJobId?: string; newJobId: string; priorDocumentName?: string; newDocumentName?: string }
+  ): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/compare`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `doc-cmp-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to compare document versions');
+    }
+    const json = await res.json();
+    return json.data?.payload || json.data;
+  }
+
+  /**
+   * Applies an approved addendum revision with deltas, allocations, and design variants.
+   */
+  async applyAddendumRevision(
+    projectId: string,
+    payload: { deltaId: string; reason?: string; confirmAllocations?: boolean; targetRequirementId?: string }
+  ): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/apply-addendum-revision`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `rev-apply-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to apply addendum revision');
+    }
+    const json = await res.json();
+    return json.data?.payload || json.data;
+  }
+
+  /**
+   * Exports requirements register as CSV or JSON.
+   */
+  async exportRequirements(projectId: string, format: 'csv' | 'json' = 'csv'): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements-export?format=${format}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error('Failed to export requirements');
+    }
+    const json = await res.json();
+    return json.data;
+  }
+
+  // =========================================================================
+  // PHASE 2: ALLOCATIONS, DESIGN VARIANTS, BOM, WORK PACKAGES & BATCHES
+  // =========================================================================
+
+  async getRequirementAllocations(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/allocations`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch allocations');
+    return await res.json();
+  }
+
+  async createRequirementAllocation(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/allocations`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `alloc-create-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to create allocation');
+    }
+    return await res.json();
+  }
+
+  async updateRequirementAllocation(projectId: string, reqId: string, allocId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/allocations/${allocId}`, {
+      method: 'PUT',
+      headers: this.getHeaders({ 'Idempotency-Key': `alloc-upd-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to update allocation');
+    }
+    return await res.json();
+  }
+
+  async deleteRequirementAllocation(projectId: string, reqId: string, allocId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/allocations/${allocId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to delete allocation');
+    return await res.json();
+  }
+
+  async splitRequirementAllocation(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/allocations/split`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `alloc-split-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to split allocation');
+    }
+    return await res.json();
+  }
+
+  async mergeRequirementAllocations(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/allocations/merge`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `alloc-merge-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to merge allocations');
+    }
+    return await res.json();
+  }
+
+  async moveRequirementAllocationQuantity(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/allocations/move-quantity`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `alloc-move-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to move allocation quantity');
+    }
+    return await res.json();
+  }
+
+  async getRequirementDesignPackages(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/design-packages`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch design packages');
+    return await res.json();
+  }
+
+  async createRequirementDesignPackage(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/design-packages`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `dp-create-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to create design package');
+    return await res.json();
+  }
+
+  async getRequirementDesignVariants(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/design-variants`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch design variants');
+    return await res.json();
+  }
+
+  async createRequirementDesignVariant(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/design-variants`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `dv-create-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to create design variant');
+    return await res.json();
+  }
+
+  async approveRequirementDesignVariant(projectId: string, reqId: string, variantId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/design-variants/${variantId}/approve`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `dv-app-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to approve design variant');
+    return await res.json();
+  }
+
+  async releaseRequirementDesignVariant(projectId: string, reqId: string, variantId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/design-variants/${variantId}/release`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `dv-rel-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to release variant to production');
+    }
+    return await res.json();
+  }
+
+  async getRequirementFulfilmentItems(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/fulfilment-items`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch fulfilment items');
+    return await res.json();
+  }
+
+  async generateDraftFulfilmentItems(projectId: string, reqId: string, payload?: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/fulfilment-items/generate-draft`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `fi-gen-${Date.now()}` }),
+      body: JSON.stringify(payload || {}),
+    });
+    if (!res.ok) throw new Error('Failed to generate draft fulfilment items');
+    return await res.json();
+  }
+
+  async createRequirementFulfilmentItem(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/fulfilment-items`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `fi-create-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to create fulfilment item');
+    return await res.json();
+  }
+
+  async reviewFulfilmentBatch(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/fulfilment-items/review-batch`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `fi-batch-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to review fulfilment items batch');
+    return await res.json();
+  }
+
+  async getRequirementWorkPackages(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/work-packages`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch work packages');
+    return await res.json();
+  }
+
+  async createRequirementWorkPackage(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/work-packages`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `wp-create-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to create work package');
+    return await res.json();
+  }
+
+  async instantiateWorkPackageTemplate(projectId: string, reqId: string, category?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/work-packages/template`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `wp-tmpl-${Date.now()}` }),
+      body: JSON.stringify({ category }),
+    });
+    if (!res.ok) throw new Error('Failed to instantiate work package template');
+    return await res.json();
+  }
+
+  async updateRequirementWorkPackage(projectId: string, reqId: string, wpId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/work-packages/${wpId}`, {
+      method: 'PUT',
+      headers: this.getHeaders({ 'Idempotency-Key': `wp-upd-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to update work package');
+    return await res.json();
+  }
+
+  async getRequirementBatches(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/batches`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch batches');
+    return await res.json();
+  }
+
+  async createProductionBatch(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/batches`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `batch-create-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to create production batch');
+    return await res.json();
+  }
+
+  async recordBatchProgress(projectId: string, reqId: string, batchId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/batches/${batchId}/progress`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `batch-prog-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to record batch progress');
+    }
+    return await res.json();
+  }
+
+  async changeRequirementQuantity(projectId: string, reqId: string, payload: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/change-quantity`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'Idempotency-Key': `qty-change-${Date.now()}` }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.title || err.detail || err.message || 'Failed to change requirement quantity');
+    }
+    return await res.json();
+  }
+
+  async getRequirementReconciliation(projectId: string, reqId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}/reconciliation`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch requirement reconciliation');
+    return await res.json();
+  }
+
+  async getGroupedRequirementsMatrix(projectId: string, groupBy?: string, thenBy?: string): Promise<any> {
+    const query = new URLSearchParams();
+    if (groupBy) query.set('groupBy', groupBy);
+    if (thenBy) query.set('thenBy', thenBy);
+    const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements-matrix/grouped?${query.toString()}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch grouped requirements matrix');
+    return await res.json();
+  }
+
 
   /**
    * Fetches project clarifications / RFIs with urgent deadline flags.
