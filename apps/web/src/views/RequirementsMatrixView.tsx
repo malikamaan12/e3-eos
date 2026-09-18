@@ -353,34 +353,6 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
     }
   };
 
-  if (loading && !matrixData) {
-    return (
-      <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-        <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <div style={{ marginTop: '16px', fontSize: '15px', fontWeight: 600, color: '#1e293b' }}>
-          Loading 7-Point Traceability Matrix...
-        </div>
-        <div style={{ marginTop: '4px', fontSize: '13px', color: '#64748b' }}>
-          Evaluating cross-module connections across CAD, BOQ, Documents, and Production Gates.
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ padding: '24px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <strong style={{ fontSize: '15px' }}>⚠️ Unable to Load Requirements Matrix</strong>
-            <p style={{ margin: '6px 0 0', fontSize: '13px' }}>{error}</p>
-          </div>
-          <Button variant="danger" onClick={triggerRefresh}>Retry</Button>
-        </div>
-      </div>
-    );
-  }
-
   const evaluations = matrixData?.evaluations || [];
 
   const filteredEvaluations = evaluations.filter((ev: any) => {
@@ -579,6 +551,34 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
     return sections;
   }, [filteredEvaluations, groupBy, thenBy]);
+
+  if (loading && !matrixData) {
+    return (
+      <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <div style={{ marginTop: '16px', fontSize: '15px', fontWeight: 600, color: '#1e293b' }}>
+          Loading 7-Point Traceability Matrix...
+        </div>
+        <div style={{ marginTop: '4px', fontSize: '13px', color: '#64748b' }}>
+          Evaluating cross-module connections across CAD, BOQ, Documents, and Production Gates.
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '24px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <strong style={{ fontSize: '15px' }}>⚠️ Unable to Load Requirements Matrix</strong>
+            <p style={{ margin: '6px 0 0', fontSize: '13px' }}>{error}</p>
+          </div>
+          <Button variant="danger" onClick={triggerRefresh}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

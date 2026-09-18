@@ -1,6 +1,7 @@
 import React from 'react';
 import { EosProvider, useEosContext } from './context/EosContext.js';
 import { LayoutShell } from './components/LayoutShell.js';
+import { ErrorBoundary } from './components/ErrorBoundary.js';
 
 // Dedicated Enterprise Views
 import { LoginView } from './views/LoginView.js';
@@ -211,14 +212,22 @@ const AppRouter: React.FC = () => {
     return <HomeView />;
   };
 
-  return <LayoutShell>{renderContent()}</LayoutShell>;
+  return (
+    <LayoutShell>
+      <ErrorBoundary>
+        {renderContent()}
+      </ErrorBoundary>
+    </LayoutShell>
+  );
 };
 
 export const App: React.FC = () => {
   return (
-    <EosProvider>
-      <AppRouter />
-    </EosProvider>
+    <ErrorBoundary>
+      <EosProvider>
+        <AppRouter />
+      </EosProvider>
+    </ErrorBoundary>
   );
 };
 
