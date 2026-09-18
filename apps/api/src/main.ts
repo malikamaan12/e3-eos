@@ -1,7 +1,7 @@
 /**
  * E3-EOS Enterprise API & Web Distribution Gateway
  * Release: Progressive Scope & Requirements Matrix (Phases 1-3)
- * Patch: Vercel SPA routing, deep linking & cleanUrls fix
+ * Patch: Requirement validation fix & progressive scope fallback
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';

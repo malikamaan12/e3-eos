@@ -160,8 +160,12 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
     if (!quickTitle.trim()) return;
     setIsSubmittingQuick(true);
     try {
+      const progressiveDesc = quickTitle.trim().length >= 5
+        ? quickTitle.trim()
+        : `${quickTitle.trim()} - Scope requirement`;
       const res = await apiClient.createRequirement(projectId, {
         title: quickTitle.trim(),
+        description: progressiveDesc,
         category: quickCategory,
         ownerName: quickOwnerName || undefined,
         dueDate: quickDueDate || undefined,
@@ -189,10 +193,13 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
     if (!reqTitle.trim()) return;
     setIsSubmittingReq(true);
     try {
+      const fallbackDesc = reqDesc && reqDesc.trim().length >= 5
+        ? reqDesc.trim()
+        : (reqTitle.trim().length >= 5 ? reqTitle.trim() : `${reqTitle.trim()} - Scope requirement`);
       await apiClient.createRequirement(projectId, {
         code: reqCode || undefined,
-        title: reqTitle,
-        description: reqDesc || undefined,
+        title: reqTitle.trim(),
+        description: fallbackDesc,
         originalWording: reqOriginalWording || undefined,
         interpretation: reqInterpretation || undefined,
         sourceType: reqSourceType,

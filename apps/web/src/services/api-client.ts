@@ -1206,14 +1206,28 @@ export class EosApiClient {
    * Creates a new scope requirement.
    */
   async createRequirement(projectId: string, payload: any): Promise<any> {
+    const rawDesc = payload.description ? String(payload.description).trim() : '';
+    const rawTitle = payload.title ? String(payload.title).trim() : 'Scope Requirement';
+    const cleanDesc = rawDesc.length >= 5
+      ? rawDesc
+      : (rawTitle.length >= 5 ? rawTitle : `${rawTitle} - Scope requirement`);
+
+    const cleanPayload = {
+      ...payload,
+      title: rawTitle,
+      description: cleanDesc,
+    };
+
     const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements`, {
       method: 'POST',
       headers: this.getHeaders({ 'Idempotency-Key': `req-create-${Date.now()}` }),
-      body: JSON.stringify(payload),
+      body: JSON.stringify(cleanPayload),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.title || err.message || 'Failed to create requirement');
+      const detailMsg = err.detail || (err.errors ? JSON.stringify(err.errors) : undefined);
+      const msg = detailMsg ? `${err.title || 'Error'}: ${detailMsg}` : (err.title || err.message || 'Failed to create requirement');
+      throw new Error(msg);
     }
     return await res.json();
   }
@@ -1496,14 +1510,29 @@ export class EosApiClient {
    * Bulk creates requirements from Excel/CSV rows.
    */
   async bulkCreateRequirements(projectId: string, payload: { items: any[]; saveIncompleteAsDraft?: boolean }): Promise<any> {
+    const cleanItems = (payload.items || []).map((it: any) => {
+      const rawDesc = it.description ? String(it.description).trim() : '';
+      const rawTitle = it.title ? String(it.title).trim() : 'Scope Requirement';
+      const cleanDesc = rawDesc.length >= 5
+        ? rawDesc
+        : (rawTitle.length >= 5 ? rawTitle : `${rawTitle} - Scope requirement`);
+      return {
+        ...it,
+        title: rawTitle,
+        description: cleanDesc,
+      };
+    });
+
     const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/bulk`, {
       method: 'POST',
       headers: this.getHeaders({ 'Idempotency-Key': `bulk-req-${Date.now()}` }),
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, items: cleanItems }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.title || err.message || 'Failed to bulk create requirements');
+      const detailMsg = err.detail || (err.errors ? JSON.stringify(err.errors) : undefined);
+      const msg = detailMsg ? `${err.title || 'Error'}: ${detailMsg}` : (err.title || err.message || 'Failed to bulk create requirements');
+      throw new Error(msg);
     }
     return await res.json();
   }
@@ -1519,7 +1548,9 @@ export class EosApiClient {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.title || err.message || 'Failed to bulk update requirements');
+      const detailMsg = err.detail || (err.errors ? JSON.stringify(err.errors) : undefined);
+      const msg = detailMsg ? `${err.title || 'Error'}: ${detailMsg}` : (err.title || err.message || 'Failed to bulk update requirements');
+      throw new Error(msg);
     }
     return await res.json();
   }
