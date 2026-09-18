@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Button, AlertBanner } from '../components/DesignSystem.js';
+import { CANONICAL_E3_USERS, DEFAULT_DUMMY_PASSWORD } from '../context/canonical-users.js';
+
+const ROLE_META: Record<string, { icon: string; tag: string; tagAr: string; ceiling: string; ceilingAr: string }> = {
+  super_admin: { icon: '👑', tag: 'Super Admin', tagAr: 'المدير العام', ceiling: 'Unlimited', ceilingAr: 'غير محدود' },
+  executive: { icon: '🏛️', tag: 'Executive', tagAr: 'تنفيذي', ceiling: '> 250k QAR', ceilingAr: '> 250 ألف ر.ق' },
+  project_director: { icon: '🎯', tag: 'Director', tagAr: 'مدير إدارة', ceiling: '≤ 250k QAR', ceilingAr: '≤ 250 ألف ر.ق' },
+  project_manager: { icon: '📋', tag: 'Lead PM', tagAr: 'مدير مشروع', ceiling: '≤ 50k QAR', ceilingAr: '≤ 50 ألف ر.ق' },
+  finance: { icon: '💰', tag: 'Finance', tagAr: 'مالية', ceiling: '≤ 250k QAR', ceilingAr: '≤ 250 ألف ر.ق' },
+  procurement: { icon: '📦', tag: 'Procurement', tagAr: 'مشتريات', ceiling: 'PO Creation', ceilingAr: 'أوامر الشراء' },
+  design_production: { icon: '🎨', tag: 'Design', tagAr: 'تصميم وإنتاج', ceiling: 'Creative', ceilingAr: 'فني واعتماد' },
+  operations: { icon: '🏗️', tag: 'Live Ops', tagAr: 'عمليات', ceiling: 'Run-sheets', ceilingAr: 'تشغيل ميداني' },
+  logistics: { icon: '🚚', tag: 'Logistics', tagAr: 'لوجستيات', ceiling: 'Fleet & Dispatch', ceilingAr: 'أسطول ومستودع' },
+  hse_quality: { icon: '🛡️', tag: 'HSE & Safety', tagAr: 'سلامة وجودة', ceiling: 'Permits & Audits', ceilingAr: 'تصاريح وتفتيش' },
+  marketing_commercial: { icon: '📈', tag: 'Commercial', tagAr: 'تجاري', ceiling: 'Sponsorships', ceilingAr: 'عقود ورعايات' },
+  field_supervisor: { icon: '📱', tag: 'Field PWA', tagAr: 'مشرف موقع', ceiling: 'Offline Checks', ceilingAr: 'تفتيش ميداني' },
+  client_user: { icon: '🤝', tag: 'Client Portal', tagAr: 'بوابة العميل', ceiling: 'Read & Signoff', ceilingAr: 'مراجعة وتقارير' },
+};
 
 export const LoginView: React.FC = () => {
   const { login, navigate, currentLanguage, toggleLanguage, direction } = useEosContext();
@@ -14,6 +31,9 @@ export const LoginView: React.FC = () => {
   // MFA Challenge State
   const [mfaRequired, setMfaRequired] = useState<boolean>(false);
   const [mfaCode, setMfaCode] = useState<string>('');
+  const [showAllPersonas, setShowAllPersonas] = useState<boolean>(true);
+  const [showDirectoryModal, setShowDirectoryModal] = useState<boolean>(false);
+  const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -497,55 +517,132 @@ export const LoginView: React.FC = () => {
                 {/* 1-Click Fast Persona Sign-In for UAT */}
                 <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px dashed rgba(217, 119, 6, 0.3)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                      ⚡ {isAr ? 'الدخول السريع بحسابات الاختبار' : '1-Click UAT Persona Access'}
-                    </span>
-                    <span style={{ fontSize: '10px', color: '#64748b' }}>
-                      {isAr ? 'اختر دورك للدخول فوراً' : 'Select role to enter instantly'}
-                    </span>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    {[
-                      { name: isAr ? '👑 المدير العام' : '👑 Super Admin', email: 'superadmin@e3.qa' },
-                      { name: isAr ? '📋 مدير المشروع' : '📋 Lead PM', email: 'pm@e3.qa' },
-                      { name: isAr ? '💰 المدير المالي' : '💰 Finance Lead', email: 'finance@e3.qa' },
-                      { name: isAr ? '🏗️ مدير العمليات' : '🏗️ Live Ops', email: 'ops@e3.qa' },
-                      { name: isAr ? '📱 مشرف الموقع' : '📱 Field PWA', email: 'field@e3.qa' },
-                      { name: isAr ? '🤝 بوابة العميل' : '🤝 Client Portal', email: 'client@qatartourism.qa' },
-                    ].map((p) => (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                        ⚡ {isAr ? 'حسابات الاختبار الـ 13' : '13 Canonical Test Accounts'}
+                      </span>
                       <button
-                        key={p.email}
                         type="button"
-                        onClick={() => handleQuickLogin(p.email)}
-                        disabled={loading}
+                        onClick={() => setShowAllPersonas(!showAllPersonas)}
                         style={{
-                          padding: '8px 10px',
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          textAlign: isAr ? 'right' : 'left',
-                          backgroundColor: '#0f172a',
-                          color: '#e2e8f0',
-                          border: '1px solid #334155',
-                          borderRadius: '6px',
-                          cursor: loading ? 'not-allowed' : 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = '#d97706';
-                          e.currentTarget.style.backgroundColor = '#1e293b';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = '#334155';
-                          e.currentTarget.style.backgroundColor = '#0f172a';
+                          fontSize: '10px',
+                          color: '#38bdf8',
+                          background: 'rgba(56, 189, 248, 0.1)',
+                          border: '1px solid rgba(56, 189, 248, 0.3)',
+                          borderRadius: '4px',
+                          padding: '2px 6px',
+                          cursor: 'pointer',
                         }}
                       >
-                        <span>{p.name}</span>
-                        <span style={{ fontSize: '10px', color: '#94a3b8' }}>{isAr ? '←' : '→'}</span>
+                        {showAllPersonas ? (isAr ? 'عرض 6 أساسية' : 'Show Top 6') : (isAr ? 'عرض الكل (13)' : 'Show All (13)')}
                       </button>
-                    ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowDirectoryModal(true)}
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color: '#fbbf24',
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        border: '1px solid rgba(245, 158, 11, 0.4)',
+                        borderRadius: '4px',
+                        padding: '3px 8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <span>📋</span>
+                      <span>{isAr ? 'دليل بيانات الاعتماد' : 'Credentials Directory'}</span>
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '8px',
+                      maxHeight: showAllPersonas ? '320px' : 'auto',
+                      overflowY: showAllPersonas ? 'auto' : 'visible',
+                      paddingRight: showAllPersonas ? '4px' : '0',
+                    }}
+                  >
+                    {(showAllPersonas ? CANONICAL_E3_USERS : CANONICAL_E3_USERS.slice(0, 6)).map((u) => {
+                      const meta = ROLE_META[u.role] || { icon: '👤', tag: u.role, tagAr: u.role, ceiling: 'Standard', ceilingAr: 'قياسي' };
+                      return (
+                        <div
+                          key={u.email}
+                          style={{
+                            padding: '8px 10px',
+                            backgroundColor: '#0f172a',
+                            border: '1px solid #334155',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            gap: '4px',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9' }}>
+                              {meta.icon} {isAr ? meta.tagAr : meta.tag}
+                            </span>
+                            <span style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#1e293b', padding: '1px 5px', borderRadius: '4px' }}>
+                              {isAr ? meta.ceilingAr : meta.ceiling}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '10px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {u.email}
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEmail(u.email);
+                                setPassword(DEFAULT_DUMMY_PASSWORD);
+                              }}
+                              disabled={loading}
+                              title={isAr ? 'تعبئة النموذج' : 'Auto-fill login fields'}
+                              style={{
+                                flex: 1,
+                                padding: '4px 6px',
+                                fontSize: '10px',
+                                fontWeight: 500,
+                                backgroundColor: '#1e293b',
+                                color: '#94a3b8',
+                                border: '1px solid #475569',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {isAr ? 'تعبئة' : 'Fill'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickLogin(u.email)}
+                              disabled={loading}
+                              title={isAr ? 'دخول فوري بنقرة واحدة' : '1-Click instant login'}
+                              style={{
+                                flex: 1.4,
+                                padding: '4px 6px',
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                backgroundColor: 'rgba(217, 119, 6, 0.2)',
+                                color: '#f59e0b',
+                                border: '1px solid rgba(217, 119, 6, 0.4)',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {isAr ? 'دخول ←' : '1-Click →'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </form>
@@ -568,8 +665,281 @@ export const LoginView: React.FC = () => {
             ? 'تشفير آمن للمفاتيح والشهادات وحوكمة البيانات لفعاليات دولة قطر'
             : 'Protected by Scrypt key derivation, RFC 6238 TOTP, and Row-Level Security.'}
         </div>
+
+        {/* Modal: Full Canonical Dummy Accounts & Credentials Directory */}
+        {showDirectoryModal && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1000,
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(6px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+            onClick={() => setShowDirectoryModal(false)}
+          >
+            <div
+              style={{
+                backgroundColor: '#0b1120',
+                border: '1px solid #334155',
+                borderRadius: '12px',
+                maxWidth: '860px',
+                width: '100%',
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+                overflow: 'hidden',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div
+                style={{
+                  padding: '16px 20px',
+                  borderBottom: '1px solid #1e293b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: '#0f172a',
+                }}
+              >
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>🔐</span>
+                    <span>{isAr ? 'دليل الحسابات الاختبارية وبيانات الاعتماد (13 دور)' : 'Canonical Accounts & Credentials Directory (13 Roles)'}</span>
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
+                    {isAr
+                      ? 'جميع الحسابات مفعلة ومربوطة بنظام الصلاحيات وقاعدة البيانات المشفرة'
+                      : 'Standardized credentials seeded into PostgreSQL for testing and role simulation.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDirectoryModal(false)}
+                  style={{
+                    backgroundColor: '#1e293b',
+                    color: '#94a3b8',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    width: '32px',
+                    height: '32px',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Password Banner */}
+              <div
+                style={{
+                  padding: '12px 20px',
+                  backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                  borderBottom: '1px solid rgba(217, 119, 6, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#f59e0b' }}>
+                    🔑 {isAr ? 'كلمة المرور الموحدة لجميع الحسابات:' : 'Universal Password for all accounts:'}
+                  </span>
+                  <code
+                    style={{
+                      backgroundColor: '#0f172a',
+                      color: '#fbbf24',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      border: '1px solid #d97706',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {DEFAULT_DUMMY_PASSWORD}
+                  </code>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(DEFAULT_DUMMY_PASSWORD);
+                    setCopiedEmail('password');
+                    setTimeout(() => setCopiedEmail(null), 2000);
+                  }}
+                  style={{
+                    backgroundColor: copiedEmail === 'password' ? '#166534' : '#1e293b',
+                    color: copiedEmail === 'password' ? '#86efac' : '#f1f5f9',
+                    border: '1px solid #475569',
+                    borderRadius: '5px',
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  {copiedEmail === 'password' ? (isAr ? '✓ تم النسخ' : '✓ Copied') : (isAr ? 'نسخ كلمة المرور' : 'Copy Password')}
+                </button>
+              </div>
+
+              {/* Accounts Directory Grid */}
+              <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {CANONICAL_E3_USERS.map((u) => {
+                  const meta = ROLE_META[u.role] || { icon: '👤', tag: u.role, tagAr: u.role, ceiling: 'Standard', ceilingAr: 'قياسي' };
+                  return (
+                    <div
+                      key={u.id}
+                      style={{
+                        padding: '12px 14px',
+                        backgroundColor: '#0f172a',
+                        border: '1px solid #1e293b',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '220px' }}>
+                        <span style={{ fontSize: '22px' }}>{meta.icon}</span>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#f8fafc' }}>
+                            {u.name}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                            {isAr ? u.titleAr : u.title}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '180px' }}>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          {isAr ? 'البريد المؤسسي:' : 'Corporate Email:'}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <code style={{ fontSize: '12px', color: '#38bdf8', fontWeight: 600 }}>{u.email}</code>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard?.writeText(u.email);
+                              setCopiedEmail(u.email);
+                              setTimeout(() => setCopiedEmail(null), 2000);
+                            }}
+                            title="Copy email"
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: copiedEmail === u.email ? '#22c55e' : '#64748b',
+                              cursor: 'pointer',
+                              fontSize: '11px',
+                              padding: '2px 4px',
+                            }}
+                          >
+                            {copiedEmail === u.email ? '✓' : '📋'}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '130px' }}>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          {isAr ? 'سقف الصلاحية المالية:' : 'Authority Limit:'}
+                        </div>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: '#e2e8f0', backgroundColor: '#1e293b', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', width: 'fit-content' }}>
+                          {isAr ? meta.ceilingAr : meta.ceiling}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEmail(u.email);
+                            setPassword(DEFAULT_DUMMY_PASSWORD);
+                            setShowDirectoryModal(false);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            backgroundColor: '#1e293b',
+                            color: '#cbd5e1',
+                            border: '1px solid #475569',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {isAr ? 'تعبئة النموذج' : 'Auto-Fill'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDirectoryModal(false);
+                            handleQuickLogin(u.email);
+                          }}
+                          disabled={loading}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            backgroundColor: '#d97706',
+                            color: '#ffffff',
+                            border: '1px solid #f59e0b',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {isAr ? 'دخول فوري ←' : '1-Click Sign In →'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Modal Footer */}
+              <div
+                style={{
+                  padding: '12px 20px',
+                  borderTop: '1px solid #1e293b',
+                  backgroundColor: '#0f172a',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowDirectoryModal(false)}
+                  style={{
+                    padding: '6px 16px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    backgroundColor: '#1e293b',
+                    color: '#e2e8f0',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {isAr ? 'إغلاق' : 'Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
-

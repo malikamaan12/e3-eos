@@ -502,3 +502,228 @@ export function canAccessRestrictedBankDetails(
   }
   return ['executive', 'finance', 'procurement'].includes(normRole);
 }
+
+/**
+ * Standard default password for all canonical development and staging dummy accounts.
+ */
+export const DEFAULT_DUMMY_PASSWORD = 'E3#Doha2026!';
+
+/**
+ * Metadata definition for a canonical dummy account with credentials.
+ */
+export interface CanonicalDummyAccount {
+  id: string;
+  name: string;
+  email: string;
+  role: CanonicalRole;
+  isSuperAdmin: boolean;
+  organisationId: string;
+  organisationName: string;
+  audience: 'internal' | 'client' | 'supplier';
+  title: string;
+  titleAr: string;
+  password: string;
+  authorityCeilingQar: number;
+  description: string;
+}
+
+/**
+ * Complete directory of 13 canonical dummy accounts and credentials covering all role types.
+ */
+export const CANONICAL_DUMMY_ACCOUNTS: CanonicalDummyAccount[] = [
+  {
+    id: '10000000-0000-4000-8000-000000000001',
+    name: 'Tareq Al-Kuwari',
+    email: 'superadmin@e3.qa',
+    role: 'super_admin',
+    isSuperAdmin: true,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Super Admin',
+    titleAr: 'المدير العام للنظام',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: Infinity,
+    description: 'Unrestricted system-wide configuration, tenant management, and root governance.',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000002',
+    name: 'Nasser Al-Attiyah',
+    email: 'executive@e3.qa',
+    role: 'executive',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Executive Partner',
+    titleAr: 'الشريك التنفيذي',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: Infinity,
+    description: 'Executive oversight, commercial portfolio sign-offs, four-eyes gate approvals > 250,000 QAR.',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000003',
+    name: 'Fatima Al-Sulaiti',
+    email: 'director@e3.qa',
+    role: 'project_director',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Project Director',
+    titleAr: 'مدير إدارة المشاريع',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 250000,
+    description: 'Multi-project direction, stage progression authorisation, major budget variations up to 250,000 QAR.',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000004',
+    name: 'Zaid Mansour',
+    email: 'pm@e3.qa',
+    role: 'project_manager',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Project Manager (Lead PM)',
+    titleAr: 'مدير المشروع الرئيسي',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 50000,
+    description: 'Full 13-stage lifecycle delivery, task assignment, daily blockers, commitments up to 50,000 QAR (POL-COMM-01).',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000005',
+    name: 'Rashid Al-Hajri',
+    email: 'finance@e3.qa',
+    role: 'finance',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Financial Controller',
+    titleAr: 'المراقب المالي',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 250000,
+    description: 'BOQ pricing, PO commitment validation, 3-way match, approvals up to 250,000 QAR (POL-COMM-02).',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000006',
+    name: 'Maryam Al-Kuwari',
+    email: 'procurement@e3.qa',
+    role: 'procurement',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Procurement Manager',
+    titleAr: 'مسؤول المشتريات والعقود',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 0,
+    description: 'RFQ packages, vendor quote comparisons, framework call-offs, PO generation, supplier rating.',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000007',
+    name: 'Karim Haddad',
+    email: 'designer@e3.qa',
+    role: 'design_production',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Design / Production Director',
+    titleAr: 'مدير التصميم والإنتاج',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 0,
+    description: 'CAD drawings, moodboards, fabrication orders, technical safety specifications.',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000008',
+    name: 'Salem Al-Marri',
+    email: 'ops@e3.qa',
+    role: 'operations',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Operations Director',
+    titleAr: 'مدير العمليات الميدانية',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 0,
+    description: 'Venue logistics, bump-in / bump-out coordination, master run sheet, site access control.',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000009',
+    name: 'Hamad Al-Khelaifi',
+    email: 'logistics@e3.qa',
+    role: 'logistics',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Logistics Manager',
+    titleAr: 'مدير الخدمات اللوجستية والأسطول',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 0,
+    description: 'Fleet transport coordination, warehouse dispatching, equipment customs clearance, asset staging.',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000010',
+    name: 'Dr. Sarah Ibrahim',
+    email: 'hse@e3.qa',
+    role: 'hse_quality',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'HSE & Quality Inspector',
+    titleAr: 'مفتش الصحة والسلامة والجودة',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 0,
+    description: 'Civil Defence compliance, structural engineering inspection, fire retardancy certifications.',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000011',
+    name: 'Khalid Al-Thani',
+    email: 'commercial@e3.qa',
+    role: 'marketing_commercial',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Commercial / Marketing Lead',
+    titleAr: 'المسؤول التجاري والتسويق',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 0,
+    description: 'Client proposals, contract negotiation, brand sponsorship packages, milestone delivery tracking.',
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000012',
+    name: 'Omar Farooq',
+    email: 'field@e3.qa',
+    role: 'field_supervisor',
+    isSuperAdmin: false,
+    organisationId: '11111111-1111-4111-8111-111111111111',
+    organisationName: 'E3 Events Master Tenant',
+    audience: 'internal',
+    title: 'Field Supervisor',
+    titleAr: 'مشرف الموقع الميداني',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 0,
+    description: 'On-site mobile PWA task execution, photo snag uploads, workforce attendance (sensitive bank details masked).',
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000013',
+    name: 'Hessa Al-Nuaimi',
+    email: 'client@qatartourism.qa',
+    role: 'client_user',
+    isSuperAdmin: false,
+    organisationId: '22222222-2222-4222-8222-222222222222',
+    organisationName: 'Qatar Tourism Authority',
+    audience: 'client',
+    title: 'Client Stakeholder',
+    titleAr: 'ممثل العميل والجهة المستفيدة',
+    password: DEFAULT_DUMMY_PASSWORD,
+    authorityCeilingQar: 0,
+    description: 'Client collaboration portal, creative package approvals, stage completions (supplier costs redacted).',
+  },
+];
