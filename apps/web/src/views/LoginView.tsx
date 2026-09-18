@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Button, AlertBanner } from '../components/DesignSystem.js';
-import { CANONICAL_E3_USERS, DEFAULT_DUMMY_PASSWORD } from '../context/canonical-users.js';
+import {
+  CANONICAL_E3_USERS,
+  ALL_LOCAL_TEAM_USERS,
+  CANONICAL_LEAD_USERS,
+  DEFAULT_DUMMY_PASSWORD,
+} from '../context/canonical-users.js';
 
 const ROLE_META: Record<string, { icon: string; tag: string; tagAr: string; ceiling: string; ceilingAr: string }> = {
   super_admin: { icon: '👑', tag: 'Super Admin', tagAr: 'المدير العام', ceiling: 'Unlimited', ceilingAr: 'غير محدود' },
@@ -31,9 +36,11 @@ export const LoginView: React.FC = () => {
   // MFA Challenge State
   const [mfaRequired, setMfaRequired] = useState<boolean>(false);
   const [mfaCode, setMfaCode] = useState<string>('');
-  const [showAllPersonas, setShowAllPersonas] = useState<boolean>(true);
+  const [showAllPersonas, setShowAllPersonas] = useState<boolean>(false);
   const [showDirectoryModal, setShowDirectoryModal] = useState<boolean>(false);
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
+  const [departmentFilter, setDepartmentFilter] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
 
   useEffect(() => {
@@ -519,7 +526,7 @@ export const LoginView: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                        ⚡ {isAr ? 'حسابات الاختبار الـ 13' : '13 Canonical Test Accounts'}
+                        ⚡ {isAr ? 'فريق العمل المحلي (حسابات اختبار)' : 'Local Team Accounts (UAT)'}
                       </span>
                       <button
                         type="button"
@@ -534,7 +541,7 @@ export const LoginView: React.FC = () => {
                           cursor: 'pointer',
                         }}
                       >
-                        {showAllPersonas ? (isAr ? 'عرض 6 أساسية' : 'Show Top 6') : (isAr ? 'عرض الكل (13)' : 'Show All (13)')}
+                        {showAllPersonas ? (isAr ? 'عرض 13 قيادة' : 'Show 13 Leads') : (isAr ? 'عرض الكل (33)' : 'Show All (33)')}
                       </button>
                     </div>
                     <button
@@ -555,7 +562,7 @@ export const LoginView: React.FC = () => {
                       }}
                     >
                       <span>📋</span>
-                      <span>{isAr ? 'دليل بيانات الاعتماد' : 'Credentials Directory'}</span>
+                      <span>{isAr ? 'دليل الفريق (33)' : 'Team Directory (33)'}</span>
                     </button>
                   </div>
 
@@ -564,12 +571,12 @@ export const LoginView: React.FC = () => {
                       display: 'grid',
                       gridTemplateColumns: '1fr 1fr',
                       gap: '8px',
-                      maxHeight: showAllPersonas ? '320px' : 'auto',
-                      overflowY: showAllPersonas ? 'auto' : 'visible',
-                      paddingRight: showAllPersonas ? '4px' : '0',
+                      maxHeight: '340px',
+                      overflowY: 'auto',
+                      paddingRight: '4px',
                     }}
                   >
-                    {(showAllPersonas ? CANONICAL_E3_USERS : CANONICAL_E3_USERS.slice(0, 6)).map((u) => {
+                    {(showAllPersonas ? ALL_LOCAL_TEAM_USERS : CANONICAL_LEAD_USERS).map((u) => {
                       const meta = ROLE_META[u.role] || { icon: '👤', tag: u.role, tagAr: u.role, ceiling: 'Standard', ceilingAr: 'قياسي' };
                       return (
                         <div
@@ -587,15 +594,19 @@ export const LoginView: React.FC = () => {
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9' }}>
-                              {meta.icon} {isAr ? meta.tagAr : meta.tag}
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {meta.icon} {u.name}
                             </span>
                             <span style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#1e293b', padding: '1px 5px', borderRadius: '4px' }}>
-                              {isAr ? meta.ceilingAr : meta.ceiling}
+                              {isAr ? meta.tagAr : meta.tag}
                             </span>
                           </div>
-                          <div style={{ fontSize: '10px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {u.email}
+                          <div style={{ fontSize: '10px', color: '#f59e0b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {u.position || u.title}
+                          </div>
+                          <div style={{ fontSize: '9px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>{u.email}</span>
+                            {u.phone && <span style={{ color: '#94a3b8' }}>{u.phone}</span>}
                           </div>
                           <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
                             <button
@@ -673,7 +684,7 @@ export const LoginView: React.FC = () => {
               position: 'fixed',
               inset: 0,
               zIndex: 1000,
-              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
               backdropFilter: 'blur(6px)',
               display: 'flex',
               alignItems: 'center',
@@ -687,12 +698,12 @@ export const LoginView: React.FC = () => {
                 backgroundColor: '#0b1120',
                 border: '1px solid #334155',
                 borderRadius: '12px',
-                maxWidth: '860px',
+                maxWidth: '920px',
                 width: '100%',
-                maxHeight: '90vh',
+                maxHeight: '92vh',
                 display: 'flex',
                 flexDirection: 'column',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
                 overflow: 'hidden',
               }}
               onClick={(e) => e.stopPropagation()}
@@ -711,12 +722,12 @@ export const LoginView: React.FC = () => {
                 <div>
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>🔐</span>
-                    <span>{isAr ? 'دليل الحسابات الاختبارية وبيانات الاعتماد (13 دور)' : 'Canonical Accounts & Credentials Directory (13 Roles)'}</span>
+                    <span>{isAr ? 'دليل فريق العمل المحلي وبيانات الاعتماد (33 حساب - تجريبي مؤقت)' : 'Local Team Directory & Credentials (33 Accounts - Temporary UAT)'}</span>
                   </h3>
                   <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
                     {isAr
-                      ? 'جميع الحسابات مفعلة ومربوطة بنظام الصلاحيات وقاعدة البيانات المشفرة'
-                      : 'Standardized credentials seeded into PostgreSQL for testing and role simulation.'}
+                      ? 'حسابات اختبارية مؤقتة لفريق العمل المحلي مفعلة ومربوطة بالأدوار والصلاحيات'
+                      : 'Temporary local team testing accounts configured with real designations and seeded into PostgreSQL.'}
                   </p>
                 </div>
                 <button
@@ -743,8 +754,8 @@ export const LoginView: React.FC = () => {
               {/* Password Banner */}
               <div
                 style={{
-                  padding: '12px 20px',
-                  backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                  padding: '10px 20px',
+                  backgroundColor: 'rgba(217, 119, 6, 0.12)',
                   borderBottom: '1px solid rgba(217, 119, 6, 0.25)',
                   display: 'flex',
                   alignItems: 'center',
@@ -754,8 +765,8 @@ export const LoginView: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#f59e0b' }}>
-                    🔑 {isAr ? 'كلمة المرور الموحدة لجميع الحسابات:' : 'Universal Password for all accounts:'}
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#f59e0b' }}>
+                    🔑 {isAr ? 'كلمة المرور الموحدة لجميع حسابات الفريق:' : 'Universal Password for all accounts:'}
                   </span>
                   <code
                     style={{
@@ -794,9 +805,106 @@ export const LoginView: React.FC = () => {
                 </button>
               </div>
 
+              {/* Search and Department Filter Toolbar */}
+              <div
+                style={{
+                  padding: '12px 20px',
+                  backgroundColor: '#0b1329',
+                  borderBottom: '1px solid #1e293b',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                {/* Search input */}
+                <input
+                  type="text"
+                  placeholder={isAr ? 'البحث بالاسم، البريد، الهاتف، أو القسم...' : 'Search by name, email, phone, or department...'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    fontSize: '12px',
+                    backgroundColor: '#0f172a',
+                    color: '#f8fafc',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+
+                {/* Department filter chips */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {[
+                    { key: 'ALL', label: isAr ? 'الكل (33)' : 'All (33)' },
+                    { key: 'Operations', label: isAr ? 'العمليات والموقع (11)' : 'Operations & Site (11)' },
+                    { key: 'Management', label: isAr ? 'الإدارة والرئيس التنفيذي (3)' : 'Management & Exec (3)' },
+                    { key: 'Events', label: isAr ? 'المشاريع والفعاليات (1)' : 'Events Lead PM (1)' },
+                    { key: 'Finance', label: isAr ? 'المالية والحسابات (2)' : 'Finance & Accounts (2)' },
+                    { key: 'Design', label: isAr ? 'التصميم والإنتاج (4)' : 'Design & Branding (4)' },
+                    { key: 'Marketing', label: isAr ? 'التسويق والمبيعات (4)' : 'Marketing & Sales (4)' },
+                    { key: 'Logistics', label: isAr ? 'اللوجستيات والأسطول (2)' : 'Logistics & Fleet (2)' },
+                    { key: 'Support', label: isAr ? 'تكنولوجيا الموارد والضيافة (4)' : 'IT, HR & F&B (4)' },
+                    { key: 'Client', label: isAr ? 'العميل حول العالم (2)' : 'Client ATW (2)' },
+                  ].map((chip) => (
+                    <button
+                      key={chip.key}
+                      type="button"
+                      onClick={() => setDepartmentFilter(chip.key)}
+                      style={{
+                        padding: '3px 8px',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        backgroundColor: departmentFilter === chip.key ? '#d97706' : '#1e293b',
+                        color: departmentFilter === chip.key ? '#ffffff' : '#94a3b8',
+                        border: '1px solid',
+                        borderColor: departmentFilter === chip.key ? '#f59e0b' : '#334155',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Accounts Directory Grid */}
               <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {CANONICAL_E3_USERS.map((u) => {
+                {ALL_LOCAL_TEAM_USERS.filter((u) => {
+                  // Department filtering
+                  if (departmentFilter !== 'ALL') {
+                    const dept = (u.department || '').toLowerCase();
+                    const pos = (u.position || '').toLowerCase();
+                    const role = u.role.toLowerCase();
+                    if (departmentFilter === 'Operations' && !(dept.includes('operation') || dept.includes('safety') || pos.includes('supervisor') || role === 'operations' || role === 'field_supervisor' || role === 'hse_quality')) return false;
+                    if (departmentFilter === 'Management' && !(dept.includes('ceo') || dept.includes('management') || dept.includes('administration') || role === 'super_admin' || role === 'executive' || role === 'project_director')) return false;
+                    if (departmentFilter === 'Events' && !(dept.includes('event') || role === 'project_manager')) return false;
+                    if (departmentFilter === 'Finance' && !(dept.includes('finance') || dept.includes('account') || role === 'finance')) return false;
+                    if (departmentFilter === 'Design' && !(dept.includes('design') || dept.includes('brand') || dept.includes('creative') || dept.includes('media') || dept.includes('production') || role === 'design_production' || role === 'procurement')) return false;
+                    if (departmentFilter === 'Marketing' && !(dept.includes('market') || dept.includes('sales') || dept.includes('growth') || role === 'marketing_commercial')) return false;
+                    if (departmentFilter === 'Logistics' && !(dept.includes('logistic') || dept.includes('fleet') || dept.includes('warehouse') || role === 'logistics')) return false;
+                    if (departmentFilter === 'Support' && !(dept.includes('it') || dept.includes('human') || dept.includes('f&b') || dept.includes('food'))) return false;
+                    if (departmentFilter === 'Client' && !(u.organisationId === '22222222-2222-4222-8222-222222222222' || role === 'client_user' || u.email.includes('@atw.com'))) return false;
+                  }
+
+                  // Search query filtering
+                  if (searchQuery.trim()) {
+                    const q = searchQuery.trim().toLowerCase();
+                    return (
+                      u.name.toLowerCase().includes(q) ||
+                      u.email.toLowerCase().includes(q) ||
+                      (u.phone || '').toLowerCase().includes(q) ||
+                      (u.department || '').toLowerCase().includes(q) ||
+                      (u.position || '').toLowerCase().includes(q) ||
+                      u.role.toLowerCase().includes(q)
+                    );
+                  }
+
+                  return true;
+                }).map((u) => {
                   const meta = ROLE_META[u.role] || { icon: '👤', tag: u.role, tagAr: u.role, ceiling: 'Standard', ceilingAr: 'قياسي' };
                   return (
                     <div
@@ -816,18 +924,22 @@ export const LoginView: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '220px' }}>
                         <span style={{ fontSize: '22px' }}>{meta.icon}</span>
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#f8fafc' }}>
-                            {u.name}
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>{u.name}</span>
+                            <span style={{ fontSize: '9px', color: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.15)', padding: '1px 5px', borderRadius: '4px' }}>
+                              {u.position}
+                            </span>
                           </div>
                           <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                            {isAr ? u.titleAr : u.title}
+                            {u.department} • {isAr ? u.titleAr : u.title}
                           </div>
                         </div>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '180px' }}>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
-                          {isAr ? 'البريد المؤسسي:' : 'Corporate Email:'}
+                        <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>{isAr ? 'البريد المؤسسي:' : 'Email:'}</span>
+                          {u.phone && <span style={{ color: '#38bdf8' }}>📞 {u.phone}</span>}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <code style={{ fontSize: '12px', color: '#38bdf8', fontWeight: 600 }}>{u.email}</code>
@@ -855,10 +967,10 @@ export const LoginView: React.FC = () => {
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '130px' }}>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>
-                          {isAr ? 'سقف الصلاحية المالية:' : 'Authority Limit:'}
+                          {isAr ? 'الدور والسقف المالي:' : 'Role & Authority:'}
                         </div>
                         <span style={{ fontSize: '11px', fontWeight: 600, color: '#e2e8f0', backgroundColor: '#1e293b', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', width: 'fit-content' }}>
-                          {isAr ? meta.ceilingAr : meta.ceiling}
+                          {isAr ? meta.tagAr : meta.tag} ({isAr ? meta.ceilingAr : meta.ceiling})
                         </span>
                       </div>
 
@@ -916,9 +1028,13 @@ export const LoginView: React.FC = () => {
                   borderTop: '1px solid #1e293b',
                   backgroundColor: '#0f172a',
                   display: 'flex',
-                  justifyContent: 'flex-end',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}
               >
+                <span style={{ fontSize: '11px', color: '#64748b' }}>
+                  {isAr ? '💡 حسابات تجريبية مؤقتة لفحص صلاحيات وأدوار منظومة E3' : '💡 Temporary UAT test accounts for E3 Event Operating System evaluation'}
+                </span>
                 <button
                   type="button"
                   onClick={() => setShowDirectoryModal(false)}

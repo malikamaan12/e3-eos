@@ -1,4 +1,11 @@
-export const DEFAULT_DUMMY_PASSWORD = 'E3#Doha2026!';
+import {
+  DEFAULT_DUMMY_PASSWORD,
+  LOCAL_TEAM_ACCOUNTS,
+  CANONICAL_DUMMY_ACCOUNTS,
+  FALLBACK_TEST_ACCOUNTS,
+} from '@e3-eos/domain';
+
+export { DEFAULT_DUMMY_PASSWORD };
 
 export interface CanonicalUser {
   id: string;
@@ -10,150 +17,71 @@ export interface CanonicalUser {
   title: string;
   titleAr: string;
   password: string;
+  phone?: string;
+  department?: string;
+  position?: string;
+  authorityCeilingQar?: number;
 }
 
+/**
+ * All 33 local team member accounts configured for temporary UAT & testing.
+ */
+export const ALL_LOCAL_TEAM_USERS: CanonicalUser[] = LOCAL_TEAM_ACCOUNTS.map((m) => ({
+  id: m.id,
+  name: m.name,
+  email: m.email,
+  role: m.role,
+  isSuperAdmin: m.isSuperAdmin,
+  organisationId: m.organisationId,
+  title: m.title,
+  titleAr: m.titleAr,
+  password: m.password,
+  phone: m.phone,
+  department: m.department,
+  position: m.position,
+  authorityCeilingQar: m.authorityCeilingQar,
+}));
+
+/**
+ * The 13 canonical leads mapped directly to the local team members.
+ */
+export const CANONICAL_LEAD_USERS: CanonicalUser[] = CANONICAL_DUMMY_ACCOUNTS.map((m) => ({
+  id: m.id,
+  name: m.name,
+  email: m.email,
+  role: m.role,
+  isSuperAdmin: m.isSuperAdmin,
+  organisationId: m.organisationId,
+  title: m.title,
+  titleAr: m.titleAr,
+  password: m.password,
+  phone: m.phone,
+  department: m.department,
+  position: m.position,
+  authorityCeilingQar: m.authorityCeilingQar,
+}));
+
+/**
+ * Fallback accounts preserving @e3.qa email addresses for test suite backward compatibility.
+ */
+export const FALLBACK_USERS: CanonicalUser[] = FALLBACK_TEST_ACCOUNTS.map((m) => ({
+  id: m.id,
+  name: m.name,
+  email: m.email,
+  role: m.role,
+  isSuperAdmin: m.isSuperAdmin,
+  organisationId: m.organisationId,
+  title: m.title,
+  titleAr: m.titleAr,
+  password: m.password,
+  authorityCeilingQar: m.authorityCeilingQar,
+}));
+
+/**
+ * Complete list of canonical and local team users available to the web app.
+ * All 33 local team accounts appear first, followed by backward-compatibility fallback accounts.
+ */
 export const CANONICAL_E3_USERS: CanonicalUser[] = [
-  {
-    id: '10000000-0000-4000-8000-000000000001',
-    name: 'Tareq Al-Kuwari',
-    email: 'superadmin@e3.qa',
-    role: 'super_admin',
-    isSuperAdmin: true,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Super Admin',
-    titleAr: 'المدير العام للنظام',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000002',
-    name: 'Nasser Al-Attiyah',
-    email: 'executive@e3.qa',
-    role: 'executive',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Executive Partner',
-    titleAr: 'الشريك التنفيذي',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000003',
-    name: 'Fatima Al-Sulaiti',
-    email: 'director@e3.qa',
-    role: 'project_director',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Project Director',
-    titleAr: 'مدير إدارة المشاريع',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000004',
-    name: 'Zaid Mansour',
-    email: 'pm@e3.qa',
-    role: 'project_manager',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Project Manager (Lead PM)',
-    titleAr: 'مدير المشروع الرئيسي',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000005',
-    name: 'Rashid Al-Hajri',
-    email: 'finance@e3.qa',
-    role: 'finance',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Financial Controller',
-    titleAr: 'المراقب المالي',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000006',
-    name: 'Maryam Al-Kuwari',
-    email: 'procurement@e3.qa',
-    role: 'procurement',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Procurement Manager',
-    titleAr: 'مسؤول المشتريات والعقود',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000007',
-    name: 'Karim Haddad',
-    email: 'designer@e3.qa',
-    role: 'design_production',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Design / Production Director',
-    titleAr: 'مدير التصميم والإنتاج',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000008',
-    name: 'Salem Al-Marri',
-    email: 'ops@e3.qa',
-    role: 'operations',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Operations Director',
-    titleAr: 'مدير العمليات الميدانية',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000009',
-    name: 'Hamad Al-Khelaifi',
-    email: 'logistics@e3.qa',
-    role: 'logistics',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Logistics Manager',
-    titleAr: 'مدير الخدمات اللوجستية والأسطول',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000010',
-    name: 'Dr. Sarah Ibrahim',
-    email: 'hse@e3.qa',
-    role: 'hse_quality',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'HSE & Quality Inspector',
-    titleAr: 'مفتش الصحة والسلامة والجودة',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000011',
-    name: 'Khalid Al-Thani',
-    email: 'commercial@e3.qa',
-    role: 'marketing_commercial',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Commercial Lead',
-    titleAr: 'المسؤول التجاري والتسويق',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '10000000-0000-4000-8000-000000000012',
-    name: 'Omar Farooq',
-    email: 'field@e3.qa',
-    role: 'field_supervisor',
-    isSuperAdmin: false,
-    organisationId: '11111111-1111-4111-8111-111111111111',
-    title: 'Field Supervisor',
-    titleAr: 'مشرف الموقع الميداني',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
-  {
-    id: '20000000-0000-4000-8000-000000000013',
-    name: 'Hessa Al-Nuaimi',
-    email: 'client@qatartourism.qa',
-    role: 'client_user',
-    isSuperAdmin: false,
-    organisationId: '22222222-2222-4222-8222-222222222222',
-    title: 'Client Stakeholder',
-    titleAr: 'ممثل العميل (السياحة القطرية)',
-    password: DEFAULT_DUMMY_PASSWORD,
-  },
+  ...ALL_LOCAL_TEAM_USERS,
+  ...FALLBACK_USERS,
 ];

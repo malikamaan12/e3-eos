@@ -6,6 +6,7 @@ import {
 import {
   ALL_STAGE_ACTIVITIES,
   STANDARD_THIRTEEN_STAGE_TEMPLATE,
+  LOCAL_TEAM_ACCOUNTS,
 } from '@e3-eos/domain';
 import pg from 'pg';
 import { hashPassword } from './auth-crypto.js';
@@ -44,6 +45,17 @@ export interface SeedDataManifest {
 }
 
 export const CANONICAL_E3_ROLES_USERS = [
+  // 1. All 33 Local Team Accounts (Configured for temporary testing & role validation)
+  ...LOCAL_TEAM_ACCOUNTS.map((m) => ({
+    id: m.id,
+    name: `${m.name} (${m.position})`,
+    email: m.email,
+    role: m.role,
+    isSuperAdmin: m.isSuperAdmin,
+    orgId: m.organisationId,
+  })),
+
+  // 2. Fallback / Test Suite Compatibility Accounts
   { id: '10000000-0000-4000-8000-000000000001', name: 'Tareq Al-Kuwari (Super Admin)', email: 'superadmin@e3.qa', role: 'super_admin', isSuperAdmin: true },
   { id: '10000000-0000-4000-8000-000000000002', name: 'Nasser Al-Attiyah (Executive Partner)', email: 'executive@e3.qa', role: 'executive', isSuperAdmin: false },
   { id: '10000000-0000-4000-8000-000000000003', name: 'Fatima Al-Sulaiti (Project Director)', email: 'director@e3.qa', role: 'project_director', isSuperAdmin: false },
