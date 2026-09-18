@@ -27,6 +27,7 @@ import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { projectRepository } from '../projects/projects.controller.js';
 import { DbService } from '../common/db.service.js';
 import { resolveRequiredApprover } from '@e3-eos/policy';
+import { canApproveCommercialAmount } from '@e3-eos/domain';
 
 export interface StoredPolicySnapshot {
   id: string;
@@ -56,6 +57,8 @@ export interface StoredApprovalRequest {
   decidedAt?: Date;
   comment?: string;
   acknowledgedConditions?: string[];
+  requesterId?: string;
+  amount?: number | string;
 }
 
 export interface StoredExceptionRecord {
@@ -294,9 +297,42 @@ export class GovernanceController {
       }
     }
 
+    const deciderId = (req as any).userId || (req.headers['x-user-id'] as string) || '10000000-0000-4000-8000-000000000002';
+    const deciderRole = (req as any).userRole || (req.headers['x-user-role'] as string) || 'executive';
+    const isSuperAdmin = (req as any).isSuperAdmin === true || (req.headers['x-is-super-admin'] === 'true') || deciderRole === 'super_admin';
+
+    // Anti-self-approval rule (Separation of Duties: Submitter/requester cannot approve own request)
+    if (parseResult.data.outcome === 'approved' && approvalReq.requesterId && approvalReq.requesterId === deciderId) {
+      throw new HttpException(
+        {
+          code: 'SELF_APPROVAL_PROHIBITED',
+          title: 'Forbidden',
+          status: 403,
+          detail: 'Separation of Duties violation: A user cannot approve their own approval request (requester and approver must be distinct individuals).',
+        },
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    // Commercial threshold check if amount is specified
+    if (parseResult.data.outcome === 'approved' && approvalReq.amount !== undefined) {
+      const numAmount = typeof approvalReq.amount === 'string' ? parseFloat(approvalReq.amount) : approvalReq.amount;
+      if (!canApproveCommercialAmount(deciderRole, numAmount, isSuperAdmin)) {
+        throw new HttpException(
+          {
+            code: 'INSUFFICIENT_APPROVAL_AUTHORITY',
+            title: 'Forbidden',
+            status: 403,
+            detail: `User role '${deciderRole}' does not have sufficient financial approval authority for amount ${numAmount} QAR (POL-COMM).`,
+          },
+          HttpStatus.FORBIDDEN
+        );
+      }
+    }
+
     approvalReq.outcome = parseResult.data.outcome;
     approvalReq.status = parseResult.data.outcome;
-    approvalReq.decidedBy = (req as any).userId || '10000000-0000-4000-8000-000000000002';
+    approvalReq.decidedBy = deciderId;
     approvalReq.decidedAt = new Date();
     approvalReq.comment = parseResult.data.comment;
     approvalReq.acknowledgedConditions = parseResult.data.acknowledgedConditions;

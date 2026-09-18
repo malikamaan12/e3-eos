@@ -45,6 +45,7 @@ import {
   VendorQuote,
   BidEvaluationResult,
   SourceDecisionType,
+  canAccessRestrictedBankDetails,
 } from '@e3-eos/domain';
 
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
@@ -592,14 +593,9 @@ export class ProcurementController {
     if (!vendor || vendor.organisationId !== orgId) {
       throw new HttpException({ message: 'VENDOR_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
-    const role = (req.headers['x-user-role'] as string) || (req as any).userRole || 'viewer';
-    const canViewRestricted = [
-      'finance_controller',
-      'super_admin',
-      'commercial_director',
-      'financial_controller',
-      'cfo',
-    ].includes(role.toLowerCase().replace(/[\s-]+/g, '_'));
+    const role = (req as any).userRole || (req.headers['x-user-role'] as string) || 'viewer';
+    const isSuperAdmin = (req as any).isSuperAdmin === true || (req.headers['x-is-super-admin'] === 'true') || role === 'super_admin';
+    const canViewRestricted = canAccessRestrictedBankDetails(role, isSuperAdmin);
 
     if (!canViewRestricted) {
       const { restrictedBankDetails, bankDetails, ...safeProfile } = vendor;
@@ -629,14 +625,9 @@ export class ProcurementController {
     if (!vendor || vendor.organisationId !== orgId) {
       throw new HttpException({ message: 'VENDOR_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
-    const role = (req.headers['x-user-role'] as string) || (req as any).userRole || 'viewer';
-    const canViewRestricted = [
-      'finance_controller',
-      'super_admin',
-      'commercial_director',
-      'financial_controller',
-      'cfo',
-    ].includes(role.toLowerCase().replace(/[\s-]+/g, '_'));
+    const role = (req as any).userRole || (req.headers['x-user-role'] as string) || 'viewer';
+    const isSuperAdmin = (req as any).isSuperAdmin === true || (req.headers['x-is-super-admin'] === 'true') || role === 'super_admin';
+    const canViewRestricted = canAccessRestrictedBankDetails(role, isSuperAdmin);
 
     if (!canViewRestricted) {
       throw new HttpException(
@@ -644,7 +635,7 @@ export class ProcurementController {
           type: 'https://e3-eos.io/errors/forbidden',
           title: 'Forbidden',
           status: 403,
-          detail: `User role '${role}' is not authorized to access sensitive vendor banking details. Requires finance_controller or commercial_director.`,
+          detail: `User role '${role}' is not authorized to access sensitive vendor banking details. Requires finance, procurement, or executive.`,
         },
         HttpStatus.FORBIDDEN
       );

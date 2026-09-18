@@ -23,6 +23,8 @@
     "start:api": "node apps/api/dist/main.js"
   },
   "devDependencies": {
+    "@nestjs/common": "^11.2.3",
+    "@nestjs/core": "^11.2.3",
     "@types/node": "^22.13.4",
     "puppeteer-core": "^25.10.0",
     "tsx": "^4.19.3",

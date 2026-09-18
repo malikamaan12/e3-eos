@@ -46,3 +46,4 @@ export * from './country-pack-engine.js';
 export * from './portfolio-intelligence.js';
 export * from './feature-flags.js';
 export * from './go-live-engine.js';
+export * from './rbac.js';

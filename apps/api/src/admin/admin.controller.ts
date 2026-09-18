@@ -7,11 +7,13 @@ import {
   HttpException,
   HttpStatus,
   UseFilters,
+  UseGuards,
   Optional,
 } from '@nestjs/common';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { DbService } from '../common/db.service.js';
 import { EmailDispatcherService } from '../common/email.service.js';
+import { TenantIsolationGuard, RequireRoles, Public } from '../common/tenant.guard.js';
 import crypto from 'crypto';
 import { CommercialApprovalPolicyRegistry } from '@e3-eos/policy';
 
@@ -215,6 +217,7 @@ export const CANONICAL_ROLES_CATALOG = [
 
 @Controller('admin')
 @UseFilters(ProblemDetailsFilter)
+@UseGuards(TenantIsolationGuard)
 export class AdminController {
   private dbService: DbService;
   constructor(@Optional() dbService?: DbService) {
@@ -222,6 +225,7 @@ export class AdminController {
   }
 
   @Get('users')
+  @RequireRoles('super_admin', 'executive')
   async listUsers() {
     const pool = this.dbService.getPool();
     const res = await pool.query(`
@@ -249,6 +253,7 @@ export class AdminController {
   }
 
   @Get('roles')
+  @Public()
   getRoles() {
     return {
       roles: CANONICAL_ROLES_CATALOG,
@@ -256,6 +261,7 @@ export class AdminController {
   }
 
   @Get('project-access')
+  @RequireRoles('super_admin', 'executive')
   async getProjectAccess() {
     const pool = this.dbService.getPool();
     const res = await pool.query(`
@@ -282,6 +288,7 @@ export class AdminController {
   }
 
   @Post('users')
+  @RequireRoles('super_admin')
   async inviteUser(@Body() body: { name: string; email: string; role?: string; organisationId?: string; department?: string }) {
     const pool = this.dbService.getPool();
     const email = body.email?.trim().toLowerCase();
@@ -348,6 +355,7 @@ export class AdminController {
   }
 
   @Post('project-access')
+  @RequireRoles('super_admin', 'executive')
   async assignProjectAccess(@Body() body: { projectId: string; userId: string; role?: string }) {
     const pool = this.dbService.getPool();
     const { projectId, userId, role } = body;
@@ -367,6 +375,7 @@ export class AdminController {
   }
 
   @Post('users/:id/role')
+  @RequireRoles('super_admin')
   async updateUserRole(@Param('id') userId: string, @Body() body: { role: string }) {
     const pool = this.dbService.getPool();
     const { role } = body;
@@ -380,6 +389,7 @@ export class AdminController {
   }
 
   @Post('users/:id/status')
+  @RequireRoles('super_admin')
   async updateUserStatus(@Param('id') userId: string, @Body() body: { isRevoked: boolean }) {
     const pool = this.dbService.getPool();
     const { isRevoked } = body;
@@ -390,6 +400,7 @@ export class AdminController {
   }
 
   @Get('approval-policies')
+  @RequireRoles('super_admin', 'executive', 'finance')
   async listApprovalPolicies() {
     const policies = CommercialApprovalPolicyRegistry.listPolicies();
     return {
@@ -400,6 +411,7 @@ export class AdminController {
   }
 
   @Post('approval-policies')
+  @RequireRoles('super_admin')
   async registerApprovalPolicy(@Body() body: any) {
     if (!body || !body.policyId || !body.thresholds || !Array.isArray(body.thresholds)) {
       throw new HttpException(

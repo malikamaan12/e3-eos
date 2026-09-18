@@ -8,7 +8,9 @@ import {
   HttpStatus,
   UseFilters,
   UseGuards,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { TenantIsolationGuard, AllowedAudiences } from '../common/tenant.guard.js';
 import {
   SupplierInvoiceCreateSchema,
@@ -38,6 +40,7 @@ import {
   IntegrationReconciliationEngine,
   safeSha256,
   Money,
+  canApproveCommercialAmount,
 } from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { projectRepository } from '../projects/projects.controller.js';
@@ -878,7 +881,8 @@ export class CommercialFinanceController {
   @Post('supplier-invoices/:id/approve')
   approveSupplierInvoice(
     @Param('id') id: string,
-    @Body() body: any
+    @Body() body: any,
+    @Req() req?: Request
   ) {
     seedCommercialData();
     const parsed = SupplierInvoiceApproveSchema.safeParse(body);
@@ -889,6 +893,29 @@ export class CommercialFinanceController {
     const invoice = supplierInvoicesRepo.get(id);
     if (!invoice) {
       throw new HttpException({ code: 'NOT_FOUND', message: `Invoice ${id} not found` }, HttpStatus.NOT_FOUND);
+    }
+
+    const callerId = (req as any)?.userId || (req?.headers?.['x-user-id'] as string) || parsed.data.authorizedBy;
+    const callerRole = (req as any)?.userRole || (req?.headers?.['x-user-role'] as string) || parsed.data.approverRole || 'finance';
+    const isSuperAdmin = (req as any)?.isSuperAdmin === true || (req?.headers?.['x-is-super-admin'] === 'true') || callerRole === 'super_admin';
+
+    // Anti-self-approval rule (Separation of Duties: Submitter cannot approve own invoice)
+    if (invoice.submittedBy && invoice.submittedBy === callerId) {
+      throw new HttpException({
+        code: 'SELF_APPROVAL_PROHIBITED',
+        message: 'Separation of Duties violation: Submitter cannot approve their own invoice.',
+      }, HttpStatus.FORBIDDEN);
+    }
+
+    const approvedAmount = parsed.data.approvedAmount || invoice.totalAmount;
+    const numAmount = typeof approvedAmount === 'string' ? parseFloat(approvedAmount) : Number(approvedAmount);
+
+    // Authority ceiling check (POL-COMM-01/02/03)
+    if (!canApproveCommercialAmount(callerRole, numAmount, isSuperAdmin)) {
+      throw new HttpException({
+        code: 'INSUFFICIENT_APPROVAL_AUTHORITY',
+        message: `Role '${callerRole}' does not possess sufficient financial authority to approve commitments exceeding authority ceiling (${numAmount} QAR).`,
+      }, HttpStatus.FORBIDDEN);
     }
 
     // Enforce match exception warning unless override justification provided
@@ -905,7 +932,6 @@ export class CommercialFinanceController {
     }
 
     // Apply Transition: Remaining Commitments -> Posted Actual Cost (Zero Double-Counting)
-    const approvedAmount = parsed.data.approvedAmount || invoice.totalAmount;
     const updatedPos = FinancialCalculator.applySupplierInvoiceToCommitment(pos, approvedAmount);
     financialPositionsRepo.set(invoice.projectId, updatedPos);
 

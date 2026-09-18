@@ -239,6 +239,10 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
   ];
 
   // Role-based navigation filtering (Section 11)
+  const isSuperAdmin = (currentUser as any)?.isSuperAdmin === true || userRole === 'super_admin';
+  const isExecutive = userRole === 'executive';
+  const isFinance = userRole === 'finance' || userRole === 'finance_controller' || userRole === 'financial_controller';
+
   const navSections = rawNavSections
     .map((sec) => {
       if (isClientUser) {
@@ -256,6 +260,23 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         // Field Supervisor focuses on Live Operations and basic work queue
         if (sec.id === 'commercial' || sec.id === 'admin') return null;
         return sec;
+      }
+
+      // Restrict Admin & Rollout section for non-super_admin / non-executive
+      if (sec.id === 'admin') {
+        const filteredItems = sec.items.filter((item) => {
+          if (item.path.startsWith('/admin/users') || item.path.startsWith('/admin/rollout')) {
+            return isSuperAdmin || isExecutive;
+          }
+          if (item.path.startsWith('/governance/workflows') || item.path.startsWith('/governance/simulator')) {
+            return isSuperAdmin || isExecutive;
+          }
+          if (item.path.startsWith('/admin/integrations')) {
+            return isSuperAdmin || isExecutive || isFinance;
+          }
+          return true;
+        });
+        return { ...sec, items: filteredItems };
       }
 
       return sec;
