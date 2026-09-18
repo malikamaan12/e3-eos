@@ -33,6 +33,21 @@ export const BulkScopeEntryModal: React.FC<BulkScopeEntryModalProps> = ({
 
   if (!isOpen) return null;
 
+  const normalizeDate = (val?: string): string | undefined => {
+    if (!val || !val.trim()) return undefined;
+    const s = val.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    const m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (m) {
+      return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    }
+    const parsed = Date.parse(s);
+    if (!isNaN(parsed)) {
+      return new Date(parsed).toISOString().slice(0, 10);
+    }
+    return undefined;
+  };
+
   const handleParseText = () => {
     if (!rawText.trim()) return;
 
@@ -76,7 +91,7 @@ export const BulkScopeEntryModal: React.FC<BulkScopeEntryModalProps> = ({
           else if (h.includes('date') || h.includes('due')) rowObj.dueDate = val;
           else if (h.includes('qty') || h.includes('quant')) rowObj.quantity = val ? Number(val) : undefined;
           else if (h.includes('unit')) rowObj.unit = val;
-          else if (h.includes('cost') || h.includes('budget')) rowObj.targetCostQar = val ? Number(val) : undefined;
+          else if (h.includes('cost') || h.includes('budget')) rowObj.targetCostQar = val && !isNaN(Number(val)) ? Number(val) : undefined;
           else if (h.includes('ref')) rowObj.sourceReference = val;
           else if (h.includes('crit')) rowObj.acceptanceCriteria = val;
         });
@@ -106,8 +121,13 @@ export const BulkScopeEntryModal: React.FC<BulkScopeEntryModalProps> = ({
       if (!r.title || r.title.trim().length === 0) {
         rowErrors.push('Requirement Title is required');
       }
-      if (r.dueDate && isNaN(Date.parse(r.dueDate))) {
-        rowErrors.push(`Invalid due date format: "${r.dueDate}". Use YYYY-MM-DD.`);
+      if (r.dueDate) {
+        const norm = normalizeDate(r.dueDate);
+        if (!norm) {
+          rowErrors.push(`Invalid due date format: "${r.dueDate}". Use YYYY-MM-DD or DD-MM-YYYY.`);
+        } else {
+          r.dueDate = norm;
+        }
       }
       if (rowErrors.length > 0) {
         errors.push({ index: r.index, title: r.title, errors: rowErrors });

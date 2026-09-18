@@ -160,15 +160,16 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
     if (!quickTitle.trim()) return;
     setIsSubmittingQuick(true);
     try {
-      const progressiveDesc = quickTitle.trim().length >= 5
-        ? quickTitle.trim()
-        : `${quickTitle.trim()} - Scope requirement`;
+      const cleanTitle = quickTitle.trim();
+      const progressiveDesc = cleanTitle.length >= 5
+        ? cleanTitle
+        : `${cleanTitle} - Scope requirement`;
       const res = await apiClient.createRequirement(projectId, {
-        title: quickTitle.trim(),
+        title: cleanTitle,
         description: progressiveDesc,
         category: quickCategory,
-        ownerName: quickOwnerName || undefined,
-        dueDate: quickDueDate || undefined,
+        ownerName: quickOwnerName ? quickOwnerName.trim() : undefined,
+        dueDate: quickDueDate ? quickDueDate.trim() : undefined,
         priority: quickPriority,
       });
       setQuickTitle('');
@@ -193,22 +194,27 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
     if (!reqTitle.trim()) return;
     setIsSubmittingReq(true);
     try {
+      const cleanTitle = reqTitle.trim();
       const fallbackDesc = reqDesc && reqDesc.trim().length >= 5
         ? reqDesc.trim()
-        : (reqTitle.trim().length >= 5 ? reqTitle.trim() : `${reqTitle.trim()} - Scope requirement`);
+        : (cleanTitle.length >= 5 ? cleanTitle : `${cleanTitle} - Scope requirement`);
+      const validCost = reqTargetCost && !isNaN(Number(reqTargetCost)) && Number(reqTargetCost) > 0
+        ? Number(reqTargetCost)
+        : undefined;
+
       await apiClient.createRequirement(projectId, {
-        code: reqCode || undefined,
-        title: reqTitle.trim(),
+        code: reqCode.trim() ? reqCode.trim() : undefined,
+        title: cleanTitle,
         description: fallbackDesc,
-        originalWording: reqOriginalWording || undefined,
-        interpretation: reqInterpretation || undefined,
-        sourceType: reqSourceType,
-        sourceReference: reqSourceRef || undefined,
+        originalWording: reqOriginalWording.trim() ? reqOriginalWording.trim() : undefined,
+        interpretation: reqInterpretation.trim() ? reqInterpretation.trim() : undefined,
+        sourceType: reqSourceType || 'Client RFP',
+        sourceReference: reqSourceRef.trim() ? reqSourceRef.trim() : undefined,
         priority: reqPriority,
         category: reqCategory,
-        ownerName: reqOwnerName || undefined,
-        dueDate: reqDueDate || undefined,
-        targetCostQar: reqTargetCost ? Number(reqTargetCost) : undefined,
+        ownerName: reqOwnerName.trim() ? reqOwnerName.trim() : undefined,
+        dueDate: reqDueDate.trim() ? reqDueDate.trim() : undefined,
+        targetCostQar: validCost,
       });
       setIsAddReqModalOpen(false);
       setReqTitle('');
