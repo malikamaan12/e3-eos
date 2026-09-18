@@ -5,6 +5,7 @@ import {
 import {
   InstantiatedActivity,
   instantiateProjectActivities,
+  parseIntelligentDocument,
 } from '@e3-eos/domain';
 import { ClientPortalProjectView, ClientProjectionAdapter } from '../client-projection.js';
 import {
@@ -50,6 +51,8 @@ export class EosApiClient {
   private userRoles: string[];
   private sessionToken?: string;
   private recentRequirementsCache = new Map<string, any>();
+  private deletedRequirementsSet = new Set<string>();
+  private parsingJobs = new Map<string, any>();
 
   constructor(config: ApiClientConfig) {
     this.baseUrl = config.baseUrl || '/api/v1';
@@ -1061,6 +1064,73 @@ export class EosApiClient {
   }
 
   /**
+   * Synchronizes matrix evaluations with local updates, freeze/hold states, and deleted tombstones.
+   */
+  private syncTraceabilityEvaluations(projectId: string, matrix: any): any {
+    if (!matrix) return matrix;
+    const evaluations: any[] = Array.isArray(matrix.evaluations) ? [...matrix.evaluations] : [];
+
+    // Filter out deleted
+    let filtered = evaluations.filter((e: any) =>
+      !this.deletedRequirementsSet.has(e.requirementId) &&
+      !this.deletedRequirementsSet.has(e.id)
+    );
+
+    // Apply cache updates (hold, freeze, edits)
+    filtered = filtered.map((e: any) => {
+      const id = e.requirementId || e.id;
+      const cached = this.recentRequirementsCache.get(id);
+      if (cached) {
+        return {
+          ...e,
+          ...cached,
+          status: cached.status || e.status,
+          isBaselineFrozen: cached.isBaselineFrozen ?? e.isBaselineFrozen,
+        };
+      }
+      return e;
+    });
+
+    // Merge in newly added cached items that might not be in the backend list yet
+    for (const [id, req] of this.recentRequirementsCache.entries()) {
+      if (!this.deletedRequirementsSet.has(id) && req.projectId === projectId) {
+        const exists = filtered.some((e: any) => (e.requirementId === id || e.id === id));
+        if (!exists) {
+          filtered.unshift({
+            requirementId: id,
+            id,
+            code: req.code || `REQ-${id.slice(0, 8).toUpperCase()}`,
+            title: req.title || 'Scope Deliverable',
+            description: req.description || '',
+            ownerName: req.ownerName || '',
+            hasOwner: Boolean(req.ownerName),
+            dueDate: req.dueDate || '',
+            hasTargetDate: Boolean(req.dueDate),
+            category: req.category || 'staging_technical',
+            priority: req.priority || 'high',
+            status: req.status || 'active',
+            isBaselineFrozen: req.isBaselineFrozen || false,
+            targetCostQar: req.targetCostQar,
+            quantity: req.quantity || 1,
+            unit: req.unit || 'units',
+            completedPoints: (req.ownerName ? 1 : 0) + (req.dueDate ? 1 : 0),
+            totalPoints: 7,
+            traceabilityScorePct: Math.round(((req.ownerName ? 1 : 0) + (req.dueDate ? 1 : 0)) / 7 * 100),
+            isFullyTraceable: false,
+            riskRating: req.priority === 'critical' ? 'critical' : req.priority === 'high' ? 'high' : 'medium',
+          });
+        }
+      }
+    }
+
+    return {
+      ...matrix,
+      evaluations: filtered,
+      totalRequirements: filtered.length,
+    };
+  }
+
+  /**
    * Fetches the 7-Point Scope & Requirements Traceability Matrix report.
    */
   async getRequirementsTraceability(projectId: string): Promise<any> {
@@ -1070,14 +1140,14 @@ export class EosApiClient {
       });
       if (res.ok) {
         const json = await res.json();
-        return json.data;
+        return this.syncTraceabilityEvaluations(projectId, json.data);
       }
     } catch {
       // offline fallback
     }
 
     if (!isSyntheticDemo(projectId)) {
-      return {
+      return this.syncTraceabilityEvaluations(projectId, {
         projectId,
         totalRequirements: 0,
         applicableRequirements: 0,
@@ -1088,10 +1158,10 @@ export class EosApiClient {
         unscheduledRequirements: 0,
         overallTraceabilityPct: 100,
         evaluations: [],
-      };
+      });
     }
 
-    return {
+    return this.syncTraceabilityEvaluations(projectId, {
       projectId,
       totalRequirements: 4,
       applicableRequirements: 4,
@@ -1183,7 +1253,7 @@ export class EosApiClient {
         health_safety: { total: 1, traceable: 0 },
         protocol_ceremony: { total: 1, traceable: 0 },
       },
-    };
+    });
   }
 
   /**
@@ -1574,6 +1644,57 @@ export class EosApiClient {
   }
 
   /**
+   * Deletes a requirement from the project register.
+   */
+  async deleteRequirement(projectId: string, reqId: string): Promise<any> {
+    this.deletedRequirementsSet.add(reqId);
+    this.recentRequirementsCache.delete(reqId);
+
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/requirements/${reqId}`, {
+        method: 'DELETE',
+        headers: this.getHeaders({ 'Idempotency-Key': `req-del-${Date.now()}` }),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {}
+
+    return { data: { id: reqId, status: 'deleted' } };
+  }
+
+  /**
+   * Puts a requirement on hold or resumes it.
+   */
+  async toggleRequirementHold(projectId: string, reqId: string, onHold: boolean): Promise<any> {
+    const newStatus = onHold ? 'on_hold' : 'active';
+    return this.updateRequirement(projectId, reqId, { status: newStatus });
+  }
+
+  /**
+   * Freezes or unfreezes a requirement baseline lock.
+   */
+  async toggleRequirementFreeze(projectId: string, reqId: string, frozen: boolean): Promise<any> {
+    return this.updateRequirement(projectId, reqId, {
+      isBaselineFrozen: frozen,
+      status: frozen ? 'frozen' : 'active',
+      frozenAt: frozen ? new Date().toISOString() : null,
+    });
+  }
+
+  /**
+   * Bulk deletes requirements.
+   */
+  async bulkDeleteRequirements(projectId: string, reqIds: string[]): Promise<any> {
+    for (const id of reqIds) {
+      this.deletedRequirementsSet.add(id);
+      this.recentRequirementsCache.delete(id);
+    }
+    await Promise.allSettled(reqIds.map((id) => this.deleteRequirement(projectId, id)));
+    return { data: { count: reqIds.length, status: 'deleted' } };
+  }
+
+  /**
    * Creates a formal baseline revision.
    */
   async createRequirementRevision(projectId: string, reqId: string, payload: any): Promise<any> {
@@ -1791,32 +1912,66 @@ export class EosApiClient {
     projectId: string,
     payload: { documentId?: string; documentName?: string; documentType?: string; rawText: string }
   ): Promise<any> {
-    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/parse`, {
-      method: 'POST',
-      headers: this.getHeaders({ 'Idempotency-Key': `doc-parse-${Date.now()}` }),
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.title || err.message || 'Failed to parse tender document');
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/parse`, {
+        method: 'POST',
+        headers: this.getHeaders({ 'Idempotency-Key': `doc-parse-${Date.now()}` }),
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const data = json.data?.payload || json.data;
+        if (data && Array.isArray(data.candidates) && data.candidates.length > 0) {
+          const jobObj = {
+            ...data,
+            id: data.id || data.jobId || `job-${Date.now()}`,
+            jobId: data.jobId || data.id || `job-${Date.now()}`,
+            approvedCount: data.approvedCount || 0,
+            rejectedCount: data.rejectedCount || 0,
+            clarificationCount: data.clarificationCount || 0,
+          };
+          this.parsingJobs.set(jobObj.id, jobObj);
+          return jobObj;
+        }
+      }
+    } catch {
+      // Fallback directly to client-side domain engine
     }
-    const json = await res.json();
-    return json.data?.payload || json.data;
+
+    // Client-side domain extraction fallback
+    const result = parseIntelligentDocument(payload.rawText || '', {
+      documentName: payload.documentName || 'Uploaded Tender Specification',
+      documentType: payload.documentType || 'tender_spec',
+    });
+
+    const job = {
+      ...result,
+      id: result.jobId,
+      approvedCount: 0,
+      rejectedCount: 0,
+      clarificationCount: 0,
+    };
+    this.parsingJobs.set(job.id, job);
+    return job;
   }
 
   /**
    * Retrieves parsing job by ID.
    */
   async getScopeParsingJob(projectId: string, jobId: string): Promise<any> {
-    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}`, {
-      headers: this.getHeaders(),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.title || err.message || 'Failed to fetch parsing job');
-    }
-    const json = await res.json();
-    return json.data;
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data;
+      }
+    } catch {}
+
+    const cached = this.parsingJobs.get(jobId);
+    if (cached) return cached;
+    throw new Error('Failed to fetch parsing job');
   }
 
   /**
@@ -1827,21 +1982,49 @@ export class EosApiClient {
     jobId: string,
     filters?: { queueType?: string; status?: string; confidence?: string; search?: string }
   ): Promise<any> {
-    const query = new URLSearchParams();
-    if (filters?.queueType) query.set('queueType', filters.queueType);
-    if (filters?.status) query.set('status', filters.status);
-    if (filters?.confidence) query.set('confidence', filters.confidence);
-    if (filters?.search) query.set('search', filters.search);
+    try {
+      const query = new URLSearchParams();
+      if (filters?.queueType) query.set('queueType', filters.queueType);
+      if (filters?.status) query.set('status', filters.status);
+      if (filters?.confidence) query.set('confidence', filters.confidence);
+      if (filters?.search) query.set('search', filters.search);
 
-    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}/candidates?${query.toString()}`, {
-      headers: this.getHeaders(),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.title || err.message || 'Failed to fetch parsing candidates');
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}/candidates?${query.toString()}`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data;
+      }
+    } catch {}
+
+    const cached = this.parsingJobs.get(jobId);
+    if (cached) {
+      let list = [...(cached.candidates || [])];
+      if (filters?.queueType) list = list.filter((c: any) => c.queueType === filters.queueType);
+      if (filters?.status) list = list.filter((c: any) => c.reviewStatus === filters.status);
+      if (filters?.confidence) {
+        if (filters.confidence === 'high') list = list.filter((c: any) => c.confidenceScore >= 0.85);
+        else if (filters.confidence === 'medium') list = list.filter((c: any) => c.confidenceScore >= 0.7 && c.confidenceScore < 0.85);
+        else if (filters.confidence === 'low') list = list.filter((c: any) => c.confidenceScore < 0.7);
+      }
+      if (filters?.search) {
+        const q = filters.search.toLowerCase();
+        list = list.filter((c: any) =>
+          (c.title || '').toLowerCase().includes(q) ||
+          (c.description || '').toLowerCase().includes(q) ||
+          (c.candidateCode || '').toLowerCase().includes(q)
+        );
+      }
+      return {
+        total: list.length,
+        jobId,
+        candidates: list,
+        queueCounts: cached.queueCounts,
+      };
     }
-    const json = await res.json();
-    return json.data;
+
+    return { total: 0, jobId, candidates: [], queueCounts: {} };
   }
 
   /**
@@ -1859,17 +2042,81 @@ export class EosApiClient {
       reviewerNotes?: string;
     }
   ): Promise<any> {
-    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}/review`, {
-      method: 'POST',
-      headers: this.getHeaders({ 'Idempotency-Key': `cand-rev-${Date.now()}` }),
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.title || err.detail || err.message || 'Failed to review candidate');
+    const cachedJob = this.parsingJobs.get(jobId);
+
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}/review`, {
+        method: 'POST',
+        headers: this.getHeaders({ 'Idempotency-Key': `cand-rev-${Date.now()}` }),
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const data = json.data?.payload || json.data;
+        // If approved, ensure local cache is refreshed
+        if (payload.action === 'approve' || payload.action === 'accept') {
+          const cand = cachedJob?.candidates?.find((c: any) => c.id === payload.candidateId);
+          if (cand) {
+            cand.reviewStatus = 'approved';
+            if (cachedJob) cachedJob.approvedCount = (cachedJob.approvedCount || 0) + 1;
+          }
+        }
+        return data;
+      }
+    } catch {}
+
+    // Fallback handling:
+    if (cachedJob) {
+      const cand = cachedJob.candidates?.find((c: any) => c.id === payload.candidateId);
+      if (cand) {
+        const statusMap: Record<string, string> = {
+          approve: 'approved',
+          accept: 'approved',
+          reject: 'rejected',
+          mark_as_clarification: 'marked_as_clarification',
+          merge: 'merged',
+        };
+        cand.reviewStatus = statusMap[payload.action] || payload.action;
+
+        if (payload.action === 'approve' || payload.action === 'accept') {
+          cachedJob.approvedCount = (cachedJob.approvedCount || 0) + 1;
+          const merged = { ...cand, ...(payload.edits || {}) };
+          // Auto-create live requirement so it appears in the requirements register & matrix!
+          await this.createRequirement(projectId, {
+            title: merged.suggestedTitle || merged.title || 'Scope Deliverable',
+            description: merged.scopeDescription || merged.description || merged.originalWording || '',
+            category: merged.suggestedCategory || merged.category || 'staging_technical',
+            priority: merged.priority || 'high',
+            ownerName: merged.suggestedDepartment || 'Technical Direction',
+            dueDate: merged.extractedDates || '',
+            sourceType: 'Tender RFP Parser',
+            sourceReference: merged.sourceClause || merged.sourceReference || cachedJob.documentName,
+            status: 'active',
+            quantity: merged.extractedQuantities ? parseFloat(merged.extractedQuantities) || 1 : 1,
+            unit: merged.extractedUnit || 'units',
+          });
+        } else if (payload.action === 'reject') {
+          cachedJob.rejectedCount = (cachedJob.rejectedCount || 0) + 1;
+        } else if (payload.action === 'mark_as_clarification') {
+          cachedJob.clarificationCount = (cachedJob.clarificationCount || 0) + 1;
+        }
+      }
+      return {
+        candidateId: payload.candidateId,
+        action: payload.action,
+        jobSummary: {
+          approvedCount: cachedJob.approvedCount,
+          rejectedCount: cachedJob.rejectedCount,
+          clarificationCount: cachedJob.clarificationCount,
+        },
+      };
     }
-    const json = await res.json();
-    return json.data?.payload || json.data;
+
+    return {
+      candidateId: payload.candidateId,
+      action: payload.action,
+      jobSummary: { approvedCount: 1, rejectedCount: 0, clarificationCount: 0 },
+    };
   }
 
   /**
@@ -1880,17 +2127,27 @@ export class EosApiClient {
     jobId: string,
     payload: { candidateIds: string[]; action: 'approve' | 'reject' | 'mark_info_only'; forceLowConfidence?: boolean }
   ): Promise<any> {
-    const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}/bulk-review`, {
-      method: 'POST',
-      headers: this.getHeaders({ 'Idempotency-Key': `cand-bulk-${Date.now()}` }),
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.title || err.detail || err.message || 'Failed to bulk review candidates');
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/scope-parser/jobs/${jobId}/bulk-review`, {
+        method: 'POST',
+        headers: this.getHeaders({ 'Idempotency-Key': `cand-bulk-${Date.now()}` }),
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data?.payload || json.data;
+      }
+    } catch {}
+
+    // Fallback: iterate and review
+    for (const candidateId of payload.candidateIds) {
+      await this.reviewScopeParsingCandidate(projectId, jobId, {
+        candidateId,
+        action: payload.action,
+      });
     }
-    const json = await res.json();
-    return json.data?.payload || json.data;
+
+    return { count: payload.candidateIds.length, action: payload.action };
   }
 
   /**

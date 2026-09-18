@@ -871,6 +871,49 @@ export class ScopeController {
     };
   }
 
+  @Delete('requirements/:reqId')
+  @UseGuards(IdempotencyGuard)
+  deleteRequirement(
+    @Param('projectId') projectId: string,
+    @Param('reqId') reqId: string,
+    @Req() req: Request
+  ): CommandResult {
+    const existing =
+      requirementRepository.get(reqId) ||
+      Array.from(requirementRepository.values()).find((r) => r.projectId === projectId && r.code === reqId);
+    if (!existing || existing.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Requirement not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    requirementRepository.delete(existing.id);
+
+    const actorId = (req as any).actorId || (req as any).userId || (req as any).user?.id || 'system-user';
+    const actorName = (req as any).userName || (req as any).user?.name || 'Discipline Lead';
+
+    requirementAuditLog.push({
+      id: `audit-${Date.now()}`,
+      requirementId: existing.id,
+      projectId,
+      action: 'deleted',
+      actorId,
+      actorName,
+      timestamp: new Date().toISOString(),
+      details: { title: existing.title, code: existing.code },
+    });
+
+    return {
+      data: {
+        id: existing.id,
+        status: 'deleted',
+        recordVersion: (existing.recordVersion || 1) + 1,
+      },
+      meta: {
+        requestId: `del-${Date.now()}`,
+        dataAsOf: new Date().toISOString(),
+      },
+    };
+  }
+
   @Post('requirements/:reqId/revisions')
   @UseGuards(IdempotencyGuard)
   createRequirementRevision(

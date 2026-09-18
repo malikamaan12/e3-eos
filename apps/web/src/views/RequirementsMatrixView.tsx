@@ -109,6 +109,19 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   const [rfiDueAt, setRfiDueAt] = useState<string>('');
   const [isSubmittingRfi, setIsSubmittingRfi] = useState<boolean>(false);
 
+  // Edit Requirement Modal State
+  const [editingReq, setEditingReq] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [editTitle, setEditTitle] = useState<string>('');
+  const [editDescription, setEditDescription] = useState<string>('');
+  const [editCategory, setEditCategory] = useState<string>('staging_technical');
+  const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('medium');
+  const [editStatus, setEditStatus] = useState<string>('active');
+  const [editOwnerName, setEditOwnerName] = useState<string>('');
+  const [editDueDate, setEditDueDate] = useState<string>('');
+  const [editCost, setEditCost] = useState<string>('');
+  const [isSubmittingEdit, setIsSubmittingEdit] = useState<boolean>(false);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
@@ -322,6 +335,129 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       alert(err.message || 'Failed to archive requirements');
     } finally {
       setIsApplyingBulk(false);
+    }
+  };
+
+  const handleBulkHold = async (onHold: boolean) => {
+    if (selectedReqIds.length === 0) return;
+    setIsApplyingBulk(true);
+    try {
+      await Promise.allSettled(
+        selectedReqIds.map((id) => apiClient.toggleRequirementHold(projectId, id, onHold))
+      );
+      setSelectedReqIds([]);
+      triggerRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update hold status');
+    } finally {
+      setIsApplyingBulk(false);
+    }
+  };
+
+  const handleBulkFreeze = async (frozen: boolean) => {
+    if (selectedReqIds.length === 0) return;
+    setIsApplyingBulk(true);
+    try {
+      await Promise.allSettled(
+        selectedReqIds.map((id) => apiClient.toggleRequirementFreeze(projectId, id, frozen))
+      );
+      setSelectedReqIds([]);
+      triggerRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update freeze status');
+    } finally {
+      setIsApplyingBulk(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedReqIds.length === 0) return;
+    if (!confirm(`Are you sure you want to permanently delete ${selectedReqIds.length} selected requirement(s)?`)) return;
+    setIsApplyingBulk(true);
+    try {
+      await apiClient.bulkDeleteRequirements(projectId, selectedReqIds);
+      setSelectedReqIds([]);
+      triggerRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete requirements');
+    } finally {
+      setIsApplyingBulk(false);
+    }
+  };
+
+  const handleOpenEdit = (ev: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingReq(ev);
+    setEditTitle(ev.title || '');
+    setEditDescription(ev.description || '');
+    setEditCategory(ev.category || 'staging_technical');
+    setEditPriority(ev.priority || 'medium');
+    setEditStatus(ev.status || (ev.isApproved ? 'approved' : 'active'));
+    setEditOwnerName(ev.ownerName || '');
+    setEditDueDate(ev.dueDate ? ev.dueDate.slice(0, 10) : '');
+    setEditCost(ev.targetCostQar ? String(ev.targetCostQar) : '');
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReq || !editTitle.trim()) return;
+    setIsSubmittingEdit(true);
+    try {
+      await apiClient.updateRequirement(projectId, editingReq.requirementId || editingReq.id, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        category: editCategory as any,
+        priority: editPriority,
+        status: editStatus as any,
+        ownerName: editOwnerName.trim() || undefined,
+        dueDate: editDueDate.trim() || undefined,
+        targetCostQar: editCost ? parseFloat(editCost) : undefined,
+      });
+      setIsEditModalOpen(false);
+      setEditingReq(null);
+      triggerRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Failed to save requirement edits');
+    } finally {
+      setIsSubmittingEdit(false);
+    }
+  };
+
+  const handleToggleHold = async (ev: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const reqId = ev.requirementId || ev.id;
+    const isHold = ev.status === 'on_hold';
+    try {
+      await apiClient.toggleRequirementHold(projectId, reqId, !isHold);
+      triggerRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Failed to change hold status');
+    }
+  };
+
+  const handleToggleFreeze = async (ev: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const reqId = ev.requirementId || ev.id;
+    const isFrozen = ev.isBaselineFrozen || ev.status === 'frozen';
+    try {
+      await apiClient.toggleRequirementFreeze(projectId, reqId, !isFrozen);
+      triggerRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Failed to change baseline freeze status');
+    }
+  };
+
+  const handleDeleteReq = async (ev: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const reqId = ev.requirementId || ev.id;
+    const reqCode = ev.code || reqId;
+    if (!confirm(`Are you sure you want to permanently delete requirement "${reqCode} - ${ev.title || 'Scope'}"?`)) return;
+    try {
+      await apiClient.deleteRequirement(projectId, reqId);
+      triggerRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete requirement');
     }
   };
 
@@ -1243,6 +1379,64 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     </strong>
                   </div>
                 </div>
+
+                {/* Card Actions Footer: Edit, Hold, Freeze, Delete */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingTop: '10px',
+                    borderTop: '1px solid #f1f5f9',
+                    marginTop: '8px',
+                    gap: '6px',
+                    flexWrap: 'wrap',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    {ev.status === 'on_hold' && (
+                      <span style={{ fontSize: '10px', backgroundColor: '#fef3c7', color: '#b45309', padding: '1px 5px', borderRadius: '3px', fontWeight: 700 }}>
+                        ⏸️ ON HOLD
+                      </span>
+                    )}
+                    {ev.isBaselineFrozen && (
+                      <span style={{ fontSize: '10px', backgroundColor: '#e0f2fe', color: '#0284c7', padding: '1px 5px', borderRadius: '3px', fontWeight: 700 }}>
+                        ❄️ FROZEN
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <button
+                      title="Edit requirement"
+                      onClick={(e) => handleOpenEdit(ev, e)}
+                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#fff', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      title={ev.status === 'on_hold' ? 'Resume requirement' : 'Put on hold'}
+                      onClick={(e) => handleToggleHold(ev, e)}
+                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: ev.status === 'on_hold' ? '#fef3c7' : '#fff', color: ev.status === 'on_hold' ? '#b45309' : '#475569', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      {ev.status === 'on_hold' ? '▶️' : '⏸️'}
+                    </button>
+                    <button
+                      title={ev.isBaselineFrozen ? 'Unfreeze baseline' : 'Freeze baseline'}
+                      onClick={(e) => handleToggleFreeze(ev, e)}
+                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: ev.isBaselineFrozen ? '#e0f2fe' : '#fff', color: ev.isBaselineFrozen ? '#0284c7' : '#475569', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      {ev.isBaselineFrozen ? '🔓' : '❄️'}
+                    </button>
+                    <button
+                      title="Delete requirement"
+                      onClick={(e) => handleDeleteReq(ev, e)}
+                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #fca5a5', backgroundColor: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
               </div>
             );
           };
@@ -1464,6 +1658,89 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     {ev.riskRating?.toUpperCase() || 'LOW'}
                   </Badge>
                 </td>
+
+                {/* Column 12: Actions (Modify, Edit, Hold, Freeze, Delete) */}
+                <td
+                  style={{
+                    padding: '8px 10px',
+                    textAlign: 'center',
+                    width: '180px',
+                    minWidth: '180px',
+                    whiteSpace: 'nowrap',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                    <button
+                      title="Edit requirement details"
+                      onClick={(e) => handleOpenEdit(ev, e)}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        color: '#0f172a',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                      className="hover:bg-slate-100"
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      title={ev.status === 'on_hold' ? 'Resume requirement' : 'Put requirement on hold'}
+                      onClick={(e) => handleToggleHold(ev, e)}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: ev.status === 'on_hold' ? '1px solid #f59e0b' : '1px solid #cbd5e1',
+                        backgroundColor: ev.status === 'on_hold' ? '#fef3c7' : '#ffffff',
+                        color: ev.status === 'on_hold' ? '#b45309' : '#475569',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                      className="hover:bg-amber-50"
+                    >
+                      {ev.status === 'on_hold' ? '▶️ Resume' : '⏸️ Hold'}
+                    </button>
+                    <button
+                      title={ev.isBaselineFrozen ? 'Unfreeze baseline lock' : 'Freeze baseline lock'}
+                      onClick={(e) => handleToggleFreeze(ev, e)}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: ev.isBaselineFrozen ? '1px solid #38bdf8' : '1px solid #cbd5e1',
+                        backgroundColor: ev.isBaselineFrozen ? '#e0f2fe' : '#ffffff',
+                        color: ev.isBaselineFrozen ? '#0284c7' : '#475569',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                      className="hover:bg-sky-50"
+                    >
+                      {ev.isBaselineFrozen ? '🔓 Unfreeze' : '❄️ Freeze'}
+                    </button>
+                    <button
+                      title="Delete requirement"
+                      onClick={(e) => handleDeleteReq(ev, e)}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #fca5a5',
+                        backgroundColor: '#fef2f2',
+                        color: '#dc2626',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                      className="hover:bg-rose-100"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </td>
               </tr>
             );
           };
@@ -1632,6 +1909,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     <th style={{ padding: '12px 14px', fontWeight: 700, width: '90px', minWidth: '90px', textAlign: 'center' }}>
                       {isRtl ? 'المخاطرة' : 'Risk'}
                     </th>
+                    <th style={{ padding: '12px 14px', fontWeight: 700, width: '180px', minWidth: '180px', textAlign: 'center' }}>
+                      {isRtl ? 'الإجراءات' : 'Actions'}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1644,7 +1924,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                             onClick={() => toggleGroupCollapse(section.key)}
                             style={{ backgroundColor: '#f1f5f9', borderTop: '2px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', cursor: 'pointer' }}
                           >
-                            <td colSpan={12} style={{ padding: '10px 14px' }}>
+                            <td colSpan={13} style={{ padding: '10px 14px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                   <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>
@@ -1690,7 +1970,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                                     onClick={() => toggleGroupCollapse(sub.key)}
                                     style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', cursor: 'pointer' }}
                                   >
-                                    <td colSpan={12} style={{ padding: '8px 14px 8px 32px' }}>
+                                    <td colSpan={13} style={{ padding: '8px 14px 8px 32px' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                           <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
@@ -1840,11 +2120,77 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             {/* Bulk Archive */}
             <Button
               size="sm"
-              variant="danger"
+              variant="secondary"
               onClick={handleBulkArchive}
               disabled={isApplyingBulk}
+              className="text-xs"
             >
               Archive
+            </Button>
+
+            {/* Bulk Put on Hold */}
+            <button
+              onClick={() => handleBulkHold(true)}
+              disabled={isApplyingBulk}
+              style={{
+                fontSize: '12px',
+                padding: '5px 10px',
+                borderRadius: '4px',
+                backgroundColor: '#fef3c7',
+                color: '#b45309',
+                border: '1px solid #f59e0b',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ⏸️ Hold ({selectedReqIds.length})
+            </button>
+
+            {/* Bulk Resume */}
+            <button
+              onClick={() => handleBulkHold(false)}
+              disabled={isApplyingBulk}
+              style={{
+                fontSize: '12px',
+                padding: '5px 10px',
+                borderRadius: '4px',
+                backgroundColor: '#ecfdf5',
+                color: '#047857',
+                border: '1px solid #10b981',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ▶️ Resume ({selectedReqIds.length})
+            </button>
+
+            {/* Bulk Freeze Baseline */}
+            <button
+              onClick={() => handleBulkFreeze(true)}
+              disabled={isApplyingBulk}
+              style={{
+                fontSize: '12px',
+                padding: '5px 10px',
+                borderRadius: '4px',
+                backgroundColor: '#e0f2fe',
+                color: '#0369a1',
+                border: '1px solid #38bdf8',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ❄️ Freeze ({selectedReqIds.length})
+            </button>
+
+            {/* Bulk Delete */}
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={handleBulkDelete}
+              disabled={isApplyingBulk}
+              className="text-xs font-semibold"
+            >
+              🗑️ Delete ({selectedReqIds.length})
             </Button>
 
             {/* Deselect */}
@@ -2245,6 +2591,115 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </Button>
             <Button variant="primary" type="submit" disabled={isSubmittingRfi}>
               {isSubmittingRfi ? 'Submitting...' : 'Submit Clarification'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modify Requirement Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingReq(null);
+        }}
+        title={`Modify Scope Requirement: ${editingReq?.code || ''}`}
+      >
+        <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '640px' }} dir={isRtl ? 'rtl' : 'ltr'}>
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Requirement Title *</label>
+            <Input
+              value={editTitle}
+              onChange={(e: any) => setEditTitle(e.target.value)}
+              placeholder="e.g. 360-Degree Kinetic LED Arch"
+              required
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Description & Scope</label>
+            <Textarea
+              value={editDescription}
+              onChange={(e: any) => setEditDescription(e.target.value)}
+              rows={3}
+              placeholder="Detailed technical specifications..."
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Category</label>
+              <Select value={editCategory} onChange={(e: any) => setEditCategory(e.target.value)}>
+                <option value="staging_technical">Staging & Technical</option>
+                <option value="creative_visual">Creative & Visual</option>
+                <option value="health_safety">Health & Safety (QCDD)</option>
+                <option value="protocol_ceremony">Protocol & Ceremonial</option>
+                <option value="crowd_security">Crowd & Security</option>
+              </Select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Priority</label>
+              <Select value={editPriority} onChange={(e: any) => setEditPriority(e.target.value as any)}>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </Select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Status</label>
+              <Select value={editStatus} onChange={(e: any) => setEditStatus(e.target.value)}>
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="in_design">In Design</option>
+                <option value="under_review">Under Review</option>
+                <option value="on_hold">On Hold</option>
+                <option value="frozen">Frozen (Baseline)</option>
+                <option value="approved">Approved</option>
+              </Select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Owner / Assigned Lead</label>
+              <Input
+                value={editOwnerName}
+                onChange={(e: any) => setEditOwnerName(e.target.value)}
+                placeholder="e.g. Karim Haddad"
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Due Date</label>
+              <Input
+                type="date"
+                value={editDueDate}
+                onChange={(e: any) => setEditDueDate(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Target Budget (QAR)</label>
+              <Input
+                type="number"
+                value={editCost}
+                onChange={(e: any) => setEditCost(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+            <Button variant="secondary" onClick={() => setIsEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" disabled={isSubmittingEdit || !editTitle.trim()}>
+              {isSubmittingEdit ? 'Saving Changes...' : 'Save Changes'}
             </Button>
           </div>
         </form>
