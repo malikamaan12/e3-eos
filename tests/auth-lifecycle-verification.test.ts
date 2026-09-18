@@ -296,4 +296,50 @@ describe('Sprint 01 Authentication & Authorization Verification Suite', () => {
       process.env.ENVIRONMENT = prevEnv;
     }
   });
+
+  it('20. JIT Auto-Provisioning: Superadmin (superadmin@eeeqa.com) logs in cleanly with E3#Doha2026!', async () => {
+    const mockRes = { cookie: () => {} } as any;
+    const loginRes: any = await authController.login({
+      email: 'superadmin@eeeqa.com',
+      password: 'E3#Doha2026!',
+    }, mockRes);
+
+    expect(loginRes.success).toBe(true);
+    expect(loginRes.sessionToken).toBeDefined();
+    expect(loginRes.user.email).toBe('superadmin@eeeqa.com');
+    expect(loginRes.user.isSuperAdmin).toBe(true);
+    expect(loginRes.activeMembership.role).toBe('super_admin');
+  });
+
+  it('21. JIT Auto-Provisioning: Local team accounts log in cleanly with their assigned roles', async () => {
+    const mockRes = { cookie: () => {} } as any;
+
+    // Adil Ahmed -> Executive
+    const adilRes: any = await authController.login({
+      email: 'adil@eeeqa.com',
+      password: 'E3#Doha2026!',
+    }, mockRes);
+    expect(adilRes.success).toBe(true);
+    expect(adilRes.user.email).toBe('adil@eeeqa.com');
+    expect(adilRes.activeMembership.role).toBe('executive');
+
+    // Mohammad Ali -> Project Director
+    const aliRes: any = await authController.login({
+      email: 'm.ali@eeeqa.com',
+      password: 'E3#Doha2026!',
+    }, mockRes);
+    expect(aliRes.success).toBe(true);
+    expect(aliRes.user.email).toBe('m.ali@eeeqa.com');
+    expect(aliRes.activeMembership.role).toBe('project_director');
+  });
+
+  it('22. Security Enforced: Local team accounts strictly reject invalid passwords', async () => {
+    const mockRes = { cookie: () => {} } as any;
+    await expect(
+      authController.login({
+        email: 'superadmin@eeeqa.com',
+        password: 'WrongPassword123!',
+      }, mockRes)
+    ).rejects.toThrow();
+  });
 });

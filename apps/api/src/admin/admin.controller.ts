@@ -16,6 +16,7 @@ import { EmailDispatcherService } from '../common/email.service.js';
 import { TenantIsolationGuard, RequireRoles, Public } from '../common/tenant.guard.js';
 import crypto from 'crypto';
 import { CommercialApprovalPolicyRegistry } from '@e3-eos/policy';
+import { LOCAL_TEAM_ACCOUNTS } from '@e3-eos/domain';
 
 export const CANONICAL_ROLES_CATALOG = [
   {
@@ -237,18 +238,36 @@ export class AdminController {
       ORDER BY u.created_at ASC;
     `);
 
+    const existingEmails = new Set(res.rows.map((r: any) => r.email.toLowerCase()));
+    const missingLocalTeam = LOCAL_TEAM_ACCOUNTS.filter(
+      (m) => !existingEmails.has(m.email.toLowerCase())
+    ).map((m) => ({
+      id: m.id,
+      name: `${m.name} (${m.position})`,
+      email: m.email,
+      isSuperAdmin: m.isSuperAdmin,
+      role: m.isSuperAdmin ? 'super_admin' : m.role,
+      audience: m.role === 'client_user' ? 'client' : 'internal',
+      organisationName: m.role === 'client_user' ? 'Qatar Tourism Authority' : 'E3 Events',
+      organisationId: m.organisationId || '11111111-1111-4111-8111-111111111111',
+      createdAt: new Date().toISOString(),
+    }));
+
     return {
-      users: res.rows.map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        email: r.email,
-        isSuperAdmin: r.is_super_admin,
-        role: r.is_super_admin ? 'super_admin' : (r.role || 'unassigned'),
-        audience: r.audience || 'internal',
-        organisationName: r.org_name || 'E3 Events',
-        organisationId: r.org_id,
-        createdAt: r.created_at,
-      })),
+      users: [
+        ...res.rows.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          isSuperAdmin: r.is_super_admin,
+          role: r.is_super_admin ? 'super_admin' : (r.role || 'unassigned'),
+          audience: r.audience || 'internal',
+          organisationName: r.org_name || 'E3 Events',
+          organisationId: r.org_id,
+          createdAt: r.created_at,
+        })),
+        ...missingLocalTeam,
+      ],
     };
   }
 

@@ -409,7 +409,7 @@ export const LoginView: React.FC = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={isAr ? 'name@e3.qa' : 'name@e3.qa'}
+                    placeholder={isAr ? 'superadmin@eeeqa.com' : 'superadmin@eeeqa.com'}
                     required
                     style={{
                       width: '100%',

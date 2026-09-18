@@ -1622,6 +1622,69 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       });
     });
   });
+
+  describe('Local Team Accounts Authentication & Resilience', () => {
+    it('authenticates Superadmin (superadmin@eeeqa.com) cleanly with universal password', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        baseUrl: 'https://unreachable-mock-api.internal',
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: '10000000-0000-4000-8000-000000000001',
+      });
+
+      const res = await client.authLogin('superadmin@eeeqa.com', 'E3#Doha2026!');
+      expect(res.success).toBe(true);
+      expect(res.user?.email).toBe('superadmin@eeeqa.com');
+      expect(res.user?.isSuperAdmin).toBe(true);
+      expect(res.activeMembership?.role).toBe('super_admin');
+      expect(res.sessionToken).toBeDefined();
+    });
+
+    it('authenticates local team members with correct roles', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        baseUrl: 'https://unreachable-mock-api.internal',
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: '10000000-0000-4000-8000-000000000001',
+      });
+
+      const adil = await client.authLogin('adil@eeeqa.com', 'E3#Doha2026!');
+      expect(adil.success).toBe(true);
+      expect(adil.activeMembership?.role).toBe('executive');
+
+      const indika = await client.authLogin('finance@eeeqa.com', 'E3#Doha2026!');
+      expect(indika.success).toBe(true);
+      expect(indika.activeMembership?.role).toBe('finance');
+    });
+
+    it('strictly rejects incorrect passwords for local team accounts', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        baseUrl: 'https://unreachable-mock-api.internal',
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: '10000000-0000-4000-8000-000000000001',
+      });
+
+      await expect(
+        client.authLogin('superadmin@eeeqa.com', 'IncorrectPassword!')
+      ).rejects.toThrow();
+    });
+
+    it('getAdminUsers returns all local team users with fallback', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        baseUrl: 'https://unreachable-mock-api.internal',
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: '10000000-0000-4000-8000-000000000001',
+      });
+
+      const users = await client.getAdminUsers();
+      expect(users.length).toBeGreaterThanOrEqual(33);
+      const superadmin = users.find((u) => u.email === 'superadmin@eeeqa.com');
+      expect(superadmin).toBeDefined();
+      expect(superadmin?.role).toBe('super_admin');
+    });
+  });
 });
 
 
