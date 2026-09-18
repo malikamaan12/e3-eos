@@ -20,6 +20,7 @@ export const ProjectCockpitView: React.FC = () => {
   const {
     currentLanguage,
     currentUser,
+    currentPath,
     selectedProjectId,
     apiClient,
     navigate,
@@ -77,6 +78,10 @@ export const ProjectCockpitView: React.FC = () => {
     | 'readiness'
   >(() => {
     if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      if (pathname.endsWith('/scope') || pathname.includes('/scope') || pathname.endsWith('/requirements') || pathname.includes('/requirements')) {
+        return 'requirements';
+      }
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
       if (
@@ -103,6 +108,37 @@ export const ProjectCockpitView: React.FC = () => {
     }
     return 'overview';
   });
+
+  useEffect(() => {
+    const path = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '');
+    if (path.endsWith('/scope') || path.includes('/scope') || path.endsWith('/requirements') || path.includes('/requirements')) {
+      setCockpitModuleTab('requirements');
+    } else if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (
+        tabParam &&
+        [
+          'overview',
+          'requirements',
+          'clarifications',
+          'documents',
+          'timeline',
+          'design',
+          'commercial',
+          'procurement',
+          'production',
+          'assets',
+          'logistics',
+          'crew',
+          'site',
+          'readiness',
+        ].includes(tabParam)
+      ) {
+        setCockpitModuleTab(tabParam as any);
+      }
+    }
+  }, [currentPath]);
 
   // Decision Modal
   const [decidingApproval, setDecidingApproval] = useState<any | null>(null);

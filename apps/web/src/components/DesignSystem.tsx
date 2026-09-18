@@ -181,13 +181,14 @@ export const Button: React.FC<ButtonProps> = ({
 // SEMANTIC BADGE COMPONENT (NO CONFETTI)
 // ==========================================
 export interface BadgeProps {
-  variant?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'purple' | 'secondary' | 'primary' | 'accent' | 'default';
+  variant?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'purple' | 'secondary' | 'primary' | 'accent' | 'default' | 'outline';
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg';
   style?: React.CSSProperties;
+  className?: string;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', children, style: customStyle }) => {
+export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', children, style: customStyle, className }) => {
   const variantStyles: Record<string, { bg: string; text: string; border: string }> = {
     neutral: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
     default: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
@@ -199,12 +200,14 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', 
     danger: { bg: '#fef2f2', text: '#991b1b', border: '#fecaca' },
     purple: { bg: '#faf5ff', text: '#6b21a8', border: '#e9d5ff' },
     accent: { bg: '#fef3c7', text: '#92400e', border: '#f59e0b' },
+    outline: { bg: 'transparent', text: '#475569', border: '#cbd5e1' },
   };
 
   const style = variantStyles[variant] || variantStyles.neutral;
 
   return (
     <span
+      className={className}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -523,13 +526,13 @@ export interface ModalProps {
   title: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
 }
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer, size = 'md' }) => {
   if (!isOpen) return null;
 
-  const maxWidth = size === 'sm' ? '420px' : size === 'lg' ? '720px' : size === 'xl' ? '960px' : '560px';
+  const maxWidth = size === 'sm' ? '420px' : size === 'lg' ? '720px' : size === 'xl' ? '960px' : size === 'full' ? '96vw' : '560px';
 
   return (
     <div

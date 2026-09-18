@@ -50,7 +50,7 @@ export const RequirementDetailDrawer: React.FC<RequirementDetailDrawerProps> = (
   requirementId,
   onRequirementUpdated,
 }) => {
-  const { apiClient, currentLanguage, user } = useEosContext();
+  const { apiClient, currentLanguage, currentUser } = useEosContext();
   const isRtl = currentLanguage === 'ar';
 
   const [activeTab, setActiveTab] = useState<DrawerTab>('scope');

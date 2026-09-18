@@ -7,6 +7,7 @@ interface BulkScopeEntryModalProps {
   onClose: () => void;
   projectId: string;
   onSuccess?: (createdCount: number) => void;
+  onSaved?: () => void;
 }
 
 export const BulkScopeEntryModal: React.FC<BulkScopeEntryModalProps> = ({
@@ -14,6 +15,7 @@ export const BulkScopeEntryModal: React.FC<BulkScopeEntryModalProps> = ({
   onClose,
   projectId,
   onSuccess,
+  onSaved,
 }) => {
   const { apiClient, currentLanguage } = useEosContext();
   const isRtl = currentLanguage === 'ar';
@@ -139,6 +141,7 @@ export const BulkScopeEntryModal: React.FC<BulkScopeEntryModalProps> = ({
       const count = res.data?.payload?.count || validRowsToSave.length;
       alert(`Successfully created ${count} scope requirements in project register.`);
       if (onSuccess) onSuccess(count);
+      if (onSaved) onSaved();
       onClose();
     } catch (err: any) {
       alert(err.message || 'Failed to save bulk scope requirements');

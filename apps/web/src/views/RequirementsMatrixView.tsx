@@ -400,11 +400,11 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
     if (activeFilter === 'missing_design') return !ev.hasDesignVersion;
     if (activeFilter === 'high_risk') return ev.riskRating === 'high' || ev.riskRating === 'critical';
     if (activeFilter === 'unapproved') return !ev.hasApprovalSignoff && !ev.isApproved;
-    if (activeFilter === 'tender_ready') return ev.stageReadiness?.tenderReadiness?.satisfied;
-    if (activeFilter === 'design_ready') return ev.stageReadiness?.designReadiness?.satisfied;
-    if (activeFilter === 'commercial_ready') return ev.stageReadiness?.commercialReadiness?.satisfied;
-    if (activeFilter === 'production_ready') return ev.stageReadiness?.productionReadiness?.satisfied;
-    if (activeFilter === 'closeout_ready') return ev.stageReadiness?.closeoutReadiness?.satisfied;
+    if (activeFilter === 'tender_ready') return ev.stageReadiness?.tenderDevelopment?.satisfied;
+    if (activeFilter === 'design_ready') return ev.stageReadiness?.designDevelopment?.satisfied;
+    if (activeFilter === 'commercial_ready') return ev.stageReadiness?.commercialAuthorization?.satisfied;
+    if (activeFilter === 'production_ready') return ev.stageReadiness?.productionRelease?.satisfied;
+    if (activeFilter === 'closeout_ready') return ev.stageReadiness?.closeout?.satisfied;
     return true;
   });
 
@@ -413,11 +413,11 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   const missingDesignCount = evaluations.filter((ev: any) => !ev.hasDesignVersion).length;
   const highRiskCount = evaluations.filter((ev: any) => ev.riskRating === 'high' || ev.riskRating === 'critical').length;
   const unapprovedCount = evaluations.filter((ev: any) => !ev.hasApprovalSignoff && !ev.isApproved).length;
-  const tenderReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.tenderReadiness?.satisfied).length;
-  const designReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.designReadiness?.satisfied).length;
-  const commercialReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.commercialReadiness?.satisfied).length;
-  const productionReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.productionReadiness?.satisfied).length;
-  const closeoutReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.closeoutReadiness?.satisfied).length;
+  const tenderReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.tenderDevelopment?.satisfied).length;
+  const designReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.designDevelopment?.satisfied).length;
+  const commercialReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.commercialAuthorization?.satisfied).length;
+  const productionReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.productionRelease?.satisfied).length;
+  const closeoutReadyCount = evaluations.filter((ev: any) => ev.stageReadiness?.closeout?.satisfied).length;
 
   const handlePresetSelect = (preset: PresetViewKey) => {
     setActivePresetView(preset);
@@ -442,9 +442,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         setGroupBy('category');
         setThenBy('ownerName');
         break;
+      case 'custom':
       default:
-        setGroupBy('none');
-        setThenBy('none');
         break;
     }
   };
@@ -452,24 +451,25 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   const getDimensionValue = (ev: any, dim: GroupDimension): string => {
     switch (dim) {
       case 'category':
-        return ev.category ? String(ev.category).replace('_', ' ').toUpperCase() : 'UNCATEGORIZED';
+        return ev.category ? String(ev.category).toUpperCase() : 'UNCATEGORIZED';
       case 'locationZone':
-        return ev.locationZone || 'General / Unallocated';
+        return ev.locationZone || 'Unassigned Zone';
       case 'department':
-        return ev.department ? String(ev.department).replace('_', ' ').toUpperCase() : 'UNASSIGNED DEPT';
+        return ev.department ? String(ev.department).replace('_', ' ').toUpperCase() : 'NO DEPARTMENT';
+      case 'ownerName':
+        return ev.ownerName || 'Unassigned Lead';
       case 'designStatus':
         return ev.designStatus ? String(ev.designStatus).replace('_', ' ').toUpperCase() : 'PENDING';
       case 'productionStatus':
         return ev.productionStatus ? String(ev.productionStatus).replace('_', ' ').toUpperCase() : 'NOT STARTED';
       case 'stageReadiness': {
+        if (ev.stageReadiness?.closeout?.satisfied) return 'STAGE 5: CLOSEOUT READY';
         if (ev.stageReadiness?.productionRelease?.satisfied) return 'STAGE 4: PRODUCTION READY';
         if (ev.stageReadiness?.commercialAuthorization?.satisfied) return 'STAGE 3: COMMERCIAL READY';
         if (ev.stageReadiness?.designDevelopment?.satisfied) return 'STAGE 2: DESIGN READY';
         if (ev.stageReadiness?.tenderDevelopment?.satisfied) return 'STAGE 1: TENDER READY';
         return 'STAGE 0: DRAFT / INCOMPLETE';
       }
-      case 'ownerName':
-        return ev.ownerName || 'Unassigned Lead';
       default:
         return 'All';
     }
@@ -478,14 +478,14 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
   const calculateRollup = (items: any[]) => {
     return items.reduce(
       (acc, item) => ({
-        totalQty: acc.totalQty + (item.quantity ?? 1),
-        allocatedQty: acc.allocatedQty + (item.allocatedQuantity ?? 0),
-        designApprovedQty: acc.designApprovedQty + (item.designApprovedQuantity ?? 0),
-        releasedQty: acc.releasedQty + (item.releasedQuantity ?? 0),
-        producedQty: acc.producedQty + (item.producedQuantity ?? 0),
-        deliveredQty: acc.deliveredQty + (item.deliveredQuantity ?? 0),
-        installedQty: acc.installedQty + (item.installedQuantity ?? 0),
-        acceptedQty: acc.acceptedQty + (item.acceptedQuantity ?? 0),
+        totalQty: acc.totalQty + (Number(item.quantity) || 1),
+        allocatedQty: acc.allocatedQty + (Number(item.allocatedQuantity) || 0),
+        designApprovedQty: acc.designApprovedQty + (Number(item.designApprovedQuantity) || 0),
+        releasedQty: acc.releasedQty + (Number(item.releasedQuantity) || 0),
+        producedQty: acc.producedQty + (Number(item.producedQuantity) || 0),
+        deliveredQty: acc.deliveredQty + (Number(item.deliveredQuantity) || 0),
+        installedQty: acc.installedQty + (Number(item.installedQuantity) || 0),
+        acceptedQty: acc.acceptedQty + (Number(item.acceptedQuantity) || 0),
       }),
       {
         totalQty: 0,

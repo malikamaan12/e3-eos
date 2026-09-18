@@ -8,6 +8,7 @@ interface DocumentParsingModalProps {
   onClose: () => void;
   projectId: string;
   onCandidateApproved?: () => void;
+  onCandidatesApproved?: () => void;
 }
 
 const SAMPLE_TENDER_TEXT = `SECTION 4.2: KINETIC SCENIC LIGHTING ARCHITECTURE
@@ -33,7 +34,12 @@ export const DocumentParsingModal: React.FC<DocumentParsingModalProps> = ({
   onClose,
   projectId,
   onCandidateApproved,
+  onCandidatesApproved,
 }) => {
+  const triggerApproved = () => {
+    if (onCandidateApproved) onCandidateApproved();
+    if (onCandidatesApproved) onCandidatesApproved();
+  };
   const { apiClient, currentLanguage } = useEosContext();
   const isRtl = currentLanguage === 'ar';
 
@@ -94,8 +100,8 @@ export const DocumentParsingModal: React.FC<DocumentParsingModalProps> = ({
         clarificationCount: res.jobSummary?.clarificationCount ?? parsingJob.clarificationCount,
       });
 
-      if (action === 'approve' && onCandidateApproved) {
-        onCandidateApproved();
+      if (action === 'approve') {
+        triggerApproved();
       }
     } catch (err: any) {
       alert(err.message || 'Failed to execute candidate action');
@@ -392,7 +398,7 @@ export const DocumentParsingModal: React.FC<DocumentParsingModalProps> = ({
         projectId={projectId}
         parsingJob={parsingJob}
         onJobUpdated={(updated) => setParsingJob(updated)}
-        onRequirementCreated={onCandidateApproved}
+        onRequirementCreated={triggerApproved}
       />
     )}
     </>

@@ -519,7 +519,7 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
                                   c.reviewStatus === 'accepted'
                                     ? 'success'
                                     : c.reviewStatus === 'rejected'
-                                    ? 'destructive'
+                                    ? 'danger'
                                     : c.reviewStatus === 'converted_to_clarification'
                                     ? 'warning'
                                     : 'secondary'
@@ -824,7 +824,7 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
                             </Button>
 
                             <Button
-                              variant="destructive"
+                              variant="danger"
                               onClick={() => handleReviewAction(currentCandidate.id, 'reject')}
                               className="bg-rose-700 hover:bg-rose-600 text-white text-xs px-3 py-2"
                             >
