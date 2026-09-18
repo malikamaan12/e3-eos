@@ -1,7 +1,7 @@
 /**
  * E3-EOS Enterprise API & Web Distribution Gateway
  * Release: Progressive Scope & Requirements Matrix (Phases 1-3)
- * Patch: Requirement validation fix & progressive scope fallback
+ * Patch: Scope CRUD hardening - Quick Add, Detailed Requirement, and Bulk Entry (v1.0.2)
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
