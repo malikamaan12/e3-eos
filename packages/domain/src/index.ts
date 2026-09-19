@@ -48,3 +48,6 @@ export * from './feature-flags.js';
 export * from './go-live-engine.js';
 export * from './rbac.js';
 export * from './scope-parser.js';
+export * from './rentals-adapter.js';
+export * from './purchasetracker-adapter.js';
+export * from './portfolio-capacity.js';

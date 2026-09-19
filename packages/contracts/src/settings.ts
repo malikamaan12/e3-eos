@@ -13,6 +13,8 @@ export const ProviderTypeEnum = z.enum([
   'local_ollama',
   'tesseract_ocr',
   'pure_js_pdf',
+  'e3_rentals',
+  'e3_purchasetracker',
 ]);
 export type ProviderType = z.infer<typeof ProviderTypeEnum>;
 
@@ -56,6 +58,8 @@ export const ProviderConnectionSchema = z.object({
   maskedSecret: z.string().default('••••••••••••••••'),
   secretKey: z.string().optional(), // Provided only during set/rotate
   health: HealthStatusEnum.default('not_tested'),
+  mode: z.enum(['disabled', 'sandbox', 'production_read_only', 'production_full']).default('disabled').optional(),
+  capabilities: z.array(z.string()).default([]).optional(),
   lastTestedAt: z.string().optional(),
   latencyMs: z.number().optional(),
   lastError: z.string().optional(),

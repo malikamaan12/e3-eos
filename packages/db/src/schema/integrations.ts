@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, integer, boolean, jsonb } from 'drizzle-orm/pg-core';
 import { organisations } from './identity.js';
 import { projects } from './projects.js';
 
@@ -83,4 +83,68 @@ export const reconciliationExceptions = pgTable('reconciliation_exceptions', {
   resolvedBy: text('resolved_by'),
   resolvedAt: timestamp('resolved_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ============================================================================
+// SPRINT 09: ENTERPRISE INTEGRATION OPERATIONS & CAPACITY PERSISTENCE
+// ============================================================================
+
+export const integrationOperations = pgTable('integration_operations', {
+  id: text('id').primaryKey(),
+  organisationId: text('organisation_id').default('tenant-e3-default').notNull(),
+  projectId: text('project_id').notNull(),
+  connectionId: text('connection_id').notNull(),
+  action: text('action').notNull(),
+  idempotencyKey: text('idempotency_key').unique().notNull(),
+  payloadHash: text('payload_hash').notNull(),
+  operationState: text('operation_state').notNull(),
+  businessState: text('business_state').notNull(),
+  sourceRecord: jsonb('source_record'),
+  errorDetail: text('error_detail'),
+  statusUrl: text('status_url'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const projectResourceDemands = pgTable('project_resource_demands', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: text('organisation_id').default('tenant-e3-default').notNull(),
+  projectId: text('project_id').notNull(),
+  requirements: jsonb('requirements').notNull(),
+  assumptions: jsonb('assumptions'),
+  version: integer('version').default(1).notNull(),
+  updatedBy: text('updated_by'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const projectSourcingScenarios = pgTable('project_sourcing_scenarios', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: text('organisation_id').default('tenant-e3-default').notNull(),
+  projectId: text('project_id').notNull(),
+  name: text('name').notNull(),
+  status: text('status').default('draft').notNull(),
+  demandId: text('demand_id'),
+  allocations: jsonb('allocations').notNull(),
+  costBreakdown: jsonb('cost_breakdown').notNull(),
+  readinessConditions: jsonb('readiness_conditions').notNull(),
+  version: integer('version').default(1).notNull(),
+  createdBy: text('created_by'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const capacityConflictDecisions = pgTable('capacity_conflict_decisions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: text('organisation_id').default('tenant-e3-default').notNull(),
+  projectId: text('project_id').notNull(),
+  conflictRef: text('conflict_ref').notNull(),
+  resourcePoolId: text('resource_pool_id').notNull(),
+  assignedOwner: text('assigned_owner'),
+  resolutionAction: text('resolution_action'),
+  rationale: text('rationale'),
+  status: text('status').default('unresolved').notNull(),
+  decidedBy: text('decided_by'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
 });

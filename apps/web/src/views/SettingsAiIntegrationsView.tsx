@@ -418,6 +418,49 @@ export const SettingsAiIntegrationsView: React.FC = () => {
                       <span style={{ fontWeight: '500' }}>{conn.latencyMs ? `${conn.latencyMs} ms` : 'Not tested'}</span>
                     </div>
 
+                    {/* Enterprise Authority Notice & Capabilities */}
+                    {(conn.provider === 'e3_rentals' || conn.provider === 'e3_purchasetracker') && (
+                      <div style={{ marginTop: '8px', padding: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                            {conn.provider === 'e3_rentals' ? 'Inventory & Assets Authority' : 'Procurement & Vendors Authority'}
+                          </span>
+                          <span style={{
+                            fontSize: '10px',
+                            fontWeight: '600',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: conn.mode === 'disabled' ? '#fef3c7' : '#e0f2fe',
+                            color: conn.mode === 'disabled' ? '#92400e' : '#0369a1',
+                          }}>
+                            {conn.mode === 'disabled' ? 'DISCONNECTED / AWAITING LIVE' : 'SANDBOX VERIFIED'}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '6px' }}>
+                          {conn.provider === 'e3_rentals'
+                            ? 'Rentals is authoritative for stock balances, availability, and custody. EOS maintains demand & allocations.'
+                            : 'PurchaseTracker is authoritative for vendor onboarding, compliance, and PO issuance. EOS maintains project PRs.'}
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {(conn.capabilities || (conn.provider === 'e3_rentals'
+                            ? ['read_catalog', 'availability_query', 'internal_reservation']
+                            : ['vendor_search', 'vendor_onboarding', 'pr_create', 'po_deferred']
+                          )).map((cap: string) => (
+                            <span key={cap} style={{
+                              fontSize: '10px',
+                              padding: '2px 5px',
+                              background: cap.includes('deferred') ? '#fee2e2' : '#f1f5f9',
+                              color: cap.includes('deferred') ? '#991b1b' : '#334155',
+                              borderRadius: '3px',
+                              border: `1px solid ${cap.includes('deferred') ? '#fecaca' : '#cbd5e1'}`,
+                            }}>
+                              {cap}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Optional Secret Update Field */}
                     <div style={{ marginTop: '6px' }}>
                       <label style={{ display: 'block', fontSize: '12px', color: E3_THEME.text.muted, marginBottom: '4px' }}>

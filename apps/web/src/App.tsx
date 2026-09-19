@@ -56,6 +56,7 @@ import { DesignCreativeModuleView } from './views/DesignCreativeModuleView.js';
 // Sprint 08 Controlled Documents, Company Vault & Submission Packs
 import { ControlledDocumentsWorkspaceView } from './views/ControlledDocumentsWorkspaceView.js';
 import { SettingsAiIntegrationsView } from './views/SettingsAiIntegrationsView.js';
+import { PortfolioResourcePlannerView } from './views/PortfolioResourcePlannerView.js';
 
 const AppRouter: React.FC = () => {
   const { currentPath, currentUser } = useEosContext();
@@ -166,6 +167,9 @@ const AppRouter: React.FC = () => {
     }
     if (currentPath === '/bump-out') {
       return <BumpOutCloseoutView />;
+    }
+    if (currentPath === '/portfolio/resources' || currentPath === '/portfolio/capacity' || currentPath === '/portfolio/resource-planner') {
+      return <PortfolioResourcePlannerView />;
     }
     if (currentPath === '/commercial/financial-control' || currentPath === '/commercial' || currentPath === '/portfolio') {
       return <FinancialControlCenterView />;

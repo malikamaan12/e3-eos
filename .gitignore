@@ -36,3 +36,4 @@ Thumbs.db
 .credentials.local.json
 # Added by code-review-graph
 .code-review-graph/
+apps/api/data/integration-operations.json

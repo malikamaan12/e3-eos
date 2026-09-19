@@ -47,6 +47,7 @@ export async function runMigrations() {
       '0011_design_and_creative_module.sql',
       '0012_rfp_document_intelligence_integration.sql',
       '0013_controlled_documents_vault_and_submission_packs.sql',
+      '0014_enterprise_integration_operations_and_capacity_store.sql',
     ];
 
     await client.query(`
