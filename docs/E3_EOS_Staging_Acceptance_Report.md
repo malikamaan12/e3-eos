@@ -2,7 +2,7 @@
 
 **Report Date:** 20 September 2026  
 **Baseline Git Commit:** `b656493`  
-**Exact Final Release Commit:** `HEAD` (To be pushed to `origin/main`)  
+**Exact Final Release Commit:** `496b34e` (`496b34e4d6d4603feb2f5f93a995987edd74418a`)  
 **Staging Cloud Run Revision:** `4fcfb17` (Currently running on Cloud Run; release deployment of final commit is **Blocked on pipeline deployment**)  
 **Staging Vercel URL:** `https://e3-eos-api.vercel.app/` (Auto-updated on push)  
 **Local Test Instances:** Frontend `http://localhost:3000` (reverse proxying `/api/v1` to `http://localhost:4000`), Backend `http://localhost:4000`  
