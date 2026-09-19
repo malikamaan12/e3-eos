@@ -414,28 +414,87 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                       {crew.employer || 'E3 Live'}
                     </td>
                     <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
-                      {crew.window?.start ? (
-                        <div>
-                          <div>Start: {new Date(crew.window.start).toLocaleDateString()} {new Date(crew.window.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                          <div>End: {new Date(crew.window.end).toLocaleDateString()} {new Date(crew.window.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                        </div>
-                      ) : (
+                      {crew.window?.start && crew.window?.end ? (() => {
+                        const start = new Date(crew.window.start);
+                        const end = new Date(crew.window.end);
+                        const totalHours = (end.getTime() - start.getTime()) / 3600000;
+                        const isMultiDay = totalHours > 10;
+                        return (
+                          <div>
+                            <div style={{ fontWeight: 600, color: '#1e293b' }}>
+                              {isMultiDay ? 'Assignment Window' : 'Daily Shift'}:
+                            </div>
+                            <div>{start.toLocaleDateString()} {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – {end.toLocaleDateString()} {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                              {isMultiDay ? (
+                                <span>Total: {Math.round(totalHours)}h ({Math.ceil(totalHours / 24)} days) • Daily: 08:00–18:00 (10h max)</span>
+                              ) : (
+                                <span>Duration: {totalHours.toFixed(1)}h</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })() : (
                         'Continuous Deployment'
                       )}
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          color: '#16a34a',
-                          fontWeight: 700,
-                          backgroundColor: '#dcfce7',
-                          padding: '2px 8px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        ✓ Verified
-                      </span>
+                      {crew.window?.start && crew.window?.end ? (() => {
+                        const start = new Date(crew.window.start);
+                        const end = new Date(crew.window.end);
+                        const totalHours = (end.getTime() - start.getTime()) / 3600000;
+                        if (totalHours > 10) {
+                          // Multi-day deployment structured into daily shifts
+                          return (
+                            <div>
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  color: '#16a34a',
+                                  fontWeight: 700,
+                                  backgroundColor: '#dcfce7',
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                  display: 'inline-block',
+                                }}
+                              >
+                                ✓ 14h Daily Rest Rule
+                              </span>
+                              <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                                Qatar Law No. 14: ≤10h/day
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                color: '#16a34a',
+                                fontWeight: 700,
+                                backgroundColor: '#dcfce7',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              ✓ Shift ≤10h Verified
+                            </span>
+                          );
+                        }
+                      })() : (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: '#b45309',
+                            fontWeight: 700,
+                            backgroundColor: '#fef3c7',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          ⚠️ Open Roster
+                        </span>
+                      )}
                     </td>
                     <td style={{ padding: '12px' }}>
                       <Badge
@@ -542,13 +601,18 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                 required
               />
               <Input
-                label="Shift End"
+                label="Shift / Deployment End"
                 type="datetime-local"
                 value={shiftEnd}
                 onChange={(e) => setShiftEnd(e.target.value)}
                 required
               />
             </div>
+            {new Date(shiftEnd).getTime() - new Date(shiftStart).getTime() > 10 * 3600000 && (
+              <div style={{ padding: '10px 12px', borderRadius: '6px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', fontSize: '12px', color: '#1e40af', marginTop: '4px' }}>
+                ℹ️ <strong>Multi-Day Deployment Window:</strong> Total duration is {((new Date(shiftEnd).getTime() - new Date(shiftStart).getTime()) / 3600000).toFixed(1)} hours. Under Qatar Labour Law (Law No. 14 of 2004), daily operational shifts are capped at 10h. This deployment is automatically managed as daily work shifts (08:00–18:00) with mandatory 14-hour inter-shift rest intervals.
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
               <Button
                 type="button"

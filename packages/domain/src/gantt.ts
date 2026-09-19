@@ -315,14 +315,26 @@ export function generateBumpInShifts(
   for (let i = 0; i < totalShifts; i++) {
     const startH = i * shiftLength;
     const endH = startH + shiftLength;
-    const dayHour = startH % 24;
 
-    const isNight = curfewStart > curfewEnd
-      ? (dayHour >= curfewStart || dayHour < curfewEnd)
-      : (dayHour >= curfewStart && dayHour < curfewEnd);
+    let curfewOverlapHours = 0;
+    for (let h = startH; h < endH; h++) {
+      const dH = h % 24;
+      const isHourCurfew = curfewStart > curfewEnd
+        ? (dH >= curfewStart || dH < curfewEnd)
+        : (dH >= curfewStart && dH < curfewEnd);
+      if (isHourCurfew) {
+        curfewOverlapHours++;
+      }
+    }
 
-    const shiftType = isNight ? 'overnight_heavy_lift' : 'day_rigging';
-    const maxDb = isNight ? nightNoiseLimit : dayNoiseLimit;
+    const hasCurfew = curfewOverlapHours > 0;
+    const isFullNight = curfewOverlapHours === shiftLength;
+    const shiftType = isFullNight
+      ? 'overnight_heavy_lift'
+      : hasCurfew
+      ? 'overnight_heavy_lift'
+      : 'day_rigging';
+    const maxDb = hasCurfew ? nightNoiseLimit : dayNoiseLimit;
 
     shifts.push({
       shiftNumber: i + 1,
@@ -332,7 +344,7 @@ export function generateBumpInShifts(
       shiftType,
       allowedNoiseDb: maxDb,
       occupationalNoiseLimitDb: occupationalNoiseLimit,
-      isCurfewActive: isNight,
+      isCurfewActive: hasCurfew,
       maxFloorLoadKgM2: floorLoadLimit,
       floorLoadStatus,
       structuralSafetyBlocked: !isFloorLoadVerified,

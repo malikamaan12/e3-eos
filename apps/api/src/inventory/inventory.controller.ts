@@ -1011,7 +1011,14 @@ export class InventoryController {
   @UseGuards(TenantIsolationGuard)
   getWarehouseZones(@Req() req: Request) {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
-    const assets = Array.from(assetRepository.values()).filter((a) => a.organisationId === orgId);
+    const seen = new Set<string>();
+    const assets: StoredAsset[] = [];
+    for (const a of assetRepository.values()) {
+      if (a.organisationId === orgId && !seen.has(a.id)) {
+        seen.add(a.id);
+        assets.push(a);
+      }
+    }
 
     const zones = STANDARD_WAREHOUSE_ZONES.map((zone) => {
       const zoneAssets = assets.filter((a) => a.zone?.toLowerCase() === zone.toLowerCase());

@@ -58,6 +58,7 @@ export interface StoredProductionPackage extends ProductionPackage {
 export interface StoredQualityInspection extends QualityInspection {
   organisationId: string;
   projectId: string;
+  inspectorName?: string;
 }
 
 export interface StoredSnagRecord extends SnagRecord {
@@ -111,6 +112,7 @@ function seedProductionData() {
     projectId: acceptanceProjId,
     packageId: pkgId,
     inspectorId: '10000000-0000-4000-8000-000000000010',
+    inspectorName: 'Fahad Al-Sulaiti (QA/QC Lead)',
     inspectionDate: new Date(Date.now() - 1 * 86400000),
     inspectionType: 'factory_acceptance',
     checklist: [

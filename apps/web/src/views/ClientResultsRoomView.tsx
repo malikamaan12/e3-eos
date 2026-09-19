@@ -8,6 +8,7 @@ export const ClientResultsRoomView: React.FC = () => {
   const { currentLanguage, apiClient, selectedProjectId, currentUser, currentProject } = useEosContext();
   const isDemo = isSyntheticDemo(selectedProjectId);
   const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
+  const isTourism = (currentProject?.code || selectedProjectId || '').includes('QATAR') || (currentProject?.name || '').includes('Tourism');
 
   const [resultsRoom, setResultsRoom] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -18,18 +19,29 @@ export const ClientResultsRoomView: React.FC = () => {
 
   const handleExportDeliveryReport = () => {
     const projName = resultsRoom?.projectName || currentProject?.name || projectId;
-    const venue = resultsRoom?.venueName || currentProject?.venueName || (isDemo ? 'Lusail Boulevard Arena' : 'Venue TBD');
-    const totalAtt = (resultsRoom?.attendanceMetrics?.totalAttendance ?? (isDemo ? 48500 : 0)).toLocaleString();
-    const vipAtt = (resultsRoom?.attendanceMetrics?.vipAttendance ?? (isDemo ? 1200 : 0)).toLocaleString();
-    const pace = resultsRoom?.attendanceMetrics?.accessPacePerHour ?? (isDemo ? 4200 : 0);
+    const venue = resultsRoom?.venueName || currentProject?.venueName || (isTourism ? 'Doha Exhibition & Convention Centre (DECC)' : isDemo ? 'Lusail Boulevard Arena' : 'Venue TBD');
+    const defaultTotal = isTourism ? 4850 : 125400;
+    const defaultVip = isTourism ? 420 : 1200;
+    const defaultPace = isTourism ? 1200 : 4200;
+    const totalAtt = (resultsRoom?.attendanceMetrics?.totalAttendance ?? (isDemo ? defaultTotal : 0)).toLocaleString();
+    const vipAtt = (resultsRoom?.attendanceMetrics?.vipAttendance ?? (isDemo ? defaultVip : 0)).toLocaleString();
+    const pace = resultsRoom?.attendanceMetrics?.accessPacePerHour ?? (isDemo ? defaultPace : 0);
 
     const deliveredText = resultsRoom?.deliveredScope?.length
       ? resultsRoom.deliveredScope.map((s: any) => `- ${s.name} (${s.status})`).join('\n')
+      : isTourism
+      ? `- Exhibition Hall Stand Infrastructure (Delivered)\n- Plenary Auditorium & Gala Stage (Delivered)\n- VVIP Majlis & Protocol Suites (Delivered)`
       : isDemo
       ? `- Main Ceremonial Stage & Royal Canopy (Delivered)\n- 4K Outdoor LED Facade Wall (Delivered)\n- VIP Protocol Pavilion & Egress Network (Delivered)`
       : '- No delivered physical assets recorded';
 
-    const esgText = isDemo
+    const esgText = isTourism
+      ? `2. ISO 20121 SUSTAINABILITY & ESG PERFORMANCE
+- Waste Diversion Rate: 88.2% diverted from landfill (DECC Waste Segregation)
+- Power Grid vs Clean Energy: 92% Grid / 8% Solar PV Offset
+- Local Procurement Ratio: 89.0% sourced within Qatar & GCC
+- Carbon Footprint: 24.5 tCO2e (100% Certified Regional Solar Offset)`
+      : isDemo
       ? `2. ISO 20121 SUSTAINABILITY & ESG PERFORMANCE
 - Waste Diversion Rate: 86.4% diverted from landfill (18.4 Tons Recycled)
 - Power Grid vs Biofuel: 74% Grid / 26% B20 Low-Sulphur Biodiesel
@@ -71,8 +83,10 @@ Signed on behalf of Executive Production Delivery.
   };
 
   const handleExportCertificate = () => {
-    const clientName = currentProject?.clientName || (isDemo ? 'State Ceremonial Committee' : 'Client Organization');
-    const projName = resultsRoom?.projectName || currentProject?.name || (isDemo ? 'National Day Celebrations 2026' : projectId);
+    const defaultClient = isTourism ? 'Qatar Tourism Authority' : 'State Ceremonial Committee';
+    const clientName = resultsRoom?.clientName || currentProject?.clientName || (isDemo ? defaultClient : 'Client Organization');
+    const defaultProj = isTourism ? 'Qatar Tourism Annual Exhibition & Gala 2026' : 'Qatar National Day 2026 Celebrations';
+    const projName = resultsRoom?.projectName || currentProject?.name || (isDemo ? defaultProj : projectId);
     const signatory = currentUser?.name ? `${currentUser.name}, Technical Director` : (isDemo ? 'Hamad Al-Kuwari, Technical Director' : 'Technical Director');
 
     const cert = `
@@ -209,25 +223,25 @@ Authorized Signatory: ${signatory}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Total Public Attendance"
-          value={(resultsRoom?.attendanceMetrics?.totalAttendance ?? (isDemo ? 48500 : 0)).toLocaleString()}
+          value={(resultsRoom?.attendanceMetrics?.totalAttendance ?? (isDemo ? (isTourism ? 4850 : 125400) : 0)).toLocaleString()}
           subtext="Verified Turnstile Admissions"
           trend={isDemo ? "100% Target Met" : ""}
           trendDirection="up"
         />
         <MetricCard
           label="VIP & Dignitary Guests"
-          value={(resultsRoom?.attendanceMetrics?.vipAttendance ?? (isDemo ? 1200 : 0)).toLocaleString()}
+          value={(resultsRoom?.attendanceMetrics?.vipAttendance ?? (isDemo ? (isTourism ? 420 : 1200) : 0)).toLocaleString()}
           subtext="Protocol Escort Completed"
         />
         <MetricCard
           label="Peak Entry Flow Rate"
-          value={`${resultsRoom?.attendanceMetrics?.accessPacePerHour ?? (isDemo ? 4200 : 0)}/hr`}
-          subtext={isDemo ? "Peak: Aug 22, 19:45" : ""}
+          value={`${resultsRoom?.attendanceMetrics?.accessPacePerHour ?? (isDemo ? (isTourism ? 1200 : 4200) : 0)}/hr`}
+          subtext={resultsRoom?.attendanceMetrics?.peakOccupancyTime ? `Peak: ${resultsRoom.attendanceMetrics.peakOccupancyTime.slice(5, 16)}` : isTourism ? "Peak: Nov 15, 11:30" : "Peak: Aug 22, 19:45"}
         />
         <MetricCard
           label="Safety Milestone"
           value="0 Incidents"
-          subtext="42,000 Safe Site Hours"
+          subtext={isTourism ? "48,000 Safe Site Hours" : "142,000 Safe Site Hours"}
           trend="Zero LTI"
           trendDirection="up"
         />

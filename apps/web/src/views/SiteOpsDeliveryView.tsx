@@ -28,6 +28,44 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
   // Capability 35: Site Zone Critical Inspection Readiness Gate (P04-ST07 / AT-059)
   const [at059CriticalUnresolved, setAt059CriticalUnresolved] = useState<boolean>(true);
 
+  // Derive effective readiness taking into account AT-059 critical unresolved inspection
+  const effectiveReadiness = React.useMemo(() => {
+    if (!readinessData) return null;
+    const base = { ...readinessData };
+    if (at059CriticalUnresolved) {
+      base.overallStatus = 'BLOCKED BY S1 PREREQUISITE';
+      base.eligibleForOpeningReview = false;
+      base.canOpen = false;
+      base.overallScorePercent = Math.min(base.overallScorePercent || 97, 97);
+      if (!base.criticalBlockers?.some((b: string) => b.includes('QCDD-INSP-441'))) {
+        base.criticalBlockers = [
+          ...(base.criticalBlockers || []),
+          '[CRITICAL] HSE: QCDD-INSP-441: Smoke flap safety interlock uncertified in Lusail Main Stage Zone',
+        ];
+      }
+      base.dimensionChecks = (base.dimensionChecks || []).map((dc: any) =>
+        dc.dimension === 'HSE'
+          ? { ...dc, isPassed: false, isCritical: true, scorePercent: 70, details: 'QCDD-INSP-441: Smoke flap safety interlock uncertified in Lusail Main Stage Zone' }
+          : dc
+      );
+    } else {
+      const nonHseChecks = (base.dimensionChecks || []).filter((dc: any) => dc.dimension !== 'HSE');
+      const allOthersPassed = nonHseChecks.every((dc: any) => dc.isPassed);
+      if (allOthersPassed) {
+        base.overallStatus = 'READY';
+        base.eligibleForOpeningReview = true;
+        base.overallScorePercent = 100;
+        base.criticalBlockers = (base.criticalBlockers || []).filter((b: string) => !b.includes('QCDD-INSP-441'));
+        base.dimensionChecks = (base.dimensionChecks || []).map((dc: any) =>
+          dc.dimension === 'HSE'
+            ? { ...dc, isPassed: true, isCritical: true, scorePercent: 100, details: 'QCDD-INSP-441: Smoke flap interlock certified by Capt. Al-Sulaiti' }
+            : dc
+        );
+      }
+    }
+    return base;
+  }, [readinessData, at059CriticalUnresolved]);
+
   // Safety Punch-List & S1 RTO Gate State (P04-ST05 / AT-058)
   const [siteSnags, setSiteSnags] = useState<any[]>(() =>
     isDemo
@@ -578,22 +616,22 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
       )}
 
       {/* SECTION 3: 10-DIMENSION OPERATIONAL READINESS GATE */}
-      {activeSection === 'readiness' && readinessData && (
+      {activeSection === 'readiness' && effectiveReadiness && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Readiness Master Status Banner */}
           <div
             id="readiness-summary-card"
             style={{
               backgroundColor:
-                readinessData.overallStatus === 'READY'
+                effectiveReadiness.overallStatus === 'READY'
                   ? '#f0fdf4'
-                  : readinessData.overallStatus === 'READY_WITH_EXCEPTIONS'
+                  : effectiveReadiness.overallStatus === 'READY_WITH_EXCEPTIONS'
                   ? '#fffbeb'
                   : '#fef2f2',
               border: `2px solid ${
-                readinessData.overallStatus === 'READY'
+                effectiveReadiness.overallStatus === 'READY'
                   ? '#22c55e'
-                  : readinessData.overallStatus === 'READY_WITH_EXCEPTIONS'
+                  : effectiveReadiness.overallStatus === 'READY_WITH_EXCEPTIONS'
                   ? '#f59e0b'
                   : '#ef4444'
               }`,
@@ -609,15 +647,15 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '28px' }}>
-                  {readinessData.overallStatus === 'READY'
+                  {effectiveReadiness.overallStatus === 'READY'
                     ? '🟢'
-                    : readinessData.overallStatus === 'READY_WITH_EXCEPTIONS'
+                    : effectiveReadiness.overallStatus === 'READY_WITH_EXCEPTIONS'
                     ? '🟡'
                     : '🔴'}
                 </span>
                 <div>
                   <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
-                    OPERATIONAL READINESS: {readinessData.overallStatus}
+                    OPERATIONAL READINESS: {effectiveReadiness.overallStatus}
                   </h2>
                   <div style={{ fontSize: '13px', color: '#475569' }}>
                     Authoritative Multi-Dimensional Readiness Engine (Sprint 03 Module 13)
@@ -625,7 +663,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 </div>
               </div>
               <div style={{ fontSize: '14px', color: '#334155', fontWeight: 600 }}>
-                {readinessData.canOpen ? (
+                {effectiveReadiness.canOpen ? (
                   <span style={{ color: '#16a34a' }}>
                     ✅ AUTHORIZED FOR PUBLIC OPENING & SHOW COMMENCEMENT
                   </span>
@@ -639,7 +677,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
 
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a' }}>
-                {readinessData.overallScorePercent}%
+                {effectiveReadiness.overallScorePercent}%
               </div>
               <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>
                 READINESS SCORE
@@ -732,8 +770,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
           <div
             id="governed-opening-authorization-card"
             style={{
-              backgroundColor: readinessData.canOpen ? '#f0fdf4' : '#ffffff',
-              border: `2px solid ${readinessData.canOpen ? '#16a34a' : '#e2e8f0'}`,
+              backgroundColor: effectiveReadiness.canOpen ? '#f0fdf4' : '#ffffff',
+              border: `2px solid ${effectiveReadiness.canOpen ? '#16a34a' : '#e2e8f0'}`,
               borderRadius: '12px',
               padding: '24px',
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
@@ -746,22 +784,27 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                   <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
                     Governed Show Opening Authorization Console
                   </h3>
-                  <Badge variant={readinessData.canOpen ? 'success' : readinessData.eligibleForOpeningReview ? 'warning' : 'danger'}>
-                    {readinessData.canOpen ? 'OFFICIALLY OPENED' : readinessData.eligibleForOpeningReview ? 'ELIGIBLE FOR REVIEW' : 'INELIGIBLE'}
+                  <Badge variant={effectiveReadiness.canOpen ? 'success' : effectiveReadiness.eligibleForOpeningReview ? 'warning' : 'danger'}>
+                    {effectiveReadiness.canOpen ? 'OFFICIALLY OPENED' : effectiveReadiness.eligibleForOpeningReview ? 'ELIGIBLE FOR REVIEW' : 'INELIGIBLE'}
                   </Badge>
                 </div>
                 <p style={{ fontSize: '13px', color: '#64748b', margin: 0, maxWidth: '780px', lineHeight: 1.4 }}>
                   <strong>E3 Governance Invariant:</strong> 100% Operational Readiness score confers <em>eligibility</em> for opening review, but does NOT automatically unlock doors. Opening requires an explicit, policy-governed sign-off transaction executed by an authorized Project Director or Executive Producer, producing an immutable cryptographic audit record.
                 </p>
+                {at059CriticalUnresolved && (
+                  <div style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: '#fef2f2', borderRadius: '6px', border: '1px solid #fca5a5', fontSize: '12px', color: '#991b1b', fontWeight: 600 }}>
+                    ⛔ <strong>Show Opening Strictly Blocked:</strong> 1 unresolved critical life-safety prerequisite (QCDD-INSP-441: Smoke flap safety interlock uncertified in Main Stage Zone). Opening authorization console is disabled until certified.
+                  </div>
+                )}
               </div>
 
-              {!readinessData.canOpen && (
+              {!effectiveReadiness.canOpen && (
                 <div>
                   <Button
                     id="btn-open-opening-auth-modal"
                     variant="primary"
                     size="md"
-                    disabled={!readinessData.eligibleForOpeningReview}
+                    disabled={!effectiveReadiness.eligibleForOpeningReview || at059CriticalUnresolved}
                     onClick={() => setIsAuthModalOpen(true)}
                   >
                     ✍️ Authorize Show Opening & Sign Seal
@@ -771,7 +814,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             </div>
 
             {/* If officially authorized, display the immutable audit seal */}
-            {readinessData.canOpen && (
+            {effectiveReadiness.canOpen && (
               <div
                 id="opening-authorization-seal"
                 style={{
@@ -792,56 +835,51 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                   <Badge variant="success">🔒 Cryptographically Sealed (safeSha256)</Badge>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', fontSize: '13px', marginBottom: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '12px' }}>
                   <div>
                     <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Authorized Signatory:</span>
-                    <strong style={{ color: '#0f172a' }}>{readinessData.authorizedBy || 'Elena Rostova'}</strong>
+                    <strong style={{ color: '#0f172a' }}>{effectiveReadiness.authorizedBy || 'Elena Rostova'}</strong>
                   </div>
                   <div>
                     <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Authorized Role:</span>
-                    <strong style={{ color: '#0f172a' }}>Executive Producer (executive_producer)</strong>
+                    <strong style={{ color: '#0f172a' }}>{effectiveReadiness.authorizedRole || 'Executive Producer'}</strong>
                   </div>
                   <div>
                     <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Signed Timestamp:</span>
-                    <strong style={{ color: '#0f172a' }}>{readinessData.authorizedAt ? new Date(readinessData.authorizedAt).toLocaleString() : '2026-09-12 09:30:00 AST'}</strong>
+                    <strong style={{ color: '#0f172a' }}>{effectiveReadiness.authorizedAt ? new Date(effectiveReadiness.authorizedAt).toLocaleString() : '2026-09-12 09:30:00 AST'}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Decision Status:</span>
-                    <strong style={{ color: '#16a34a' }}>AUTHORIZATION_GRANTED</strong>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Certified Score:</span>
+                    <strong style={{ color: '#16a34a' }}>{effectiveReadiness.overallScorePercent}% (10/10 Dimensions)</strong>
                   </div>
                 </div>
 
-                <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 14px', marginBottom: '12px' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                    Sign-off Justification & Operational Caveats:
+                {effectiveReadiness.dualSignoffBy && (
+                  <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1', fontSize: '12px', color: '#334155' }}>
+                    <strong>Dual Signoff Confirmed:</strong> {effectiveReadiness.dualSignoffBy} at {effectiveReadiness.dualSignoffAt ? new Date(effectiveReadiness.dualSignoffAt).toLocaleString() : '2026-09-12 09:35:00 AST'}
                   </div>
-                  <div style={{ fontSize: '13px', color: '#334155' }}>
-                    {authorizations[0]?.justification || 'All 10 operational dimensions verified passed. Civil Defence safety license endorsed. DECC venue control room comms link active. Authorized for public doors opening.'}
-                  </div>
-                  {authorizations[0]?.conditionNotes && (
-                    <div style={{ fontSize: '12px', color: '#b45309', marginTop: '4px', fontStyle: 'italic' }}>
-                      Conditions: {authorizations[0].conditionNotes}
-                    </div>
-                  )}
-                </div>
+                )}
 
-                <div>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                    Cryptographic Audit Hash:
+                {effectiveReadiness.justification && (
+                  <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '6px', fontSize: '12px', color: '#475569', fontStyle: 'italic' }}>
+                    "{effectiveReadiness.justification}"
                   </div>
+                )}
+
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Sha256 Audit Digest:</span>
                   <div
-                    id="opening-audit-hash"
                     style={{
-                      backgroundColor: '#0f172a',
-                      color: '#4ade80',
                       fontFamily: 'monospace',
-                      fontSize: '12px',
-                      padding: '8px 12px',
+                      fontSize: '11px',
+                      color: '#047857',
+                      backgroundColor: '#ecfdf5',
+                      padding: '3px 8px',
                       borderRadius: '4px',
                       wordBreak: 'break-all',
                     }}
                   >
-                    {readinessData.auditHash || authorizations[0]?.auditHash || 'e3-auth-hash-3b5f928e1a74d26c9842f1b0a8e312457896abcd45ef01236789cdef01234567'}
+                    {effectiveReadiness.auditHash || authorizations[0]?.auditHash || 'e3-auth-hash-3b5f928e1a74d26c9842f1b0a8e312457896abcd45ef01236789cdef01234567'}
                   </div>
                 </div>
               </div>
@@ -860,7 +898,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
-              {readinessData.dimensionChecks?.map((check: any, idx: number) => (
+              {effectiveReadiness.dimensionChecks?.map((check: any, idx: number) => (
                 <div
                   key={check.dimension}
                   style={{
@@ -893,7 +931,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
         </div>
       )}
 
-      {activeSection === 'readiness' && !readinessData && (
+      {activeSection === 'readiness' && !effectiveReadiness && (
         <Card style={{ padding: '48px 24px', textAlign: 'center', color: '#64748b' }}>
           <div style={{ fontSize: '32px', marginBottom: '12px' }}>🚦</div>
           <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0' }}>

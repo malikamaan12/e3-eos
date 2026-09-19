@@ -71,7 +71,11 @@ export const LiveRunSheetView: React.FC = () => {
   };
 
   const items = data?.items || [];
-  const overview = data?.overview;
+  const completedCount = items.filter((i: any) => i.status === 'completed').length;
+  const delayedItems = items.filter((i: any) => i.status === 'delayed' || (i.delayMinutes && Number(i.delayMinutes) > 0));
+  const delayedCount = delayedItems.length;
+  const maxDelay = items.reduce((max: number, i: any) => Math.max(max, Number(i.delayMinutes || 0)), 0);
+  const progressPercent = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
 
   return (
     <div style={{ padding: '24px', maxWidth: '1600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -106,21 +110,21 @@ export const LiveRunSheetView: React.FC = () => {
         />
         <MetricCard
           label="Completed Cues"
-          value={`${overview?.completedCues || 1}`}
-          change={`${Math.round(((overview?.completedCues || 1) / Math.max(1, items.length)) * 100)}% progress`}
-          trend="positive"
+          value={`${completedCount}`}
+          change={`${progressPercent}% progress`}
+          trend={completedCount > 0 ? 'positive' : 'neutral'}
         />
         <MetricCard
           label="Delayed / Rescheduled"
-          value={`${overview?.delayedCues || 2}`}
-          change={`Downstream propagated`}
-          trend={overview?.delayedCues ? 'negative' : 'positive'}
+          value={`${delayedCount}`}
+          change={delayedCount > 0 ? 'Downstream propagated' : 'On Schedule'}
+          trend={delayedCount > 0 ? 'negative' : 'positive'}
         />
         <MetricCard
           label="Max Cumulative Delay"
-          value={`+${overview?.totalCumulativeDelayMinutes || 10} min`}
+          value={`+${maxDelay} min`}
           change="Schedule variance"
-          trend="negative"
+          trend={maxDelay > 0 ? 'negative' : 'positive'}
         />
       </div>
 

@@ -105,6 +105,8 @@ export const NewProjectWizardView: React.FC = () => {
 
   const [datesTbc, setDatesTbc] = useState<boolean>(false);
   const [submissionDeadline, setSubmissionDeadline] = useState<string>('');
+  const [submissionDeadlineTime, setSubmissionDeadlineTime] = useState<string>('14:00');
+  const [submissionDeadlineTimezone, setSubmissionDeadlineTimezone] = useState<string>('Asia/Qatar');
   const [eventDate, setEventDate] = useState<string>('');
   const [bumpInDate, setBumpInDate] = useState<string>('');
   const [bumpOutDate, setBumpOutDate] = useState<string>('');
@@ -144,19 +146,99 @@ export const NewProjectWizardView: React.FC = () => {
     { num: 9, title: currentLanguage === 'ar' ? 'المراجعة والإنشاء' : 'Review & Create' },
   ];
 
+  const getStepValidation = (step: number): { isValid: boolean; errors: string[] } => {
+    const errs: string[] = [];
+    switch (step) {
+      case 1:
+        if (!originRoute) errs.push(isRtl ? 'يرجى اختيار مسار المصدر' : 'Origin route must be selected');
+        if (originRoute === 'DIRECT_AWARD' && !soleSourceJustification.trim()) {
+          errs.push(isRtl ? 'مبرر الإسناد المباشر مطلوب' : 'Sole-source justification note is required for Direct Award');
+        }
+        if (originRoute === 'FRAMEWORK' && !frameworkContractId.trim()) {
+          errs.push(isRtl ? 'معرف الاتفاقية الإطارية مطلوب' : 'Master framework contract ID is required');
+        }
+        if (originRoute === 'RECURRING' && !priorEditionCode.trim()) {
+          errs.push(isRtl ? 'رمز النسخة السابقة مطلوب' : 'Prior edition project code is required');
+        }
+        break;
+      case 2:
+        if (!code.trim()) errs.push(isRtl ? 'رمز المشروع مطلوب' : 'Project Code is required');
+        if (!title.trim()) errs.push(isRtl ? 'عنوان المشروع مطلوب' : 'Project Title is required');
+        if (!format) errs.push(isRtl ? 'نوع وتنسيق الفعالية مطلوب' : 'Event Format is required');
+        break;
+      case 3:
+        if (!clientTbc && !clientName.trim()) {
+          errs.push(isRtl ? 'اسم جهة العميل مطلوب أو حدد "قيد التأكيد"' : 'Client Organization Name is required (or mark TBC)');
+        }
+        break;
+      case 4:
+        if (!datesTbc) {
+          if (originRoute === 'TENDER' && !submissionDeadline.trim()) {
+            errs.push(isRtl ? 'تاريخ الموعد النهائي لتقديم العطاء مطلوب لمسار المناقصة' : 'Tender submission deadline date is required for Tender / RFP route');
+          }
+          if (!eventDate.trim()) {
+            errs.push(isRtl ? 'تاريخ الفعالية مطلوب أو حدد "قيد التأكيد"' : 'Live Event Date is required (or mark Dates TBC)');
+          }
+        }
+        break;
+      case 5:
+        if (!venueTbc && !venueName.trim()) {
+          errs.push(isRtl ? 'اسم موقع الفعالية مطلوب أو حدد "قيد التأكيد"' : 'Venue Name is required (or mark Venue TBC)');
+        }
+        break;
+      case 6:
+        if (!commercialTbc && !estimatedValue.trim()) {
+          errs.push(isRtl ? 'القيمة التقديرية مطلوبة أو حدد "قيد التأكيد"' : 'Estimated Commercial Revenue Value is required (or mark Commercial TBC)');
+        }
+        break;
+      case 7:
+        if (!pmName.trim()) {
+          errs.push(isRtl ? 'اسم مدير المشروع الرئيسي مطلوب' : 'Lead Project Manager name is required');
+        }
+        break;
+      case 8:
+        if (!stages || stages.length === 0) {
+          errs.push(isRtl ? 'يجب تكوين مرحلة واحدة على الأقل' : 'At least one lifecycle stage must be configured');
+        }
+        const missingGates = [5, 9, 10, 13].filter((gId) => !stages.some((s) => s.id === gId && s.isMandatoryGate));
+        if (missingGates.length > 0) {
+          errs.push(isRtl ? 'يجب الإبقاء على بوابات الحوكمة الإلزامية نشطة' : 'Mandatory governance gates (Stages 5, 9, 10, 13) must remain active');
+        }
+        break;
+      default:
+        break;
+    }
+    return { isValid: errs.length === 0, errors: errs };
+  };
+
+  const incompleteSteps = [1, 2, 3, 4, 5, 6, 7, 8]
+    .map((s) => ({
+      step: s,
+      title: steps[s - 1].title,
+      ...getStepValidation(s),
+    }))
+    .filter((s) => !s.isValid);
+
+  const canLaunch = incompleteSteps.length === 0;
+
   const handleNextStep = () => {
-    if (currentStep === 2 && (!code.trim() || !title.trim())) {
-      setError(currentLanguage === 'ar' ? 'يرجى تقديم رمز المشروع وعنوان المشروع قبل المتابعة.' : 'Please provide both Project Code and Project Title before proceeding.');
+    const validation = getStepValidation(currentStep);
+    if (!validation.isValid) {
+      setError(validation.errors[0]);
       return;
     }
     setError(null);
-    setCurrentStep((prev) => prev + 1);
+    setCurrentStep((prev) => Math.min(9, prev + 1));
   };
 
   const handleStepClick = (targetStep: number) => {
-    if (currentStep === 2 && targetStep > 2 && (!code.trim() || !title.trim())) {
-      setError(currentLanguage === 'ar' ? 'يرجى تقديم رمز المشروع وعنوان المشروع قبل المتابعة.' : 'Please provide both Project Code and Project Title before proceeding.');
-      return;
+    if (targetStep > currentStep) {
+      // Validate current step before allowing jumping ahead
+      const validation = getStepValidation(currentStep);
+      if (!validation.isValid) {
+        setError(validation.errors[0]);
+        return;
+      }
     }
     setError(null);
     setCurrentStep(targetStep);
@@ -279,6 +361,9 @@ export const NewProjectWizardView: React.FC = () => {
         },
         dates: {
           submissionDeadline: datesTbc ? null : (submissionDeadline.trim() || null),
+          submissionDeadlineTime: datesTbc ? null : (submissionDeadlineTime.trim() || null),
+          submissionDeadlineTimezone: datesTbc ? null : submissionDeadlineTimezone,
+          submissionDeadlineIso: datesTbc || !submissionDeadline.trim() ? null : `${submissionDeadline.trim()}T${submissionDeadlineTime || '14:00'}:00+03:00`,
           eventDate: datesTbc ? null : (eventDate.trim() || null),
           bumpInDate: datesTbc ? null : (bumpInDate.trim() || null),
           bumpOutDate: datesTbc ? null : (bumpOutDate.trim() || null),
@@ -865,17 +950,43 @@ export const NewProjectWizardView: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '14px', opacity: datesTbc ? 0.5 : 1 }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label htmlFor="submission-deadline-input" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
                   {isRtl ? 'الموعد النهائي لتقديم العطاء' : 'Tender Submission Deadline'}
+                  {originRoute === 'TENDER' && <span style={{ color: '#ef4444' }}> *</span>}
                 </label>
-                <input
-                  id="submission-deadline-input"
-                  type="date"
-                  disabled={datesTbc}
-                  value={submissionDeadline}
-                  onChange={(e) => setSubmissionDeadline(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
-                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.9fr 1.1fr', gap: '6px' }}>
+                  <input
+                    id="submission-deadline-input"
+                    type="date"
+                    disabled={datesTbc}
+                    value={submissionDeadline}
+                    onChange={(e) => setSubmissionDeadline(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  />
+                  <input
+                    id="submission-deadline-time-input"
+                    type="time"
+                    disabled={datesTbc}
+                    value={submissionDeadlineTime}
+                    onChange={(e) => setSubmissionDeadlineTime(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  />
+                  <select
+                    id="submission-deadline-timezone-select"
+                    disabled={datesTbc}
+                    value={submissionDeadlineTimezone}
+                    onChange={(e) => setSubmissionDeadlineTimezone(e.target.value)}
+                    style={{ width: '100%', padding: '8px 6px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '6px', backgroundColor: '#fff', boxSizing: 'border-box' }}
+                  >
+                    <option value="Asia/Qatar">Asia/Qatar (AST +03:00)</option>
+                    <option value="Asia/Dubai">Asia/Dubai (GST +04:00)</option>
+                    <option value="Asia/Riyadh">Asia/Riyadh (AST +03:00)</option>
+                    <option value="UTC">UTC (UTC+00:00)</option>
+                  </select>
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+                  {isRtl ? 'الوقت والنطاق الزمني الإلزامي للمناقصات الحكومية في قطر' : 'Mandatory cutoff time & IANA timezone for Qatar tenders'}
+                </div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
@@ -1336,7 +1447,11 @@ export const NewProjectWizardView: React.FC = () => {
                 <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{isRtl ? 'الموقع والمواعيد الرئيسية' : 'Venue & Key Dates'}</div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{venueTbc ? (isRtl ? 'قيد التأكيد' : 'To Be Confirmed') : venueName}</div>
                 <div style={{ fontSize: '12px', color: '#64748b' }}>
-                  {datesTbc ? (isRtl ? 'المواعيد قيد التأكيد' : 'Dates Pending Confirmation') : (isRtl ? `التقديم: ${submissionDeadline} • الفعالية: ${eventDate}` : `Submission: ${submissionDeadline} • Live: ${eventDate}`)}
+                  {datesTbc
+                    ? (isRtl ? 'المواعيد قيد التأكيد' : 'Dates Pending Confirmation')
+                    : (isRtl
+                        ? `التقديم: ${submissionDeadline} (${submissionDeadlineTime} ${submissionDeadlineTimezone}) • الفعالية: ${eventDate}`
+                        : `Submission: ${submissionDeadline} (${submissionDeadlineTime} ${submissionDeadlineTimezone}) • Live: ${eventDate}`)}
                 </div>
               </div>
 
@@ -1353,12 +1468,49 @@ export const NewProjectWizardView: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Badge variant="success">{isRtl ? 'تم فحص جميع القيود والثوابت' : 'All Invariants Checked'}</Badge>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>
-                {isRtl ? 'جاهز للتفعيل في بيئة PostgreSQL بالدوحة.' : 'Ready to instantiate in Doha staging PostgreSQL.'}
-              </span>
-            </div>
+            {!canLaunch ? (
+              <div style={{ marginBottom: '16px' }}>
+                <AlertBanner type="warning" title={isRtl ? 'متطلبات غير مكتملة قبل الإطلاق' : 'Pre-Flight Invariants Incomplete'}>
+                  <div style={{ fontSize: '12px', marginTop: '4px' }}>
+                    <p style={{ margin: '0 0 8px' }}>
+                      {isRtl
+                        ? 'لا يمكن إطلاق المشروع في بيئة العمليات حتى يتم استيفاء جميع الحقول الإلزامية في الخطوات التالية:'
+                        : 'Cannot launch project cockpit into operational PostgreSQL until all mandatory invariants are fulfilled across earlier steps:'}
+                    </p>
+                    <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                      {incompleteSteps.map((item) => (
+                        <li key={item.step} style={{ marginBottom: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentStep(item.step)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#2563eb',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              textDecoration: 'underline',
+                              padding: 0,
+                              marginRight: '6px',
+                            }}
+                          >
+                            Step {item.step} ({item.title}):
+                          </button>
+                          <span style={{ color: '#b45309' }}>{item.errors.join(' • ')}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </AlertBanner>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Badge variant="success">{isRtl ? 'تم فحص جميع القيود والثوابت' : 'All Invariants Checked'}</Badge>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>
+                  {isRtl ? 'جاهز للتفعيل في بيئة PostgreSQL بالدوحة.' : 'Ready to instantiate in Doha staging PostgreSQL.'}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -1403,7 +1555,7 @@ export const NewProjectWizardView: React.FC = () => {
                 id="wizard-next-btn"
                 variant="primary"
                 size="md"
-                disabled={currentStep === 2 && (!code.trim() || !title.trim())}
+                disabled={!getStepValidation(currentStep).isValid}
                 onClick={handleNextStep}
               >
                 {isRtl ? 'التالي ←' : 'Next Step →'}
@@ -1411,10 +1563,12 @@ export const NewProjectWizardView: React.FC = () => {
             ) : (
               <Button
                 id="wizard-create-btn"
-                variant="success"
+                variant={canLaunch ? 'success' : 'secondary'}
                 size="lg"
+                disabled={!canLaunch || isSubmitting}
                 isLoading={isSubmitting}
                 onClick={() => handleSaveProject(false)}
+                title={!canLaunch ? 'Complete all required fields before launching' : ''}
               >
                 🚀 {isRtl ? 'إنشاء وتفعيل المشروع' : 'Create & Launch Project Cockpit'}
               </Button>

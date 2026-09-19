@@ -1,5 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, MetricCard, Badge } from '../components/DesignSystem.js';
+
+const EXCHANGE_RATES_FROM_QAR: Record<string, number> = {
+  QAR: 1,
+  USD: 1 / 3.64,
+  EUR: 1 / 3.95,
+  SAR: 1.03,
+  AED: 1.01,
+};
+
+const EVENT_TYPE_MULTIPLIERS: Record<string, number> = {
+  summit: 1.0,
+  festival: 1.35,
+  exhibition: 1.2,
+  sports_ceremony: 1.6,
+  corporate_gala: 1.15,
+};
+
+const VENUE_TYPE_MULTIPLIERS: Record<string, number> = {
+  convention_centre: 1.0,
+  indoor_arena: 1.15,
+  outdoor_stadium: 1.3,
+  public_park: 1.25,
+};
+
+const BASE_RATE_CORRIDORS = [
+  { discipline: 'Scenic Custom Carpentry', unit: 'per m²', p25: 450, p50: 620, p75: 850, sampleCount: 14, leadTimeDays: 18 },
+  { discipline: 'Overhead Truss Rigging', unit: 'per point / day', p25: 350, p50: 500, p75: 750, sampleCount: 22, leadTimeDays: 7 },
+  { discipline: 'High-Power Laser Video & LED', unit: 'per m² / day', p25: 320, p50: 480, p75: 650, sampleCount: 18, leadTimeDays: 10 },
+  { discipline: 'Certified Rigger & Crew Lead', unit: 'per 10h shift', p25: 1200, p50: 1600, p75: 2200, sampleCount: 35, leadTimeDays: 4 },
+];
 
 export const HistoricalEstimatorView: React.FC = () => {
   const [eventType, setEventType] = useState<string>('summit');
@@ -8,29 +38,87 @@ export const HistoricalEstimatorView: React.FC = () => {
   const [durationDays, setDurationDays] = useState<number>(3);
   const [currency, setCurrency] = useState<string>('QAR');
 
-  const similarProjects = [
-    { code: 'SUMMIT-2025-DOHA', name: 'Doha Global Economic Forum 2025', capacity: 2500, days: 3, cost: '3,200,000 QAR', margin: '26.5%', similarity: 92 },
-    { code: 'GALA-2026-RIYADH', name: 'Riyadh Ministerial Gala & Awards', capacity: 3000, days: 2, cost: '2,800,000 SAR', margin: '28.5%', similarity: 85 },
-    { code: 'FESTIVAL-2025-LUSAIL', name: 'Lusail Light & Arts Festival', capacity: 15000, days: 5, cost: '5,500,000 QAR', margin: '22.0%', similarity: 55 },
-  ];
+  // Parametric Cost Calculation Model (P06-ST03)
+  const fxRate = EXCHANGE_RATES_FROM_QAR[currency] || 1;
 
-  const categorySpend = [
-    { category: 'SCENIC FABRICATION', pct: 28.5, amount: '920,000 QAR' },
-    { category: 'VIDEO & LED WALLS', pct: 22.0, amount: '710,000 QAR' },
-    { category: 'AUDIO & PA SYSTEMS', pct: 14.5, amount: '468,000 QAR' },
-    { category: 'LIGHTING RIGS', pct: 12.5, amount: '403,000 QAR' },
-    { category: 'CREW & PRODUCTION LABOR', pct: 11.0, amount: '355,000 QAR' },
-    { category: 'RIGGING & TRUSS', pct: 7.5, amount: '242,000 QAR' },
-    { category: 'LOGISTICS & FREIGHT', pct: 4.0, amount: '129,000 QAR' },
-  ];
+  const toCurrency = (amountInQar: number) => {
+    const converted = Math.round(amountInQar * fxRate);
+    return `${converted.toLocaleString()} ${currency}`;
+  };
 
-  // Item 2: Discipline Unit Rate Corridors (P06-ST03)
-  const rateCorridors = [
-    { discipline: 'Scenic Custom Carpentry', unit: 'per m²', p25: 450, p50: 620, p75: 850, sampleCount: 14, leadTimeDays: 18 },
-    { discipline: 'Overhead Truss Rigging', unit: 'per point / day', p25: 350, p50: 500, p75: 750, sampleCount: 22, leadTimeDays: 7 },
-    { discipline: 'High-Power Laser Video & LED', unit: 'per m² / day', p25: 320, p50: 480, p75: 650, sampleCount: 18, leadTimeDays: 10 },
-    { discipline: 'Certified Rigger & Crew Lead', unit: 'per 10h shift', p25: 1200, p50: 1600, p75: 2200, sampleCount: 35, leadTimeDays: 4 },
-  ];
+  const toRawCurrency = (amountInQar: number) => {
+    return Math.round(amountInQar * fxRate);
+  };
+
+  const { p25CostQar, p50CostQar, p75CostQar, marginErosionRisk } = useMemo(() => {
+    const eventMult = EVENT_TYPE_MULTIPLIERS[eventType] || 1.0;
+    const venueMult = VENUE_TYPE_MULTIPLIERS[venueType] || 1.0;
+    const safeCap = Math.max(100, capacity || 100);
+    const safeDays = Math.max(1, durationDays || 1);
+
+    // Parametric formula: Base capacity baseline + variable per-attendee scaling modulated by duration and venue
+    const baseDirectCost = (955000 + safeCap * 450) * (1 + (safeDays - 1) * 0.20) * eventMult * venueMult;
+    const p50 = Math.round(baseDirectCost);
+    const p25 = Math.round(baseDirectCost * 0.849);
+    const p75 = Math.round(baseDirectCost * 1.199);
+
+    const erosion = (
+      3.2 +
+      (safeDays > 3 ? 0.6 : 0) +
+      (eventType === 'sports_ceremony' || eventType === 'festival' ? 0.9 : 0) +
+      (venueType === 'outdoor_stadium' ? 0.5 : 0)
+    ).toFixed(2);
+
+    return { p25CostQar: p25, p50CostQar: p50, p75CostQar: p75, marginErosionRisk: `${erosion}%` };
+  }, [eventType, venueType, capacity, durationDays]);
+
+  const categorySpend = useMemo(() => {
+    const rawCategories = [
+      { category: 'SCENIC FABRICATION', pct: 28.5 },
+      { category: 'VIDEO & LED WALLS', pct: 22.0 },
+      { category: 'AUDIO & PA SYSTEMS', pct: 14.5 },
+      { category: 'LIGHTING RIGS', pct: 12.5 },
+      { category: 'CREW & PRODUCTION LABOR', pct: 11.0 },
+      { category: 'RIGGING & TRUSS', pct: 7.5 },
+      { category: 'LOGISTICS & FREIGHT', pct: 4.0 },
+    ];
+    return rawCategories.map((c) => ({
+      category: c.category,
+      pct: c.pct,
+      amount: toCurrency(p50CostQar * (c.pct / 100)),
+    }));
+  }, [p50CostQar, fxRate, currency]);
+
+  const rateCorridors = useMemo(() => {
+    return BASE_RATE_CORRIDORS.map((rc) => ({
+      ...rc,
+      p25: toRawCurrency(rc.p25),
+      p50: toRawCurrency(rc.p50),
+      p75: toRawCurrency(rc.p75),
+    }));
+  }, [fxRate]);
+
+  const similarProjects = useMemo(() => {
+    const baseProjects = [
+      { code: 'SUMMIT-2025-DOHA', name: 'Doha Global Economic Forum 2025', baseCapacity: 2500, baseDays: 3, baseCostQar: 3200000, margin: '26.5%' },
+      { code: 'GALA-2026-RIYADH', name: 'Riyadh Ministerial Gala & Awards', baseCapacity: 3000, baseDays: 2, baseCostQar: 2800000, margin: '28.5%' },
+      { code: 'FESTIVAL-2025-LUSAIL', name: 'Lusail Light & Arts Festival', baseCapacity: 15000, baseDays: 5, baseCostQar: 5500000, margin: '22.0%' },
+    ];
+    return baseProjects.map((p) => {
+      const capDiff = Math.abs(p.baseCapacity - capacity) / Math.max(1, capacity);
+      const dayDiff = Math.abs(p.baseDays - durationDays) / Math.max(1, durationDays);
+      const matchPct = Math.max(45, Math.min(98, Math.round(100 - capDiff * 35 - dayDiff * 25)));
+      return {
+        code: p.code,
+        name: p.name,
+        capacity: p.baseCapacity,
+        days: p.baseDays,
+        cost: toCurrency(p.baseCostQar),
+        margin: p.margin,
+        similarity: matchPct,
+      };
+    });
+  }, [capacity, durationDays, fxRate, currency]);
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', color: '#0f172a' }}>
@@ -133,10 +221,10 @@ export const HistoricalEstimatorView: React.FC = () => {
 
       {/* Parametric Output Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', margin: '20px 0' }}>
-        <MetricCard label="P25 Low Benchmark" value={`2,740,000 ${currency}`} subtext="Conservative baseline scope" />
-        <MetricCard label="P50 Median Forecast" value={`3,227,000 ${currency}`} subtext="Empirical historical midpoint" />
-        <MetricCard label="P75 High Benchmark" value={`3,870,000 ${currency}`} subtext="High-spec VIP / custom finishes" />
-        <MetricCard label="Margin Erosion Risk" value="3.20%" subtext="Historical scope creep average" />
+        <MetricCard label="P25 Low Benchmark" value={toCurrency(p25CostQar)} subtext="Conservative baseline scope" />
+        <MetricCard label="P50 Median Forecast" value={toCurrency(p50CostQar)} subtext="Empirical historical midpoint" />
+        <MetricCard label="P75 High Benchmark" value={toCurrency(p75CostQar)} subtext="High-spec VIP / custom finishes" />
+        <MetricCard label="Margin Erosion Risk" value={marginErosionRisk} subtext="Historical scope creep average" />
       </div>
 
       {/* Item 2: Dynamic Discipline Rate Corridors Table */}

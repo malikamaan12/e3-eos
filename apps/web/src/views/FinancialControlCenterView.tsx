@@ -392,10 +392,16 @@ export const FinancialControlCenterView: React.FC = () => {
             <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
               {isRtl ? 'مركز الرقابة المالية والمطابقة' : 'Commercial Financial Control Center'}
             </h1>
-            <Badge variant="success">{isRtl ? 'المعادلات موثقة' : 'INVARIANTS VERIFIED'}</Badge>
-            <Badge variant="info">
-              {selectedCurrency === 'QAR' ? (isRtl ? 'أساس حي بالريال القطري' : 'LIVE QAR BASIS') : `CONVERTED (${selectedCurrency})`}
-            </Badge>
+            {error || !finControl ? (
+              <Badge variant="danger">{isRtl ? 'غير موثق / البيانات غير متوفرة' : 'UNVERIFIED / DATA UNAVAILABLE'}</Badge>
+            ) : (
+              <>
+                <Badge variant="success">{isRtl ? 'المعادلات موثقة' : 'INVARIANTS VERIFIED'}</Badge>
+                <Badge variant="info">
+                  {selectedCurrency === 'QAR' ? (isRtl ? 'أساس حي بالريال القطري' : 'LIVE QAR BASIS') : `CONVERTED (${selectedCurrency})`}
+                </Badge>
+              </>
+            )}
           </div>
           <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
             {isRtl ? 'المشروع:' : 'Project:'}{' '}
@@ -511,18 +517,35 @@ export const FinancialControlCenterView: React.FC = () => {
       </div>
 
       {(() => {
-        const revBasis = finControl?.approvedRevenueBasis != null ? Number(finControl.approvedRevenueBasis) : (isDemo ? 2450000 : 0);
-        const curBudget = finControl?.currentAuthorisedBudget != null ? Number(finControl.currentAuthorisedBudget) : (isDemo ? 2000000 : 0);
-        const origBudget = finControl?.originalBudget != null ? Number(finControl.originalBudget) : (isDemo ? 1850000 : 0);
-        const budgetChanges = finControl?.approvedBudgetChanges != null ? Number(finControl.approvedBudgetChanges) : (isDemo ? 150000 : 0);
-        const actualsVal = finControl?.postedActualCost != null ? Number(finControl.postedActualCost) : (isDemo ? 1180000 : 0);
-        const accruedVal = finControl?.acceptedAccruedCost != null ? Number(finControl.acceptedAccruedCost) : (isDemo ? 120000 : 0);
-        const commitmentsVal = finControl?.remainingCommitments != null ? Number(finControl.remainingCommitments) : (isDemo ? 350000 : 0);
-        const etcVal = finControl?.uncommittedForecast != null ? Number(finControl.uncommittedForecast) : (isDemo ? 150000 : 0);
-        const eacVal = finControl?.estimateAtCompletion != null ? Number(finControl.estimateAtCompletion) : (isDemo ? 1800000 : 0);
-        const vacVal = finControl?.budgetVariance != null ? Number(finControl.budgetVariance) : (isDemo ? 200000 : 0);
-        const marginPct = finControl?.forecastContributionMarginPercent || (isDemo ? '26.53%' : '0.00%');
-        const billedPct = cashPos?.billedPercent || (revBasis > 0 && cashPos?.billedAmount ? `${Math.round((Number(cashPos.billedAmount) / revBasis) * 100)}%` : (isDemo ? '80%' : '0%'));
+        if (error && !finControl) {
+          return (
+            <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fecaca', marginBottom: '20px' }}>
+              <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 800, color: '#991b1b' }}>
+                {isRtl ? 'البيانات المالية غير متوفرة لهذا المشروع' : 'Financial Ledger Unavailable For Selected Project'}
+              </h3>
+              <p style={{ margin: '0 auto 16px auto', fontSize: '13px', color: '#64748b', maxWidth: '520px' }}>
+                {error || (isRtl ? 'لم يتم العثور على سجلات الرقابة المالية وموقف السيولة لهذا المشروع.' : `The financial control ledger and cash position records could not be loaded for project ID ${projectId}.`)}
+              </p>
+              <Button variant="primary" onClick={loadData}>
+                {isRtl ? 'إعادة المحاولة' : 'Retry Request'}
+              </Button>
+            </div>
+          );
+        }
+
+        const revBasis = finControl?.approvedRevenueBasis != null ? Number(finControl.approvedRevenueBasis) : 0;
+        const curBudget = finControl?.currentAuthorisedBudget != null ? Number(finControl.currentAuthorisedBudget) : 0;
+        const origBudget = finControl?.originalBudget != null ? Number(finControl.originalBudget) : 0;
+        const budgetChanges = finControl?.approvedBudgetChanges != null ? Number(finControl.approvedBudgetChanges) : 0;
+        const actualsVal = finControl?.postedActualCost != null ? Number(finControl.postedActualCost) : 0;
+        const accruedVal = finControl?.acceptedAccruedCost != null ? Number(finControl.acceptedAccruedCost) : 0;
+        const commitmentsVal = finControl?.remainingCommitments != null ? Number(finControl.remainingCommitments) : 0;
+        const etcVal = finControl?.uncommittedForecast != null ? Number(finControl.uncommittedForecast) : 0;
+        const eacVal = finControl?.estimateAtCompletion != null ? Number(finControl.estimateAtCompletion) : 0;
+        const vacVal = finControl?.budgetVariance != null ? Number(finControl.budgetVariance) : 0;
+        const marginPct = finControl?.forecastContributionMarginPercent || '0.00%';
+        const billedPct = cashPos?.billedPercent || (revBasis > 0 && cashPos?.billedAmount ? `${Math.round((Number(cashPos.billedAmount) / revBasis) * 100)}%` : '0%');
         const calcPct = (amt: number) => (revBasis > 0 ? `${((amt / revBasis) * 100).toFixed(1)}%` : '0.0%');
 
         return (

@@ -447,6 +447,8 @@ export interface TabsProps {
 }
 
 export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, style, ariaLabel = 'Navigation Tabs' }) => {
+  const isAnyActive = tabs.some((t) => t.id === activeTab);
+  const effectiveActiveTab = isAnyActive ? activeTab : (tabs[0]?.id || '');
   return (
     <div
       role="tablist"
@@ -464,7 +466,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, style, ar
       }}
     >
       {tabs.map((tab) => {
-        const isActive = tab.id === activeTab;
+        const isActive = tab.id === effectiveActiveTab;
         return (
           <button
             key={tab.id}

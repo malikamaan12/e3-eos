@@ -15,10 +15,16 @@ export const MyWorkView: React.FC = () => {
   const [approvalFilter, setApprovalFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   useEffect(() => {
-    if (isApprovalsRoute && !['pending', 'approved', 'rejected', 'returned'].includes(activeTab)) {
-      setActiveTab('pending');
+    if (isApprovalsRoute) {
+      if (!['pending', 'approved', 'rejected', 'returned'].includes(activeTab)) {
+        setActiveTab('pending');
+      }
+    } else {
+      if (!['action', 'assigned', 'approvals', 'blocked', 'upcoming'].includes(activeTab)) {
+        setActiveTab('action');
+      }
     }
-  }, [isApprovalsRoute]);
+  }, [isApprovalsRoute, currentPath]);
 
   // Decision Modal State
   const [decidingApproval, setDecidingApproval] = useState<any | null>(null);

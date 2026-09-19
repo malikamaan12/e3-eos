@@ -48,7 +48,11 @@ export const PerformanceKnowledgeView: React.FC = () => {
             <h1 className="text-2xl font-bold text-white tracking-wide">
               {currentLanguage === 'ar' ? 'الأداء المؤسسي وبنك المعرفة والدروس المستفادة' : 'Performance, Vendor Evaluation & Knowledge Base'}
             </h1>
-            <Badge variant="success">CLOSEOUT COMPLETE</Badge>
+            {kpis.length > 0 || vendors.length > 0 || lessons.length > 0 || feedback.length > 0 ? (
+              <Badge variant="success">CLOSEOUT COMPLETE</Badge>
+            ) : (
+              <Badge variant="warning">METRICS PENDING / INCOMPLETE</Badge>
+            )}
           </div>
           <p className="text-sm text-slate-400 mt-1">
             Project KPIs, multi-factor vendor scorecards, structured post-event lessons learned, and verified client feedback.

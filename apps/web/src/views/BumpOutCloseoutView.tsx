@@ -20,23 +20,23 @@ export const BumpOutCloseoutView: React.FC = () => {
 
   // Return Inspection Modal (AT-064)
   const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
-  const [returnAssetId, setReturnAssetId] = useState<string>(() => (isDemo ? 'AST-AUDIO-DIGICO-SD7' : ''));
+  const [returnAssetId, setReturnAssetId] = useState<string>('');
   const [returnCondition, setReturnCondition] = useState<string>('pristine');
   const [repairEstimate, setRepairEstimate] = useState<number>(0);
   const [responsibility, setResponsibility] = useState<string>('venue');
-  const [inspectionNotes, setInspectionNotes] = useState<string>(() => (isDemo ? 'Returned in flight case with all snake cables.' : ''));
+  const [inspectionNotes, setInspectionNotes] = useState<string>('');
 
   // Operational Closure 7-Pillars Checklist (AT-065)
   const [checklist, setChecklist] = useState({
-    eventOperationComplete: isDemo,
-    bumpOutComplete: isDemo,
-    venueHandoverComplete: isDemo,
-    assetsReturned: isDemo,
-    majorClaimsIdentified: isDemo,
-    criticalIncidentsClosed: isDemo,
-    siteEvidenceComplete: isDemo,
+    eventOperationComplete: false,
+    bumpOutComplete: false,
+    venueHandoverComplete: false,
+    assetsReturned: false,
+    majorClaimsIdentified: false,
+    criticalIncidentsClosed: false,
+    siteEvidenceComplete: false,
   });
-  const [openReceivablesAck, setOpenReceivablesAck] = useState<boolean>(isDemo);
+  const [openReceivablesAck, setOpenReceivablesAck] = useState<boolean>(false);
   const [isSubmittingClosure, setIsSubmittingClosure] = useState<boolean>(false);
 
   const loadData = async () => {
@@ -54,6 +54,23 @@ export const BumpOutCloseoutView: React.FC = () => {
       setClaims(clm);
       setVenueHandover(vh);
       setOperationalClosure(opc);
+
+      const isBmpDone = bmp && bmp.length > 0 && bmp.every((b: any) => b.status === 'completed');
+      const isVhDone = !!vh && (vh.status === 'completed' || vh.status === 'signed');
+      const isRetDone = ret && ret.length > 0 && ret.every((a: any) => a.status === 'returned' || a.status === 'inspected');
+      const isClaimsDone = clm && clm.length > 0;
+      const isOpcDone = !!opc && (opc.status === 'closed' || !!opc.decision);
+
+      setChecklist({
+        eventOperationComplete: isOpcDone,
+        bumpOutComplete: isBmpDone,
+        venueHandoverComplete: isVhDone,
+        assetsReturned: isRetDone,
+        majorClaimsIdentified: isClaimsDone,
+        criticalIncidentsClosed: isOpcDone,
+        siteEvidenceComplete: isOpcDone,
+      });
+      setOpenReceivablesAck(isOpcDone);
     } catch (err) {
       console.error('Failed to load closeout data', err);
     } finally {
@@ -62,19 +79,6 @@ export const BumpOutCloseoutView: React.FC = () => {
   };
 
   useEffect(() => {
-    const demo = isSyntheticDemo(projectId);
-    setReturnAssetId(demo ? 'AST-AUDIO-DIGICO-SD7' : '');
-    setInspectionNotes(demo ? 'Returned in flight case with all snake cables.' : '');
-    setChecklist({
-      eventOperationComplete: demo,
-      bumpOutComplete: demo,
-      venueHandoverComplete: demo,
-      assetsReturned: demo,
-      majorClaimsIdentified: demo,
-      criticalIncidentsClosed: demo,
-      siteEvidenceComplete: demo,
-    });
-    setOpenReceivablesAck(demo);
     loadData();
   }, [projectId]);
 
@@ -433,10 +437,10 @@ export const BumpOutCloseoutView: React.FC = () => {
                 variant="primary"
                 size="lg"
                 onClick={handleAuthorizeClosure}
-                disabled={isSubmittingClosure}
+                disabled={isSubmittingClosure || !!operationalClosure || Object.values(checklist).some((v) => !v) || !openReceivablesAck}
                 id="btn-authorize-operational-closure"
               >
-                {isSubmittingClosure ? 'Sealing...' : 'Authorize Operational Closure'}
+                {operationalClosure ? 'Operational Closure Sealed' : isSubmittingClosure ? 'Sealing...' : 'Authorize Operational Closure'}
               </Button>
             </div>
           </div>

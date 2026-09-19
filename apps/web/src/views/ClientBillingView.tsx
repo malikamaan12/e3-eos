@@ -85,12 +85,12 @@ export const ClientBillingView: React.FC = () => {
     }
   };
 
-  const totalContractVal = milestones.reduce((sum, m) => sum + (Number(m.contractualAmount) || 0), 0) || (isDemo ? 2450000 : 0);
-  const totalBilledVal = invoices.reduce((sum, inv) => sum + (Number(inv.netDueAmount) || 0), 0) || (isDemo ? 1960000 : 0);
-  const totalCollectedVal = collections.reduce((sum, col) => sum + (Number(col.amountReceived) || 0), 0) || (isDemo ? 1715000 : 0);
-  const openReceivablesVal = invoices.reduce((sum, inv) => sum + (Number(inv.outstandingAmount) || 0), 0) || (isDemo ? 245000 : 0);
-  const billedPctStr = totalContractVal > 0 ? `${((totalBilledVal / totalContractVal) * 100).toFixed(1)}% of Contract` : '0% of Contract';
-  const collectedPctStr = totalBilledVal > 0 ? `${((totalCollectedVal / totalBilledVal) * 100).toFixed(1)}% Collected` : '0% Collected';
+  const totalContractVal = milestones.reduce((sum, m) => sum + (Number(m.contractualAmount) || 0), 0);
+  const totalBilledVal = invoices.reduce((sum, inv) => sum + (Number(inv.netDueAmount) || 0), 0);
+  const totalCollectedVal = collections.reduce((sum, col) => sum + (Number(col.amountReceived) || 0), 0);
+  const openReceivablesVal = invoices.reduce((sum, inv) => sum + (Number(inv.outstandingAmount) || 0), 0);
+  const billedPctStr = totalContractVal > 0 ? `${((totalBilledVal / totalContractVal) * 100).toFixed(1)}% of Contract` : '0.0% of Contract';
+  const collectedPctStr = totalBilledVal > 0 ? `${((totalCollectedVal / totalBilledVal) * 100).toFixed(1)}% Collected` : '0.0% Collected';
 
   return (
     <div className="space-y-6">

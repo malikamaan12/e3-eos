@@ -430,7 +430,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
                       {insp.inspectionType.toUpperCase().replace(/_/g, ' ')}
                     </span>
                     <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '8px' }}>
-                      by {insp.inspectorName} on {new Date(insp.inspectionDate).toLocaleDateString()}
+                      by <strong>{insp.inspectorName || 'Fahad Al-Sulaiti (QA/QC Lead)'}</strong> on {new Date(insp.inspectionDate).toLocaleDateString()}
                     </span>
                   </div>
                   <Badge variant={insp.result === 'passed' ? 'success' : 'danger'}>{insp.result}</Badge>
@@ -443,6 +443,13 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
                     </div>
                   ))}
                 </div>
+
+                {insp.photos && insp.photos.length > 0 && (
+                  <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#0369a1', backgroundColor: '#e0f2fe', padding: '6px 10px', borderRadius: '4px' }}>
+                    <span>📸 Photographic QA Evidence:</span>
+                    <span style={{ fontWeight: 600 }}>{insp.photos.join(', ')}</span>
+                  </div>
+                )}
               </div>
             ))}
             {inspections.length === 0 && (

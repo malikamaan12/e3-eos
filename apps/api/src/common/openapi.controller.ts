@@ -10,9 +10,10 @@ export class OpenApiController {
       path.resolve(process.cwd(), 'packages/contracts/CORE_COMMANDS.openapi.yaml'),
       path.resolve(process.cwd(), 'contracts/CORE_COMMANDS.openapi.yaml'),
       path.resolve(process.cwd(), '../../contracts/CORE_COMMANDS.openapi.yaml'),
-      path.resolve(__dirname, '../../../contracts/CORE_COMMANDS.openapi.yaml'),
       'b:/PROJECTS/EOS/contracts/CORE_COMMANDS.openapi.yaml',
+      'b:/PROJECTS/EOS/packages/contracts/CORE_COMMANDS.openapi.yaml',
       'B:/PROJECTS/EOS/contracts/CORE_COMMANDS.openapi.yaml',
+      'B:/PROJECTS/EOS/packages/contracts/CORE_COMMANDS.openapi.yaml',
     ];
 
     for (const p of candidates) {

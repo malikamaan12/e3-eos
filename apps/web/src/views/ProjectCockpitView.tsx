@@ -117,8 +117,9 @@ export const ProjectCockpitView: React.FC = () => {
     const path = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '');
     if (path.endsWith('/scope') || path.includes('/scope') || path.endsWith('/requirements') || path.includes('/requirements')) {
       setCockpitModuleTab('requirements');
-    } else if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
+    } else {
+      const queryStr = path.includes('?') ? path.split('?')[1] : (typeof window !== 'undefined' ? window.location.search : '');
+      const params = new URLSearchParams(queryStr);
       const tabParam = params.get('tab');
       if (
         tabParam &&

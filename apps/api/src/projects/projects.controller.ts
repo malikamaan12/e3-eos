@@ -89,9 +89,9 @@ export function seedInitialProjects(): void {
     {
       id: 'f1111111-1111-4111-8111-111111111111',
       organisationId: '11111111-1111-4111-8111-111111111111',
-      projectCode: 'PRJ-2026-SYNTH-01',
-      title: 'Synthetic International Tech Expo 2026',
-      description: 'A complete synthetic test project for verifying EOS core commands and invariants.',
+      projectCode: 'PRJ-2026-QATAR-01',
+      title: 'Qatar Tourism Annual Exhibition & Gala 2026',
+      description: 'Flagship annual tourism exhibition and gala dinner hosted at Doha Exhibition and Convention Centre (DECC).',
       originCode: 'DIRECT_AWARD',
       ownerId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
       maturity: 'delivery',
@@ -101,6 +101,24 @@ export function seedInitialProjects(): void {
       costingData: {
         contractorBuyRateHourly: '120.00 QAR',
         internalMarginTarget: '43.75%',
+        payrollSchedule: 'CONFIDENTIAL-INTERNAL',
+      },
+    },
+    {
+      id: '00000000-0000-4000-8000-000000000001',
+      organisationId: '11111111-1111-4111-8111-111111111111',
+      projectCode: 'PRJ-QND-2026',
+      title: 'Qatar National Day 2026 Celebrations',
+      description: 'Official ceremonial pavilion and celebrations along Lusail Boulevard with 125,000+ public attendance.',
+      originCode: 'DIRECT_AWARD',
+      ownerId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      maturity: 'delivery',
+      outcome: 'undetermined',
+      rowVersion: 1,
+      clientOrganisationId: '22222222-2222-4222-8222-222222222222',
+      costingData: {
+        contractorBuyRateHourly: '140.00 QAR',
+        internalMarginTarget: '45.00%',
         payrollSchedule: 'CONFIDENTIAL-INTERNAL',
       },
     },
@@ -162,6 +180,12 @@ export function seedInitialProjects(): void {
   for (const proj of defaultProjects) {
     projectRepository.set(proj.id, proj);
     projectRepository.set(proj.projectCode, proj);
+    if (proj.id === 'f1111111-1111-4111-8111-111111111111') {
+      projectRepository.set('PRJ-2026-SYNTH-01', proj);
+    }
+    if (proj.projectCode === 'PRJ-QND-2026') {
+      projectRepository.set('QND26', proj);
+    }
   }
 }
 
@@ -313,7 +337,7 @@ export class ProjectsController {
         businessRoute: originCode,
         clientName: b.clientStakeholders?.clientName,
         clientOrganisationId: clientOrgId,
-        tenderDeadline: b.dates?.submissionDeadline,
+        tenderDeadline: b.dates?.submissionDeadlineIso || b.dates?.submissionDeadline,
         eventStartDate: b.dates?.eventStartDate || b.dates?.eventDate,
         estimatedBudget: Number(b.commercialStartingPoint?.revenueValue?.toString().replace(/,/g, '')) || 0,
         commercialModel: b.commercialStartingPoint?.classificationTag,

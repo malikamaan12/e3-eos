@@ -14,6 +14,37 @@ export const PostEventReportBuilderView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'executive' | 'commercial' | 'sustainability' | 'safety'>('executive');
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
+  const isTourism = projectId === 'f1111111-1111-4111-8111-111111111111' || projectId === 'PRJ-2026-QATAR-01' || currentProject?.code === 'PRJ-2026-QATAR-01' || (currentProject as any)?.projectCode === 'PRJ-2026-QATAR-01';
+  const isQnd = projectId === '00000000-0000-4000-8000-000000000001' || projectId === 'PRJ-QND-2026' || projectId === 'QND26' || currentProject?.code === 'PRJ-QND-2026' || (currentProject as any)?.projectCode === 'PRJ-QND-2026';
+
+  const defaultClientName = isTourism
+    ? 'Qatar Tourism Authority'
+    : isQnd
+    ? 'Ministry of Culture & Celebrations Committee'
+    : (currentProject?.clientName || 'Client Organization');
+
+  const defaultVenueName = isTourism
+    ? 'Doha Exhibition & Convention Centre (DECC), Hall 1'
+    : isQnd
+    ? 'Lusail Boulevard & Arena, Doha'
+    : (currentProject?.venueName || 'Main Venue');
+
+  const defaultReportTitle = isTourism
+    ? 'Qatar Tourism Annual Exhibition & Gala 2026 — Official Executive Dossier & Final Account'
+    : isQnd
+    ? 'Qatar National Day 2026 Celebrations — Official Executive Dossier & Final Account'
+    : `${currentProject?.name || 'Project'} — Official Executive Dossier & Final Account`;
+
+  const defaultOrgLine = isTourism
+    ? 'State of Qatar • Qatar Tourism Authority • E3-EOS Production'
+    : isQnd
+    ? 'State of Qatar • National Celebrations Committee • E3-EOS Production'
+    : `${currentProject?.clientName || 'Client Organization'} • E3-EOS Production`;
+
+  const defaultAttendance = isTourism ? '4,850' : isQnd ? '125,400+' : '—';
+  const defaultThroughput = isTourism ? 'Peak throughput 1,200 / hour' : isQnd ? 'Peak throughput 4,200 / hour' : 'Verified turnout';
+  const defaultCues = isTourism ? 'All 18 keynote and gala cues delivered' : isQnd ? 'Zero cue latency on 48 live cues' : 'Operational delivery verified';
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -50,7 +81,7 @@ export const PostEventReportBuilderView: React.FC = () => {
             <Badge variant="success">ISO 20121 & QCDD CERTIFIED</Badge>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            {report?.reportTitle || (isDemo ? 'Qatar National Day 2026 Celebrations — Official Executive Dossier & Final Account' : `${currentProject?.name || 'Project'} — Official Executive Dossier & Final Account`)}
+            {report?.reportTitle || defaultReportTitle}
           </p>
         </div>
 
@@ -119,17 +150,17 @@ export const PostEventReportBuilderView: React.FC = () => {
         <div className="border-b border-slate-700/60 pb-6 flex justify-between items-start">
           <div>
             <div className="text-xs uppercase tracking-widest text-amber-500 font-bold mb-2">
-              {isDemo ? 'State of Qatar • National Celebrations Committee • E3-EOS Production' : `${currentProject?.clientName || 'Client Organization'} • E3-EOS Production`}
+              {defaultOrgLine}
             </div>
             <h2 className="text-3xl font-extrabold text-white">
-              {report?.reportTitle || (isDemo ? 'Qatar National Day 2026 Celebrations Pavilion' : (currentProject?.name || 'Executive Event Dossier'))}
+              {report?.reportTitle || defaultReportTitle}
             </h2>
             <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
               <span>Project ID: <strong className="text-white font-mono">{projectId || currentProject?.code || 'PRJ'}</strong></span>
               <span>•</span>
-              <span>Client: <strong className="text-white">{currentProject?.clientName || (isDemo ? 'Ministry of Culture & Celebrations Committee' : 'Client Organization')}</strong></span>
+              <span>Client: <strong className="text-white">{report?.clientName || currentProject?.clientName || defaultClientName}</strong></span>
               <span>•</span>
-              <span>Venue: <strong className="text-white">{currentProject?.venueName || (isDemo ? 'Lusail Boulevard & Arena, Doha' : 'Main Venue')}</strong></span>
+              <span>Venue: <strong className="text-white">{report?.venueName || currentProject?.venueName || defaultVenueName}</strong></span>
               <span>•</span>
               <span>Base Currency: <strong className="text-emerald-400">{currentProject?.currency || 'QAR (Qatari Riyal)'}</strong></span>
             </div>
@@ -147,25 +178,27 @@ export const PostEventReportBuilderView: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">Public Attendance</span>
-                <div className="text-2xl font-bold text-white mt-1">{report?.attendance ? `${report.attendance.toLocaleString()}+` : (isDemo ? '125,400+' : '—')}</div>
-                <span className="text-[11px] text-emerald-400">{report?.peakThroughput ? `Peak throughput ${report.peakThroughput} / hour` : (isDemo ? 'Peak throughput 4,200 / hour' : 'Verified turnout')}</span>
+                <div className="text-2xl font-bold text-white mt-1">{report?.attendance ? `${Number(report.attendance).toLocaleString()}+` : defaultAttendance}</div>
+                <span className="text-[11px] text-emerald-400">{report?.peakThroughput ? `Peak throughput ${report.peakThroughput}` : defaultThroughput}</span>
               </div>
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">Live Show Delivery</span>
-                <div className="text-2xl font-bold text-white mt-1">{report?.showDeliveryRate || (isDemo ? '100% On-Time' : 'On-Time')}</div>
-                <span className="text-[11px] text-emerald-400">{report?.cuesExecuted ? `Zero cue latency on ${report.cuesExecuted} live cues` : (isDemo ? 'Zero cue latency on 48 live cues' : 'Operational delivery verified')}</span>
+                <div className="text-2xl font-bold text-white mt-1">{report?.showDeliveryRate || '100% On-Time'}</div>
+                <span className="text-[11px] text-emerald-400">{report?.cuesExecuted ? `Zero cue latency on ${report.cuesExecuted} live cues` : defaultCues}</span>
               </div>
               <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700">
                 <span className="text-xs text-slate-400">HSE & Life Safety</span>
-                <div className="text-2xl font-bold text-white mt-1">{report?.safetyMetric || (isDemo ? 'Zero LTI' : 'Zero LTI')}</div>
-                <span className="text-[11px] text-emerald-400">{report?.workforceHours ? `${report.workforceHours.toLocaleString()} workforce hours injury-free` : (isDemo ? '142,000 workforce hours injury-free' : 'Statutory compliant')}</span>
+                <div className="text-2xl font-bold text-white mt-1">{report?.safetyMetric || 'Zero LTI'}</div>
+                <span className="text-[11px] text-emerald-400">{report?.workforceHours ? `${report.workforceHours.toLocaleString()} workforce hours injury-free` : (isTourism ? '48,000 workforce hours injury-free' : '142,000 workforce hours injury-free')}</span>
               </div>
             </div>
 
             <div className="bg-slate-800/40 p-6 rounded-lg border border-slate-700/60 space-y-3">
               <h3 className="text-base font-bold text-white">Project Performance Executive Narrative</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                {report?.executiveSummary || (isDemo
+                {report?.executiveSummary || (isTourism
+                  ? 'The Qatar Tourism Annual Exhibition & Gala 2026 was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and DECC venue operations. All primary exhibition halls, keynote stages, and VVIP Majlis facilities achieved 100% acceptance prior to VIP delegation arrival.'
+                  : isQnd
                   ? 'The Qatar National Day 2026 Pavilion was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and Qatar Civil Defence Department (QCDD) life safety standards. All primary structural elements, kinetic lighting rings, and 360-degree LED surfaces achieved 100% factory acceptance and site sign-off prior to public doors opening.'
                   : `${currentProject?.name || 'This project'} was executed across all canonical stages in strict alignment with ISO 20121 Sustainable Event Management and statutory life safety standards. All primary structural elements and technical production systems achieved 100% acceptance and site sign-off prior to event opening.`
                 )}
@@ -228,6 +261,33 @@ export const PostEventReportBuilderView: React.FC = () => {
                         <td className="p-3 font-mono text-right text-white">{(Number(item.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       </tr>
                     ))
+                  ) : isTourism ? (
+                    <>
+                      <tr>
+                        <td className="p-3 font-medium text-white">PKG-01 Exhibition Stand Infrastructure</td>
+                        <td className="p-3">Custom exhibition stands, turnkey power distribution and lighting</td>
+                        <td className="p-3"><Badge variant="success">Delivered & Accepted</Badge></td>
+                        <td className="p-3 font-mono text-right text-white">2,100,000.00</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-medium text-white">PKG-02 Plenary Auditorium & Gala Stage</td>
+                        <td className="p-3">Curved LED wall backdrop, audio reinforcement, staging and lectern</td>
+                        <td className="p-3"><Badge variant="success">Delivered & Accepted</Badge></td>
+                        <td className="p-3 font-mono text-right text-white">1,350,000.00</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-medium text-white">PKG-03 VVIP Majlis & Protocol Suites</td>
+                        <td className="p-3">Luxury interior fitout, private catering facilities and security screens</td>
+                        <td className="p-3"><Badge variant="success">Delivered & Accepted</Badge></td>
+                        <td className="p-3 font-mono text-right text-white">650,000.00</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-medium text-white">VOR-01 Additional B2B Networking Lounge</td>
+                        <td className="p-3">Additional 200 sqm furnished buyer-seller meeting lounge</td>
+                        <td className="p-3"><Badge variant="success">Approved Variation</Badge></td>
+                        <td className="p-3 font-mono text-right text-emerald-400">120,000.00</td>
+                      </tr>
+                    </>
                   ) : isDemo ? (
                     <>
                       <tr>

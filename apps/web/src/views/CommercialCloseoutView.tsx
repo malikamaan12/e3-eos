@@ -14,25 +14,25 @@ export const CommercialCloseoutView: React.FC = () => {
 
   // Closeout Checklist State (10 Pillars)
   const [checklist, setChecklist] = useState<CommercialCloseoutChecklist>({
-    posFullyInvoicedOrDecommitted: isDemo,
-    supplierInvoicesSettled: isDemo,
-    clientMilestonesBilled: isDemo,
-    openReceivablesManaged: isDemo,
-    retentionScheduleConfirmed: isDemo,
-    expenseClaimsSettled: isDemo,
-    variationsConcluded: isDemo,
-    costAllocationsConfirmed: isDemo,
-    finalPandLAudited: isDemo,
-    executiveSignoffSealed: isDemo,
+    posFullyInvoicedOrDecommitted: false,
+    supplierInvoicesSettled: false,
+    clientMilestonesBilled: false,
+    openReceivablesManaged: false,
+    retentionScheduleConfirmed: false,
+    expenseClaimsSettled: false,
+    variationsConcluded: false,
+    costAllocationsConfirmed: false,
+    finalPandLAudited: false,
+    executiveSignoffSealed: false,
   });
 
   const [isSignoffModalOpen, setIsSignoffModalOpen] = useState<boolean>(false);
-  const [authorizedBy, setAuthorizedBy] = useState<string>(() => (currentUser?.name ? `${currentUser.name} (${currentUser.role || 'Finance Director'})` : (isDemo ? 'Hamad Al-Kuwari (Finance Director)' : 'Finance Director')));
-  const [justification, setJustification] = useState<string>(() => (isDemo ? 'All commercial variations settled, 100% PO commitments reconciled, final P&L locked at 26.53% gross margin.' : ''));
+  const [authorizedBy, setAuthorizedBy] = useState<string>(() => (currentUser?.name ? `${currentUser.name} (${currentUser.role || 'Finance Director'})` : 'Finance Director'));
+  const [justification, setJustification] = useState<string>('');
   const [isSealing, setIsSealing] = useState<boolean>(false);
 
-  const finalRev = closeout?.financialSummary?.finalRevenue || (isDemo ? '2450000' : '0');
-  const finalCost = closeout?.financialSummary?.finalActualCost || (isDemo ? '1800000' : '0');
+  const finalRev = closeout?.financialSummary?.finalRevenue || '0';
+  const finalCost = closeout?.financialSummary?.finalActualCost || '0';
 
   // Live evaluation via CommercialCloseoutEngine (Item 8)
   const closeoutEval = CommercialCloseoutEngine.evaluateCloseout({
@@ -51,6 +51,19 @@ export const CommercialCloseoutView: React.FC = () => {
       setCloseout(co);
       if (co?.checklist) {
         setChecklist(co.checklist);
+      } else {
+        setChecklist({
+          posFullyInvoicedOrDecommitted: false,
+          supplierInvoicesSettled: false,
+          clientMilestonesBilled: false,
+          openReceivablesManaged: false,
+          retentionScheduleConfirmed: false,
+          expenseClaimsSettled: false,
+          variationsConcluded: false,
+          costAllocationsConfirmed: false,
+          finalPandLAudited: false,
+          executiveSignoffSealed: false,
+        });
       }
     } catch (err) {
       console.error('Failed to load commercial closeout data', err);
@@ -60,21 +73,6 @@ export const CommercialCloseoutView: React.FC = () => {
   };
 
   useEffect(() => {
-    const demo = isSyntheticDemo(projectId);
-    setChecklist({
-      posFullyInvoicedOrDecommitted: demo,
-      supplierInvoicesSettled: demo,
-      clientMilestonesBilled: demo,
-      openReceivablesManaged: demo,
-      retentionScheduleConfirmed: demo,
-      expenseClaimsSettled: demo,
-      variationsConcluded: demo,
-      costAllocationsConfirmed: demo,
-      finalPandLAudited: demo,
-      executiveSignoffSealed: demo,
-    });
-    setAuthorizedBy(currentUser?.name ? `${currentUser.name} (${currentUser.role || 'Finance Director'})` : (demo ? 'Hamad Al-Kuwari (Finance Director)' : 'Finance Director'));
-    setJustification(demo ? 'All commercial variations settled, 100% PO commitments reconciled, final P&L locked at 26.53% gross margin.' : '');
     loadData();
   }, [projectId]);
 
@@ -230,8 +228,12 @@ TOTAL COMMERCIAL SETTLEMENT,SUMMARY,${closeoutEval.finalRevenue?.toDisplayString
           <Button variant="secondary" onClick={() => loadData()}>
             ↻ Refresh State
           </Button>
-          <Button variant="primary" onClick={() => setIsSignoffModalOpen(true)}>
-            🔒 Authorize Commercial Closeout
+          <Button
+            variant="primary"
+            onClick={() => setIsSignoffModalOpen(true)}
+            disabled={closeoutEval.isCommerciallyClosed || closeout?.status === 'closed'}
+          >
+            {closeoutEval.isCommerciallyClosed ? '✓ Commercial Closeout Sealed' : '🔒 Authorize Commercial Closeout'}
           </Button>
         </div>
       </div>

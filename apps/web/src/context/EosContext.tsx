@@ -152,7 +152,8 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceType>('leadership');
   const [selectedProjectId, setSelectedProjectId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      const parts = window.location.pathname.split('/');
+      const clean = window.location.pathname.split('?')[0].split('#')[0];
+      const parts = clean.split('/');
       if (parts[1] === 'projects' && parts[2] && parts[2] !== 'new') {
         return parts[2];
       }
@@ -270,8 +271,9 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.history.pushState({}, '', path);
     }
     // Update selectedProjectId if navigating to a project
-    if (path.startsWith('/projects/') && path !== '/projects/new') {
-      const parts = path.split('/');
+    const clean = path.split('?')[0].split('#')[0];
+    if (clean.startsWith('/projects/') && clean !== '/projects/new') {
+      const parts = clean.split('/');
       if (parts[2]) {
         setSelectedProjectId(parts[2]);
       }
@@ -282,9 +284,11 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (typeof window === 'undefined') return;
     const handlePop = () => {
       const p = window.location.pathname || '/';
-      setCurrentPathState(p);
-      if (p.startsWith('/projects/') && p !== '/projects/new') {
-        const parts = p.split('/');
+      const full = p + (window.location.search || '') + (window.location.hash || '');
+      setCurrentPathState(full);
+      const clean = p.split('?')[0].split('#')[0];
+      if (clean.startsWith('/projects/') && clean !== '/projects/new') {
+        const parts = clean.split('/');
         if (parts[2]) {
           setSelectedProjectId(parts[2]);
         }
@@ -542,7 +546,18 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentPath,
     selectedProjectId,
     projects,
-    currentProject: projects.find((p) => p.id === selectedProjectId) || projects[0],
+    currentProject: projects.find((p) => {
+      const clean = selectedProjectId?.split('?')[0].split('#')[0];
+      return (
+        p.id === clean ||
+        (p as any).code === clean ||
+        (p as any).projectCode === clean ||
+        (clean === 'QND26' && ((p as any).projectCode === 'PRJ-QND-2026' || p.id === '00000000-0000-4000-8000-000000000001')) ||
+        (clean === 'PRJ-QND-2026' && (p.id === '00000000-0000-4000-8000-000000000001' || (p as any).projectCode === 'PRJ-QND-2026')) ||
+        (clean === 'PRJ-2026-SYNTH-01' && ((p as any).projectCode === 'PRJ-2026-QATAR-01' || p.id === 'f1111111-1111-4111-8111-111111111111')) ||
+        (clean === 'PRJ-2026-QATAR-01' && (p.id === 'f1111111-1111-4111-8111-111111111111' || (p as any).projectCode === 'PRJ-2026-QATAR-01'))
+      );
+    }) || projects[0],
     userRole: currentUser?.role,
     get pendingMutations() {
       return mutationsRef.current;

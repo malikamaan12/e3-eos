@@ -1351,12 +1351,17 @@ export class OperationsController {
     if (!gate && (projectId === 'PRJ-2026-FEE-01' || projectId === 'a1111111-1111-4111-8111-111111111111')) {
       gate = readinessGateRepository.get('a1111111-1111-4111-8111-111111111111');
     }
+    if (!gate && (projectId === '00000000-0000-4000-8000-000000000001' || projectId === 'PRJ-QND-2026' || projectId === 'QND26')) {
+      gate = readinessGateRepository.get('PRJ-QND-2026') || readinessGateRepository.get('00000000-0000-4000-8000-000000000001');
+    }
 
     if (!gate) {
+      const isQnd = projectId.startsWith('PRJ-QND') || projectId === '00000000-0000-4000-8000-000000000001' || projectId === 'QND26';
       const isDemo = projectId === 'PRJ-2026-FEE-01' ||
         projectId === 'a1111111-1111-4111-8111-111111111111' ||
         projectId === 'f1111111-1111-4111-8111-111111111111' ||
-        projectId.startsWith('PRJ-QND');
+        projectId === 'PRJ-2026-QATAR-01' ||
+        isQnd;
 
       const defaultChecks: DimensionReadinessCheck[] = [
         { dimension: 'Scope', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Scope defined' : 'Scope pending formal signoff' },
@@ -1365,7 +1370,15 @@ export class OperationsController {
         { dimension: 'Assets', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Assets allocated' : 'Assets pending reservation' },
         { dimension: 'Logistics', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Logistics delivered' : 'Logistics dispatch pending' },
         { dimension: 'Installation', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Installation completed' : 'Site installation pending' },
-        { dimension: 'HSE', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Safety clearance passed' : 'Civil Defence inspection pending' },
+        {
+          dimension: 'HSE',
+          isPassed: isQnd ? false : isDemo,
+          isCritical: true,
+          scorePercent: isQnd ? 70 : (isDemo ? 100 : 0),
+          details: isQnd
+            ? 'QCDD-INSP-441: Smoke flap safety interlock uncertified in Lusail Main Stage Zone'
+            : (isDemo ? 'Safety clearance passed' : 'Civil Defence inspection pending'),
+        },
         { dimension: 'Permits', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Permits cleared' : 'Statutory permits pending clearance' },
         { dimension: 'Staffing', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Staff rostered' : 'Crew roster pending confirmation' },
         { dimension: 'Technical Testing', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Systems tested' : 'Commissioning incomplete' },
@@ -1379,6 +1392,11 @@ export class OperationsController {
         evaluatedAt: new Date(),
       };
       readinessGateRepository.set(projectId, gate);
+      if (isQnd) {
+        readinessGateRepository.set('PRJ-QND-2026', gate);
+        readinessGateRepository.set('00000000-0000-4000-8000-000000000001', gate);
+        readinessGateRepository.set('QND26', gate);
+      }
     }
 
     return { data: gate.report };

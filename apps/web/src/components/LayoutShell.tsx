@@ -124,6 +124,18 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [mobileMenuOpen, createMenuOpen, notificationsOpen]);
 
+  const mainRef = React.useRef<HTMLElement>(null);
+
+  // Scroll reset to top on navigation path change (O20)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [currentPath]);
+
   // Collapsible section state persistence
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
     if (typeof window !== 'undefined') {
@@ -866,6 +878,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
 
         {/* Content Viewport */}
         <main
+          ref={mainRef}
           style={{
             flex: 1,
             minWidth: 0,

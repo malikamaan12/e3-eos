@@ -153,6 +153,68 @@ const triggerHapticVibrate = () => {
   }
 };
 
+const PROJECT_CHECKLISTS: Record<string, Array<{ id: string; label: string; labelAr: string; completed: boolean; critical: boolean }>> = {
+  tourism: [
+    { id: 'chk-tour-01', label: 'Overhead Truss Rigging Torque Check', labelAr: 'فحص عزم ربط هياكل التعليق العلوية بالمعرض', completed: true, critical: true },
+    { id: 'chk-tour-02', label: 'Plenary Main Stage Curved LED Array Calibration', labelAr: 'معايرة شاشة العرض الرئيسية المنحنية في القاعة الرئيسية', completed: true, critical: true },
+    { id: 'chk-tour-03', label: 'VVIP Majlis Acoustic & HVAC Climate Seal Verification', labelAr: 'التحقق من العزل الصوتي والتكييف لجناح كبار الشخصيات', completed: true, critical: true },
+    { id: 'chk-tour-04', label: 'DECC Emergency Exit Routes & Illuminated Signage', labelAr: 'خلو مسارات الطوارئ وتثبيت اللوحات الإرشادية المضيئة', completed: false, critical: true },
+  ],
+  qnd: [
+    { id: 'chk-qnd-01', label: 'Lusail Boulevard Ceremonial Arch Structural Rigging Torque Check', labelAr: 'فحص عزم ربط براغي القوس الفولاذي في بوليفارد لوسيل', completed: true, critical: true },
+    { id: 'chk-qnd-02', label: 'Primary Generator Grounding & Bunded Fuel Spill Perimeter', labelAr: 'تأريض المولدات وحزام احتواء الوقود المزدوج', completed: true, critical: true },
+    { id: 'chk-qnd-03', label: 'QCDD-INSP-441: Smoke Flap Safety Interlock Certification', labelAr: 'شهادة الدفاع المدني لنظام فتحات الدخان بموقع لوسيل الرئيسي', completed: false, critical: true },
+    { id: 'chk-qnd-04', label: 'Parade Ingress Barrier & Crowd Egress Gates Clearance', labelAr: 'خلو مسارات طوارئ موكب الاحتال وبوابات الإخلاء', completed: false, critical: true },
+  ],
+};
+
+const PROJECT_SNAGS: Record<string, SnagItem[]> = {
+  tourism: [
+    {
+      id: 'sng-t-01',
+      title: 'Scratched edge trim on VIP Registration Counter #3',
+      location: 'DECC Hall 1 - East Foyer',
+      trade: 'Scenic / Joinery',
+      severity: 'moderate',
+      photos: ['snag-decc-counter3.jpg'],
+      status: 'open',
+      loggedAt: '2026-09-15 09:15 AST',
+    },
+    {
+      id: 'sng-t-02',
+      title: 'RF interference on translation audio channel 4',
+      location: 'Plenary Auditorium Hall 1',
+      trade: 'Audio / RF',
+      severity: 'moderate',
+      photos: [],
+      status: 'in_progress',
+      loggedAt: '2026-09-15 10:30 AST',
+    },
+  ],
+  qnd: [
+    {
+      id: 'sng-q-01',
+      title: 'QCDD-INSP-441: Smoke flap safety interlock uncertified in Lusail Main Stage Zone',
+      location: 'Lusail Boulevard - Main Stage Zone',
+      trade: 'HSE / Life Safety',
+      severity: 'critical',
+      photos: ['snag-qcdd-smoke-flap.jpg'],
+      status: 'open',
+      loggedAt: '2026-09-18 11:20 AST',
+    },
+    {
+      id: 'sng-q-02',
+      title: 'Secondary generator fuel transfer line valve clamp loose',
+      location: 'External Yard - Generator Pad #2',
+      trade: 'Power / Plant',
+      severity: 'moderate',
+      photos: ['snag-gen2-fuel.jpg'],
+      status: 'open',
+      loggedAt: '2026-09-18 14:45 AST',
+    },
+  ],
+};
+
 export const FieldOpsView: React.FC = () => {
   const {
     currentLanguage,
@@ -166,9 +228,34 @@ export const FieldOpsView: React.FC = () => {
     clearSyncedMutations,
     projects,
     selectedProjectId,
+    setSelectedProjectId,
   } = useEosContext();
 
-  const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
+  const authorizedProjects = [
+    {
+      id: 'f1111111-1111-4111-8111-111111111111',
+      projectCode: 'PRJ-2026-QATAR-01',
+      code: 'PRJ-2026-QATAR-01',
+      title: 'Qatar Tourism Annual Exhibition & Gala 2026',
+      name: 'Qatar Tourism Annual Exhibition & Gala 2026',
+      venueName: 'DECC Hall 1',
+    },
+    {
+      id: '00000000-0000-4000-8000-000000000001',
+      projectCode: 'PRJ-QND-2026',
+      code: 'PRJ-QND-2026',
+      title: 'Qatar National Day 2026 Celebrations',
+      name: 'Qatar National Day 2026 Celebrations',
+      venueName: 'Lusail Boulevard & Arena',
+    },
+  ];
+
+  const currentProject =
+    projects.find((p) => p.id === selectedProjectId || p.code === selectedProjectId || p.projectCode === selectedProjectId) ||
+    authorizedProjects.find((p) => p.id === selectedProjectId || p.code === selectedProjectId || p.projectCode === selectedProjectId) ||
+    authorizedProjects[0];
+
+  const isQnd = selectedProjectId === '00000000-0000-4000-8000-000000000001' || selectedProjectId === 'PRJ-QND-2026' || selectedProjectId === 'QND26';
   const isAr = currentLanguage === 'ar';
 
   // Viewport mode: mobile frame (<480px) vs desktop responsive
@@ -194,12 +281,7 @@ export const FieldOpsView: React.FC = () => {
   const [mobileTab, setMobileTab] = useState<'pod' | 'snag' | 'scanner' | 'qc' | 'crew' | 'dsr' | 'checklist' | 'queue'>('checklist');
 
   // 1. Checklist State
-  const [checklists, setChecklists] = useState([
-    { id: 'chk-01', label: 'Overhead Truss Rigging Torque Check', labelAr: 'فحص عزم ربط هياكل التعليق العلوية', completed: true, critical: true },
-    { id: 'chk-02', label: 'Generator Grounding & Fuel Spill Perimeter', labelAr: 'تأريض المولدات وحزام احتواء الوقود', completed: true, critical: true },
-    { id: 'chk-03', label: 'Emergency Exit Route Clearance & Signage', labelAr: 'خلو مسارات الطوارئ وتثبيت اللوحات الإرشادية', completed: false, critical: true },
-    { id: 'chk-04', label: 'AV Control Desk Talkback Comms Verification', labelAr: 'التحقق من اتصال أجهزة التوجيه لغرفة التحكم', completed: false, critical: false },
-  ]);
+  const [checklists, setChecklists] = useState(() => PROJECT_CHECKLISTS[isQnd ? 'qnd' : 'tourism']);
 
   // 2. POD State
   const [podRecords, setPodRecords] = useState<PodRecord[]>([
@@ -234,25 +316,16 @@ export const FieldOpsView: React.FC = () => {
   const [podCondition, setPodCondition] = useState<'intact' | 'damaged_partial' | 'packaging_damaged'>('intact');
   const [signatureConfirmed, setSignatureConfirmed] = useState<boolean>(false);
 
-  const isSyntheticDemo = selectedProjectId === 'f1111111-1111-4111-8111-111111111111' || selectedProjectId === '00000000-0000-4000-8000-000000000001';
-
   // 3. Snag State
-  const [snags, setSnags] = useState<SnagItem[]>(() =>
-    isSyntheticDemo
-      ? [
-          {
-            id: 'sng-01',
-            title: 'Cracked edge banding on Counter #14',
-            location: 'Main Hall 1 - East Foyer',
-            trade: 'Scenic / Joinery',
-            severity: 'moderate',
-            photos: ['snag-counter14-edge.jpg', 'snag-counter14-full.jpg'],
-            status: 'open',
-            loggedAt: '2026-09-12 09:15 AST',
-          },
-        ]
-      : []
-  );
+  const [snags, setSnags] = useState<SnagItem[]>(() => PROJECT_SNAGS[isQnd ? 'qnd' : 'tourism']);
+
+  useEffect(() => {
+    const currentIsQnd = selectedProjectId === '00000000-0000-4000-8000-000000000001' || selectedProjectId === 'PRJ-QND-2026' || selectedProjectId === 'QND26';
+    const key = currentIsQnd ? 'qnd' : 'tourism';
+    setChecklists(PROJECT_CHECKLISTS[key]);
+    setSnags(PROJECT_SNAGS[key]);
+  }, [selectedProjectId]);
+
   const [snagTitle, setSnagTitle] = useState<string>('');
   const [snagLocation, setSnagLocation] = useState<string>('');
   const [snagTrade, setSnagTrade] = useState<string>('Rigging / AV');
@@ -451,6 +524,7 @@ export const FieldOpsView: React.FC = () => {
     setScanResult(updated);
     if (isOffline) {
       queueMutation('confirm_dispatch_pick', 'AssetInventory', {
+        projectId: currentProject.id || currentProject.projectCode || selectedProjectId,
         assetTag: asset.assetTag,
         zone: asset.zone,
         description: asset.description,
@@ -469,6 +543,7 @@ export const FieldOpsView: React.FC = () => {
     setScanResult(updated);
     if (isOffline) {
       queueMutation('qc_inspect_pass', 'QualityControl', {
+        projectId: currentProject.id || currentProject.projectCode || selectedProjectId,
         assetTag: asset.assetTag,
         inspector: 'Site Field Supervisor',
         zone: asset.zone,
@@ -520,7 +595,10 @@ export const FieldOpsView: React.FC = () => {
       prev.map((c) => (c.id === id ? { ...c, completed: !c.completed } : c))
     );
     if (isOffline) {
-      queueMutation('update_checklist', 'FieldChecklist', { checklistId: id });
+      queueMutation('update_checklist', 'FieldChecklist', {
+        projectId: currentProject.id || currentProject.projectCode || selectedProjectId,
+        checklistId: id,
+      });
     }
   };
 
@@ -528,8 +606,9 @@ export const FieldOpsView: React.FC = () => {
     setIncidentLogged(true);
     if (isOffline) {
       queueMutation('report_incident', 'HseIncident', {
+        projectId: currentProject.id || currentProject.projectCode || selectedProjectId,
         severity: 'minor',
-        description: 'Temporary water leak near hall 2 service bay. Decoupled from public client view.',
+        description: 'Temporary water leak near service bay. Decoupled from public client view.',
       });
     }
   };
@@ -547,7 +626,11 @@ export const FieldOpsView: React.FC = () => {
     setSelectedPod(updated);
     setSignatureConfirmed(true);
     if (isOffline) {
-      queueMutation('sign_pod', 'DeliveryPod', { shipmentId: updated.shipmentCode, signature: 'safe-digital-sig' });
+      queueMutation('sign_pod', 'DeliveryPod', {
+        projectId: currentProject.id || currentProject.projectCode || selectedProjectId,
+        shipmentId: updated.shipmentCode,
+        signature: 'safe-digital-sig',
+      });
     }
   };
 
@@ -566,7 +649,10 @@ export const FieldOpsView: React.FC = () => {
     setSnags([newSnag, ...snags]);
     setSnagTitle('');
     if (isOffline) {
-      queueMutation('create_snag', 'FieldSnag', newSnag as unknown as Record<string, unknown>);
+      queueMutation('create_snag', 'FieldSnag', {
+        projectId: currentProject.id || currentProject.projectCode || selectedProjectId,
+        ...(newSnag as unknown as Record<string, unknown>),
+      });
     }
   };
 
@@ -676,9 +762,40 @@ export const FieldOpsView: React.FC = () => {
               {isOffline ? (isAr ? 'قائمة غير متصلة' : 'OFFLINE QUEUE') : (isAr ? 'متصل ومباشر' : 'ONLINE LIVE')}
             </Badge>
           </div>
-          <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
-            <span>{currentProject.title}</span>
-            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>{currentProject.projectCode}</span>
+          <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>{currentProject.title || currentProject.name}</span>
+            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>{currentProject.projectCode || currentProject.code}</span>
+          </div>
+          {/* Multi-Project Selector for Field Operations */}
+          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #334155' }}>
+            <label htmlFor="field-ops-project-select" style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+              {isAr ? 'المشروع النشط للعمليات الميدانية:' : 'Active Operational Project:'}
+            </label>
+            <select
+              id="field-ops-project-select"
+              value={currentProject.id || currentProject.projectCode || selectedProjectId}
+              onChange={(e) => {
+                const newId = e.target.value;
+                setSelectedProjectId(newId);
+              }}
+              style={{
+                width: '100%',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                backgroundColor: '#1e293b',
+                color: '#f8fafc',
+                border: '1px solid #475569',
+                fontSize: '12px',
+                fontWeight: 600,
+                outline: 'none',
+              }}
+            >
+              {authorizedProjects.map((p) => (
+                <option key={p.id || p.projectCode} value={p.id || p.projectCode}>
+                  {p.projectCode || p.code}: {p.title || p.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

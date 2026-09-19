@@ -333,6 +333,8 @@ export const WarehouseOperationsView: React.FC = () => {
             ) : (
               movements.map((mov) => {
                 const badge = getMovementBadge(mov.movementType);
+                const asset = assets.find((a) => a.id === mov.assetId || a.assetTag === mov.assetId);
+                const assetDisplay = asset ? `${asset.name} (${asset.assetTag})` : (mov.assetId || 'Unknown Asset');
                 return (
                   <div
                     key={mov.id}
@@ -359,6 +361,10 @@ export const WarehouseOperationsView: React.FC = () => {
                       <span style={{ fontSize: '11px', color: '#94a3b8' }}>
                         {new Date(mov.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
+                    </div>
+
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b', marginBottom: '2px' }}>
+                      {assetDisplay}
                     </div>
 
                     <div style={{ fontSize: '12px', color: '#0f172a', margin: '4px 0' }}>

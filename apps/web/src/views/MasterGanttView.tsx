@@ -871,9 +871,15 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             <span style={{ fontSize: '11px', color: '#166534', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
               📋 Pack: DECC Controlled Venue Pack (DOC-DECC-FP-2024 & DOC-MECC-ENV-2005)
             </span>
-            <span style={{ fontSize: '11px', color: '#1e40af', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
-              ✓ Status: Verified (Floor: 2.5 T/m² | Day: 65 dB | Night: 55 dB [22:00-04:00])
-            </span>
+            {constraints.length > 0 && constraints.every((c: any) => c.verificationStatus === 'Verified') ? (
+              <span style={{ fontSize: '11px', color: '#1e40af', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                ✓ Status: Verified (Floor: 2.5 T/m² | Day: 65 dB | Night: 55 dB [22:00-04:00])
+              </span>
+            ) : (
+              <span style={{ fontSize: '11px', color: '#b45309', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                ⚠️ Status: Unverified (Evidence Pending)
+              </span>
+            )}
           </div>
         </div>
 
