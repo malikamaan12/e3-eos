@@ -1,4 +1,4 @@
-﻿/**
+/**
  * EOS / Data / KPICard & MetricStrip
  * Conforms to Master Plan Section 6.3 (Data Display) and Section 12 (High-Density Data).
  */
@@ -47,8 +47,8 @@ export const KPICard: React.FC<KPICardProps> = ({
     <div
       onClick={onClick}
       style={{
-        backgroundColor: '#ffffff',
-        border: `1px solid ${TOKENS.border.default.light}`,
+        backgroundColor: 'var(--surface-1, #ffffff)',
+        border: `1px solid var(--border-default, ${TOKENS.border.default.light})`,
         borderRadius: TOKENS.radius.card,
         padding: '16px 20px',
         boxShadow: TOKENS.elevation.level1,
@@ -69,7 +69,7 @@ export const KPICard: React.FC<KPICardProps> = ({
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
-            color: TOKENS.text.secondary.light,
+            color: 'var(--text-secondary, #64748b)',
           }}
         >
           {displayLabel}
@@ -87,8 +87,8 @@ export const KPICard: React.FC<KPICardProps> = ({
             style={{
               fontSize: '20px',
               fontWeight: 700,
-              color: TOKENS.text.muted.light,
-              backgroundColor: TOKENS.surface.sunken.light,
+              color: 'var(--text-muted, #94a3b8)',
+              backgroundColor: 'var(--surface-inset, #f1f5f9)',
               padding: '2px 8px',
               borderRadius: TOKENS.radius.control,
             }}
@@ -101,7 +101,7 @@ export const KPICard: React.FC<KPICardProps> = ({
             style={{
               fontSize: '26px',
               fontWeight: 800,
-              color: TOKENS.text.primary.light,
+              color: 'var(--text-primary, #0f172a)',
               lineHeight: 1.15,
               fontVariantNumeric: 'tabular-nums',
             }}
@@ -132,7 +132,7 @@ export const KPICard: React.FC<KPICardProps> = ({
                   ? '#059669'
                   : trend === 'negative' || trendDirection === 'down'
                   ? '#dc2626'
-                  : TOKENS.text.secondary.light,
+                  : 'var(--text-secondary, #64748b)',
             }}
           >
             {change}
@@ -141,7 +141,7 @@ export const KPICard: React.FC<KPICardProps> = ({
       </div>
 
       {displaySubtext && (
-        <span style={{ fontSize: '12px', color: TOKENS.text.muted.light }}>
+        <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
           {displaySubtext}
         </span>
       )}

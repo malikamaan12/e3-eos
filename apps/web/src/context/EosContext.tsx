@@ -27,6 +27,8 @@ export interface PendingOfflineMutation {
 export type { CanonicalUser } from './canonical-users.js';
 import { CANONICAL_E3_USERS } from './canonical-users.js';
 import { EosApiClient } from '../services/api-client.js';
+import { DARK_THEME_TOKENS, LIGHT_THEME_TOKENS, ThemeMode } from '../design-system/foundations/tokens.js';
+export type { ThemeMode };
 export { CANONICAL_E3_USERS };
 
 export type ExtendedSyntheticUser = SyntheticUser & {
@@ -53,6 +55,9 @@ export interface EosContextValue {
   currentOrg: SyntheticOrganisation;
   currentLanguage: SupportedLocale;
   direction: 'ltr' | 'rtl';
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
+  toggleTheme: () => void;
   isOffline: boolean;
   activeWorkspace: WorkspaceType;
   currentPath: string;
@@ -131,7 +136,19 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return 'en';
   };
 
+  const getInitialTheme = (): ThemeMode => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const themeParam = params.get('theme') as ThemeMode;
+      if (themeParam === 'dark' || themeParam === 'light' || themeParam === 'system') return themeParam;
+      const saved = localStorage.getItem('eos_theme') as ThemeMode;
+      if (saved === 'dark' || saved === 'light' || saved === 'system') return saved;
+    }
+    return 'dark';
+  };
+
   const [currentPath, setCurrentPathState] = useState<string>(getInitialPath);
+  const [theme, setThemeState] = useState<ThemeMode>(getInitialTheme);
   const [currentUser, setCurrentUserState] = useState<ExtendedSyntheticUser | null>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('eos_user_email');
@@ -458,6 +475,23 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const setTheme = (newTheme: ThemeMode) => {
+    setThemeState(newTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('eos_theme', newTheme);
+    }
+  };
+
+  const toggleTheme = () => {
+    setThemeState((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('eos_theme', next);
+      }
+      return next;
+    });
+  };
+
   const toggleOffline = () => {
     setIsOffline((prev) => !prev);
   };
@@ -554,17 +588,65 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const projects = Object.values(SYNTHETIC_PROJECTS);
 
   React.useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.dir = direction;
-      document.documentElement.lang = currentLanguage;
-    }
+    if (typeof document === 'undefined') return;
+    document.documentElement.dir = direction;
+    document.documentElement.lang = currentLanguage;
   }, [direction, currentLanguage]);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const applyTheme = () => {
+      const isDark = theme === 'dark' || (theme === 'system' && mediaQuery.matches);
+      const tokens = isDark ? DARK_THEME_TOKENS : LIGHT_THEME_TOKENS;
+      const effective = isDark ? 'dark' : 'light';
+
+      const root = document.documentElement;
+      Object.entries(tokens).forEach(([k, v]) => {
+        root.style.setProperty(k, v);
+      });
+      // Semantic status tokens as CSS variables
+      root.style.setProperty('--status-info-fg', '#3B82F6');
+      root.style.setProperty('--status-info-bg', 'rgba(59,130,246,.14)');
+      root.style.setProperty('--status-success-fg', '#22C55E');
+      root.style.setProperty('--status-success-bg', 'rgba(34,197,94,.14)');
+      root.style.setProperty('--status-warning-fg', '#F59E0B');
+      root.style.setProperty('--status-warning-bg', 'rgba(245,158,11,.14)');
+      root.style.setProperty('--status-risk-fg', '#F97316');
+      root.style.setProperty('--status-risk-bg', 'rgba(249,115,22,.14)');
+      root.style.setProperty('--status-critical-fg', '#EF4444');
+      root.style.setProperty('--status-critical-bg', 'rgba(239,68,68,.14)');
+      root.style.setProperty('--status-neutral-fg', '#94A3B8');
+      root.style.setProperty('--status-neutral-bg', 'rgba(148,163,184,.14)');
+
+      root.setAttribute('data-theme', effective);
+      root.style.colorScheme = effective;
+      if (document.body) {
+        document.body.style.backgroundColor = isDark ? '#090D16' : '#F4F6F8';
+        document.body.style.color = isDark ? '#F8FAFC' : '#101828';
+      }
+    };
+
+    applyTheme();
+
+    if (theme === 'system') {
+      mediaQuery.addEventListener('change', applyTheme);
+      return () => {
+        mediaQuery.removeEventListener('change', applyTheme);
+      };
+    }
+    return undefined;
+  }, [theme]);
 
   const contextValue: EosContextValue = {
     currentUser,
     currentOrg,
     currentLanguage,
     direction,
+    theme,
+    setTheme,
+    toggleTheme,
     isOffline,
     activeWorkspace,
     currentPath,

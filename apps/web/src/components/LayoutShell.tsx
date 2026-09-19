@@ -57,6 +57,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     markAllNotificationsRead,
     toggleLanguage,
     toggleOffline,
+    theme,
+    toggleTheme,
     setActiveWorkspace,
     setCurrentOrg,
     setCurrentUser,
@@ -144,7 +146,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         if (saved) return JSON.parse(saved);
       } catch {}
     }
-    return { closeout: true }; // Default Closeout collapsed for cleaner view
+    return { modules: true }; // Default Enterprise Modules collapsed for cleaner 8-item primary view
   });
 
   const toggleSection = (sectionId: string) => {
@@ -164,84 +166,47 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
   const isFieldUser = userRole === 'field_supervisor' || (currentUser?.email ? currentUser.email.includes('field') : false);
 
   // ==========================================
-  // 7 CANONICAL NAVIGATION GROUPS (SECTION 10)
+  // CANONICAL 8 PRIMARY DESTINATIONS (SECTION 11.1)
+  // + COLLAPSIBLE ENTERPRISE MODULES
   // ==========================================
   const rawNavSections: NavSection[] = [
     {
-      id: 'home',
-      titleEn: 'Home',
-      titleAr: 'الرئيسية والمحفظة',
+      id: 'primary',
+      titleEn: 'Main Navigation',
+      titleAr: 'الرئيسية',
       items: [
-        { path: '/', labelEn: 'Home Dashboard', labelAr: 'لوحة المتابعة', icon: '🏠', id: 'nav-home' },
-        { path: '/my-work', labelEn: 'My Work Queue', labelAr: 'مهامي الشخصية', icon: '📋', id: 'nav-my-work' },
-        { path: '/portfolio', labelEn: 'Portfolio Financials', labelAr: 'المحفظة المؤسسية', icon: '📊', id: 'nav-portfolio' },
+        { path: '/', labelEn: 'Home', labelAr: 'الرئيسية', icon: '🏠', id: 'nav-home' },
+        { path: '/my-work', labelEn: 'My Work', labelAr: 'مهامي', icon: '📋', id: 'nav-my-work' },
+        { path: '/projects', labelEn: 'Projects', labelAr: 'المشاريع', icon: '📁', id: 'nav-projects' },
+        { path: '/approvals', labelEn: 'Approvals', labelAr: 'الموافقات', icon: '✍️', id: 'nav-approvals' },
+        { path: '/calendar', labelEn: 'Calendar', labelAr: 'التقويم', icon: '📅', id: 'nav-calendar' },
+        { path: '/portfolio', labelEn: 'Portfolio', labelAr: 'المحفظة', icon: '📊', id: 'nav-portfolio' },
+        { path: '/reports/post-event', labelEn: 'Reports', labelAr: 'التقارير', icon: '📈', id: 'nav-reports' },
+        { path: '/admin/users', labelEn: 'Administration', labelAr: 'الإدارة', icon: '⚙️', id: 'nav-admin' },
       ],
     },
     {
-      id: 'control',
-      titleEn: 'Control',
-      titleAr: 'التحكم والحوكمة',
+      id: 'modules',
+      titleEn: 'Enterprise Modules',
+      titleAr: 'الوحدات التشغيلية',
       items: [
-        { path: '/projects', labelEn: 'Projects Directory', labelAr: 'دليل المشاريع', icon: '🎪', id: 'nav-projects' },
         { path: '/projects/f1111111-1111-4111-8111-111111111111', labelEn: 'Project Cockpit', labelAr: 'قمرة القيادة للمشروع', icon: '🎯', id: 'nav-cockpit' },
-        { path: '/projects/f1111111-1111-4111-8111-111111111111/designs', labelEn: 'Design & Creative', labelAr: 'التصميم والإبداع الفني', icon: '🎨', id: 'nav-designs' },
-        { path: '/documents/controlled', labelEn: 'Evidence Vault & Packs', labelAr: 'خزينة الأدلة وحزم التقديم', icon: '📑', id: 'nav-controlled-documents' },
-        { path: '/approvals', labelEn: 'Governance Approvals', labelAr: 'الموافقات والحوكمة', icon: '✍️', id: 'nav-approvals' },
-        { path: '/calendar', labelEn: 'Master Calendar', labelAr: 'التقويم العام', icon: '📅', id: 'nav-calendar' },
-      ],
-    },
-    {
-      id: 'commercial',
-      titleEn: 'Commercial',
-      titleAr: 'المالية والمطابقة',
-      items: [
         { path: '/commercial/financial-control', labelEn: 'Financial Control Center', labelAr: 'مركز الرقابة المالية', icon: '💰', id: 'nav-fin-control' },
         { path: '/commercial/supplier-invoices', labelEn: 'Supplier Invoices (3-Way Match)', labelAr: 'فواتير الموردين والمطابقة', icon: '🧾', id: 'nav-sup-invoices' },
         { path: '/commercial/client-billing', labelEn: 'Client Billing & Collections', labelAr: 'فوترة العميل والتحصيل', icon: '💳', id: 'nav-client-billing' },
         { path: '/commercial/closeout', labelEn: 'Commercial Closeout (10 Pillars)', labelAr: 'الإغلاق التجاري المالي', icon: '🔒', id: 'nav-comm-closeout' },
         { path: '/estimating/historical', labelEn: 'Historical Estimating', labelAr: 'التقدير التاريخي والتسعير', icon: '📈', id: 'nav-estimating' },
-      ],
-    },
-    {
-      id: 'delivery',
-      titleEn: 'Delivery',
-      titleAr: 'التوريد والمستودعات',
-      items: [
         { path: '/vendors', labelEn: 'Vendor Directory', labelAr: 'دليل الموردين', icon: '🏢', id: 'nav-vendors' },
         { path: '/warehouse', labelEn: 'Warehouse Hub', labelAr: 'المستودع المركزي', icon: '📦', id: 'nav-warehouse' },
-      ],
-    },
-    {
-      id: 'live',
-      titleEn: 'Live Operations',
-      titleAr: 'العمليات المباشرة',
-      items: [
         { path: '/field', labelEn: 'Field Ops Mobile PWA', labelAr: 'عمليات الموقع الميدانية', icon: '📱', id: 'nav-field' },
         { path: '/live/run-sheet', labelEn: 'Master Run Sheet', labelAr: 'جدول العرض المباشر', icon: '⏱️', id: 'nav-run-sheet' },
         { path: '/live/command-center', labelEn: 'Live Command Centre', labelAr: 'مركز القيادة الميداني', icon: '🛰️', id: 'nav-command-center' },
         { path: '/live/compliance', labelEn: 'Compliance Register', labelAr: 'سجل الامتثال والتراخيص', icon: '⚖️', id: 'nav-compliance' },
         { path: '/live/roster', labelEn: 'Live Roster & Crew', labelAr: 'سجل الحضور والإجهاد', icon: '👥', id: 'nav-roster' },
-      ],
-    },
-    {
-      id: 'closeout',
-      titleEn: 'Closeout',
-      titleAr: 'الإغلاق والتسليم',
-      items: [
         { path: '/bump-out', labelEn: 'Bump-Out Closeout', labelAr: 'التفكيك والإغلاق التشغيلي', icon: '🏁', id: 'nav-bumpout' },
-        { path: '/reports/post-event', labelEn: 'Post-Event Closeout Report', labelAr: 'تقرير ما بعد الفعالية', icon: '📜', id: 'nav-post-event' },
-        { path: '/closeout/performance', labelEn: 'Performance & Knowledge', labelAr: 'الأداء والدروس المستفادة', icon: '🧠', id: 'nav-knowledge' },
-      ],
-    },
-    {
-      id: 'admin',
-      titleEn: 'Admin & Rollout',
-      titleAr: 'الإدارة والإطلاق',
-      items: [
         { path: '/admin/release/human-uat', labelEn: 'Human UAT Control Centre', labelAr: 'مساحة اختبار قبول المستخدمين', icon: '🧑‍💼', id: 'nav-human-uat' },
         { path: '/admin/release/uat-defects', labelEn: 'UAT Defect Triage Board', labelAr: 'لوحة فرز عيوب UAT', icon: '🐞', id: 'nav-uat-defects' },
         { path: '/admin/rollout', labelEn: 'Production Rollout Console', labelAr: 'لوحة إطلاق الإنتاج', icon: '🚀', id: 'nav-rollout-console' },
-        { path: '/admin/users', labelEn: 'Administration & RBAC', labelAr: 'الإدارة والمستخدمين', icon: '⚙️', id: 'nav-admin' },
         { path: '/governance/workflows', labelEn: 'Visual Workflow Builder', labelAr: 'مصمم تدفق العمل', icon: '🛠️', id: 'nav-workflows' },
         { path: '/governance/simulator', labelEn: 'Policy Simulation Sandbox', labelAr: 'محاكاة السياسات', icon: '🧪', id: 'nav-simulator' },
         { path: '/compliance/country-packs', labelEn: 'Country Packs (QA / SA / AE)', labelAr: 'الحزم الوطنية والامتثال', icon: '🌍', id: 'nav-country-packs' },
@@ -261,24 +226,38 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
   const navSections = rawNavSections
     .map((sec) => {
       if (isClientUser) {
-        // Client only sees Home and Client Portal items
-        if (sec.id === 'home') {
+        if (sec.id === 'primary') {
           return { ...sec, items: sec.items.filter((i) => i.path === '/') };
         }
-        if (sec.id === 'admin') {
-          return { ...sec, titleEn: 'Client Portal', titleAr: 'بوابة العميل', items: sec.items.filter((i) => i.path.startsWith('/client')) };
+        if (sec.id === 'modules') {
+          return {
+            ...sec,
+            titleEn: 'Client Portal',
+            titleAr: 'بوابة العميل',
+            items: sec.items.filter((i) => i.path.startsWith('/client')),
+          };
         }
         return null;
       }
 
       if (isFieldUser) {
-        // Field Supervisor focuses on Live Operations and basic work queue
-        if (sec.id === 'commercial' || sec.id === 'admin') return null;
+        if (sec.id === 'primary') {
+          return {
+            ...sec,
+            items: sec.items.filter((i) => ['/', '/my-work', '/projects'].includes(i.path)),
+          };
+        }
+        if (sec.id === 'modules') {
+          return {
+            ...sec,
+            items: sec.items.filter((i) => ['/field', '/live/run-sheet', '/live/roster'].includes(i.path)),
+          };
+        }
         return sec;
       }
 
       // Restrict Admin & Rollout section for non-super_admin / non-executive
-      if (sec.id === 'admin') {
+      if (sec.id === 'modules') {
         const filteredItems = sec.items.filter((item) => {
           if (item.path.startsWith('/admin/users') || item.path.startsWith('/admin/rollout')) {
             return isSuperAdmin || isExecutive;
@@ -350,9 +329,23 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             {(!isCollapsed || isRail) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingLeft: (!isRail && direction === 'ltr') ? '4px' : 0, paddingRight: (!isRail && direction === 'rtl') ? '4px' : 0 }}>
                 {section.items.map((item) => {
-                  const isActive = item.path === '/'
-                    ? currentPath === '/'
-                    : currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
+                  const isItemActive = (it: NavItem) => {
+                    if (it.path === '/') return currentPath === '/';
+                    if (it.id === 'nav-portfolio') {
+                      return currentPath === '/portfolio' || currentPath.startsWith('/commercial/financial-control');
+                    }
+                    if (it.id === 'nav-reports') {
+                      return currentPath.startsWith('/reports');
+                    }
+                    if (it.id === 'nav-admin') {
+                      return currentPath.startsWith('/admin') || currentPath.startsWith('/governance');
+                    }
+                    if (it.id === 'nav-projects') {
+                      return currentPath === '/projects' || currentPath === '/projects/new';
+                    }
+                    return currentPath === it.path || (it.path !== '/' && currentPath.startsWith(it.path));
+                  };
+                  const isActive = isItemActive(item);
                   const itemLabel = currentLanguage === 'ar' ? item.labelAr : item.labelEn;
                   return (
                     <button
@@ -371,9 +364,9 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                         gap: isRail ? 0 : '10px',
                         padding: isRail ? '8px 4px' : '9px 12px',
                         borderRadius: '6px',
-                        border: isRail && isActive ? '1px solid #d97706' : 'none',
-                        backgroundColor: isActive ? '#1e293b' : 'transparent',
-                        color: isActive ? '#ffffff' : '#94a3b8',
+                        border: isRail && isActive ? '1px solid var(--accent, #d97706)' : 'none',
+                        backgroundColor: isActive ? 'var(--surface-2, #1e293b)' : 'transparent',
+                        color: isActive ? 'var(--text-primary, #ffffff)' : 'var(--text-muted, #94a3b8)',
                         fontWeight: isActive ? 700 : 500,
                         fontSize: '13px',
                         textAlign: direction === 'rtl' ? 'right' : 'left',
@@ -396,7 +389,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                             top: '4px',
                             bottom: '4px',
                             width: '3px',
-                            backgroundColor: '#d97706',
+                            backgroundColor: 'var(--accent, #d97706)',
                             borderRadius: '2px',
                           }}
                         />
@@ -431,9 +424,9 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
-        backgroundColor: '#f8fafc',
-        fontFamily: currentLanguage === 'ar' ? 'Tahoma, Arial, sans-serif' : 'Inter, -apple-system, sans-serif',
-        color: '#0f172a',
+        backgroundColor: 'var(--canvas, #090d16)',
+        fontFamily: currentLanguage === 'ar' ? '"Noto Sans Arabic", Tahoma, Arial, sans-serif' : 'Inter, -apple-system, sans-serif',
+        color: 'var(--text-primary, #f8fafc)',
       }}
     >
       {/* Impersonation Audit Banner */}
@@ -482,13 +475,13 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
       <header
         style={{
           height: '56px',
-          backgroundColor: '#090d16',
-          color: '#ffffff',
+          backgroundColor: 'var(--canvas, #090d16)',
+          color: 'var(--text-primary, #ffffff)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: isMobile ? '0 12px' : '0 20px',
-          borderBottom: '1px solid #1e293b',
+          borderBottom: '1px solid var(--border-subtle, #1e293b)',
           zIndex: 100,
           boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
         }}
@@ -743,19 +736,45 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             {currentLanguage === 'ar' ? 'خروج' : 'Sign Out'}
           </button>
 
-          {/* Language / RTL Toggle */}
+          {/* Theme Toggle */}
           <button
-            id="btn-toggle-language"
-            onClick={toggleLanguage}
+            id="btn-toggle-theme"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? (currentLanguage === 'ar' ? 'التبديل إلى الوضع النهاري' : 'Switch to Light Mode') : (currentLanguage === 'ar' ? 'التبديل إلى الوضع الليلي' : 'Switch to Dark Mode')}
+            aria-label="Toggle Theme"
             style={{
-              backgroundColor: '#1e293b',
-              color: '#d97706',
-              border: '1px solid #d97706',
+              backgroundColor: 'var(--surface-2, #1e293b)',
+              color: 'var(--accent, #d97706)',
+              border: '1px solid var(--accent, #d97706)',
               borderRadius: '6px',
               padding: '6px 10px',
               fontSize: '12px',
               fontWeight: 700,
               cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              minHeight: '34px',
+            }}
+          >
+            <span>{theme === 'dark' ? '🌙' : '☀️'}</span>
+            {!isMobile && <span>{theme === 'dark' ? (currentLanguage === 'ar' ? 'ليلي' : 'Dark') : (currentLanguage === 'ar' ? 'نهاري' : 'Light')}</span>}
+          </button>
+
+          {/* Language / RTL Toggle */}
+          <button
+            id="btn-toggle-language"
+            onClick={toggleLanguage}
+            style={{
+              backgroundColor: 'var(--surface-2, #1e293b)',
+              color: 'var(--accent, #d97706)',
+              border: '1px solid var(--accent, #d97706)',
+              borderRadius: '6px',
+              padding: '6px 10px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              minHeight: '34px',
             }}
           >
             {currentLanguage === 'en' ? 'العربية (RTL)' : 'English (LTR)'}
@@ -771,9 +790,9 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             style={{
               width: isSidebarCollapsed ? '72px' : '268px',
               flexShrink: 0,
-              backgroundColor: '#090d16',
-              borderRight: direction === 'ltr' ? '1px solid #1e293b' : 'none',
-              borderLeft: direction === 'rtl' ? '1px solid #1e293b' : 'none',
+              backgroundColor: 'var(--surface-inset, #090d16)',
+              borderRight: direction === 'ltr' ? '1px solid var(--border-subtle, #1e293b)' : 'none',
+              borderLeft: direction === 'rtl' ? '1px solid var(--border-subtle, #1e293b)' : 'none',
               padding: isSidebarCollapsed ? '16px 8px' : '16px 12px',
               display: currentPath === '/field' ? 'none' : 'flex',
               flexDirection: 'column',
@@ -788,7 +807,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             </div>
 
             {/* Sidebar Collapse Toggle Button */}
-            <div style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid #1e293b' }}>
+            <div style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid var(--border-subtle, #1e293b)' }}>
               <button
                 id="btn-toggle-sidebar"
                 onClick={toggleSidebarCollapse}
@@ -801,9 +820,9 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                   width: '100%',
                   padding: '8px 10px',
                   borderRadius: '6px',
-                  backgroundColor: '#131b2e',
-                  border: '1px solid #1e293b',
-                  color: '#94a3b8',
+                  backgroundColor: 'var(--surface-2, #131b2e)',
+                  border: '1px solid var(--border-subtle, #1e293b)',
+                  color: 'var(--text-muted, #94a3b8)',
                   fontSize: '11px',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -828,7 +847,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             style={{
               position: 'fixed',
               inset: 0,
-              backgroundColor: 'rgba(9, 13, 22, 0.7)',
+              backgroundColor: 'rgba(9, 13, 22, 0.75)',
               zIndex: 9999,
               display: 'flex',
               justifyContent: direction === 'rtl' ? 'flex-end' : 'flex-start',
@@ -839,17 +858,17 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               style={{
                 width: '280px',
                 height: '100%',
-                backgroundColor: '#090d16',
+                backgroundColor: 'var(--surface-inset, #090d16)',
                 padding: '20px 14px',
                 overflowY: 'auto',
                 boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle, #1e293b)', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ backgroundColor: '#d97706', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontWeight: 800, fontSize: '12px' }}>E3</span>
-                  <span style={{ color: '#fff', fontWeight: 700 }}>{currentLanguage === 'ar' ? 'القائمة' : 'Navigation Menu'}</span>
+                  <span style={{ backgroundColor: 'var(--accent, #d97706)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontWeight: 800, fontSize: '12px' }}>E3</span>
+                  <span style={{ color: 'var(--text-primary, #fff)', fontWeight: 700 }}>{currentLanguage === 'ar' ? 'القائمة' : 'Navigation Menu'}</span>
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
@@ -857,7 +876,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#94a3b8',
+                    color: 'var(--text-muted, #94a3b8)',
                     fontSize: '18px',
                     cursor: 'pointer',
                     padding: '8px',
@@ -882,6 +901,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
           style={{
             flex: 1,
             minWidth: 0,
+            backgroundColor: 'var(--canvas, #090d16)',
+            color: 'var(--text-primary, #f8fafc)',
             padding: isMobile ? '16px 12px 70px 12px' : '24px 32px',
             overflowY: 'auto',
             maxWidth: '1440px',
@@ -903,8 +924,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             left: 0,
             right: 0,
             height: '56px',
-            backgroundColor: '#090d16',
-            borderTop: '1px solid #1e293b',
+            backgroundColor: 'var(--canvas, #090d16)',
+            borderTop: '1px solid var(--border-subtle, #1e293b)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-around',

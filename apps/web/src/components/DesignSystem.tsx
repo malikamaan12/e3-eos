@@ -1,44 +1,44 @@
 import React from 'react';
 
 // ==========================================
-// E3 CORPORATE COLOR SYSTEM & TOKENS
+// E3 CORPORATE COLOR SYSTEM & TOKENS (DYNAMIC CSS VARIABLES)
 // ==========================================
 export const E3_THEME = {
   chrome: {
-    sidebarBg: '#090d16',
-    sidebarBorder: '#1e293b',
-    sidebarText: '#94a3b8',
-    sidebarTextHover: '#f8fafc',
-    sidebarActiveBg: '#1e293b',
-    sidebarActiveText: '#ffffff',
-    topbarBg: '#090d16',
-    topbarBorder: '#1e293b',
+    sidebarBg: 'var(--canvas, #090d16)',
+    sidebarBorder: 'var(--border-subtle, #1e293b)',
+    sidebarText: 'var(--text-muted, #94a3b8)',
+    sidebarTextHover: 'var(--text-primary, #f8fafc)',
+    sidebarActiveBg: 'var(--surface-2, #1e293b)',
+    sidebarActiveText: 'var(--text-primary, #ffffff)',
+    topbarBg: 'var(--canvas, #090d16)',
+    topbarBorder: 'var(--border-subtle, #1e293b)',
   },
   accent: {
-    primary: '#d97706',      // Warm metallic gold/amber
-    hover: '#b45309',
-    subtle: '#fef3c7',
-    border: '#f59e0b',
+    primary: 'var(--accent, #d97706)',      // Warm metallic gold/amber
+    hover: 'var(--accent-hover, #b45309)',
+    subtle: 'var(--accent-soft, rgba(217,119,6,.14))',
+    border: 'var(--focus-ring, #f59e0b)',
   },
   surface: {
-    pageBg: '#f8fafc',
-    cardBg: '#ffffff',
-    cardBorder: '#e2e8f0',
-    cardHeaderBg: '#ffffff',
-    tableBorder: '#e2e8f0',
-    tableRowHover: '#f8fafc',
+    pageBg: 'var(--canvas, #090d16)',
+    cardBg: 'var(--surface-1, #0f1624)',
+    cardBorder: 'var(--border-default, #2a374b)',
+    cardHeaderBg: 'var(--surface-1, #0f1624)',
+    tableBorder: 'var(--border-default, #2a374b)',
+    tableRowHover: 'var(--surface-2, #151e2e)',
   },
   text: {
-    primary: '#0f172a',
-    secondary: '#475569',
-    muted: '#64748b',
-    inverted: '#ffffff',
+    primary: 'var(--text-primary, #f8fafc)',
+    secondary: 'var(--text-secondary, #cbd5e1)',
+    muted: 'var(--text-muted, #94a3b8)',
+    inverted: 'var(--canvas, #090d16)',
   },
   semantic: {
-    healthy: { bg: '#ecfdf5', text: '#065f46', border: '#a7f3d0' },
-    warning: { bg: '#fffbeb', text: '#92400e', border: '#fde68a' },
-    blocked: { bg: '#fef2f2', text: '#991b1b', border: '#fecaca' },
-    info: { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
+    healthy: { bg: 'rgba(34, 197, 94, 0.14)', text: '#22c55e', border: '#15803d' },
+    warning: { bg: 'rgba(245, 158, 11, 0.14)', text: '#f59e0b', border: '#b45309' },
+    blocked: { bg: 'rgba(239, 68, 68, 0.14)', text: '#ef4444', border: '#b91c1c' },
+    info: { bg: 'rgba(59, 130, 246, 0.14)', text: '#3b82f6', border: '#1d4ed8' },
   },
 };
 
@@ -100,50 +100,50 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const sizeStyles: Record<string, React.CSSProperties> = {
-    sm: { padding: '6px 12px', fontSize: '12px', height: '32px' },
-    md: { padding: '8px 16px', fontSize: '13px', height: '38px' },
-    lg: { padding: '12px 22px', fontSize: '15px', height: '46px' },
+    sm: { padding: '0 12px', fontSize: '12px', height: '32px' },
+    md: { padding: '0 16px', fontSize: '13px', height: '40px' },
+    lg: { padding: '0 24px', fontSize: '15px', height: '48px' },
   };
 
   const variantStyles: Record<string, React.CSSProperties> = {
     primary: {
-      backgroundColor: '#0f172a',
+      backgroundColor: 'var(--accent, #d97706)',
       color: '#ffffff',
-      borderColor: '#0f172a',
-      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.08)',
+      borderColor: 'var(--accent-pressed, #b45309)',
+      boxShadow: '0 1px 2px rgba(217, 119, 6, 0.2)',
     },
     accent: {
-      backgroundColor: '#d97706',
+      backgroundColor: 'var(--accent, #d97706)',
       color: '#ffffff',
-      borderColor: '#b45309',
+      borderColor: 'var(--accent-pressed, #b45309)',
       boxShadow: '0 1px 2px rgba(217, 119, 6, 0.2)',
     },
     secondary: {
-      backgroundColor: '#ffffff',
-      color: '#1e293b',
-      borderColor: '#cbd5e1',
+      backgroundColor: 'var(--surface-2, #151e2e)',
+      color: 'var(--text-primary, #f8fafc)',
+      borderColor: 'var(--border-default, #2a374b)',
       boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
     },
     danger: {
-      backgroundColor: '#dc2626',
+      backgroundColor: '#ef4444',
       color: '#ffffff',
-      borderColor: '#b91c1c',
-      boxShadow: '0 1px 2px rgba(220, 38, 38, 0.15)',
+      borderColor: '#dc2626',
+      boxShadow: '0 1px 2px rgba(239, 68, 68, 0.15)',
     },
     success: {
-      backgroundColor: '#059669',
+      backgroundColor: '#22c55e',
       color: '#ffffff',
-      borderColor: '#047857',
-      boxShadow: '0 1px 2px rgba(5, 150, 105, 0.15)',
+      borderColor: '#16a34a',
+      boxShadow: '0 1px 2px rgba(34, 197, 94, 0.15)',
     },
     outline: {
       backgroundColor: 'transparent',
-      color: '#0f172a',
-      borderColor: '#94a3b8',
+      color: 'var(--text-primary, #f8fafc)',
+      borderColor: 'var(--border-strong, #475467)',
     },
     ghost: {
       backgroundColor: 'transparent',
-      color: '#475569',
+      color: 'var(--text-secondary, #cbd5e1)',
       borderColor: 'transparent',
     },
   };
@@ -190,17 +190,17 @@ export interface BadgeProps {
 
 export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', children, style: customStyle, className }) => {
   const variantStyles: Record<string, { bg: string; text: string; border: string }> = {
-    neutral: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
-    default: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
-    secondary: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' },
-    primary: { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
-    info: { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
-    success: { bg: '#ecfdf5', text: '#065f46', border: '#a7f3d0' },
-    warning: { bg: '#fffbeb', text: '#92400e', border: '#fde68a' },
-    danger: { bg: '#fef2f2', text: '#991b1b', border: '#fecaca' },
-    purple: { bg: '#faf5ff', text: '#6b21a8', border: '#e9d5ff' },
-    accent: { bg: '#fef3c7', text: '#92400e', border: '#f59e0b' },
-    outline: { bg: 'transparent', text: '#475569', border: '#cbd5e1' },
+    neutral: { bg: 'rgba(148, 163, 184, 0.14)', text: 'var(--text-secondary, #cbd5e1)', border: 'rgba(148, 163, 184, 0.25)' },
+    default: { bg: 'rgba(148, 163, 184, 0.14)', text: 'var(--text-secondary, #cbd5e1)', border: 'rgba(148, 163, 184, 0.25)' },
+    secondary: { bg: 'rgba(148, 163, 184, 0.14)', text: 'var(--text-secondary, #cbd5e1)', border: 'rgba(148, 163, 184, 0.25)' },
+    primary: { bg: 'rgba(59, 130, 246, 0.14)', text: '#60a5fa', border: 'rgba(59, 130, 246, 0.3)' },
+    info: { bg: 'rgba(59, 130, 246, 0.14)', text: '#60a5fa', border: 'rgba(59, 130, 246, 0.3)' },
+    success: { bg: 'rgba(34, 197, 94, 0.14)', text: '#4ade80', border: 'rgba(34, 197, 94, 0.3)' },
+    warning: { bg: 'rgba(245, 158, 11, 0.14)', text: '#fbbf24', border: 'rgba(245, 158, 11, 0.3)' },
+    danger: { bg: 'rgba(239, 68, 68, 0.14)', text: '#f87171', border: 'rgba(239, 68, 68, 0.3)' },
+    purple: { bg: 'rgba(139, 92, 246, 0.14)', text: '#c084fc', border: 'rgba(139, 92, 246, 0.3)' },
+    accent: { bg: 'var(--accent-soft, rgba(217, 119, 6, 0.14))', text: 'var(--accent, #d97706)', border: 'var(--accent, #d97706)' },
+    outline: { bg: 'transparent', text: 'var(--text-muted, #94a3b8)', border: 'var(--border-default, #2a374b)' },
   };
 
   const style = variantStyles[variant] || variantStyles.neutral;
@@ -241,7 +241,7 @@ export const Skeleton: React.FC<{ width?: string | number; height?: string | num
       style={{
         width,
         height,
-        backgroundColor: '#e2e8f0',
+        backgroundColor: 'var(--border-subtle, #1d2939)',
         borderRadius: '4px',
         animation: 'pulse 1.5s ease-in-out infinite',
         display: 'inline-block',
@@ -283,7 +283,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   trend,
   trendDirection,
   badge,
-  accentColor = '#d97706',
+  accentColor = 'var(--accent, #d97706)',
   onClick,
   isLoading = false,
 }) => {
@@ -297,11 +297,11 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     <div
       onClick={onClick}
       style={{
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--surface-1, #0f1624)',
         borderRadius: '8px',
-        border: '1px solid #e2e8f0',
+        border: '1px solid var(--border-default, #2a374b)',
         padding: '16px 18px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
         position: 'relative',
         overflow: 'hidden',
         cursor: onClick ? 'pointer' : 'default',
@@ -325,18 +325,18 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       />
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#64748b' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted, #94a3b8)' }}>
             {displayTitle}
           </span>
           {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
         </div>
-        <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '4px', fontVariantNumeric: 'tabular-nums', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+        <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginBottom: '4px', fontVariantNumeric: 'tabular-nums', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
           {isValueLoading ? (
             <Skeleton width="90px" height="26px" style={{ margin: '2px 0' }} />
           ) : (
             <>
               <span>{value}</span>
-              {unit && <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>{unit}</span>}
+              {unit && <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted, #94a3b8)' }}>{unit}</span>}
             </>
           )}
         </div>
@@ -350,7 +350,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
               <span
                 style={{
                   fontWeight: 700,
-                  color: delta.isPositive ? '#059669' : '#dc2626',
+                  color: delta.isPositive ? '#22c55e' : '#ef4444',
                 }}
               >
                 {delta.isPositive ? '▲' : '▼'} {delta.text}
@@ -360,13 +360,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
               <span
                 style={{
                   fontWeight: 700,
-                  color: isTrendPositive ? '#059669' : isTrendNegative ? '#dc2626' : '#64748b',
+                  color: isTrendPositive ? '#22c55e' : isTrendNegative ? '#ef4444' : 'var(--text-muted, #94a3b8)',
                 }}
               >
                 {isTrendPositive ? '▲ ' : isTrendNegative ? '▼ ' : ''}
               </span>
             )}
-            {displaySubtitle && <span style={{ color: '#64748b' }}>{displaySubtitle}</span>}
+            {displaySubtitle && <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{displaySubtitle}</span>}
           </>
         )}
       </div>
@@ -391,10 +391,10 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
   action,
 }) => {
   const configs: Record<string, { bg: string; border: string; text: string; icon: string }> = {
-    info: { bg: '#eff6ff', border: '#bfdbfe', text: '#1e40af', icon: 'ℹ️' },
-    warning: { bg: '#fffbeb', border: '#fde68a', text: '#92400e', icon: '⚠️' },
-    error: { bg: '#fef2f2', border: '#fecaca', text: '#991b1b', icon: '⛔' },
-    success: { bg: '#ecfdf5', border: '#a7f3d0', text: '#065f46', icon: '✅' },
+    info: { bg: 'rgba(59, 130, 246, 0.14)', border: 'rgba(59, 130, 246, 0.3)', text: '#60a5fa', icon: 'ℹ️' },
+    warning: { bg: 'rgba(245, 158, 11, 0.14)', border: 'rgba(245, 158, 11, 0.3)', text: '#fbbf24', icon: '⚠️' },
+    error: { bg: 'rgba(239, 68, 68, 0.14)', border: 'rgba(239, 68, 68, 0.3)', text: '#f87171', icon: '⛔' },
+    success: { bg: 'rgba(34, 197, 94, 0.14)', border: 'rgba(34, 197, 94, 0.3)', text: '#4ade80', icon: '✅' },
   };
 
   const conf = configs[type];
@@ -456,7 +456,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, style, ar
       style={{
         display: 'flex',
         gap: '4px',
-        borderBottom: '1px solid #e2e8f0',
+        borderBottom: '1px solid var(--border-default, #2a374b)',
         marginBottom: '18px',
         overflowX: 'auto',
         overflowY: 'hidden',
@@ -481,8 +481,8 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, style, ar
               padding: '10px 14px',
               fontSize: '13px',
               fontWeight: isActive ? 700 : 500,
-              color: isActive ? '#0f172a' : '#64748b',
-              borderBottom: isActive ? '2px solid #d97706' : '2px solid transparent',
+              color: isActive ? 'var(--text-primary, #f8fafc)' : 'var(--text-muted, #94a3b8)',
+              borderBottom: isActive ? '2px solid var(--accent, #d97706)' : '2px solid transparent',
               background: 'none',
               borderTop: 'none',
               borderLeft: 'none',
@@ -505,8 +505,8 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, style, ar
                   fontWeight: 700,
                   padding: '1px 6px',
                   borderRadius: '9999px',
-                  backgroundColor: isActive ? '#fef3c7' : '#f1f5f9',
-                  color: isActive ? '#92400e' : '#64748b',
+                  backgroundColor: isActive ? 'var(--accent-soft, rgba(217,119,6,.14))' : 'var(--surface-2, #151e2e)',
+                  color: isActive ? 'var(--accent, #d97706)' : 'var(--text-muted, #94a3b8)',
                 }}
               >
                 {tab.badge}
@@ -541,7 +541,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.65)',
+        backgroundColor: 'rgba(9, 13, 22, 0.75)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -552,11 +552,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     >
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '10px',
           width: '100%',
           maxWidth,
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15)',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+          border: '1px solid var(--border-default, #2a374b)',
           overflow: 'hidden',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -564,21 +565,21 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         <div
           style={{
             padding: '14px 20px',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '1px solid var(--border-subtle, #1d2939)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'var(--surface-2, #151e2e)',
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{title}</h3>
           <button
             onClick={onClose}
             style={{
               border: 'none',
               background: 'none',
               fontSize: '18px',
-              color: '#64748b',
+              color: 'var(--text-muted, #94a3b8)',
               cursor: 'pointer',
               padding: '4px',
               lineHeight: 1,
@@ -592,8 +593,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           <div
             style={{
               padding: '12px 20px',
-              backgroundColor: '#f8fafc',
-              borderTop: '1px solid #e2e8f0',
+              backgroundColor: 'var(--surface-2, #151e2e)',
+              borderTop: '1px solid var(--border-subtle, #1d2939)',
               display: 'flex',
               justifyContent: 'flex-end',
               gap: '10px',
@@ -636,7 +637,7 @@ export const Drawer: React.FC<DrawerProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+        backgroundColor: 'rgba(9, 13, 22, 0.75)',
         zIndex: 9999,
         display: 'flex',
         justifyContent: position === 'right' ? 'flex-end' : 'flex-start',
@@ -648,8 +649,10 @@ export const Drawer: React.FC<DrawerProps> = ({
           width,
           maxWidth: '90vw',
           height: '100%',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          backgroundColor: 'var(--surface-1, #0f1624)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          borderLeft: position === 'right' ? '1px solid var(--border-default, #2a374b)' : 'none',
+          borderRight: position === 'left' ? '1px solid var(--border-default, #2a374b)' : 'none',
           display: 'flex',
           flexDirection: 'column',
         }}
@@ -658,17 +661,17 @@ export const Drawer: React.FC<DrawerProps> = ({
         <div
           style={{
             padding: '16px 20px',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '1px solid var(--border-subtle, #1d2939)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'var(--surface-2, #151e2e)',
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{title}</h3>
           <button
             onClick={onClose}
-            style={{ border: 'none', background: 'none', fontSize: '18px', color: '#64748b', cursor: 'pointer' }}
+            style={{ border: 'none', background: 'none', fontSize: '18px', color: 'var(--text-muted, #94a3b8)', cursor: 'pointer' }}
           >
             ✕
           </button>
@@ -678,8 +681,8 @@ export const Drawer: React.FC<DrawerProps> = ({
           <div
             style={{
               padding: '14px 20px',
-              borderTop: '1px solid #e2e8f0',
-              backgroundColor: '#f8fafc',
+              borderTop: '1px solid var(--border-subtle, #1d2939)',
+              backgroundColor: 'var(--surface-2, #151e2e)',
               display: 'flex',
               justifyContent: 'flex-end',
               gap: '10px',
@@ -708,7 +711,7 @@ export const Input: React.FC<InputProps> = ({ label, error, hint, style, id, con
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: label ? '12px' : '0px', ...containerStyle }}>
       {label && (
-        <label htmlFor={inputId} style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+        <label htmlFor={inputId} style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
           {label}
         </label>
       )}
@@ -718,18 +721,18 @@ export const Input: React.FC<InputProps> = ({ label, error, hint, style, id, con
           padding: '8px 12px',
           fontSize: '13px',
           borderRadius: '6px',
-          border: error ? '1px solid #ef4444' : '1px solid #cbd5e1',
+          border: error ? '1px solid #ef4444' : '1px solid var(--border-default, #2a374b)',
           outline: 'none',
-          backgroundColor: '#ffffff',
-          color: '#0f172a',
+          backgroundColor: 'var(--surface-inset, #0b111d)',
+          color: 'var(--text-primary, #f8fafc)',
           fontFamily: 'inherit',
-          height: '38px',
+          height: '40px',
           boxSizing: 'border-box',
           ...style,
         }}
         {...props}
       />
-      {hint && !error && <span style={{ fontSize: '11px', color: '#64748b' }}>{hint}</span>}
+      {hint && !error && <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{hint}</span>}
       {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600 }}>{error}</span>}
     </div>
   );
@@ -747,7 +750,7 @@ export const Select: React.FC<SelectProps> = ({ label, error, hint, options, chi
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
       {label && (
-        <label htmlFor={selectId} style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+        <label htmlFor={selectId} style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
           {label}
         </label>
       )}
@@ -757,12 +760,12 @@ export const Select: React.FC<SelectProps> = ({ label, error, hint, options, chi
           padding: '8px 12px',
           fontSize: '13px',
           borderRadius: '6px',
-          border: error ? '1px solid #ef4444' : '1px solid #cbd5e1',
+          border: error ? '1px solid #ef4444' : '1px solid var(--border-default, #2a374b)',
           outline: 'none',
-          backgroundColor: '#ffffff',
-          color: '#0f172a',
+          backgroundColor: 'var(--surface-inset, #0b111d)',
+          color: 'var(--text-primary, #f8fafc)',
           fontFamily: 'inherit',
-          height: '38px',
+          height: '40px',
           cursor: 'pointer',
           boxSizing: 'border-box',
           ...style,
@@ -775,7 +778,7 @@ export const Select: React.FC<SelectProps> = ({ label, error, hint, options, chi
           </option>
         )) : children}
       </select>
-      {hint && !error && <span style={{ fontSize: '11px', color: '#64748b' }}>{hint}</span>}
+      {hint && !error && <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{hint}</span>}
       {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600 }}>{error}</span>}
     </div>
   );
@@ -792,7 +795,7 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, hint, style, i
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
       {label && (
-        <label htmlFor={textareaId} style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+        <label htmlFor={textareaId} style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
           {label}
         </label>
       )}
@@ -802,10 +805,10 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, hint, style, i
           padding: '8px 12px',
           fontSize: '13px',
           borderRadius: '6px',
-          border: error ? '1px solid #ef4444' : '1px solid #cbd5e1',
+          border: error ? '1px solid #ef4444' : '1px solid var(--border-default, #2a374b)',
           outline: 'none',
-          backgroundColor: '#ffffff',
-          color: '#0f172a',
+          backgroundColor: 'var(--surface-inset, #0b111d)',
+          color: 'var(--text-primary, #f8fafc)',
           fontFamily: 'inherit',
           resize: 'vertical',
           minHeight: '80px',
@@ -814,7 +817,7 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, hint, style, i
         }}
         {...props}
       />
-      {hint && !error && <span style={{ fontSize: '11px', color: '#64748b' }}>{hint}</span>}
+      {hint && !error && <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{hint}</span>}
       {error && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600 }}>{error}</span>}
     </div>
   );
@@ -838,10 +841,10 @@ export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, s
     <div
       onClick={onClick}
       style={{
-        backgroundColor: '#ffffff',
-        border: '1px solid #e2e8f0',
+        backgroundColor: 'var(--surface-1, #0f1624)',
+        border: '1px solid var(--border-default, #2a374b)',
         borderRadius: '8px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
         overflow: 'hidden',
         marginBottom: '16px',
         ...style,
@@ -851,16 +854,16 @@ export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, s
         <div
           style={{
             padding: '12px 18px',
-            borderBottom: '1px solid #f1f5f9',
+            borderBottom: '1px solid var(--border-subtle, #1d2939)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--surface-1, #0f1624)',
           }}
         >
           <div>
-            {title && <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>{title}</h4>}
-            {subtitle && <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>{subtitle}</p>}
+            {title && <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{title}</h4>}
+            {subtitle && <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>{subtitle}</p>}
           </div>
           {action && <div>{action}</div>}
         </div>
@@ -905,9 +908,10 @@ export const ProjectContextHeader: React.FC<ProjectContextHeaderProps> = ({
   return (
     <div
       style={{
-        backgroundColor: '#0f172a',
-        color: '#ffffff',
+        backgroundColor: 'var(--surface-1, #0f1624)',
+        color: 'var(--text-primary, #f8fafc)',
         borderRadius: '8px',
+        border: '1px solid var(--border-default, #2a374b)',
         padding: '12px 18px',
         marginBottom: '16px',
         display: 'flex',
@@ -915,23 +919,23 @@ export const ProjectContextHeader: React.FC<ProjectContextHeaderProps> = ({
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '12px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 700, backgroundColor: '#1e293b', padding: '3px 8px', borderRadius: '4px', color: '#d97706', border: '1px solid #334155' }}>
+        <span style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 700, backgroundColor: 'var(--surface-2, #151e2e)', padding: '3px 8px', borderRadius: '4px', color: 'var(--accent, #d97706)', border: '1px solid var(--border-subtle, #1d2939)' }}>
           {projectCode}
         </span>
-        <h2 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
           {projectName}
         </h2>
-        <span style={{ fontSize: '12px', color: '#94a3b8' }}>• {clientName}</span>
+        <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>• {clientName}</span>
         <Badge variant="neutral" size="sm">{currentStage}</Badge>
         <Badge variant={riskBadge} size="sm">Risk: {riskLevel}</Badge>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-        <div style={{ fontSize: '11px', color: '#cbd5e1', display: 'flex', gap: '12px' }}>
+        <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', display: 'flex', gap: '12px' }}>
           <span>📍 {venue}</span>
           <span>📅 {eventDate}</span>
           <span>👤 {leadPm}</span>
@@ -961,15 +965,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon = '📂', title, de
       style={{
         padding: '36px 20px',
         textAlign: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--surface-1, #0f1624)',
         borderRadius: '8px',
-        border: '1px dashed #cbd5e1',
+        border: '1px dashed var(--border-strong, #475467)',
         margin: '16px 0',
       }}
     >
       <div style={{ fontSize: '32px', marginBottom: '10px' }}>{icon}</div>
-      <h4 style={{ margin: '0 0 6px', fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>{title}</h4>
-      <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#64748b', maxWidth: '380px', marginInline: 'auto' }}>
+      <h4 style={{ margin: '0 0 6px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{title}</h4>
+      <p style={{ margin: '0 0 14px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', maxWidth: '380px', marginInline: 'auto' }}>
         {description}
       </p>
       {action && <div>{action}</div>}
