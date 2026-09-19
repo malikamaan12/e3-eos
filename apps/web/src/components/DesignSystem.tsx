@@ -858,14 +858,15 @@ export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, s
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: '12px',
             backgroundColor: 'var(--surface-1, #0f1624)',
           }}
         >
-          <div>
-            {title && <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{title}</h4>}
-            {subtitle && <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>{subtitle}</p>}
+          <div style={{ minWidth: 0, flex: 1 }}>
+            {title && <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</h4>}
+            {subtitle && <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</p>}
           </div>
-          {action && <div>{action}</div>}
+          {action && <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>{action}</div>}
         </div>
       )}
       <div style={{ padding: noPadding ? 0 : '16px 18px' }}>{children}</div>

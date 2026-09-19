@@ -719,7 +719,10 @@ export const ProjectCockpitView: React.FC = () => {
 
         {/* Jump to Workstream Dropdown (Desktop) */}
         {!isMobile && (
-          <div style={{ flexShrink: 0, marginInlineStart: '4px' }}>
+          <div style={{ flexShrink: 0, marginInlineStart: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+              {isRtl ? 'انتقال:' : 'Jump:'}
+            </span>
             <select
               id="cockpit-workstream-jump"
               value={cockpitModuleTab}
@@ -730,14 +733,16 @@ export const ProjectCockpitView: React.FC = () => {
                 if (tabBtn) tabBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
               }}
               style={{
-                padding: '6px 10px',
+                padding: '5px 10px',
                 fontSize: '12px',
                 fontWeight: 600,
                 borderRadius: '6px',
                 border: '1px solid var(--border-default, #2a374b)',
-                backgroundColor: 'var(--surface-inset, #0b111d)',
+                backgroundColor: 'var(--surface-2, #151e2e)',
                 color: 'var(--text-primary, #f8fafc)',
                 cursor: 'pointer',
+                outline: 'none',
+                maxWidth: '190px',
               }}
               title={isRtl ? 'الانتقال السريع إلى أي وحدة عمل' : 'Quick Jump to Any Workstream'}
             >
@@ -1016,53 +1021,53 @@ export const ProjectCockpitView: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-            gap: '12px',
-            backgroundColor: 'var(--surface-2, #151e2e)',
-            padding: '12px 16px',
-            borderRadius: '6px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '10px',
+            backgroundColor: 'var(--surface-1, #0f1624)',
+            padding: '12px',
+            borderRadius: '8px',
             border: '1px solid var(--border-default, #2a374b)',
           }}
         >
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Contract Value</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>Contract Value</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.expectedRevenue ?? (isDemo ? 3500000 : (baselineCost || 0)), 'QAR')}
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Invoiced to Client</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>Invoiced to Client</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.invoiced ?? (isDemo ? 1050000 : 0), 'QAR')}
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Collected (Cash In)</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>Collected (Cash In)</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.collected ?? (isDemo ? 1050000 : 0), 'QAR')}
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Outstanding Receivables</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>Outstanding Receivables</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.receivables ?? 0, 'QAR')}
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Supplier Committed</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#d97706', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>Supplier Committed</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#d97706', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {isDraft ? 'Not yet available' : formatCurrency(committedCost || 0, 'QAR')}
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Supplier Paid</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>Supplier Paid</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {isDraft ? 'Not yet available' : formatCurrency(actualCost || 0, 'QAR')}
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Net Cash Exposure</div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>Net Cash Exposure</div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {isDraft ? 'Not yet available' : `+${formatCurrency(isDemo ? 470000 : Math.max(0, (cockpitData?.financials?.collected || 0) - (actualCost || 0)), 'QAR')}`}
             </div>
           </div>
@@ -1412,7 +1417,7 @@ export const ProjectCockpitView: React.FC = () => {
       </div>
 
       {/* Two Column Section: Tasks & Governance Approvals */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)', gap: '20px', marginBottom: '24px' }}>
         {/* Project Tasks */}
         <Card
           title="Project Operational Tasks"
