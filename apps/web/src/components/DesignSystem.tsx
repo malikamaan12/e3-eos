@@ -828,11 +828,13 @@ export interface CardProps {
   children: React.ReactNode;
   style?: React.CSSProperties;
   noPadding?: boolean;
+  onClick?: () => void;
 }
 
-export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, style, noPadding = false }) => {
+export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, style, noPadding = false, onClick }) => {
   return (
     <div
+      onClick={onClick}
       style={{
         backgroundColor: '#ffffff',
         border: '1px solid #e2e8f0',

@@ -410,6 +410,18 @@ export const DocumentParseRequestSchema = z.object({
   documentName: z.string().optional(),
   documentType: z.string().optional(),
   rawText: z.string().optional(),
+  checksum: z.string().optional(),
+  documentRole: z.enum([
+    'rfp_specification',
+    'boq_schedule',
+    'addendum',
+    'appendix',
+    'clarification_response',
+    'unprocessed_attachment',
+  ]).optional(),
+  documentRevision: z.string().optional(),
+  language: z.enum(['en', 'ar', 'mixed']).optional(),
+  claimedAmendmentTarget: z.string().optional(),
 });
 
 export type DocumentParseRequestDto = z.infer<typeof DocumentParseRequestSchema>;
@@ -421,6 +433,12 @@ export const ExtractionCandidateReviewSchema = z.object({
     'accept_with_changes',
     'reject',
     'merge',
+    'keep_separate',
+    'split',
+    'propose_revision',
+    'add_allocation',
+    'attach_evidence',
+    'flag_conflict',
     'convert_to_allocation',
     'convert_to_design',
     'convert_to_bom',
@@ -436,9 +454,37 @@ export const ExtractionCandidateReviewSchema = z.object({
   mergeTargetId: z.string().optional(),
   targetRequirementId: z.string().optional(),
   reviewerNotes: z.string().optional(),
+  quantityComparator: z.enum(['exact', 'minimum', 'maximum', 'estimated']).optional(),
+  quantityBasis: z.enum(['total', 'per_zone', 'per_shift', 'per_day', 'concurrent', 'reusable', 'unspecified']).optional(),
 });
 
 export type ExtractionCandidateReviewDto = z.infer<typeof ExtractionCandidateReviewSchema>;
+
+export const ImportPreviewRequestSchema = z.object({
+  jobId: z.string(),
+  candidateIds: z.array(z.string()).optional(),
+});
+
+export type ImportPreviewDto = z.infer<typeof ImportPreviewRequestSchema>;
+
+export const ImportPublishRequestSchema = z.object({
+  jobId: z.string(),
+  candidateIds: z.array(z.string()).optional(),
+  idempotencyKey: z.string(),
+  targetRequirementVersions: z.record(z.number()).optional(),
+  allowUnresolvedOverride: z.boolean().default(false),
+  overrideReason: z.string().optional(),
+});
+
+export type ImportPublishDto = z.infer<typeof ImportPublishRequestSchema>;
+
+export const ImportRollbackRequestSchema = z.object({
+  batchId: z.string(),
+  forceCompensatingRevision: z.boolean().default(false),
+  reason: z.string().optional(),
+});
+
+export type ImportRollbackDto = z.infer<typeof ImportRollbackRequestSchema>;
 
 export const BulkCandidateReviewSchema = z.object({
   candidateIds: z.array(z.string()).min(1),
@@ -721,7 +767,7 @@ export type VariationApplyDto = z.infer<typeof VariationApplySchema>;
 export const DesignCreateSchema = z.object({
   title: z.string().min(2).max(200),
   titleAr: z.string().max(200).optional(),
-  category: z.enum(['moodboard', 'technical_drawing', 'floorplan', '3d_render']),
+  category: z.enum(['moodboard', 'technical_drawing', 'floorplan', '3d_render', 'elevations', 'branding_artwork', 'signage', 'presentation', 'video_motion', 'venue_layout', 'fabrication_drawing', 'other']).default('technical_drawing'),
 });
 
 export type DesignCreateDto = z.infer<typeof DesignCreateSchema>;
@@ -731,15 +777,25 @@ export const DesignVersionCreateSchema = z.object({
   storageKey: z.string().min(1),
   title: z.string().min(2).max(200),
   titleAr: z.string().max(200).optional(),
-  purpose: z.enum(['for_review', 'for_client_approval', 'for_fabrication']).default('for_review'),
+  purpose: z.enum(['for_review', 'for_client_approval', 'for_fabrication', 'for_concept_presentation', 'for_costing', 'for_authority_submission', 'for_production', 'for_installation', 'as_built']).default('for_review'),
   contentData: z.string().min(1), // Base64 or content representation for hashing
+  revisionCode: z.string().optional(),
+  revisionDescription: z.string().optional(),
+  addressedCommentIds: z.array(z.string()).optional(),
+  carriedForwardCommentIds: z.array(z.string()).optional(),
+  rejectedCommentIds: z.array(z.object({ commentId: z.string(), reason: z.string() })).optional(),
+  costImpactFlag: z.boolean().optional(),
+  scheduleImpactFlag: z.boolean().optional(),
+  scopeImpactFlag: z.boolean().optional(),
+  safetyImpactFlag: z.boolean().optional(),
+  procurementImpactFlag: z.boolean().optional(),
 });
 
 export type DesignVersionCreateDto = z.infer<typeof DesignVersionCreateSchema>;
 
 export const DesignReleaseSchema = z.object({
   versionId: z.string(),
-  purpose: z.enum(['for_review', 'for_client_approval', 'for_fabrication']),
+  purpose: z.enum(['for_review', 'for_client_approval', 'for_fabrication', 'for_production']),
   approvalHash: z.string().min(10),
   approverId: z.string().uuid(),
 });
@@ -754,11 +810,321 @@ export const DesignAnnotationSchema = z.object({
     y: z.number(),
     width: z.number().optional(),
     height: z.number().optional(),
+    geometryType: z.enum(['point', 'arrow', 'rectangle', 'circle', 'freehand', 'highlight', 'text_box', 'strikeout', 'measurement', 'area']).optional(),
+    geometryData: z.record(z.unknown()).optional(),
   }),
   comment: z.string().min(1).max(2000),
+  commentType: z.enum(['general_comment', 'change_request', 'design_query', 'technical_concern', 'safety_concern', 'client_instruction', 'production_clarification', 'approval_condition', 'information_only']).optional(),
+  visibility: z.enum(['internal_only', 'client_visible', 'supplier_visible', 'selected_participants', 'approval_committee_only']).optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  assigneeName: z.string().optional(),
+  assigneeId: z.string().optional(),
+  dueDate: z.string().optional(),
 });
 
 export type DesignAnnotationDto = z.infer<typeof DesignAnnotationSchema>;
+
+// =========================================================================
+// ENHANCED DESIGN & CREATIVE MANAGEMENT MODULE CONTRACTS
+// =========================================================================
+
+export const DesignWorkspaceCreateSchema = z.object({
+  name: z.string().min(2).max(100),
+  description: z.string().max(500).optional(),
+  responsibleDepartment: z.string().optional(),
+  ownerId: z.string().optional(),
+  ownerName: z.string().optional(),
+  defaultReviewers: z.array(z.string()).default([]),
+  defaultClientReviewers: z.array(z.string()).default([]),
+  defaultWorkflow: z.string().default('standard_14_step'),
+  linkedZones: z.array(z.string()).default([]),
+  linkedLocations: z.array(z.string()).default([]),
+  visibility: z.enum(['all_members', 'internal_only', 'client_shared', 'restricted', 'confidential']).default('all_members').transform((v) => (v === 'confidential' ? 'internal_only' : v)),
+  color: z.string().optional(),
+  icon: z.string().optional(),
+  status: z.enum(['active', 'archived']).default('active'),
+});
+export type DesignWorkspaceCreateDto = z.infer<typeof DesignWorkspaceCreateSchema>;
+
+export const DesignWorkspaceUpdateSchema = DesignWorkspaceCreateSchema.partial();
+export type DesignWorkspaceUpdateDto = z.infer<typeof DesignWorkspaceUpdateSchema>;
+
+export const DesignItemCreateSchema = z.object({
+  title: z.string().min(2).max(200),
+  description: z.string().max(2000).optional(),
+  assetType: z.enum([
+    '2d_design',
+    '3d_design',
+    'illustration',
+    'moodboard',
+    'storyboard',
+    'pdf_document',
+    'venue_layout',
+    'floor_plan',
+    'technical_drawing',
+    'fabrication_drawing',
+    'branding_artwork',
+    'signage',
+    'presentation',
+    'image',
+    'video_motion',
+    'external_figma',
+    'external_canva',
+    'external_drive',
+    'external_autodesk',
+    'source_file_archive',
+  ]),
+  workspaceId: z.string().optional(),
+  projectPhase: z.string().optional(),
+  discipline: z.string().default('staging'),
+  department: z.string().optional(),
+  ownerId: z.string().optional(),
+  ownerName: z.string().optional(),
+  internalReviewerId: z.string().optional(),
+  internalReviewerName: z.string().optional(),
+  clientReviewerId: z.string().optional(),
+  clientReviewerName: z.string().optional(),
+  dueDate: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  approvalPurpose: z.enum([
+    'concept',
+    'detailed_development',
+    'costing',
+    'client_presentation',
+    'authority_submission',
+    'fabrication',
+    'production',
+    'installation',
+    'as_built',
+  ]).default('concept'),
+  confidentiality: z.enum(['internal', 'client_confidential', 'public', 'restricted', 'confidential']).default('internal').transform((v) => (v === 'confidential' ? 'internal' : v)),
+  clientVisibility: z.boolean().default(true),
+  tags: z.array(z.string()).default([]),
+  zones: z.array(z.string()).default([]),
+  locations: z.array(z.string()).default([]),
+  scopePackageIds: z.array(z.string()).default([]),
+  requirementIds: z.array(z.string()).default([]),
+  boqItemIds: z.array(z.string()).default([]),
+  taskIds: z.array(z.string()).default([]),
+  productionPackageIds: z.array(z.string()).default([]),
+  supplierIds: z.array(z.string()).default([]),
+  relatedDesignItemIds: z.array(z.string()).default([]),
+  externalUrl: z.string().url().optional(),
+});
+export type DesignItemCreateDto = z.infer<typeof DesignItemCreateSchema>;
+
+export const DesignItemUpdateSchema = DesignItemCreateSchema.partial().extend({
+  currentStatus: z.enum([
+    'draft',
+    'ready_for_internal_review',
+    'internal_review',
+    'internal_changes_required',
+    'internally_approved',
+    'ready_for_client_review',
+    'client_review',
+    'client_changes_required',
+    'approved_with_conditions',
+    'client_approved',
+    'approved_for_production',
+    'superseded',
+    'as_built',
+    'archived',
+  ]).optional(),
+});
+export type DesignItemUpdateDto = z.infer<typeof DesignItemUpdateSchema>;
+
+export const DesignCommentThreadCreateSchema = z.object({
+  versionId: z.string(),
+  pinNumber: z.number().int().positive().optional(),
+  xPercent: z.number().min(0).max(100),
+  yPercent: z.number().min(0).max(100),
+  pageNumber: z.number().int().positive().default(1),
+  videoTimestampSec: z.number().min(0).optional(),
+  threeDCoordinates: z.object({ x: z.number(), y: z.number(), z: z.number(), objectId: z.string().optional() }).optional(),
+  title: z.string().min(1).max(200),
+  discipline: z.string().default('staging'),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  commentType: z.enum([
+    'general_comment',
+    'change_request',
+    'design_query',
+    'technical_concern',
+    'safety_concern',
+    'client_instruction',
+    'production_clarification',
+    'approval_condition',
+    'information_only',
+  ]).default('general_comment'),
+  visibility: z.enum([
+    'internal_only',
+    'client_visible',
+    'supplier_visible',
+    'selected_participants',
+    'approval_committee_only',
+  ]).default('internal_only'),
+  message: z.string().min(1).max(4000),
+  assigneeName: z.string().optional(),
+  assigneeId: z.string().optional(),
+  dueDate: z.string().optional(),
+  geometryType: z.enum(['point', 'arrow', 'rectangle', 'circle', 'freehand', 'highlight', 'text_box', 'strikeout', 'measurement', 'area']).default('point'),
+  geometryData: z.record(z.unknown()).optional(),
+  attachments: z.array(z.object({ name: z.string(), url: z.string(), sizeBytes: z.number().optional() })).default([]),
+});
+export type DesignCommentThreadCreateDto = z.infer<typeof DesignCommentThreadCreateSchema>;
+
+export const DesignCommentReplySchema = z.object({
+  message: z.string().min(1).max(4000),
+  visibility: z.enum([
+    'internal_only',
+    'client_visible',
+    'supplier_visible',
+    'selected_participants',
+    'approval_committee_only',
+  ]).optional(),
+  attachments: z.array(z.object({ name: z.string(), url: z.string(), sizeBytes: z.number().optional() })).default([]),
+  statusChange: z.enum(['open', 'acknowledged', 'in_progress', 'ready_for_review', 'resolved', 'reopened', 'rejected', 'superseded']).optional(),
+  resolutionEvidence: z.string().optional(),
+});
+export type DesignCommentReplyDto = z.infer<typeof DesignCommentReplySchema>;
+
+export const DesignReviewRoundCreateSchema = z.object({
+  versionId: z.string(),
+  purpose: z.string().min(2).max(200),
+  reviewers: z.array(z.object({
+    userId: z.string(),
+    userName: z.string(),
+    role: z.string(),
+    isMandatory: z.boolean().default(true),
+  })).min(1),
+  startDate: z.string(),
+  dueDate: z.string(),
+  instructions: z.string().max(2000).optional(),
+});
+export type DesignReviewRoundCreateDto = z.infer<typeof DesignReviewRoundCreateSchema>;
+
+export const DesignApprovalSubmitSchema = z.object({
+  versionId: z.string(),
+  decision: z.enum(['approve', 'approve_with_conditions', 'request_changes', 'reject', 'acknowledge_only']),
+  approvalPurpose: z.enum([
+    'approved_as_concept',
+    'approved_for_detailed_development',
+    'approved_for_costing',
+    'approved_for_client_presentation',
+    'approved_for_authority_submission',
+    'approved_for_fabrication',
+    'approved_for_production',
+    'approved_for_installation',
+    'approved_as_built',
+  ]),
+  comments: z.string().max(2000).optional(),
+  conditions: z.array(z.string()).default([]),
+  digitalAcknowledgement: z.boolean().default(true),
+  structuralCertification: z.object({
+    certified: z.boolean(),
+    engineerName: z.string(),
+    licenseNumber: z.string(),
+  }).optional(),
+  hseCertification: z.object({
+    certified: z.boolean(),
+    inspectorName: z.string(),
+  }).optional(),
+});
+export type DesignApprovalSubmitDto = z.infer<typeof DesignApprovalSubmitSchema>;
+
+export const DesignChangeRequestCreateSchema = z.object({
+  designItemId: z.string(),
+  designVersionId: z.string(),
+  commentThreadId: z.string().optional(),
+  title: z.string().min(2).max(200),
+  description: z.string().min(5).max(4000),
+  classification: z.enum([
+    'within_agreed_scope',
+    'normal_design_development',
+    'correction',
+    'client_preference',
+    'new_scope',
+    'potential_variation',
+    'confirmed_variation',
+    'programme_impact',
+    'cost_impact',
+    'safety_impact',
+    'procurement_impact',
+    'no_impact',
+  ]),
+  estimatedCostDeltaQar: z.number().default(0),
+  estimatedScheduleDeltaDays: z.number().default(0),
+  affectedRequirementIds: z.array(z.string()).default([]),
+  affectedScopePackageIds: z.array(z.string()).default([]),
+  affectedBoqItemIds: z.array(z.string()).default([]),
+  affectedTaskIds: z.array(z.string()).default([]),
+  escalateToVariation: z.boolean().default(false),
+});
+export type DesignChangeRequestCreateDto = z.infer<typeof DesignChangeRequestCreateSchema>;
+
+export const DesignReleaseIssueSchema = z.object({
+  designVersionId: z.string(),
+  releasePurpose: z.enum([
+    'for_review',
+    'for_costing',
+    'for_client_signoff',
+    'for_authority_approval',
+    'for_fabrication',
+    'approved_for_fabrication',
+    'for_production',
+    'approved_for_production',
+    'for_installation',
+    'as_built_archive',
+  ]).transform((v) => {
+    if (v === 'approved_for_fabrication') return 'for_fabrication';
+    if (v === 'approved_for_production') return 'for_production';
+    return v;
+  }),
+  recipients: z.array(z.object({
+    recipientId: z.string().optional(),
+    recipientName: z.string(),
+    organization: z.string(),
+    role: z.enum(['internal_department', 'supplier', 'fabricator', 'client', 'authority']).default('fabricator'),
+    email: z.string().email().optional(),
+  })).min(1),
+  requiredAcknowledgementDate: z.string(),
+  includedFileIds: z.array(z.string()).default([]),
+  notes: z.string().max(2000).optional(),
+  materialsAndFinishesNotes: z.string().optional(),
+  fabricationNotes: z.string().optional(),
+  installationNotes: z.string().optional(),
+});
+export type DesignReleaseIssueDto = z.infer<typeof DesignReleaseIssueSchema>;
+
+export const DesignAdoptionAcknowledgeSchema = z.object({
+  releaseId: z.string().optional(),
+  response: z.enum([
+    'adopted',
+    'clarification_required',
+    'cannot_manufacture_as_designed',
+    'alternative_proposed',
+    'production_started',
+    'superseded_version_received',
+  ]),
+  notes: z.string().max(2000).optional(),
+  productionStartDate: z.string().optional(),
+  acknowledgerName: z.string(),
+});
+export type DesignAdoptionAcknowledgeDto = z.infer<typeof DesignAdoptionAcknowledgeSchema>;
+
+export const DesignExternalShareCreateSchema = z.object({
+  designItemId: z.string(),
+  designVersionId: z.string().optional(),
+  recipientName: z.string().min(2),
+  recipientEmail: z.string().email(),
+  expiresAt: z.string(),
+  requireOtp: z.boolean().default(false),
+  canView: z.boolean().default(true),
+  canComment: z.boolean().default(true),
+  canApprove: z.boolean().default(false),
+  canDownload: z.boolean().default(false),
+  watermarkText: z.string().optional(),
+});
+export type DesignExternalShareCreateDto = z.infer<typeof DesignExternalShareCreateSchema>;
 
 export const PublicationCreateSchema = z.object({
   clientOrganisationId: z.string().uuid(),

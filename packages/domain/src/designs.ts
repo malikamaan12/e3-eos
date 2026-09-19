@@ -273,3 +273,470 @@ export class CertificateValidator {
     return effectiveTimestamp.getTime() >= cert.issuedAt.getTime();
   }
 }
+
+// =========================================================================
+// ENTERPRISE DESIGN & CREATIVE MANAGEMENT DOMAIN TYPES & ENGINES
+// =========================================================================
+
+export type AssetDesignType =
+  | '2d_design'
+  | '3d_design'
+  | 'illustration'
+  | 'moodboard'
+  | 'storyboard'
+  | 'pdf_document'
+  | 'venue_layout'
+  | 'floor_plan'
+  | 'technical_drawing'
+  | 'fabrication_drawing'
+  | 'branding_artwork'
+  | 'signage'
+  | 'presentation'
+  | 'image'
+  | 'video_motion'
+  | 'external_figma'
+  | 'external_canva'
+  | 'external_drive'
+  | 'external_autodesk'
+  | 'source_file_archive';
+
+export type CanonicalDesignWorkflowStatus =
+  | 'draft'
+  | 'ready_for_internal_review'
+  | 'internal_review'
+  | 'internal_changes_required'
+  | 'internally_approved'
+  | 'ready_for_client_review'
+  | 'client_review'
+  | 'client_changes_required'
+  | 'approved_with_conditions'
+  | 'client_approved'
+  | 'approved_for_production'
+  | 'superseded'
+  | 'as_built'
+  | 'archived';
+
+export type FormalApprovalPurpose =
+  | 'approved_as_concept'
+  | 'approved_for_detailed_development'
+  | 'approved_for_costing'
+  | 'approved_for_client_presentation'
+  | 'approved_for_authority_submission'
+  | 'approved_for_fabrication'
+  | 'approved_for_production'
+  | 'approved_for_installation'
+  | 'approved_as_built';
+
+export type ApprovalDecisionOutcome =
+  | 'approve'
+  | 'approve_with_conditions'
+  | 'request_changes'
+  | 'reject'
+  | 'acknowledge_only';
+
+export type ChangeClassification =
+  | 'within_agreed_scope'
+  | 'normal_design_development'
+  | 'correction'
+  | 'client_preference'
+  | 'new_scope'
+  | 'potential_variation'
+  | 'confirmed_variation'
+  | 'programme_impact'
+  | 'cost_impact'
+  | 'safety_impact'
+  | 'procurement_impact'
+  | 'no_impact';
+
+export type MarkupGeometryType =
+  | 'point'
+  | 'arrow'
+  | 'rectangle'
+  | 'circle'
+  | 'freehand'
+  | 'highlight'
+  | 'text_box'
+  | 'strikeout'
+  | 'measurement'
+  | 'area';
+
+export type CommentType =
+  | 'general_comment'
+  | 'change_request'
+  | 'design_query'
+  | 'technical_concern'
+  | 'safety_concern'
+  | 'client_instruction'
+  | 'production_clarification'
+  | 'approval_condition'
+  | 'information_only';
+
+export type CommentVisibility =
+  | 'internal_only'
+  | 'client_visible'
+  | 'supplier_visible'
+  | 'selected_participants'
+  | 'approval_committee_only';
+
+export type AdoptionStatus =
+  | 'adopted'
+  | 'clarification_required'
+  | 'cannot_manufacture_as_designed'
+  | 'alternative_proposed'
+  | 'production_started'
+  | 'superseded_version_received';
+
+export type FileRole =
+  | 'original_source'
+  | 'review_preview'
+  | 'production_export'
+  | 'supporting_attachment';
+
+export interface DesignWorkspace {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  responsibleDepartment?: string;
+  ownerId?: string;
+  ownerName?: string;
+  defaultReviewers: string[];
+  defaultClientReviewers: string[];
+  defaultWorkflow: string;
+  linkedZones: string[];
+  linkedLocations: string[];
+  visibility: 'all_members' | 'internal_only' | 'client_shared' | 'restricted';
+  color?: string;
+  icon?: string;
+  status: 'active' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DesignItem {
+  id: string; // e.g. "DES-DHA26-001"
+  projectId: string;
+  workspaceId?: string;
+  title: string;
+  description?: string;
+  assetType: AssetDesignType;
+  projectPhase?: string;
+  discipline: string;
+  department?: string;
+  ownerId?: string;
+  ownerName?: string;
+  internalReviewerId?: string;
+  internalReviewerName?: string;
+  clientReviewerId?: string;
+  clientReviewerName?: string;
+  dueDate?: string;
+  priority: AnnotationPriority;
+  currentVersionNumber: number;
+  currentRevisionCode: string; // e.g. "Rev A", "Rev B", "V01"
+  currentStatus: CanonicalDesignWorkflowStatus;
+  approvalPurpose: FormalApprovalPurpose;
+  confidentiality: 'internal' | 'client_confidential' | 'public' | 'restricted';
+  clientVisibility: boolean;
+  tags: string[];
+  zones: string[];
+  locations: string[];
+  scopePackageIds: string[];
+  requirementIds: string[];
+  boqItemIds: string[];
+  taskIds: string[];
+  productionPackageIds: string[];
+  supplierIds: string[];
+  relatedDesignItemIds: string[];
+  externalUrl?: string;
+  revisions: DesignRevisionRecord[];
+  pins: DesignAnnotationPin[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DesignReviewRound {
+  id: string;
+  designItemId: string;
+  versionId: string;
+  purpose: string;
+  reviewers: Array<{
+    userId: string;
+    userName: string;
+    role: string;
+    isMandatory: boolean;
+    responded: boolean;
+    response?: string;
+    respondedAt?: string;
+  }>;
+  startDate: string;
+  dueDate: string;
+  instructions?: string;
+  status: 'draft' | 'scheduled' | 'open' | 'awaiting_reviewers' | 'completed' | 'cancelled' | 'superseded';
+  decision?: ApprovalDecisionOutcome;
+  completionDate?: string;
+  isLate: boolean;
+  summary?: string;
+  createdAt: string;
+}
+
+export interface DesignApprovalRecord {
+  id: string;
+  designItemId: string;
+  versionId: string;
+  versionNumber: number;
+  revisionCode: string;
+  approverId: string;
+  approverName: string;
+  organization: string;
+  role: string;
+  decision: ApprovalDecisionOutcome;
+  approvalPurpose: FormalApprovalPurpose;
+  comments?: string;
+  conditions: string[];
+  digitalAcknowledgement: boolean;
+  contentHash: string;
+  locked: boolean;
+  createdAt: string;
+}
+
+export interface DesignChangeRequest {
+  id: string;
+  designItemId: string;
+  designVersionId: string;
+  commentThreadId?: string;
+  title: string;
+  description: string;
+  classification: ChangeClassification;
+  estimatedCostDeltaQar: number;
+  estimatedScheduleDeltaDays: number;
+  affectedRequirementIds: string[];
+  affectedScopePackageIds: string[];
+  affectedBoqItemIds: string[];
+  affectedTaskIds: string[];
+  escalateToVariation: boolean;
+  linkedVariationId?: string;
+  status: 'submitted' | 'under_pm_review' | 'variation_created' | 'approved' | 'rejected';
+  reviewedBy?: string;
+  reviewedAt?: string;
+  createdAt: string;
+}
+
+export interface DesignReleaseRecord {
+  id: string;
+  releaseNumber: string; // e.g. "REL-DHA26-001"
+  designItemId: string;
+  designVersionId: string;
+  versionNumber: number;
+  revisionCode: string;
+  releasePurpose: string;
+  issuedBy: string;
+  issuedAt: string;
+  requiredAcknowledgementDate: string;
+  notes?: string;
+  materialsAndFinishesNotes?: string;
+  fabricationNotes?: string;
+  installationNotes?: string;
+  status: 'active' | 'superseded' | 'recalled';
+  supersededByReleaseId?: string;
+  recipients: Array<{
+    recipientId: string;
+    recipientName: string;
+    organization: string;
+    role: string;
+    adoptionStatus: AdoptionStatus;
+    acknowledgedAt?: string;
+    notes?: string;
+    productionStarted?: boolean;
+    productionStartDate?: string;
+  }>;
+  includedFileIds: string[];
+}
+
+export interface DesignExternalShare {
+  id: string;
+  shareToken: string;
+  designItemId: string;
+  designVersionId?: string;
+  recipientName: string;
+  recipientEmail: string;
+  expiresAt: string;
+  requireOtp: boolean;
+  otpHash?: string;
+  canView: boolean;
+  canComment: boolean;
+  canApprove: boolean;
+  canDownload: boolean;
+  watermarkText?: string;
+  accessCount: number;
+  lastAccessedAt?: string;
+  isRevoked: boolean;
+  createdAt: string;
+}
+
+export class DesignWorkflowEngine {
+  public static readonly WORKFLOW_STAGES: CanonicalDesignWorkflowStatus[] = [
+    'draft',
+    'ready_for_internal_review',
+    'internal_review',
+    'internal_changes_required',
+    'internally_approved',
+    'ready_for_client_review',
+    'client_review',
+    'client_changes_required',
+    'approved_with_conditions',
+    'client_approved',
+    'approved_for_production',
+    'superseded',
+    'as_built',
+    'archived',
+  ];
+
+  /**
+   * Evaluates whether a workflow transition is permitted.
+   */
+  static canTransition(
+    current: CanonicalDesignWorkflowStatus,
+    target: CanonicalDesignWorkflowStatus,
+    userRole: string
+  ): { allowed: boolean; reason: string } {
+    if (current === target) {
+      return { allowed: true, reason: 'Already in target status.' };
+    }
+
+    if (current === 'approved_for_production' && target !== 'superseded' && target !== 'as_built' && target !== 'archived') {
+      return {
+        allowed: false,
+        reason: 'LOCKED_PRODUCTION_VERSION: Versions approved for production are immutable. Create a new sequential version for rework.',
+      };
+    }
+
+    // Role gate for client approval
+    if (target === 'client_approved' || target === 'ready_for_client_review') {
+      const allowedClientRoles = ['client', 'client_user', 'super_admin', 'project_manager', 'executive'];
+      if (!allowedClientRoles.includes(userRole)) {
+        return {
+          allowed: false,
+          reason: `PERMISSION_DENIED: Role ${userRole} is not authorized for client workflow transition.`,
+        };
+      }
+    }
+
+    // Role gate for production release
+    if (target === 'approved_for_production') {
+      const allowedProductionRoles = ['super_admin', 'project_director', 'technical_director', 'project_manager', 'executive'];
+      if (!allowedProductionRoles.includes(userRole)) {
+        return {
+          allowed: false,
+          reason: `PERMISSION_DENIED: Production release authorization requires Executive or Technical Director authority.`,
+        };
+      }
+    }
+
+    return { allowed: true, reason: 'Transition valid under standard 14-stage workflow.' };
+  }
+}
+
+export class ChangeControlClassifier {
+  /**
+   * Classifies a design comment / change request and determines commercial escalation.
+   */
+  static classifyChange(params: {
+    classification: ChangeClassification;
+    estimatedCostDeltaQar: number;
+    estimatedScheduleDeltaDays: number;
+    isClientRequest: boolean;
+  }): {
+    requiresVariation: boolean;
+    escalateToProjectManager: boolean;
+    commercialNoticeRequired: boolean;
+    disclaimer: string;
+  } {
+    const COST_VARIATION_THRESHOLD_QAR = 25000;
+    const SCHEDULE_VARIATION_THRESHOLD_DAYS = 2;
+
+    const hasSignificantFinancialImpact = params.estimatedCostDeltaQar >= COST_VARIATION_THRESHOLD_QAR;
+    const hasSignificantScheduleImpact = params.estimatedScheduleDeltaDays > SCHEDULE_VARIATION_THRESHOLD_DAYS;
+    const isExplicitVariationType = ['new_scope', 'potential_variation', 'confirmed_variation'].includes(params.classification);
+    const isImpactType = ['cost_impact', 'programme_impact'].includes(params.classification) && (hasSignificantFinancialImpact || hasSignificantScheduleImpact);
+
+    const requiresVariation = isExplicitVariationType || isImpactType || hasSignificantFinancialImpact || hasSignificantScheduleImpact;
+    const escalateToProjectManager = requiresVariation || (params.isClientRequest && params.classification === 'client_preference');
+
+    return {
+      requiresVariation,
+      escalateToProjectManager,
+      commercialNoticeRequired: requiresVariation,
+      disclaimer: 'Comments and requested changes are subject to technical, programme, scope, and commercial review. Submission of a comment does not automatically authorize additional work or expenditure.',
+    };
+  }
+}
+
+export class AdoptionTrackingEngine {
+  /**
+   * Evaluates superseded release risks when a new design revision is issued.
+   */
+  static evaluateSupersededAlerts(
+    currentRelease: DesignReleaseRecord,
+    newVersionNumber: number
+  ): {
+    supersededRecipientsCount: number;
+    productionStartedAlerts: string[];
+    requiresImpactConfirmation: boolean;
+  } {
+    const alerts: string[] = [];
+    let count = 0;
+
+    for (const recipient of currentRelease.recipients) {
+      count++;
+      if (recipient.adoptionStatus === 'production_started' || recipient.productionStarted) {
+        alerts.push(
+          `CRITICAL_ADOPTION_ALERT: Supplier/Department "${recipient.organization} (${recipient.recipientName})" has already started production on ${currentRelease.revisionCode} (v${currentRelease.versionNumber}). Immediate work pause / impact assessment required before deploying v${newVersionNumber}.`
+        );
+      }
+    }
+
+    return {
+      supersededRecipientsCount: count,
+      productionStartedAlerts: alerts,
+      requiresImpactConfirmation: alerts.length > 0,
+    };
+  }
+}
+
+export class ClientPortalSanitizer {
+  /**
+   * Strictly filters out internal-only comments, confidential pricing, and unpublished drafts for client consumption.
+   */
+  static sanitizeDesignItemForClient(item: DesignItem): Partial<DesignItem> {
+    const sanitizedPins = item.pins.map((pin) => {
+      const publicComments = pin.comments.filter((c: any) => {
+        // If visibility is specified, strictly exclude internal_only
+        if (c.visibility === 'internal_only') return false;
+        return true;
+      });
+      return {
+        ...pin,
+        comments: publicComments,
+      };
+    });
+
+    return {
+      id: item.id,
+      projectId: item.projectId,
+      title: item.title,
+      description: item.description,
+      assetType: item.assetType,
+      discipline: item.discipline,
+      currentRevisionCode: item.currentRevisionCode,
+      currentStatus: item.currentStatus,
+      clientVisibility: item.clientVisibility,
+      revisions: item.revisions.filter((r) => r.releaseStatus === 'client_review' || r.releaseStatus === 'approved_concept' || r.releaseStatus === 'approved_for_production'),
+      pins: sanitizedPins,
+      zones: item.zones,
+      locations: item.locations,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    };
+  }
+}
+

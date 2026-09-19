@@ -51,6 +51,7 @@ import { EnterprisePortfolioIntelligenceView } from './views/EnterprisePortfolio
 
 // Sprint 07 Production Rollout & Go-Live Console
 import { ProductionRolloutView } from './views/ProductionRolloutView.js';
+import { DesignCreativeModuleView } from './views/DesignCreativeModuleView.js';
 
 const AppRouter: React.FC = () => {
   const { currentPath, currentUser } = useEosContext();
@@ -77,6 +78,11 @@ const AppRouter: React.FC = () => {
     if (currentPath === '/client/results' || currentPath.startsWith('/portal/projects/')) {
       return <LayoutShell><ClientResultsRoomView /></LayoutShell>;
     }
+    if (currentPath.includes('/designs') || currentPath.includes('/design')) {
+      const match = currentPath.match(/\/projects\/([^/?#]+)/);
+      const prjId = match ? match[1] : 'f1111111-1111-4111-8111-111111111111';
+      return <LayoutShell><DesignCreativeModuleView projectId={prjId} isClientMode={true} /></LayoutShell>;
+    }
     if (currentPath === '/account') {
       return <LayoutShell><AccountView /></LayoutShell>;
     }
@@ -102,6 +108,11 @@ const AppRouter: React.FC = () => {
     }
     if (currentPath === '/projects/new') {
       return <NewProjectWizardView />;
+    }
+    if (currentPath.match(/^\/projects\/[^/]+\/designs/)) {
+      const match = currentPath.match(/^\/projects\/([^/?#]+)\/designs/);
+      const prjId = match ? match[1] : 'f1111111-1111-4111-8111-111111111111';
+      return <DesignCreativeModuleView projectId={prjId} />;
     }
     if (currentPath.startsWith('/projects/') && currentPath !== '/projects') {
       return <ProjectCockpitView />;

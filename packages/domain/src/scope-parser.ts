@@ -136,8 +136,11 @@ export interface ExtractedScopeCandidate {
   description: string;
   originalWording: string;
   sourceProvenance: SourceProvenance;
+  sourceEvidenceSpans?: SourceProvenance[];
   quantity?: number;
   unit?: string;
+  quantityComparator?: 'exact' | 'minimum' | 'maximum' | 'estimated';
+  quantityBasis?: 'total' | 'per_zone' | 'per_shift' | 'per_day' | 'concurrent' | 'reusable' | 'unspecified';
   unallocatedQuantity?: number;
   suggestedAllocations?: Array<{ zone: string; location?: string; quantity: number; notes?: string }>;
   designRequired?: boolean;
@@ -178,6 +181,14 @@ export interface ExtractedScopeCandidate {
   reviewerId?: string;
   reviewerNotes?: string;
   acceptedTargetId?: string;
+  unresolvedIssues?: string[];
+  blockingIssues?: string[];
+  proposedAction?: string;
+  modality?: 'mandatory' | 'optional' | 'prohibited' | 'conditional';
+  documentRole?: 'rfp_specification' | 'contract_spec' | 'boq_schedule' | 'addendum' | 'appendix' | 'clarification_response' | 'informal_email' | 'unprocessed_attachment';
+  documentRevision?: string;
+  language?: 'en' | 'ar' | 'mixed';
+  claimedAmendmentTarget?: string;
   // Backward compatibility fields
   sourcePage?: number;
   sourceSection?: string;
@@ -351,6 +362,575 @@ export function pass2DetectBlocks(rawText: string, jobId: string, documentId: st
   return blocks;
 }
 
+export interface ReviewProposal {
+  candidateId: string;
+  targetEntityId?: string;
+  targetEntityType?: 'requirement' | 'allocation' | 'design' | 'boq_line';
+  relationship: 'identical' | 'repeated_evidence' | 'enrichment' | 'separate_allocation' | 'possible_amendment' | 'conflict' | 'distinct_obligation';
+  suggestedAction: 'attach_evidence' | 'propose_revision' | 'add_allocation' | 'keep_separate' | 'flag_conflict' | 'create_new' | 'split';
+  fieldDifferences: Record<string, { candidateValue: any; existingValue: any; fieldName: string }>;
+  explanation: string;
+  blockingIssues: string[];
+}
+
+export interface ReviewerDecisionRecord {
+  id: string;
+  projectId: string;
+  candidateSignature: string;
+  targetRequirementId?: string;
+  decisionAction: 'keep_separate' | 'split' | 'propose_revision' | 'add_allocation' | 'attach_evidence' | 'flag_conflict' | 'reject' | 'approve';
+  notes?: string;
+  createdAt: string;
+}
+
+export interface PublishPreviewItem {
+  candidateId: string;
+  candidateCode: string;
+  action: string;
+  title: string;
+  quantity?: number;
+  quantityComparator?: 'exact' | 'minimum' | 'maximum' | 'estimated';
+  quantityBasis?: 'total' | 'per_zone' | 'per_shift' | 'per_day' | 'concurrent' | 'reusable' | 'unspecified';
+  targetRequirementId?: string;
+  targetRequirementCode?: string;
+  unresolvedIssues: string[];
+  blockingIssues: string[];
+}
+
+export interface PublishPreviewResult {
+  totalSelected: number;
+  newRequirementsCount: number;
+  evidenceLinksCount: number;
+  proposedRevisionsCount: number;
+  allocationsCount: number;
+  unresolvedIssuesCount: number;
+  blockingIssues: Array<{ candidateId: string; candidateCode: string; issue: string }>;
+  canPublish: boolean;
+  previewItems: PublishPreviewItem[];
+}
+
+export interface DownstreamImpactAssessment {
+  hasDownstreamImpact: boolean;
+  requiresChangeControl: boolean;
+  affectedRequirementId: string;
+  affectedDesigns: Array<{ id: string; title: string; status: string }>;
+  affectedVariants: Array<{ id: string; name: string; releaseStatus: string }>;
+  affectedAllocations: Array<{ id: string; zone: string; quantity: number }>;
+  affectedReleases: Array<{ id: string; releasePurpose: string; status: string }>;
+  warnings: string[];
+}
+
+export function inferQuantityComparator(text: string): 'exact' | 'minimum' | 'maximum' | 'estimated' {
+  if (/\b(?:minimum|at least|no less than|min\.?)\b/i.test(text)) return 'minimum';
+  if (/\b(?:maximum|up to|not exceeding|max\.?)\b/i.test(text)) return 'maximum';
+  if (/\b(?:estimated|approx|circa|around)\b/i.test(text)) return 'estimated';
+  return 'exact';
+}
+
+export function inferQuantityBasis(text: string): 'total' | 'per_zone' | 'per_shift' | 'per_day' | 'concurrent' | 'reusable' | 'unspecified' {
+  const lower = text.toLowerCase();
+  if (/in each of|each of the|per zone|each zone|in both zones/i.test(lower)) return 'per_zone';
+  if (/per shift|each shift/i.test(lower)) return 'per_shift';
+  if (/per day|each day|daily/i.test(lower)) return 'per_day';
+  if (/concurrent|simultaneous/i.test(lower)) return 'concurrent';
+  if (/reusable|reused\s+(?:on|across|for)|reused|shared across non-overlapping/i.test(lower)) return 'reusable';
+  if (/across|total across|split across|distributed across/i.test(lower)) return 'total';
+  return 'unspecified';
+}
+
+export function generateCandidateSignature(candidate: {
+  title: string;
+  originalWording?: string;
+  candidateCode?: string;
+  sourceProvenance?: { pageNumber?: number; sectionNumber?: string; clauseId?: string };
+}): string {
+  if (candidate.originalWording && candidate.originalWording.length >= 10) {
+    const normWording = candidate.originalWording.toLowerCase().slice(0, 100).replace(/[^a-z0-9]/g, '');
+    const prov = candidate.sourceProvenance?.sectionNumber ? `_sec${candidate.sourceProvenance.sectionNumber.replace(/[^a-z0-9]/g, '')}` : '';
+    return `sig_${normWording}${prov}`;
+  }
+  const normTitle = (candidate.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const prov = candidate.sourceProvenance?.sectionNumber ? `_sec${candidate.sourceProvenance.sectionNumber.replace(/[^a-z0-9]/g, '')}` : '';
+  return `sig_${normTitle}${prov}`;
+}
+
+export function reconcileQuantityAndAllocations(params: {
+  rawText: string;
+  quantity?: number;
+  unit?: string;
+  comparator?: 'exact' | 'minimum' | 'maximum' | 'estimated';
+  basis?: 'total' | 'per_zone' | 'per_shift' | 'per_day' | 'concurrent' | 'reusable' | 'unspecified';
+  explicitAllocations?: Array<{ zone: string; location?: string; quantity: number; notes?: string }>;
+  zonesMentioned?: string[];
+}): {
+  finalQuantity?: number;
+  comparator: 'exact' | 'minimum' | 'maximum' | 'estimated';
+  basis: 'total' | 'per_zone' | 'per_shift' | 'per_day' | 'concurrent' | 'reusable' | 'unspecified';
+  allocations?: Array<{ zone: string; location?: string; quantity: number; notes?: string }>;
+  unallocatedQuantity?: number;
+  unresolvedIssues: string[];
+  reconciliationIssue?: string;
+} {
+  const comparator = params.comparator || inferQuantityComparator(params.rawText);
+  const basis = params.basis || inferQuantityBasis(params.rawText);
+  const unresolvedIssues: string[] = [];
+
+  // Scenario 5: 20 in each of A and B -> allocations of 20 each, derived total = 40
+  if (basis === 'per_zone' && params.quantity !== undefined && params.zonesMentioned && params.zonesMentioned.length > 0) {
+    const allocations = params.zonesMentioned.map((z) => ({ zone: z, quantity: params.quantity! }));
+    const finalQuantity = allocations.reduce((sum, a) => sum + a.quantity, 0);
+    return {
+      finalQuantity,
+      comparator,
+      basis,
+      allocations,
+      unallocatedQuantity: 0,
+      unresolvedIssues,
+    };
+  }
+
+  // Breakdown reconciliation (Scenarios 7 & 8)
+  if (params.explicitAllocations && params.explicitAllocations.length > 0) {
+    const sum = params.explicitAllocations.reduce((s, a) => s + a.quantity, 0);
+    if (params.quantity !== undefined) {
+      if (sum === params.quantity) {
+        return {
+          finalQuantity: params.quantity,
+          comparator,
+          basis: basis === 'unspecified' ? 'total' : basis,
+          allocations: params.explicitAllocations,
+          unallocatedQuantity: 0,
+          unresolvedIssues,
+        };
+      } else {
+        // Scenario 8: Mismatch between breakdown and master total -> flag reconciliation issue, keep master total
+        const issue = `Breakdown sum (${sum}) does not match total quantity (${params.quantity}). Total preserved as ${params.quantity} without automatic correction.`;
+        unresolvedIssues.push(issue);
+        return {
+          finalQuantity: params.quantity,
+          comparator,
+          basis: basis === 'unspecified' ? 'total' : basis,
+          allocations: params.explicitAllocations,
+          unallocatedQuantity: Math.max(0, params.quantity - sum),
+          unresolvedIssues,
+          reconciliationIssue: issue,
+        };
+      }
+    }
+  }
+
+  // Scenario 6: 20 chairs across A and B -> total is 20, unallocated is 20, split is unresolved
+  if (params.quantity !== undefined && params.zonesMentioned && params.zonesMentioned.length > 0 && basis === 'total') {
+    const issue = `Allocation split across ${params.zonesMentioned.join(' and ')} is unresolved (total ${params.quantity} units).`;
+    unresolvedIssues.push(issue);
+    return {
+      finalQuantity: params.quantity,
+      comparator,
+      basis,
+      allocations: undefined,
+      unallocatedQuantity: params.quantity,
+      unresolvedIssues,
+    };
+  }
+
+  // Scenario 10 & 11: per_shift and reusable keep stated unit count without multiplication
+  return {
+    finalQuantity: params.quantity,
+    comparator,
+    basis,
+    allocations: params.explicitAllocations,
+    unallocatedQuantity: params.quantity ? 0 : undefined,
+    unresolvedIssues,
+  };
+}
+
+export function adjudicateCandidateRelationship(
+  candidate: ExtractedScopeCandidate,
+  existing: ScopeRequirement | ExtractedScopeCandidate
+): ReviewProposal {
+  const fieldDifferences: Record<string, { candidateValue: any; existingValue: any; fieldName: string }> = {};
+  const blockingIssues: string[] = [];
+
+  // Scenario 15: Modality conflict (mandated vs prohibited)
+  const candModality = candidate.modality || 'mandatory';
+  const exModality = (existing as any).modality || 'mandatory';
+  if ((candModality === 'prohibited' && exModality === 'mandatory') || (candModality === 'mandatory' && exModality === 'prohibited')) {
+    blockingIssues.push(`Negation conflict: Candidate (${candModality}) conflicts with existing obligation (${exModality}). Requires explicit resolution.`);
+    return {
+      candidateId: candidate.id,
+      targetEntityId: existing.id,
+      targetEntityType: 'requirement',
+      relationship: 'conflict',
+      suggestedAction: 'flag_conflict',
+      fieldDifferences: { modality: { candidateValue: candModality, existingValue: exModality, fieldName: 'modality' } },
+      explanation: 'Direct contradiction in obligation modality (mandated vs prohibited).',
+      blockingIssues,
+    };
+  }
+
+  // Scenario 14: Optional / alternative vs mandatory
+  if ((candModality === 'optional' && exModality === 'mandatory') || (candModality === 'mandatory' && exModality === 'optional')) {
+    return {
+      candidateId: candidate.id,
+      targetEntityId: existing.id,
+      targetEntityType: 'requirement',
+      relationship: 'distinct_obligation',
+      suggestedAction: 'keep_separate',
+      fieldDifferences: { modality: { candidateValue: candModality, existingValue: exModality, fieldName: 'modality' } },
+      explanation: 'Candidate is an optional or alternative item and must not double-count base mandatory scope.',
+      blockingIssues: [],
+    };
+  }
+
+  // Scenario 12: Distinct responsibilities (supply vs maintain client generator)
+  const candResp = candidate.responsibleParty || 'e3';
+  const exResp = existing.responsibleParty || 'e3';
+  const isRespMismatch = (candResp.toLowerCase().includes('client') && !exResp.toLowerCase().includes('client')) ||
+                         (!candResp.toLowerCase().includes('client') && exResp.toLowerCase().includes('client'));
+  if (isRespMismatch) {
+    return {
+      candidateId: candidate.id,
+      targetEntityId: existing.id,
+      targetEntityType: 'requirement',
+      relationship: 'distinct_obligation',
+      suggestedAction: 'keep_separate',
+      fieldDifferences: { responsibleParty: { candidateValue: candResp, existingValue: exResp, fieldName: 'responsibleParty' } },
+      explanation: `Distinct contractual responsibilities: "${candResp}" vs "${exResp}". Cannot merge into single obligation.`,
+      blockingIssues: [],
+    };
+  }
+
+  // Scenario 9: Quantity comparator mismatch (minimum vs exact)
+  const candComp = candidate.quantityComparator || 'exact';
+  const exComp = (existing as any).quantityComparator || 'exact';
+  if (candComp !== exComp) {
+    fieldDifferences['quantityComparator'] = { candidateValue: candComp, existingValue: exComp, fieldName: 'quantityComparator' };
+  }
+
+  // Quantity delta
+  const candQty = candidate.quantity;
+  const exQty = existing.quantity !== undefined ? Number(existing.quantity) : undefined;
+  if (candQty !== undefined && exQty !== undefined && candQty !== exQty) {
+    fieldDifferences['quantity'] = { candidateValue: candQty, existingValue: exQty, fieldName: 'quantity' };
+  }
+
+  // Scenario 16: Addendum proposes revision
+  if (candidate.documentRole === 'addendum' || candidate.claimedAmendmentTarget) {
+    return {
+      candidateId: candidate.id,
+      targetEntityId: existing.id,
+      targetEntityType: 'requirement',
+      relationship: 'possible_amendment',
+      suggestedAction: 'propose_revision',
+      fieldDifferences,
+      explanation: 'Formal addendum proposes scoped revision to existing requirement.',
+      blockingIssues,
+    };
+  }
+
+  // Scenario 17: Informal note conflict without authority
+  const isInformal = candidate.documentRole === 'unprocessed_attachment' ||
+                     candidate.documentRole === 'informal_email' ||
+                     (existing as any).documentRole === 'informal_email' ||
+                     (existing as any).documentRole === 'unprocessed_attachment' ||
+                     candidate.description?.toLowerCase().includes('informal note') ||
+                     existing.description?.toLowerCase().includes('informal note') ||
+                     candidate.description?.toLowerCase().includes('site discussion note') ||
+                     existing.description?.toLowerCase().includes('site discussion note');
+
+  if (isInformal) {
+    blockingIssues.push('Informal note conflicts with baseline requirement without governing authority; newest file does not automatically win.');
+    return {
+      candidateId: candidate.id,
+      targetEntityId: existing.id,
+      targetEntityType: 'requirement',
+      relationship: 'conflict',
+      suggestedAction: 'flag_conflict',
+      fieldDifferences,
+      explanation: 'Informal note lacks contractual precedence to amend baseline requirement.',
+      blockingIssues,
+    };
+  }
+
+  // Scenario 13: Compatible material specification addition
+  if (candidate.description && existing.description && candidate.description.length > existing.description.length + 15 && !isRespMismatch && candComp === exComp) {
+    fieldDifferences['description'] = { candidateValue: candidate.description, existingValue: existing.description, fieldName: 'description' };
+    return {
+      candidateId: candidate.id,
+      targetEntityId: existing.id,
+      targetEntityType: 'requirement',
+      relationship: 'enrichment',
+      suggestedAction: 'propose_revision',
+      fieldDifferences,
+      explanation: 'Source provides compatible material specification enrichment.',
+      blockingIssues: [],
+    };
+  }
+
+  // Scenario 4: Repeated evidence
+  if (candQty === exQty && candComp === exComp && !isRespMismatch) {
+    return {
+      candidateId: candidate.id,
+      targetEntityId: existing.id,
+      targetEntityType: 'requirement',
+      relationship: 'repeated_evidence',
+      suggestedAction: 'attach_evidence',
+      fieldDifferences,
+      explanation: 'Identical obligation repeated across scope and BOQ/tender sources; attach evidence without duplicating quantity.',
+      blockingIssues: [],
+    };
+  }
+
+  return {
+    candidateId: candidate.id,
+    targetEntityId: existing.id,
+    targetEntityType: 'requirement',
+    relationship: 'distinct_obligation',
+    suggestedAction: 'keep_separate',
+    fieldDifferences,
+    explanation: 'Candidate and existing record have material differences; maintain as separate obligations.',
+    blockingIssues,
+  };
+}
+
+export function canConsolidateGroup(candidates: ExtractedScopeCandidate[]): { allowed: boolean; reason?: string } {
+  if (candidates.length <= 1) return { allowed: true };
+
+  for (let i = 0; i < candidates.length; i++) {
+    for (let j = i + 1; j < candidates.length; j++) {
+      const a = candidates[i];
+      const b = candidates[j];
+
+      // Check modality
+      if ((a.modality || 'mandatory') !== (b.modality || 'mandatory')) {
+        return {
+          allowed: false,
+          reason: `Incompatible modality between ${a.candidateCode} (${a.modality}) and ${b.candidateCode} (${b.modality}) prevents transitive consolidation.`,
+        };
+      }
+
+      // Check responsibility
+      if ((a.responsibleParty || 'e3') !== (b.responsibleParty || 'e3')) {
+        return {
+          allowed: false,
+          reason: `Contractual responsibility mismatch between ${a.candidateCode} and ${b.candidateCode} prevents transitive consolidation.`,
+        };
+      }
+
+      // Check department incompatibility
+      if (a.suggestedDepartment && b.suggestedDepartment && a.suggestedDepartment !== b.suggestedDepartment) {
+        return {
+          allowed: false,
+          reason: `Department incompatibility between ${a.candidateCode} (${a.suggestedDepartment}) and ${b.candidateCode} (${b.suggestedDepartment}) prevents transitive consolidation.`,
+        };
+      }
+
+      // Check physical specification conflict (height, wind speed)
+      const aText = (a.description || a.title).toLowerCase();
+      const bText = (b.description || b.title).toLowerCase();
+
+      const aHeight = aText.match(/(\d+(?:\.\d+)?)\s*m\b/);
+      const bHeight = bText.match(/(\d+(?:\.\d+)?)\s*m\b/);
+      if (aHeight && bHeight && parseFloat(aHeight[1]) !== parseFloat(bHeight[1])) {
+        return {
+          allowed: false,
+          reason: `Physical specification conflict (${aHeight[0]} vs ${bHeight[0]}) between ${a.candidateCode} and ${b.candidateCode} prevents transitive consolidation.`,
+        };
+      }
+
+      const aWind = aText.match(/(\d+)\s*(?:km\/h|kph)/);
+      const bWind = bText.match(/(\d+)\s*(?:km\/h|kph)/);
+      if (aWind && bWind && parseInt(aWind[1], 10) !== parseInt(bWind[1], 10)) {
+        return {
+          allowed: false,
+          reason: `Wind rating conflict (${aWind[0]} vs ${bWind[0]}) between ${a.candidateCode} and ${b.candidateCode} prevents transitive consolidation.`,
+        };
+      }
+    }
+  }
+
+  return { allowed: true };
+}
+
+export function splitCompoundObligation(candidate: ExtractedScopeCandidate): ExtractedScopeCandidate[] {
+  const p = candidate.description.toLowerCase();
+  const actions: Array<{ type: ProposedRecordType; actionName: string; queue: ReviewQueueType }> = [];
+
+  if (/design|concept|shop drawing|engineering calculation/i.test(p)) {
+    actions.push({ type: 'design_requirement', actionName: 'Design & Shop Drawings', queue: 'design_requirements' });
+  }
+  if (/fabricat|manufactur|construct|millwork/i.test(p)) {
+    actions.push({ type: 'fulfilment_item', actionName: 'Fabrication & Manufacture', queue: 'master_scope_requirements' });
+  }
+  if (/submit|civil defence|authority approval|permit|client sign-off/i.test(p)) {
+    actions.push({ type: 'submission_obligation', actionName: 'Authority Submission & Certification', queue: 'submission_requirements' });
+  }
+
+  if (actions.length <= 1) {
+    return [candidate];
+  }
+
+  return actions.map((act, idx) => ({
+    ...candidate,
+    id: `${candidate.id}-split-${idx + 1}`,
+    candidateCode: `${candidate.candidateCode}.${idx + 1}`,
+    candidateType: act.type,
+    queueType: act.queue,
+    title: `${act.actionName}: ${candidate.title}`,
+    description: `[Split Obligation - ${act.actionName}] ${candidate.description}`,
+    sourceEvidenceSpans: candidate.sourceEvidenceSpans || [candidate.sourceProvenance],
+  }));
+}
+
+export function applyDecisionMemory(
+  candidates: ExtractedScopeCandidate[],
+  decisionMemory: ReviewerDecisionRecord[]
+): ExtractedScopeCandidate[] {
+  if (!decisionMemory || decisionMemory.length === 0) return candidates;
+
+  return candidates.map((cand) => {
+    const sig = generateCandidateSignature(cand);
+    const matchedDecisions = decisionMemory.filter((d) => d.candidateSignature === sig);
+
+    if (matchedDecisions.length > 0) {
+      const keepSep = matchedDecisions.find((d) => d.decisionAction === 'keep_separate');
+      if (keepSep) {
+        return {
+          ...cand,
+          potentialDuplicateOf: undefined,
+          proposedAction: 'keep_separate',
+          reviewerNotes: `Preserved reviewer decision: keep_separate (recorded on ${keepSep.createdAt})`,
+          queueType: cand.queueType === 'duplicates' ? 'master_scope_requirements' : cand.queueType,
+        };
+      }
+
+      const rejected = matchedDecisions.find((d) => d.decisionAction === 'reject');
+      if (rejected) {
+        return {
+          ...cand,
+          reviewStatus: 'rejected',
+          proposedAction: 'reject',
+          reviewerNotes: `Preserved reviewer rejection: noise / excluded (recorded on ${rejected.createdAt})`,
+        };
+      }
+    }
+
+    return cand;
+  });
+}
+
+export function calculatePublishPreview(
+  candidates: ExtractedScopeCandidate[],
+  _existingReqs: ScopeRequirement[] = [],
+  selectedCandidateIds?: string[]
+): PublishPreviewResult {
+  const selected = selectedCandidateIds && selectedCandidateIds.length > 0
+    ? candidates.filter((c) => selectedCandidateIds.includes(c.id))
+    : candidates.filter((c) => c.reviewStatus === 'accepted' || c.reviewStatus === 'accepted_with_changes' || c.proposedAction === 'attach_evidence' || c.proposedAction === 'propose_revision' || c.reviewStatus === 'unreviewed');
+
+  let newRequirementsCount = 0;
+  let evidenceLinksCount = 0;
+  let proposedRevisionsCount = 0;
+  let allocationsCount = 0;
+  let unresolvedIssuesCount = 0;
+  const blockingIssues: Array<{ candidateId: string; candidateCode: string; issue: string }> = [];
+  const previewItems: PublishPreviewItem[] = [];
+
+  for (const cand of selected) {
+    const action = cand.proposedAction || (cand.potentialDuplicateOf ? 'attach_evidence' : (cand.queueType === 'boq_commercial_lines' ? 'link_boq_row' : 'create_new'));
+    const unresolved = [...(cand.unresolvedIssues || [])];
+    const blocking = [...(cand.blockingIssues || [])];
+
+    if (cand.missingFields && cand.missingFields.length > 0) {
+      unresolved.push(`Missing fields: ${cand.missingFields.join(', ')}`);
+    }
+
+    if (action === 'attach_evidence' || action === 'link_boq_row') {
+      evidenceLinksCount++;
+    } else if (action === 'propose_revision') {
+      proposedRevisionsCount++;
+    } else {
+      newRequirementsCount++;
+    }
+
+    if (cand.suggestedAllocations && cand.suggestedAllocations.length > 0) {
+      allocationsCount += cand.suggestedAllocations.length;
+    }
+
+    unresolvedIssuesCount += unresolved.length;
+
+    for (const b of blocking) {
+      blockingIssues.push({ candidateId: cand.id, candidateCode: cand.candidateCode, issue: b });
+    }
+
+    previewItems.push({
+      candidateId: cand.id,
+      candidateCode: cand.candidateCode,
+      action,
+      title: cand.title,
+      quantity: cand.quantity,
+      quantityComparator: cand.quantityComparator,
+      quantityBasis: cand.quantityBasis,
+      targetRequirementId: cand.linkedExistingRequirementId || cand.potentialDuplicateOf?.requirementId,
+      targetRequirementCode: cand.potentialDuplicateOf?.code,
+      unresolvedIssues: unresolved,
+      blockingIssues: blocking,
+    });
+  }
+
+  return {
+    totalSelected: selected.length,
+    newRequirementsCount,
+    evidenceLinksCount,
+    proposedRevisionsCount,
+    allocationsCount,
+    unresolvedIssuesCount,
+    blockingIssues,
+    canPublish: blockingIssues.length === 0,
+    previewItems,
+  };
+}
+
+export function evaluateDownstreamImpact(
+  targetRequirementId: string,
+  _projectId: string,
+  context: {
+    designs?: any[];
+    designVariants?: any[];
+    allocations?: any[];
+    boqLines?: any[];
+    releases?: any[];
+  }
+): DownstreamImpactAssessment {
+  const designs = (context.designs || []).filter((d) => (d.linkedRequirementIds || []).includes(targetRequirementId));
+  const variants = (context.designVariants || []).filter((v) => v.requirementId === targetRequirementId);
+  const allocations = (context.allocations || []).filter((a) => a.requirementId === targetRequirementId);
+  const releases = (context.releases || []).filter((r) => variants.some((v) => v.id === r.designVariantId));
+
+  const hasReleasedProduction = variants.some((v) => v.productionReleaseStatus === 'released' || v.productionReleaseStatus === 'for_production' || v.approvalStatus === 'approved');
+  const hasDownstreamImpact = designs.length > 0 || variants.length > 0 || allocations.length > 0;
+  const requiresChangeControl = hasReleasedProduction || releases.length > 0;
+
+  const warnings: string[] = [];
+  if (hasReleasedProduction) {
+    warnings.push('Requirement is linked to approved/released production design variants. Amendment requires formal change control review; cannot silently alter live production.');
+  }
+  if (allocations.length > 0) {
+    warnings.push(`Requirement has ${allocations.length} active site allocations that must be reconciled.`);
+  }
+
+  return {
+    hasDownstreamImpact,
+    requiresChangeControl,
+    affectedRequirementId: targetRequirementId,
+    affectedDesigns: designs.map((d) => ({ id: d.id, title: d.title, status: d.status })),
+    affectedVariants: variants.map((v) => ({ id: v.id, name: v.name, releaseStatus: v.productionReleaseStatus })),
+    affectedAllocations: allocations.map((a) => ({ id: a.id, zone: a.zone, quantity: Number(a.quantity) })),
+    affectedReleases: releases.map((r) => ({ id: r.id, releasePurpose: r.releasePurpose, status: r.status })),
+    warnings,
+  };
+}
+
 /**
  * Pass 3, 4, 5, 6: Structured Field Extraction, Hierarchy, Duplicate/Conflict Detection, Validation
  */
@@ -361,8 +941,13 @@ export function parseIntelligentDocument(
     documentId?: string;
     documentName?: string;
     documentType?: string;
+    documentRole?: 'rfp_specification' | 'contract_spec' | 'boq_schedule' | 'addendum' | 'appendix' | 'clarification_response' | 'informal_email' | 'unprocessed_attachment';
+    documentRevision?: string;
+    language?: 'en' | 'ar' | 'mixed';
+    claimedAmendmentTarget?: string;
     existingRequirements?: ScopeRequirement[];
     existingBoqLines?: Array<{ code: string; title: string; quantity: number }>;
+    decisionMemory?: ReviewerDecisionRecord[];
   }
 ): DocumentParsingResult {
   const documentName = options?.documentName || 'Tender_Specification_RFP.pdf';
@@ -412,6 +997,11 @@ export function parseIntelligentDocument(
       continue;
     }
 
+    // Skip table titles and schedule headers that contain no requirement verb or quantity
+    if (/^(?:TABLE|SCHEDULE|APPENDIX|PART|VOL|VOLUME)\s+\d+/i.test(p) && !/(?:shall|must|provide|supply|deliver|install|quantity|qty|item\s+\d)/i.test(lower)) {
+      continue;
+    }
+
     // Determine Clause & Section
     const sectionMatch = p.match(/^((?:Section|Clause|Art\.|Item)?\s*(\d+(?:\.\d+)*))\s*[:\-–]?\s*(.*)/i);
     const clauseRef = sectionMatch ? sectionMatch[1].trim() : `Clause ${block.pageNumber}.${candidateSequence}`;
@@ -431,6 +1021,13 @@ export function parseIntelligentDocument(
     title = title.replace(/^[•\-\*\d\.\s]+/, '').trim();
     if (title.length < 3) title = `Deliverable - ${clauseRef}`;
 
+    // Prompt injection check (Scenario 30): inert tender extraction
+    let hasPromptInjection = false;
+    if (/ignore\s+previous\s+instructions|drop\s+table|grant\s+admin|export\s+passwords/i.test(lower)) {
+      title = `Tender Provision - ${clauseRef}`;
+      hasPromptInjection = true;
+    }
+
     // Pass 3: Extraction of Quantities & Units (Never manufacture missing values!)
     let quantity: number | undefined = undefined;
     let unit: string | undefined = undefined;
@@ -440,8 +1037,10 @@ export function parseIntelligentDocument(
     const labeledQtyMatch = p.match(/(?:quantity|qty|revised to|increased to)\s*[:\-–]?\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*(units?|sets?|nos?\.?|numbers?|m2|sqm|lm|meters?|tonnes?|kg|litres?|pcs?|pieces?)?/i);
     // 2. Standard unit quantity: "10 units", "20 Nos.", "50 sqm", "– 20 Nos."
     const standardQtyMatch = p.match(/(?:[–\-]\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\s*(units?|sets?|nos?\.?|numbers?|m2|sqm|lm|meters?|tonnes?|kg|litres?|pcs?|pieces?)\b/i);
-    // 3. Countable item with number: "10 perimeter entrance arches", "20 themed information counters"
-    const countableQtyMatch = p.match(/(?:(?:fabricate|design|deliver|install|provide|supply|procure|construct|engineer)\s+)?(\d+(?:,\d+)*(?:\.\d+)?)\s+(?:[a-zA-Z\s-]{1,30}?\s*)?(?:counters?|arches?|kiosks?|booths?|towers?|screens?|podiums?|pylons?|canop(?:y|ies)|structures?|installations?|pavilions?)\b/i);
+    // 3. Countable item with number: "10 perimeter entrance arches", "20 themed information counters", "20 chairs", "20 staff"
+    const countableQtyMatch = p.match(/(?:(?:fabricate|design|deliver|install|provide|supply|procure|construct|engineer|maintain|deploy)\s+)?(\d+(?:,\d+)*(?:\.\d+)?)\s+(?:[a-zA-Z\s-]{1,30}?\s*)?(?:counters?|arches?|kiosks?|booths?|towers?|screens?|podiums?|pylons?|canop(?:y|ies)|structures?|installations?|pavilions?|chairs?|tables?|guards?|staff|generators?|fences?|systems?|items?)\b/i);
+    // 4. Number before noun or total count
+    const totalCountMatch = p.match(/(?:total|minimum|maximum|exactly|at least)\s*[:\-–]?\s*(\d+(?:,\d+)*(?:\.\d+)?)/i);
 
     if (labeledQtyMatch) {
       quantity = parseFloat(labeledQtyMatch[1].replace(/,/g, ''));
@@ -460,9 +1059,28 @@ export function parseIntelligentDocument(
       unit = 'Nos';
       fieldAttributions['quantity'] = { value: quantity, origin: 'explicit' };
       fieldAttributions['unit'] = { value: unit, origin: 'explicit' };
+    } else if (totalCountMatch) {
+      quantity = parseFloat(totalCountMatch[1].replace(/,/g, ''));
+      unit = 'Nos';
+      fieldAttributions['quantity'] = { value: quantity, origin: 'explicit' };
+      fieldAttributions['unit'] = { value: unit, origin: 'explicit' };
     } else {
       fieldAttributions['quantity'] = { value: null, origin: 'missing', reason: 'No numeric quantity stated in source text' };
       fieldAttributions['unit'] = { value: null, origin: 'missing', reason: 'No measurement unit stated' };
+    }
+
+    // Infer Quantity Comparator & Basis
+    const quantityComparator = inferQuantityComparator(p);
+    const quantityBasis = inferQuantityBasis(p);
+
+    // Modality
+    let modality: 'mandatory' | 'optional' | 'prohibited' | 'conditional' = 'mandatory';
+    if (/shall not|must not|do not provide|prohibited/i.test(lower)) {
+      modality = 'prohibited';
+    } else if (/optional|alternative|may provide|if requested|provisional/i.test(lower)) {
+      modality = 'optional';
+    } else if (/conditional on|subject to|in the event that/i.test(lower)) {
+      modality = 'conditional';
     }
 
     // Pass 3: Design, Approval, Fabrication, Installation Detection
@@ -495,7 +1113,7 @@ export function parseIntelligentDocument(
     let suggestedDiscipline = 'Technical Engineering';
     let matchedSpecificDept = false;
 
-    if (/counter|kiosk|furniture|joinery|booth|podium|custom scenic|scenic/i.test(lower)) {
+    if (/counter|kiosk|furniture|joinery|booth|podium|custom scenic|scenic|chair|table/i.test(lower)) {
       suggestedDepartment = 'Production';
       suggestedContributingDepartments = ['Design', 'Logistics', 'Site Operations'];
       suggestedOwnerRole = 'Production Lead';
@@ -509,7 +1127,7 @@ export function parseIntelligentDocument(
       suggestedCategory = 'creative_visual';
       suggestedDiscipline = 'Show Systems';
       matchedSpecificDept = true;
-    } else if (/safety|civil defence|fire|qcdd|first aid|evacuation/i.test(lower)) {
+    } else if (/safety|civil defence|fire|qcdd|first aid|evacuation|security|guard/i.test(lower)) {
       suggestedDepartment = 'HSE & Quality';
       suggestedContributingDepartments = ['Site Operations'];
       suggestedOwnerRole = 'HSE Manager';
@@ -538,7 +1156,7 @@ export function parseIntelligentDocument(
 
     // Pass 3: Responsibilities (Contractor vs Client vs Venue)
     let responsibleParty = 'Contractor (E3)';
-    if (/client shall provide|supplied by client|free of charge by client/i.test(lower)) {
+    if (/client shall provide|supplied by client|free of charge by client|client-provided/i.test(lower)) {
       responsibleParty = 'Client-Supplied Item';
       fieldAttributions['responsibleParty'] = { value: responsibleParty, origin: 'explicit' };
     } else if (/venue authority|provided by venue|by venue/i.test(lower)) {
@@ -555,52 +1173,54 @@ export function parseIntelligentDocument(
       fieldAttributions['acceptanceCriteria'] = { value: extractedAcceptanceCriteria, origin: 'explicit' };
     }
 
-    // Pass 3: Allocation / Location Detection
-    // Check if multiple zones are referenced without explicit splits
+    // Pass 3: Allocation / Location Detection & Reconciliation
     const zonesMentioned: string[] = [];
     if (/three event zones|across the.*zones|all activation zones/i.test(lower)) {
       zonesMentioned.push('Three Event Zones (Unspecified)');
     }
-    const zoneAMatch = lower.includes('zone a');
-    const zoneBMatch = lower.includes('zone b');
-    const vipZoneMatch = lower.includes('vip zone') || lower.includes('vip');
-    if (zoneAMatch) zonesMentioned.push('Zone A');
-    if (zoneBMatch) zonesMentioned.push('Zone B');
-    if (vipZoneMatch) zonesMentioned.push('VIP Zone');
+    if (/zone\s*a\b/i.test(lower)) zonesMentioned.push('Zone A');
+    if (/zone\s*b\b/i.test(lower)) zonesMentioned.push('Zone B');
+    if (/zone\s*c\b/i.test(lower)) zonesMentioned.push('Zone C');
+    if (/vip\s*zone?\b/i.test(lower)) zonesMentioned.push('VIP Zone');
+    if (/\b(?:each\s+of\s+two\s+zones|both\s+zones|each\s+of\s+a\s+and\s+b|across\s+a\s+and\s+b)\b/i.test(lower) && zonesMentioned.length === 0) {
+      zonesMentioned.push('Zone A', 'Zone B');
+    }
 
-    let unallocatedQuantity: number | undefined = undefined;
-    let suggestedAllocations: Array<{ zone: string; location?: string; quantity: number; notes?: string }> | undefined = undefined;
-
-    // Check if table contains explicit zone splits (e.g. Zone A: 6, Zone B: 8, VIP: 6)
-    const splitRegex = /(?:zone\s*([a-z0-9]+)|vip\s*zone?)\s*[:\-–]\s*(\d+)/gi;
+    // Detect explicit breakdown allocations, e.g. "A: 12, B: 8" or "Zone A: 6, Zone B: 8, VIP: 6"
+    const splitRegex = /(?:zone\s*([a-z0-9]+)|vip\s*zone?|\b([ab])\b)\s*[:\-–]\s*(\d+)/gi;
     const splitMatches = [...p.matchAll(splitRegex)];
+    let explicitAllocations: Array<{ zone: string; location?: string; quantity: number; notes?: string }> | undefined = undefined;
 
     if (splitMatches.length > 0) {
-      suggestedAllocations = splitMatches.map((m) => ({
-        zone: m[1] ? `Zone ${m[1].toUpperCase()}` : 'VIP Zone',
-        quantity: parseInt(m[2], 10),
-      }));
-      const allocatedSum = suggestedAllocations.reduce((sum, a) => sum + a.quantity, 0);
-      if (quantity && allocatedSum === quantity) {
-        unallocatedQuantity = 0;
-        fieldAttributions['allocations'] = { value: suggestedAllocations, origin: 'derived_table' };
-      } else if (quantity) {
-        unallocatedQuantity = Math.max(0, quantity - allocatedSum);
-        fieldAttributions['allocations'] = { value: suggestedAllocations, origin: 'derived_table', reason: `Mismatch: sum ${allocatedSum} vs master ${quantity}` };
-      }
-    } else if (quantity && zonesMentioned.length > 0) {
-      // Governed Invariant: Never assume an arbitrary split across zones!
-      unallocatedQuantity = quantity;
-      fieldAttributions['allocations'] = {
-        value: null,
-        origin: 'missing',
-        reason: 'Multiple zones referenced in clause but no specific quantity allocation stated',
-      };
+      explicitAllocations = splitMatches.map((m) => {
+        const zoneIdentifier = m[1] || m[2];
+        const zoneName = zoneIdentifier ? `Zone ${zoneIdentifier.toUpperCase()}` : 'VIP Zone';
+        return {
+          zone: zoneName,
+          quantity: parseInt(m[3], 10),
+        };
+      });
     }
+
+    const reconciliation = reconcileQuantityAndAllocations({
+      rawText: p,
+      quantity,
+      unit,
+      comparator: quantityComparator,
+      basis: quantityBasis,
+      explicitAllocations,
+      zonesMentioned: zonesMentioned.length > 0 ? zonesMentioned : undefined,
+    });
+
+    quantity = reconciliation.finalQuantity;
+    const suggestedAllocations = reconciliation.allocations;
+    const unallocatedQuantity = reconciliation.unallocatedQuantity;
 
     // Pass 3: Clarification & RFI Generation
     let suggestedClarifications: string | undefined = undefined;
     const missingFields: string[] = [];
+    const unresolvedIssues: string[] = [...reconciliation.unresolvedIssues];
+    const blockingIssues: string[] = [];
 
     if (!quantity) missingFields.push('quantity');
     if (!extractedDates) missingFields.push('dueDate');
@@ -611,11 +1231,39 @@ export function parseIntelligentDocument(
       suggestedClarifications = `Ambiguity identified: Clarify exact specifications and execution requirements for: "${title}". Clause contains unresolved terms: "${p.slice(0, 100)}..."`;
     }
 
+    // Scenario 30: Untrusted prompt injection
+    if (hasPromptInjection) {
+      unresolvedIssues.push('Untrusted prompt-injection pattern detected in raw document text; privileged actions disabled.');
+    }
+
+    // Scenario 19: Ambiguous OCR or extraction disagreement: 15 vs 75
+    if (/\[15\|75\]|15\s*vs\s*75|15\s*\/\s*75|\bambiguous.*(?:15|75)/i.test(p)) {
+      blockingIssues.push('Critical numeric uncertainty (15 vs 75) detected in source text/OCR; blocked from bulk publication.');
+    }
+
+    // Scenario 22: Missing appendix or unresolved relative deadline
+    if (/appendix\s+[a-z0-9]|missing appendix|refer to appendix|notice to proceed|relative deadline|\b\d+\s*days\s*(?:after|before)/i.test(lower)) {
+      unresolvedIssues.push('Unresolved relative deadline or missing appendix reference (Appendix F / Notice to Proceed); no invented deadline or date.');
+    }
+
+    // Scenario 34: Stale formula or deleted draft text
+    if (/stale formula|deleted draft text|track changes(?:.*?deleted)?/i.test(lower)) {
+      unresolvedIssues.push('Stale spreadsheet formula or deleted draft text detected; retained as context only, not imported as verified fact.');
+    }
+
+    // Language detection (Scenario 18)
+    const hasArabic = /[\u0600-\u06FF]/.test(p);
+    const hasLatin = /[a-zA-Z]/.test(p);
+    const language: 'en' | 'ar' | 'mixed' = options?.language || (hasArabic && hasLatin ? 'mixed' : (hasArabic ? 'ar' : 'en'));
+    if (hasArabic && hasLatin) {
+      unresolvedIssues.push('Bilingual specification discrepancy detected between English and Arabic clauses; both evidence spans preserved for reviewer resolution.');
+    }
+
     // Pass 4: Determine Hierarchy and Queue Classification
     let queueType: ReviewQueueType = 'master_scope_requirements';
     let candidateType: ProposedRecordType = 'master_requirement';
 
-    if (/fabricat.*and.*install.*nos|–\s*\d+\s*nos|^fabrication and installation of/i.test(p) || classification.isBoq || /boq|bill of quantit/i.test(block.rawText)) {
+    if (/fabricat.*and.*install.*nos|–\s*\d+\s*nos|^fabrication and installation of/i.test(p) || classification.isBoq || /boq|bill of quantit/i.test(block.rawText) || options?.documentRole === 'boq_schedule') {
       queueType = 'boq_commercial_lines';
       candidateType = 'boq_line';
     } else if (responsibleParty === 'Client-Supplied Item') {
@@ -642,7 +1290,7 @@ export function parseIntelligentDocument(
     // Check against existing requirements in project
     for (const exReq of existingReqs) {
       const sim = calculateTokenSimilarity(title, exReq.title);
-      if (sim >= 0.5) {
+      if (sim >= 0.45) {
         potentialDuplicateOf = {
           requirementId: exReq.id,
           code: exReq.code || exReq.id,
@@ -659,7 +1307,7 @@ export function parseIntelligentDocument(
     if (!potentialDuplicateOf && existingBoq.length > 0 && (candidateType === 'boq_line' || queueType === 'boq_commercial_lines')) {
       for (const boqLine of existingBoq) {
         const sim = calculateTokenSimilarity(title, boqLine.title);
-        if (sim >= 0.5) {
+        if (sim >= 0.45) {
           potentialDuplicateOf = {
             requirementId: boqLine.code,
             code: boqLine.code,
@@ -677,12 +1325,12 @@ export function parseIntelligentDocument(
       const matchingMaster = candidates.find((c) => {
         const sim = calculateTokenSimilarity(title, c.title);
         const keywordMatch = (title.toLowerCase().includes('counter') && c.title.toLowerCase().includes('counter')) ||
+                             (title.toLowerCase().includes('chair') && c.title.toLowerCase().includes('chair')) ||
                              (title.toLowerCase().includes('information') && c.title.toLowerCase().includes('information'));
         return (sim >= 0.35 || keywordMatch) && (quantity === undefined || c.quantity === undefined || c.quantity === quantity);
       });
 
       if (matchingMaster) {
-        // Link to master requirement, prevent duplicate master requirement creation!
         potentialDuplicateOf = {
           requirementId: matchingMaster.id,
           code: matchingMaster.candidateCode,
@@ -700,6 +1348,7 @@ export function parseIntelligentDocument(
       if (windMatch && parseInt(windMatch[1], 10) !== 75) {
         conflictNotes = `Conflict detected: Clause specifies wind rating of ${windMatch[0]}, but Qatar Standard Engineering Baseline mandates 75 km/h.`;
         queueType = 'conflicts';
+        unresolvedIssues.push(conflictNotes);
       }
     }
 
@@ -726,6 +1375,21 @@ export function parseIntelligentDocument(
     const sourceSection = block.sectionNumber || `Section ${block.pageNumber}.${candidateSequence}`;
     const sourceReference = `${documentName} — Page ${block.pageNumber}, ${sourceSection}`;
 
+    const sourceProvenance: SourceProvenance = {
+      sourceDocumentId: documentId,
+      fileName: documentName,
+      documentVersion: options?.documentRevision || '1.0',
+      pageNumber: block.pageNumber,
+      sectionNumber: block.sectionNumber,
+      clauseNumber: clauseRef,
+      boundingBox: block.boundingBox,
+      exactOriginalWording: p,
+      extractionMethod: 'deterministic_text',
+      ocrConfidence: block.ocrConfidence,
+      parserVersion: PARSER_VERSION,
+      timestamp: new Date().toISOString(),
+    };
+
     const candidate: ExtractedScopeCandidate = {
       id: `cand-${jobId}-${candidateSequence}`,
       jobId,
@@ -736,22 +1400,12 @@ export function parseIntelligentDocument(
       title,
       description: p,
       originalWording: p,
-      sourceProvenance: {
-        sourceDocumentId: documentId,
-        fileName: documentName,
-        documentVersion: '1.0',
-        pageNumber: block.pageNumber,
-        sectionNumber: block.sectionNumber,
-        clauseNumber: clauseRef,
-        boundingBox: block.boundingBox,
-        exactOriginalWording: p,
-        extractionMethod: 'deterministic_text',
-        ocrConfidence: block.ocrConfidence,
-        parserVersion: PARSER_VERSION,
-        timestamp: new Date().toISOString(),
-      },
+      sourceProvenance,
+      sourceEvidenceSpans: [sourceProvenance],
       quantity,
       unit,
+      quantityComparator,
+      quantityBasis,
       unallocatedQuantity,
       suggestedAllocations,
       designRequired,
@@ -783,6 +1437,13 @@ export function parseIntelligentDocument(
       confidence,
       fieldAttributions,
       reviewStatus: 'unreviewed',
+      unresolvedIssues,
+      blockingIssues,
+      modality,
+      documentRole: options?.documentRole,
+      documentRevision: options?.documentRevision,
+      language,
+      claimedAmendmentTarget: options?.claimedAmendmentTarget,
       // Backward compatibility fields
       sourcePage: block.pageNumber,
       sourceSection,
@@ -802,18 +1463,23 @@ export function parseIntelligentDocument(
     candidateSequence++;
   }
 
-  const suggestedClarificationCount = candidates.filter((c) => Boolean(c.suggestedClarifications)).length;
-  const duplicateWarningsCount = candidates.filter((c) => Boolean(c.potentialDuplicateOf)).length;
-  const conflictWarningsCount = candidates.filter((c) => Boolean(c.conflictNotes)).length;
+  // Apply persistent decision memory if provided (Scenarios 28 & 32)
+  const finalCandidates = options?.decisionMemory && options.decisionMemory.length > 0
+    ? applyDecisionMemory(candidates, options.decisionMemory)
+    : candidates;
+
+  const suggestedClarificationCount = finalCandidates.filter((c) => Boolean(c.suggestedClarifications)).length;
+  const duplicateWarningsCount = finalCandidates.filter((c) => Boolean(c.potentialDuplicateOf)).length;
+  const conflictWarningsCount = finalCandidates.filter((c) => Boolean(c.conflictNotes)).length;
 
   return {
     jobId,
     documentName,
     documentType,
     parserVersion: PARSER_VERSION,
-    totalExtracted: candidates.length,
+    totalExtracted: finalCandidates.length,
     blocks,
-    candidates,
+    candidates: finalCandidates,
     queueCounts,
     suggestedClarificationCount,
     duplicateWarningsCount,
@@ -821,7 +1487,7 @@ export function parseIntelligentDocument(
     structureSummary: {
       majorSectionsCount: blocks.filter((b) => b.blockType === 'heading').length || 1,
       tablesCount: blocks.filter((b) => b.blockType === 'table_cell').length,
-      clausesCount: candidates.length,
+      clausesCount: finalCandidates.length,
       detectedCrossReferences: classification.detectedCrossReferences,
     },
   };

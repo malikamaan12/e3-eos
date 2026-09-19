@@ -44,6 +44,8 @@ export async function runMigrations() {
       '0008_progressive_scope_management.sql',
       '0009_scope_allocations_and_fulfilment.sql',
       '0010_intelligent_document_parser.sql',
+      '0011_design_and_creative_module.sql',
+      '0012_rfp_document_intelligence_integration.sql',
     ];
 
     await client.query(`

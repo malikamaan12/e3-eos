@@ -62,6 +62,9 @@ export const requirements = pgTable('requirements', {
   productionStatus: text('production_status').default('not_released'),
   logisticsStatus: text('logistics_status').default('pending'),
   installationStatus: text('installation_status').default('not_started'),
+  quantityComparator: text('quantity_comparator').default('exact'),
+  quantityBasis: text('quantity_basis').default('unspecified'),
+  sourceEvidenceSpans: jsonb('source_evidence_spans').default([]),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
@@ -199,6 +202,13 @@ export const extractionCandidates = pgTable('extraction_candidates', {
   reviewerNotes: text('reviewer_notes'),
   convertedRequirementId: uuid('converted_requirement_id').references(() => requirements.id),
   convertedClarificationId: text('converted_clarification_id'),
+  quantityComparator: text('quantity_comparator').default('exact'),
+  quantityBasis: text('quantity_basis').default('unspecified'),
+  sourceEvidenceSpans: jsonb('source_evidence_spans').default([]),
+  unresolvedIssues: jsonb('unresolved_issues').default([]),
+  blockingIssues: jsonb('blocking_issues').default([]),
+  proposedAction: text('proposed_action'),
+  modality: text('modality').default('mandatory'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -427,5 +437,34 @@ export const productionBatchItems = pgTable('production_batch_items', {
   destinationLocation: text('destination_location'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const parserDecisionMemory = pgTable('parser_decision_memory', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }).notNull(),
+  organisationId: uuid('organisation_id').references(() => organisations.id, { onDelete: 'cascade' }).notNull(),
+  candidateSignature: text('candidate_signature').notNull(),
+  targetRequirementId: uuid('target_requirement_id').references(() => requirements.id, { onDelete: 'set null' }),
+  decisionAction: text('decision_action').notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const scopeImportBatches = pgTable('scope_import_batches', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }).notNull(),
+  organisationId: uuid('organisation_id').references(() => organisations.id, { onDelete: 'cascade' }).notNull(),
+  jobId: text('job_id').notNull(),
+  idempotencyKey: text('idempotency_key').notNull(),
+  status: text('status').default('published').notNull(),
+  publishedRequirementIds: jsonb('published_requirement_ids').default([]).notNull(),
+  publishedAllocationIds: jsonb('published_allocation_ids').default([]).notNull(),
+  publishedEvidenceLinksCount: integer('published_evidence_links_count').default(0).notNull(),
+  publishedRevisionsCount: integer('published_revisions_count').default(0).notNull(),
+  publishedBy: text('published_by'),
+  publishedAt: timestamp('published_at', { withTimezone: true }).defaultNow().notNull(),
+  rollbackReason: text('rollback_reason'),
+  rolledBackAt: timestamp('rolled_back_at', { withTimezone: true }),
+});
+
 
 

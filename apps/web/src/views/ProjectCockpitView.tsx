@@ -6,6 +6,7 @@ import { ClarificationsView } from './ClarificationsView.js';
 import { DocumentRegisterView } from './DocumentRegisterView.js';
 import { MasterGanttView } from './MasterGanttView.js';
 import { DesignReviewView } from './DesignReviewView.js';
+import { DesignCreativeModuleView } from './DesignCreativeModuleView.js';
 import { CommercialBOQView } from './CommercialBOQView.js';
 import { ProcurementDeliveryView } from './ProcurementDeliveryView.js';
 import { ProductionDeliveryView } from './ProductionDeliveryView.js';
@@ -759,7 +760,7 @@ export const ProjectCockpitView: React.FC = () => {
       {cockpitModuleTab === 'clarifications' && <ClarificationsView projectId={projectId} />}
       {cockpitModuleTab === 'documents' && <DocumentRegisterView projectId={projectId} />}
       {cockpitModuleTab === 'timeline' && <MasterGanttView projectId={projectId} />}
-      {cockpitModuleTab === 'design' && <DesignReviewView projectId={projectId} />}
+      {cockpitModuleTab === 'design' && <DesignCreativeModuleView projectId={projectId} />}
       {cockpitModuleTab === 'commercial' && <CommercialBOQView projectId={projectId} />}
       {cockpitModuleTab === 'procurement' && <ProcurementDeliveryView projectId={projectId} />}
       {cockpitModuleTab === 'production' && <ProductionDeliveryView projectId={projectId} />}

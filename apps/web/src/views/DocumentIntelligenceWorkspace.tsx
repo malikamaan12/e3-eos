@@ -65,6 +65,16 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
   // Inline Edit State
   const [editingCandidate, setEditingCandidate] = useState<any>(null);
 
+  // Pre-Publication Preview & Controlled Commit State
+  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [allowOverride, setAllowOverride] = useState<boolean>(false);
+  const [overrideReason, setOverrideReason] = useState<string>('');
+  const [isPublishing, setIsPublishing] = useState<boolean>(false);
+  const [publishResult, setPublishResult] = useState<any>(null);
+  const [isUnpublishing, setIsUnpublishing] = useState<boolean>(false);
+
   const candidates = parsingJob?.candidates || [];
   const blocks = parsingJob?.blocks || [];
 
@@ -225,6 +235,93 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
     }
   };
 
+  // Open Pre-Publication Preview
+  const handleOpenPublishPreview = async () => {
+    setPreviewLoading(true);
+    setIsPreviewOpen(true);
+    setPublishResult(null);
+    try {
+      const preview = await apiClient.previewScopePublish(projectId, {
+        jobId: parsingJob.id,
+        candidateIds: selectedCandidateIds.length > 0 ? selectedCandidateIds : undefined,
+      });
+      setPreviewData(preview);
+    } catch (err: any) {
+      alert(err.message || 'Failed to calculate publish preview');
+      setIsPreviewOpen(false);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  // Confirm Atomic Controlled Publication
+  const handleConfirmPublish = async () => {
+    if (!previewData) return;
+    if (previewData.blockingIssues?.length > 0 && !allowOverride) {
+      alert('Publication is blocked by unresolved critical issues. An authorized override with justification is required.');
+      return;
+    }
+    setIsPublishing(true);
+    try {
+      const idempotencyKey = `pub-${parsingJob.id}-${Date.now()}`;
+      const targetVersions: Record<string, number> = {};
+      if (previewData.items) {
+        for (const item of previewData.items) {
+          if (item.targetRequirementId && item.currentRequirementVersion) {
+            targetVersions[item.targetRequirementId] = item.currentRequirementVersion;
+          }
+        }
+      }
+
+      const res = await apiClient.publishScopeImport(projectId, {
+        jobId: parsingJob.id,
+        idempotencyKey,
+        candidateIds: selectedCandidateIds.length > 0 ? selectedCandidateIds : undefined,
+        allowUnresolvedOverride: allowOverride,
+        overrideReason: overrideReason || undefined,
+        targetRequirementVersions: Object.keys(targetVersions).length > 0 ? targetVersions : undefined,
+      });
+
+      setPublishResult(res.payload || res);
+      if (onRequirementCreated) onRequirementCreated();
+    } catch (err: any) {
+      alert(err.message || 'Publication failed');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  // Rollback / Unpublish Batch
+  const handleUnpublish = async (batchId: string) => {
+    if (!confirm('Are you sure you want to unpublish this batch? This will safely delete untouched draft requirements.')) return;
+    setIsUnpublishing(true);
+    try {
+      await apiClient.unpublishScopeImport(projectId, batchId, {
+        reason: 'User rolled back import batch from Document Intelligence workspace',
+      });
+      alert('Import batch unpublished successfully.');
+      setPublishResult(null);
+      setIsPreviewOpen(false);
+      if (onRequirementCreated) onRequirementCreated();
+    } catch (err: any) {
+      alert(err.message || 'Failed to unpublish import batch. Active downstream records or approvals may block deletion.');
+    } finally {
+      setIsUnpublishing(false);
+    }
+  };
+
+  // Reprocess Job with Preserved Decision Memory
+  const handleReprocessJob = async () => {
+    if (!confirm('Reprocess this document with the latest parser? All previously recorded reviewer decisions (such as Keep Separate, Edits, and Classifications) will be preserved from decision memory.')) return;
+    try {
+      const updatedJob = await apiClient.reprocessScopeJob(projectId, parsingJob.id);
+      alert('Document reprocessed successfully with decision memory applied.');
+      if (onJobUpdated) onJobUpdated(updatedJob);
+    } catch (err: any) {
+      alert(err.message || 'Failed to reprocess parsing job');
+    }
+  };
+
   const pagesInDoc = useMemo(() => {
     const pages = new Set<number>();
     for (const b of blocks) pages.add(b.pageNumber || 1);
@@ -280,6 +377,26 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
                 Addenda Comparison {comparisonResult ? `(${comparisonResult.totalDeltas} Deltas)` : ''}
               </button>
             </div>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleReprocessJob}
+              className="text-slate-300 border-slate-700 hover:bg-slate-800 text-[11px] py-1 px-2.5 flex items-center gap-1.5"
+              title="Reprocess with updated parser while preserving decision memory"
+            >
+              <span>🔄</span>
+              <span>Reprocess</span>
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={handleOpenPublishPreview}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] py-1 px-3 flex items-center gap-1.5 shadow-sm"
+            >
+              <span>🚀</span>
+              <span>Publish Preview & Commit</span>
+            </Button>
           </div>
         </div>
 
@@ -533,10 +650,20 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
                             <h4 className="text-xs font-semibold text-slate-200 truncate">{c.title}</h4>
                             <p className="text-[11px] text-slate-400 line-clamp-2 mt-0.5">{c.description}</p>
 
-                            <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-500">
+                            <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[10px] text-slate-500">
                               {c.quantity !== undefined && (
                                 <span className="text-emerald-400 font-semibold font-mono">
-                                  Qty: {c.quantity} {c.unit || ''}
+                                  Qty: {c.quantityComparator && c.quantityComparator !== 'exact' ? `${c.quantityComparator} ` : ''}{c.quantity} {c.unit || ''}
+                                </span>
+                              )}
+                              {c.quantityBasis && c.quantityBasis !== 'total' && (
+                                <span className="px-1 py-0.2 rounded text-[9px] bg-cyan-950/60 text-cyan-300 border border-cyan-800/80">
+                                  {c.quantityBasis.replace('_', ' ')}
+                                </span>
+                              )}
+                              {c.blockingIssues && c.blockingIssues.length > 0 && (
+                                <span className="px-1 py-0.2 rounded text-[9px] bg-rose-950/60 text-rose-300 border border-rose-800/80 font-bold">
+                                  ⛔ {c.blockingIssues.length} Blocker{c.blockingIssues.length > 1 ? 's' : ''}
                                 </span>
                               )}
                               <span>•</span>
@@ -660,7 +787,39 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
                               {currentCandidate.responsibleParty || currentCandidate.extractedResponsibilities || 'Contractor (E3)'}
                             </div>
                           </div>
+
+                          {/* Quantity Comparator & Basis */}
+                          <div className="p-2 bg-slate-950/80 rounded border border-slate-800">
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 mb-0.5">
+                              <span>Comparator & Basis</span>
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-cyan-500/20 text-cyan-300">
+                                {currentCandidate.quantityComparator || 'exact'}
+                              </span>
+                            </div>
+                            <div className="font-semibold text-slate-100 flex items-center gap-1.5">
+                              <span className="capitalize">{currentCandidate.quantityComparator || 'exact'}</span>
+                              <span className="text-slate-500 font-normal">•</span>
+                              <span className="capitalize text-amber-300">{currentCandidate.quantityBasis?.replace('_', ' ') || 'Total'}</span>
+                            </div>
+                          </div>
                         </div>
+
+                        {/* Publication Blocker Alert */}
+                        {currentCandidate.blockingIssues && currentCandidate.blockingIssues.length > 0 && (
+                          <div className="p-3 bg-rose-950/50 rounded-lg border border-rose-500 space-y-1.5 text-xs">
+                            <span className="font-bold text-rose-300 flex items-center gap-1.5">
+                              <span>⛔</span> Critical Publication Blocker ({currentCandidate.blockingIssues.length}):
+                            </span>
+                            <ul className="list-disc list-inside text-rose-200 space-y-0.5">
+                              {currentCandidate.blockingIssues.map((b: string, idx: number) => (
+                                <li key={idx}>{b}</li>
+                              ))}
+                            </ul>
+                            <div className="text-[10px] text-rose-400 pt-1 border-t border-rose-900/60">
+                              Precondition: Automated publication is blocked until this issue is resolved or an authorized justification override is submitted.
+                            </div>
+                          </div>
+                        )}
 
                         {/* Design & Delivery Requirements Flags */}
                         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800/80 text-[11px]">
@@ -813,6 +972,34 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
                             >
                               ❓ Convert to RFI
                             </Button>
+
+                            <Button
+                              variant="outline"
+                              onClick={() => handleReviewAction(currentCandidate.id, 'keep_separate', { reviewerNotes: 'Confirmed distinct contractual scope obligation' })}
+                              className="border-amber-700 text-amber-300 hover:bg-amber-950/40 text-xs px-2.5 py-2"
+                              title="Store persistent decision in decision memory to never auto-merge this item across future runs"
+                            >
+                              🛡️ Keep Separate
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              onClick={() => handleReviewAction(currentCandidate.id, 'split')}
+                              className="border-purple-700 text-purple-300 hover:bg-purple-950/40 text-xs px-2.5 py-2"
+                              title="Split compound obligation into design, fabrication, and handover components"
+                            >
+                              ✂️ Split
+                            </Button>
+
+                            {currentCandidate.potentialDuplicateOf && (
+                              <Button
+                                onClick={() => handleReviewAction(currentCandidate.id, 'attach_evidence', { targetRequirementId: currentCandidate.potentialDuplicateOf.requirementId })}
+                                className="bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs px-2.5 py-2"
+                                title="Attach candidate as citation/evidence link to existing requirement"
+                              >
+                                📎 Attach Evidence
+                              </Button>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-2">
@@ -1063,6 +1250,211 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
                   Save & Accept into Scope
                 </Button>
               </div>
+            </div>
+          </Modal>
+        )}
+
+        {/* Pre-Publication Preview & Controlled Commit Modal */}
+        {isPreviewOpen && (
+          <Modal
+            isOpen={isPreviewOpen}
+            onClose={() => setIsPreviewOpen(false)}
+            title={`Pre-Publication Verification & Register Commit — ${parsingJob.sourceDocumentName}`}
+            size="lg"
+          >
+            <div className="space-y-4 text-xs text-slate-200 font-sans max-h-[75vh] overflow-y-auto">
+              {previewLoading ? (
+                <div className="p-8 text-center text-slate-400">
+                  <div className="animate-spin text-2xl mb-2">⏳</div>
+                  Calculating atomic publish preview and checking downstream invariants...
+                </div>
+              ) : previewData ? (
+                <>
+                  {/* Summary Breakdown Cards */}
+                  <div className="grid grid-cols-5 gap-2 text-center">
+                    <div className="p-2 bg-slate-900 rounded border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block uppercase">New Reqs</span>
+                      <span className="text-base font-bold text-emerald-400">{previewData.summary?.newRequirements || 0}</span>
+                    </div>
+                    <div className="p-2 bg-slate-900 rounded border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block uppercase">Evidence Links</span>
+                      <span className="text-base font-bold text-sky-400">{previewData.summary?.attachedEvidenceLinks || 0}</span>
+                    </div>
+                    <div className="p-2 bg-slate-900 rounded border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block uppercase">Revisions</span>
+                      <span className="text-base font-bold text-amber-400">{previewData.summary?.proposedRevisions || 0}</span>
+                    </div>
+                    <div className="p-2 bg-slate-900 rounded border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block uppercase">Allocations</span>
+                      <span className="text-base font-bold text-indigo-400">{previewData.summary?.allocationsCreated || 0}</span>
+                    </div>
+                    <div className="p-2 bg-slate-900 rounded border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block uppercase">Unresolved</span>
+                      <span className={`text-base font-bold ${previewData.summary?.unresolvedIssues > 0 ? 'text-rose-400' : 'text-slate-500'}`}>
+                        {previewData.summary?.unresolvedIssues || 0}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Success Banner if published */}
+                  {publishResult && (
+                    <div className="p-4 bg-emerald-950/60 rounded-lg border border-emerald-500 text-emerald-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold flex items-center gap-1.5 text-sm">
+                          <span>✓</span> Successfully Published to Requirements Register!
+                        </span>
+                        <span className="font-mono text-xs text-emerald-400">Batch ID: {publishResult.id}</span>
+                      </div>
+                      <p className="text-xs text-emerald-300">
+                        Created {publishResult.publishedRequirementIds?.length || 0} new requirements, {publishResult.publishedAllocationIds?.length || 0} zone allocations, {publishResult.publishedEvidenceLinksCount || 0} evidence links, and {publishResult.publishedRevisionsCount || 0} revisions in the single authoritative register.
+                      </p>
+                      <div className="pt-2 flex justify-end">
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleUnpublish(publishResult.id)}
+                          disabled={isUnpublishing}
+                          className="text-xs py-1 px-3"
+                        >
+                          {isUnpublishing ? 'Rolling back...' : '↩️ Rollback / Unpublish Batch'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Blocking Issues Alert */}
+                  {previewData.blockingIssues?.length > 0 && !publishResult && (
+                    <div className="p-4 bg-rose-950/40 rounded-lg border border-rose-500 space-y-3">
+                      <div className="flex items-center gap-2 text-rose-400 font-bold text-xs">
+                        <span>⛔</span>
+                        <span>Publication Blocked by {previewData.blockingIssues.length} Unresolved Critical Issue(s)</span>
+                      </div>
+                      <div className="space-y-1 text-xs text-rose-200 pl-2">
+                        {previewData.blockingIssues.map((b: any, idx: number) => (
+                          <div key={idx} className="flex items-start gap-1.5">
+                            <span className="font-mono text-amber-300 font-bold">{b.candidateCode}:</span>
+                            <span>{b.issue}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pt-2 border-t border-rose-900/60 space-y-2">
+                        <label className="flex items-center gap-2 text-xs font-semibold text-rose-200 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={allowOverride}
+                            onChange={(e) => setAllowOverride(e.target.checked)}
+                            className="rounded bg-slate-900 border-rose-500 text-rose-600 focus:ring-0"
+                          />
+                          <span>Authorize publication override (requires logged formal justification)</span>
+                        </label>
+                        {allowOverride && (
+                          <div>
+                            <label className="block text-[11px] text-slate-400 mb-1">
+                              Override Reason / Authorization Reference (Immutable Audit Log)
+                            </label>
+                            <Input
+                              value={overrideReason}
+                              onChange={(e: any) => setOverrideReason(e.target.value)}
+                              placeholder="e.g. Lead PM verified 15 counters with Client Rep per RFI-004..."
+                              className="bg-slate-900 border-slate-700 text-slate-100 text-xs"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Items Preview Table */}
+                  {!publishResult && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs text-slate-400">
+                        <span>Publication Candidates ({previewData.items?.length || 0} items)</span>
+                        <span className="text-[11px] text-slate-500">All writes target single authoritative `requirements` table</span>
+                      </div>
+
+                      <div className="border border-slate-800 rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-900 text-[10px] text-slate-400 uppercase">
+                            <tr>
+                              <th className="p-2">Code</th>
+                              <th className="p-2">Title</th>
+                              <th className="p-2">Action</th>
+                              <th className="p-2">Qty & Basis</th>
+                              <th className="p-2">Allocations</th>
+                              <th className="p-2">Issues</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/60 bg-slate-950/60">
+                            {previewData.items?.map((item: any) => (
+                              <tr key={item.candidateId} className="hover:bg-slate-900/50">
+                                <td className="p-2 font-mono text-amber-400 font-semibold text-[11px]">{item.candidateCode}</td>
+                                <td className="p-2 font-medium text-slate-200 max-w-xs truncate">{item.title}</td>
+                                <td className="p-2">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                    item.proposedAction === 'create_new' ? 'bg-emerald-500/20 text-emerald-300' :
+                                    item.proposedAction === 'attach_evidence' ? 'bg-sky-500/20 text-sky-300' :
+                                    item.proposedAction === 'propose_revision' ? 'bg-amber-500/20 text-amber-300' :
+                                    'bg-slate-800 text-slate-400'
+                                  }`}>
+                                    {item.proposedAction}
+                                  </span>
+                                </td>
+                                <td className="p-2 font-mono text-[11px]">
+                                  {item.quantity !== undefined ? (
+                                    <span>
+                                      {item.quantityComparator !== 'exact' ? `${item.quantityComparator} ` : ''}
+                                      {item.quantity} {item.unit || ''}
+                                      <span className="text-slate-500 text-[10px] ml-1">({item.quantityBasis})</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-600">—</span>
+                                  )}
+                                </td>
+                                <td className="p-2 text-slate-400 text-[11px]">
+                                  {item.allocationsCount > 0 ? `${item.allocationsCount} zones` : 'None'}
+                                </td>
+                                <td className="p-2">
+                                  {item.blockingIssues?.length > 0 ? (
+                                    <span className="text-rose-400 font-bold text-[10px]">⛔ Blocker</span>
+                                  ) : item.unresolvedIssues?.length > 0 ? (
+                                    <span className="text-amber-400 text-[10px]">⚠️ {item.unresolvedIssues.length}</span>
+                                  ) : (
+                                    <span className="text-emerald-400 text-[10px]">✓ Clean</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Footer */}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                    <span className="text-[11px] text-slate-500">
+                      Invariants: Preserves existing IDs, no parallel registers, optimistic concurrency protected.
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="text-xs">
+                        {publishResult ? 'Close' : 'Cancel'}
+                      </Button>
+                      {!publishResult && (
+                        <Button
+                          onClick={handleConfirmPublish}
+                          disabled={isPublishing || (previewData.blockingIssues?.length > 0 && !allowOverride)}
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2"
+                        >
+                          {isPublishing ? 'Publishing...' : `Confirm & Publish (${previewData.items?.length || 0} Items)`}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="p-4 text-center text-slate-500">No preview data generated.</div>
+              )}
             </div>
           </Modal>
         )}

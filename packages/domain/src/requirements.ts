@@ -176,10 +176,14 @@ export interface ScopeRequirement {
   acceptanceCriteria?: string;
   quantity?: number;
   unit?: string;
+  quantityComparator?: 'exact' | 'minimum' | 'maximum' | 'estimated';
+  quantityBasis?: 'total' | 'per_zone' | 'per_shift' | 'per_day' | 'concurrent' | 'reusable' | 'unspecified';
   locationZone?: string;
   notes?: string;
   disposition: ScopeRequirementDisposition;
   deliverablePackageId?: string;
+  sourceEvidenceSpans?: any[];
+  recordVersion?: number;
   linkedDocumentId?: string;
   linkedDocumentNumber?: string;
   linkedDesignId?: string;

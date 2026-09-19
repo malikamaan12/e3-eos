@@ -172,6 +172,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
       items: [
         { path: '/projects', labelEn: 'Projects Directory', labelAr: 'دليل المشاريع', icon: '🎪', id: 'nav-projects' },
         { path: '/projects/f1111111-1111-4111-8111-111111111111', labelEn: 'Project Cockpit', labelAr: 'قمرة القيادة للمشروع', icon: '🎯', id: 'nav-cockpit' },
+        { path: '/projects/f1111111-1111-4111-8111-111111111111/designs', labelEn: 'Design & Creative', labelAr: 'التصميم والإبداع الفني', icon: '🎨', id: 'nav-designs' },
         { path: '/approvals', labelEn: 'Governance Approvals', labelAr: 'الموافقات والحوكمة', icon: '✍️', id: 'nav-approvals' },
         { path: '/calendar', labelEn: 'Master Calendar', labelAr: 'التقويم العام', icon: '📅', id: 'nav-calendar' },
       ],

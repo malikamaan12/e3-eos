@@ -74,6 +74,12 @@ import {
   DocumentComparisonRequestDto,
   ApplyAddendumRevisionSchema,
   ApplyAddendumRevisionDto,
+  ImportPreviewRequestSchema,
+  ImportPreviewDto,
+  ImportPublishRequestSchema,
+  ImportPublishDto,
+  ImportRollbackRequestSchema,
+  ImportRollbackDto,
   CommandResult,
 } from '@e3-eos/contracts';
 import {
@@ -108,6 +114,11 @@ import {
   generateDraftFulfilmentItems,
   inferPhysicalUnitAndQuantity,
   normalizeEngineeringUnit,
+  calculatePublishPreview,
+  generateCandidateSignature,
+  ReviewerDecisionRecord,
+  PublishPreviewResult,
+  splitCompoundObligation,
 } from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
@@ -182,6 +193,32 @@ export const designVariantRepository = new Map<string, DesignVariant>();
 export const fulfilmentItemRepository = new Map<string, FulfilmentItem>();
 export const workPackageRepository = new Map<string, DepartmentWorkPackage>();
 export const productionBatchRepository = new Map<string, ProductionBatch>();
+
+export interface StoredDecisionMemory extends ReviewerDecisionRecord {
+  organisationId: string;
+}
+
+export interface StoredImportBatch {
+  id: string;
+  projectId: string;
+  organisationId: string;
+  jobId: string;
+  idempotencyKey: string;
+  status: 'published' | 'rolled_back' | 'partially_published';
+  publishedRequirementIds: string[];
+  publishedAllocationIds: string[];
+  publishedEvidenceLinksCount: number;
+  publishedRevisionsCount: number;
+  publishedBy: string;
+  publishedAt: string;
+  rollbackReason?: string;
+  rolledBackAt?: string;
+}
+
+export const decisionMemoryRepository = new Map<string, StoredDecisionMemory>();
+export const importBatchRepository = new Map<string, StoredImportBatch>();
+export const processedDocumentChecksums = new Map<string, string>();
+export const projectPublishLocks = new Set<string>();
 export const requirementAuditLog: any[] = [];
 
 function seedInitialScope() {
@@ -1520,15 +1557,46 @@ export class ScopeController {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
     const actorId = (req as any).actorId || (req as any).userId || 'system-user';
 
+    // Checksum deduplication within authorized project (Scenario 1)
+    if (data.checksum) {
+      const checksumKey = `${projectId}:${data.checksum}`;
+      const existingJobId = processedDocumentChecksums.get(checksumKey);
+      if (existingJobId) {
+        const existingJob = parsingJobRepository.get(existingJobId);
+        if (existingJob && existingJob.projectId === projectId) {
+          return {
+            data: {
+              id: existingJob.id,
+              status: existingJob.status,
+              recordVersion: 1,
+              payload: existingJob,
+            },
+            meta: { requestId: `req-${Date.now()}` },
+          };
+        }
+      }
+    }
+
     const existingReqs = Array.from(requirementRepository.values()).filter((r) => r.projectId === projectId);
+    const projectDecisionMemory = Array.from(decisionMemoryRepository.values()).filter((d) => d.projectId === projectId);
 
     const parseResult = parseIntelligentDocument(data.rawText || '', {
       documentName: data.documentName || 'Uploaded Tender Specification',
       documentType: data.documentType || 'tender_spec',
+      documentRole: data.documentRole,
+      documentRevision: data.documentRevision,
+      language: data.language,
+      claimedAmendmentTarget: data.claimedAmendmentTarget,
       existingRequirements: existingReqs,
+      decisionMemory: projectDecisionMemory,
     });
 
     const jobId = parseResult.jobId;
+
+    if (data.checksum) {
+      processedDocumentChecksums.set(`${projectId}:${data.checksum}`, jobId);
+    }
+
     const job: StoredParsingJob = {
       id: jobId,
       organisationId: orgId,
@@ -1655,6 +1723,128 @@ export class ScopeController {
     const actorId = (req as any).actorId || (req as any).userId || 'project-manager';
     candidate.reviewerId = actorId;
     candidate.reviewerNotes = data.reviewerNotes;
+
+    if (data.quantityComparator) {
+      candidate.quantityComparator = data.quantityComparator;
+    }
+    if (data.quantityBasis) {
+      candidate.quantityBasis = data.quantityBasis;
+    }
+    if (data.targetRequirementId) {
+      candidate.linkedExistingRequirementId = data.targetRequirementId;
+    }
+
+    if (data.action === 'keep_separate') {
+      candidate.reviewStatus = 'accepted_with_changes';
+      candidate.proposedAction = 'keep_separate';
+      candidate.potentialDuplicateOf = undefined;
+      candidate.queueType = candidate.queueType === 'duplicates' ? 'master_scope_requirements' : candidate.queueType;
+
+      // Persist in decision memory (Scenarios 28 & 32)
+      const sig = generateCandidateSignature(candidate);
+      const memId = `mem-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      decisionMemoryRepository.set(memId, {
+        id: memId,
+        projectId,
+        organisationId: orgId,
+        candidateSignature: sig,
+        targetRequirementId: data.targetRequirementId,
+        decisionAction: 'keep_separate',
+        notes: data.reviewerNotes,
+        createdAt: new Date().toISOString(),
+      });
+
+      parsingJobRepository.set(job.id, job);
+
+      return {
+        data: {
+          id: candidate.id,
+          status: 'accepted_with_changes',
+          recordVersion: 1,
+          payload: { candidate },
+        },
+        meta: { requestId: `req-${Date.now()}` },
+      };
+    }
+
+    if (data.action === 'split') {
+      const splits = splitCompoundObligation(candidate);
+      candidate.reviewStatus = 'accepted_with_changes';
+      candidate.proposedAction = 'split';
+      const candIdx = job.candidates.findIndex((c) => c.id === candidate.id);
+      if (candIdx >= 0 && splits.length > 1) {
+        job.candidates.splice(candIdx, 1, ...splits);
+      }
+      parsingJobRepository.set(job.id, job);
+
+      return {
+        data: {
+          id: candidate.id,
+          status: 'split',
+          recordVersion: 1,
+          payload: { splits },
+        },
+        meta: { requestId: `req-${Date.now()}` },
+      };
+    }
+
+    if (data.action === 'propose_revision') {
+      candidate.reviewStatus = 'accepted_with_changes';
+      candidate.proposedAction = 'propose_revision';
+      candidate.acceptedTargetId = data.targetRequirementId;
+      if (data.edits) {
+        if (data.edits.quantity !== undefined) candidate.quantity = Number(data.edits.quantity);
+        if (data.edits.description !== undefined) candidate.description = String(data.edits.description);
+        if (data.edits.title !== undefined) candidate.title = String(data.edits.title);
+      }
+      parsingJobRepository.set(job.id, job);
+
+      return {
+        data: {
+          id: candidate.id,
+          status: 'accepted_with_changes',
+          recordVersion: 1,
+          payload: { candidate },
+        },
+        meta: { requestId: `req-${Date.now()}` },
+      };
+    }
+
+    if (data.action === 'attach_evidence') {
+      candidate.reviewStatus = 'accepted';
+      candidate.proposedAction = 'attach_evidence';
+      candidate.acceptedTargetId = data.targetRequirementId;
+      parsingJobRepository.set(job.id, job);
+
+      return {
+        data: {
+          id: candidate.id,
+          status: 'accepted',
+          recordVersion: 1,
+          payload: { candidate },
+        },
+        meta: { requestId: `req-${Date.now()}` },
+      };
+    }
+
+    if (data.action === 'flag_conflict') {
+      candidate.reviewStatus = 'needs_attention';
+      candidate.proposedAction = 'flag_conflict';
+      candidate.conflictNotes = data.reviewerNotes || 'Flagged for conflict review by user';
+      candidate.unresolvedIssues = candidate.unresolvedIssues || [];
+      candidate.unresolvedIssues.push(candidate.conflictNotes);
+      parsingJobRepository.set(job.id, job);
+
+      return {
+        data: {
+          id: candidate.id,
+          status: 'needs_attention',
+          recordVersion: 1,
+          payload: { candidate },
+        },
+        meta: { requestId: `req-${Date.now()}` },
+      };
+    }
 
     let createdReq: StoredRequirement | undefined;
 
@@ -1798,7 +1988,22 @@ export class ScopeController {
       });
     } else if (data.action === 'reject') {
       candidate.reviewStatus = 'rejected';
+      candidate.proposedAction = 'reject';
       job.rejectedCount++;
+
+      // Persist in decision memory (Scenario 28)
+      const sig = generateCandidateSignature(candidate);
+      const memId = `mem-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      decisionMemoryRepository.set(memId, {
+        id: memId,
+        projectId,
+        organisationId: orgId,
+        candidateSignature: sig,
+        targetRequirementId: data.targetRequirementId,
+        decisionAction: 'reject',
+        notes: data.reviewerNotes,
+        createdAt: new Date().toISOString(),
+      });
     } else if (data.action === 'merge') {
       candidate.reviewStatus = 'merged';
       if (data.mergeTargetId) {
@@ -2241,6 +2446,431 @@ export class ScopeController {
           requirement: targetReq,
           delta: foundDelta,
         },
+      },
+      meta: { requestId: `req-${Date.now()}` },
+    };
+  }
+
+  @Post('scope-parser/preview-publish')
+  previewPublish(
+    @Param('projectId') projectId: string,
+    @Body() body: unknown,
+    @Req() _req: Request
+  ): { data: PublishPreviewResult } {
+    const parseRes = ImportPreviewRequestSchema.safeParse(body);
+    if (!parseRes.success) {
+      throw new HttpException(
+        {
+          code: 'INVALID_ARGUMENT',
+          title: 'Invalid import preview request payload',
+          detail: parseRes.error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const data: ImportPreviewDto = parseRes.data;
+    const job = parsingJobRepository.get(data.jobId);
+    if (!job || job.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Parsing job not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const existingReqs = Array.from(requirementRepository.values()).filter((r) => r.projectId === projectId);
+    const preview = calculatePublishPreview(job.candidates, existingReqs, data.candidateIds);
+
+    return { data: preview };
+  }
+
+  @Post('scope-parser/publish')
+  @UseGuards(IdempotencyGuard)
+  publishImport(
+    @Param('projectId') projectId: string,
+    @Body() body: unknown,
+    @Req() req: Request
+  ): CommandResult {
+    const parseRes = ImportPublishRequestSchema.safeParse(body);
+    if (!parseRes.success) {
+      throw new HttpException(
+        {
+          code: 'INVALID_ARGUMENT',
+          title: 'Invalid publish request payload',
+          detail: parseRes.error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const data: ImportPublishDto = parseRes.data;
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const actorId = (req as any).actorId || (req as any).userId || 'lead-pm';
+
+    // Serialized Project-Scoped Lock (Scenario 26)
+    if (projectPublishLocks.has(projectId)) {
+      throw new HttpException(
+        {
+          code: 'CONFLICT',
+          title: 'Publish in progress',
+          detail: 'Another import publish operation is currently running for this project. Please retry shortly.',
+        },
+        HttpStatus.CONFLICT
+      );
+    }
+
+    // Check idempotency (Scenario 27)
+    const existingBatch = Array.from(importBatchRepository.values()).find(
+      (b) => b.projectId === projectId && b.idempotencyKey === data.idempotencyKey
+    );
+    if (existingBatch) {
+      return {
+        data: {
+          id: existingBatch.id,
+          status: existingBatch.status,
+          recordVersion: 1,
+          payload: existingBatch,
+        },
+        meta: { requestId: `req-${Date.now()}` },
+      };
+    }
+
+    const job = parsingJobRepository.get(data.jobId);
+    if (!job || job.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Parsing job not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    projectPublishLocks.add(projectId);
+
+    try {
+      const existingReqs = Array.from(requirementRepository.values()).filter((r) => r.projectId === projectId);
+      const preview = calculatePublishPreview(job.candidates, existingReqs, data.candidateIds);
+
+      // Blocking Issues Guard (Scenario 19)
+      if (preview.blockingIssues.length > 0 && !data.allowUnresolvedOverride) {
+        throw new HttpException(
+          {
+            code: 'PRECONDITION_FAILED',
+            title: 'Publication blocked by unresolved critical issues',
+            detail: `Blocked by ${preview.blockingIssues.length} issue(s): ${preview.blockingIssues.map((b) => `${b.candidateCode}: ${b.issue}`).join('; ')}. An authorized override with reason is required to proceed.`,
+          },
+          HttpStatus.PRECONDITION_FAILED
+        );
+      }
+
+      // Optimistic Concurrency Check (Scenario 25)
+      if (data.targetRequirementVersions) {
+        for (const [targetReqId, expectedVersion] of Object.entries(data.targetRequirementVersions)) {
+          const liveReq = requirementRepository.get(targetReqId);
+          if (liveReq && (liveReq.recordVersion || 1) !== expectedVersion) {
+            throw new HttpException(
+              {
+                code: 'CONFLICT',
+                title: 'Target requirement was modified concurrently',
+                detail: `Requirement ${liveReq.code} is currently at version ${liveReq.recordVersion || 1}, but review was based on version ${expectedVersion}. Refresh the diff and review latest changes before publishing.`,
+              },
+              HttpStatus.CONFLICT
+            );
+          }
+        }
+      }
+
+      // Atomic Commit Execution
+      const batchId = `batch-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const publishedReqIds: string[] = [];
+      const publishedAllocIds: string[] = [];
+      let publishedEvidenceCount = 0;
+      let publishedRevisionsCount = 0;
+
+      const candidatesToPublish = data.candidateIds && data.candidateIds.length > 0
+        ? job.candidates.filter((c) => data.candidateIds!.includes(c.id))
+        : job.candidates.filter((c) => c.reviewStatus === 'accepted' || c.reviewStatus === 'accepted_with_changes' || c.proposedAction === 'attach_evidence' || c.proposedAction === 'propose_revision' || c.reviewStatus === 'unreviewed');
+
+      for (const cand of candidatesToPublish) {
+        const action = cand.proposedAction || (cand.potentialDuplicateOf ? 'attach_evidence' : (cand.queueType === 'boq_commercial_lines' ? 'link_boq_row' : 'create_new'));
+
+        if (action === 'attach_evidence' || action === 'link_boq_row') {
+          const targetId = cand.linkedExistingRequirementId || cand.potentialDuplicateOf?.requirementId;
+          const target = targetId ? requirementRepository.get(targetId) : undefined;
+          if (target) {
+            target.sourceEvidenceSpans = target.sourceEvidenceSpans || [];
+            if (cand.sourceProvenance) target.sourceEvidenceSpans.push(cand.sourceProvenance);
+            if (cand.sourceEvidenceSpans) target.sourceEvidenceSpans.push(...cand.sourceEvidenceSpans);
+            target.linkedBoqLineCode = target.linkedBoqLineCode || cand.boqReference || `BOQ-${cand.candidateCode}`;
+            target.updatedAt = new Date().toISOString();
+            requirementRepository.set(target.id, target);
+            publishedEvidenceCount++;
+            cand.reviewStatus = 'accepted';
+            cand.acceptedTargetId = target.id;
+          }
+        } else if (action === 'propose_revision') {
+          const targetId = cand.linkedExistingRequirementId || cand.potentialDuplicateOf?.requirementId;
+          const target = targetId ? requirementRepository.get(targetId) : undefined;
+          if (target) {
+            const prevRev = target.recordVersion || 1;
+            const prevQty = target.quantity;
+            const newQty = cand.quantity !== undefined ? cand.quantity : prevQty;
+
+            target.recordVersion = prevRev + 1;
+            target.quantity = newQty;
+            target.updatedAt = new Date().toISOString();
+            requirementRepository.set(target.id, target);
+
+            const revList = revisionRepository.get(target.id) || [];
+            const newRev: RequirementRevision = {
+              id: `rev-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              requirementId: target.id,
+              organisationId: orgId,
+              projectId: target.projectId || projectId,
+              revisionNumber: prevRev,
+              reasonForChange: data.overrideReason || 'Imported addendum revision from tender parser',
+              previousValues: { quantity: prevQty },
+              newValues: { quantity: newQty, quantityDelta: (newQty || 0) - (prevQty || 0) },
+              changedFields: ['quantity'],
+              authorId: actorId,
+              createdAt: new Date().toISOString(),
+            };
+            revList.push(newRev);
+            revisionRepository.set(target.id, revList);
+            publishedRevisionsCount++;
+            cand.reviewStatus = 'accepted';
+            cand.acceptedTargetId = target.id;
+          }
+        } else {
+          // Create new Requirement in single authoritative register
+          const projectReqs = Array.from(requirementRepository.values()).filter((r) => r.projectId === projectId);
+          const reqCode = `REQ-QND-${String(projectReqs.length + 1).padStart(3, '0')}`;
+          const reqId = `req-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+          const newReq: StoredRequirement = {
+            id: reqId,
+            organisationId: orgId,
+            projectId,
+            code: reqCode,
+            title: cand.title,
+            description: cand.description,
+            originalWording: cand.originalWording,
+            sourceType: 'Client RFP',
+            sourceReference: cand.sourceReference,
+            category: (cand.suggestedCategory as any) || 'staging_technical',
+            discipline: cand.suggestedDiscipline,
+            department: cand.suggestedDepartment,
+            quantity: cand.quantity,
+            unit: cand.unit,
+            quantityComparator: cand.quantityComparator || 'exact',
+            quantityBasis: cand.quantityBasis || 'total',
+            sourceEvidenceSpans: cand.sourceEvidenceSpans || (cand.sourceProvenance ? [cand.sourceProvenance] : []),
+            status: 'draft',
+            disposition: 'applicable',
+            recordVersion: 1,
+            isApproved: false,
+            isArchived: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+
+          requirementRepository.set(reqId, newReq);
+          publishedReqIds.push(reqId);
+          cand.reviewStatus = 'accepted';
+          cand.acceptedTargetId = reqId;
+
+          // Allocations
+          if (cand.suggestedAllocations && cand.suggestedAllocations.length > 0) {
+            for (let i = 0; i < cand.suggestedAllocations.length; i++) {
+              const alloc = cand.suggestedAllocations[i];
+              const allocId = `alloc-${Date.now()}-${i + 1}`;
+              const newAlloc: RequirementAllocation = {
+                id: allocId,
+                requirementId: reqId,
+                organisationId: orgId,
+                projectId,
+                zone: alloc.zone,
+                location: alloc.location || alloc.zone,
+                quantity: Number(alloc.quantity) || 1,
+                unit: cand.unit || 'pcs',
+                status: 'assigned',
+                completionPct: 0,
+                revision: 1,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              };
+              allocationRepository.set(allocId, newAlloc);
+              publishedAllocIds.push(allocId);
+            }
+          }
+        }
+      }
+
+      // Record Batch
+      const batch: StoredImportBatch = {
+        id: batchId,
+        projectId,
+        organisationId: orgId,
+        jobId: job.id,
+        idempotencyKey: data.idempotencyKey,
+        status: 'published',
+        publishedRequirementIds: publishedReqIds,
+        publishedAllocationIds: publishedAllocIds,
+        publishedEvidenceLinksCount: publishedEvidenceCount,
+        publishedRevisionsCount: publishedRevisionsCount,
+        publishedBy: actorId,
+        publishedAt: new Date().toISOString(),
+      };
+      importBatchRepository.set(batchId, batch);
+
+      requirementAuditLog.push({
+        id: `audit-${Date.now()}`,
+        entityType: 'import_batch',
+        entityId: batchId,
+        action: 'publish_scope_import',
+        actorId,
+        details: {
+          jobId: job.id,
+          idempotencyKey: data.idempotencyKey,
+          publishedRequirementsCount: publishedReqIds.length,
+          publishedAllocationsCount: publishedAllocIds.length,
+          publishedEvidenceCount,
+          publishedRevisionsCount,
+        },
+        timestamp: new Date().toISOString(),
+      });
+
+      return {
+        data: {
+          id: batchId,
+          status: 'published',
+          recordVersion: 1,
+          payload: batch,
+        },
+        meta: { requestId: `req-${Date.now()}` },
+      };
+    } finally {
+      projectPublishLocks.delete(projectId);
+    }
+  }
+
+  @Post('scope-parser/unpublish/:batchId')
+  @UseGuards(IdempotencyGuard)
+  rollbackImport(
+    @Param('projectId') projectId: string,
+    @Param('batchId') batchId: string,
+    @Body() body: unknown,
+    @Req() _req: Request
+  ): CommandResult {
+    const parseRes = ImportRollbackRequestSchema.safeParse(body);
+    if (!parseRes.success) {
+      throw new HttpException(
+        {
+          code: 'INVALID_ARGUMENT',
+          title: 'Invalid rollback request payload',
+          detail: parseRes.error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const data: ImportRollbackDto = parseRes.data;
+    const batch = importBatchRepository.get(batchId);
+    if (!batch || batch.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Import batch not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    if (batch.status === 'rolled_back') {
+      return {
+        data: {
+          id: batch.id,
+          status: 'rolled_back',
+          recordVersion: 1,
+          payload: batch,
+        },
+        meta: { requestId: `req-${Date.now()}` },
+      };
+    }
+
+    // Downstream Activity Guard (Scenario 33)
+    const linkedReqs = batch.publishedRequirementIds
+      .map((id) => requirementRepository.get(id))
+      .filter(Boolean) as StoredRequirement[];
+
+    const hasDownstreamActivity = linkedReqs.some((r) => {
+      if (r.isApproved) return true;
+      if (r.linkedTaskId) return true;
+      if (r.linkedDesignId) {
+        const dp = designPackageRepository.get(r.linkedDesignId);
+        if (dp && (dp.productionReleaseStatus !== 'not_released' || dp.internalApproval || dp.clientApproval)) return true;
+      }
+      const variants = Array.from(designVariantRepository.values()).filter((v) => v.requirementId === r.id);
+      if (variants.some((v) => v.productionReleaseStatus !== 'not_released' || v.approvalStatus === 'approved')) return true;
+      return false;
+    });
+
+    if (hasDownstreamActivity && !data.forceCompensatingRevision) {
+      throw new HttpException(
+        {
+          code: 'CONFLICT',
+          title: 'Cannot hard-delete imported requirement with downstream activity',
+          detail: 'This batch contains requirements with active approvals, downstream design packages, or production releases. Hard deletion is blocked to preserve audit integrity. Submit a formal change request/compensating revision instead.',
+        },
+        HttpStatus.CONFLICT
+      );
+    }
+
+    // Clean rollback (untouched draft records)
+    for (const reqId of batch.publishedRequirementIds) {
+      requirementRepository.delete(reqId);
+    }
+    for (const allocId of batch.publishedAllocationIds) {
+      allocationRepository.delete(allocId);
+    }
+
+    batch.status = 'rolled_back';
+    batch.rollbackReason = data.reason || 'Unpublished untouched draft import';
+    batch.rolledBackAt = new Date().toISOString();
+    importBatchRepository.set(batch.id, batch);
+
+    return {
+      data: {
+        id: batch.id,
+        status: 'rolled_back',
+        recordVersion: 1,
+        payload: batch,
+      },
+      meta: { requestId: `req-${Date.now()}` },
+    };
+  }
+
+  @Post('scope-parser/reprocess/:jobId')
+  reprocessJob(
+    @Param('projectId') projectId: string,
+    @Param('jobId') jobId: string,
+    @Req() _req: Request
+  ): CommandResult {
+    const job = parsingJobRepository.get(jobId);
+    if (!job || job.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Parsing job not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const existingReqs = Array.from(requirementRepository.values()).filter((r) => r.projectId === projectId);
+    const projectDecisionMemory = Array.from(decisionMemoryRepository.values()).filter((d) => d.projectId === projectId);
+
+    const reprocessed = parseIntelligentDocument(job.extractedText || '', {
+      jobId: job.id,
+      documentId: job.sourceDocumentId,
+      documentName: job.sourceDocumentName,
+      documentType: job.documentType,
+      existingRequirements: existingReqs,
+      decisionMemory: projectDecisionMemory,
+    });
+
+    job.candidates = reprocessed.candidates;
+    job.queueCounts = reprocessed.queueCounts;
+    job.totalExtracted = reprocessed.totalExtracted;
+    job.structureSummary = reprocessed.structureSummary;
+    parsingJobRepository.set(job.id, job);
+
+    return {
+      data: {
+        id: job.id,
+        status: 'reprocessed',
+        recordVersion: 1,
+        payload: job,
       },
       meta: { requestId: `req-${Date.now()}` },
     };
