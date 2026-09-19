@@ -36,10 +36,25 @@ export interface EquipmentAvailabilityResult {
   bufferApplied: {
     prepHours: number;
     returnHours: number;
+    policyProvenance?: string;
+  };
+  effectiveWindow?: {
+    start: string;
+    end: string;
+    basis: string;
   };
   sourceCheckTime: string;
   connectionStatus: 'connected' | 'disconnected_snapshot' | 'not_connected' | 'unreachable';
   warehouseRef: string;
+}
+
+export interface OccupiedIntervalCalculation {
+  start: string;
+  end: string;
+  prepHoursApplied: number;
+  returnHoursApplied: number;
+  policyProvenance: 'already_buffered_input' | 'configured_policy' | 'absent_policy_unspecified';
+  effectiveWindowBasis: 'occupied_including_buffers' | 'event_dates_only';
 }
 
 export interface EquipmentReservationRequest {
@@ -139,6 +154,59 @@ export class RentalsContractSimulator {
     return `hash_${str.length}_${hash}`;
   }
 
+  static calculateOccupiedInterval(
+    window: { start: string; end: string; basis?: 'occupied_including_buffers' | 'event_dates_only'; timeZone?: string },
+    bufferPolicy?: { prepHours?: number; returnHours?: number }
+  ): OccupiedIntervalCalculation {
+    const basis = window.basis || 'occupied_including_buffers';
+    let prepHoursApplied = 0;
+    let returnHoursApplied = 0;
+    let policyProvenance: OccupiedIntervalCalculation['policyProvenance'] = 'configured_policy';
+
+    if (basis === 'occupied_including_buffers') {
+      prepHoursApplied = 0;
+      returnHoursApplied = 0;
+      policyProvenance = 'already_buffered_input';
+    } else if (basis === 'event_dates_only') {
+      if (bufferPolicy && (bufferPolicy.prepHours !== undefined || bufferPolicy.returnHours !== undefined)) {
+        prepHoursApplied = bufferPolicy.prepHours ?? 0;
+        returnHoursApplied = bufferPolicy.returnHours ?? 0;
+        policyProvenance = 'configured_policy';
+      } else {
+        prepHoursApplied = 0;
+        returnHoursApplied = 0;
+        policyProvenance = 'absent_policy_unspecified';
+      }
+    }
+
+    const startMs = new Date(window.start).getTime() - (prepHoursApplied * 3600000);
+    const endMs = new Date(window.end).getTime() + (returnHoursApplied * 3600000);
+
+    const formatWithOffset = (ms: number, origIso: string): string => {
+      const match = origIso.match(/([+-]\d{2}:\d{2})$/);
+      if (match) {
+        const offsetStr = match[1];
+        const sign = offsetStr[0] === '+' ? 1 : -1;
+        const [h, m] = offsetStr.slice(1).split(':').map(Number);
+        const offsetMinutes = sign * (h * 60 + m);
+        const localMs = ms + offsetMinutes * 60000;
+        const d = new Date(localMs);
+        const iso = d.toISOString().replace('Z', '');
+        return `${iso}${offsetStr}`;
+      }
+      return new Date(ms).toISOString();
+    };
+
+    return {
+      start: formatWithOffset(startMs, window.start),
+      end: formatWithOffset(endMs, window.end),
+      prepHoursApplied,
+      returnHoursApplied,
+      policyProvenance,
+      effectiveWindowBasis: basis,
+    };
+  }
+
   static queryAvailability(query: EquipmentAvailabilityQuery): EquipmentAvailabilityResult {
     const pool = this.productPools.get(query.productPoolId);
     const now = new Date().toISOString();
@@ -151,7 +219,12 @@ export class RentalsContractSimulator {
         availableQuantity: 0,
         projectExistingReservations: 0,
         shortfall: query.quantity,
-        bufferApplied: { prepHours: 0, returnHours: 0 },
+        bufferApplied: { prepHours: 0, returnHours: 0, policyProvenance: 'absent_policy_unspecified' },
+        effectiveWindow: {
+          start: query.window.start,
+          end: query.window.end,
+          basis: query.window.basis || 'occupied_including_buffers',
+        },
         sourceCheckTime: now,
         connectionStatus: 'unreachable',
         warehouseRef: 'Unknown',
@@ -159,16 +232,13 @@ export class RentalsContractSimulator {
     }
 
     // Determine buffer application based on caller basis
-    // Invariant Section 5: If window already includes buffers, do not apply buffers twice!
-    let prepHours = 0;
-    let returnHours = 0;
-    if (query.window.basis === 'event_dates_only') {
-      prepHours = query.bufferPolicy?.prepHours ?? 24;
-      returnHours = query.bufferPolicy?.returnHours ?? 24;
-    }
-
-    const queryStart = new Date(query.window.start).getTime() - (prepHours * 3600000);
-    const queryEnd = new Date(query.window.end).getTime() + (returnHours * 3600000);
+    // Invariant Section 5 & 8: If window already includes buffers, do not apply buffers twice!
+    // No unapproved 24h operational constant: when policy is absent or basis is occupied, apply 0h.
+    const interval = this.calculateOccupiedInterval(query.window, query.bufferPolicy);
+    const prepHours = interval.prepHoursApplied;
+    const returnHours = interval.returnHoursApplied;
+    const queryStart = new Date(interval.start).getTime();
+    const queryEnd = new Date(interval.end).getTime();
 
     let occupiedOtherProjects = 0;
     let projectExistingReservations = 0;
@@ -202,7 +272,12 @@ export class RentalsContractSimulator {
       availableQuantity: available,
       projectExistingReservations,
       shortfall,
-      bufferApplied: { prepHours, returnHours },
+      bufferApplied: { prepHours, returnHours, policyProvenance: interval.policyProvenance },
+      effectiveWindow: {
+        start: interval.start,
+        end: interval.end,
+        basis: interval.effectiveWindowBasis,
+      },
       sourceCheckTime: now,
       connectionStatus: 'connected',
       warehouseRef: pool.depotLocation,
@@ -333,6 +408,13 @@ export class RentalsContractSimulator {
  * and delegates to RentalsContractSimulator only when connection mode is explicitly 'sandbox'.
  */
 export class RentalsAdapterEngine {
+  static calculateOccupiedInterval(
+    window: { start: string; end: string; basis?: 'occupied_including_buffers' | 'event_dates_only'; timeZone?: string },
+    bufferPolicy?: { prepHours?: number; returnHours?: number }
+  ): OccupiedIntervalCalculation {
+    return RentalsContractSimulator.calculateOccupiedInterval(window, bufferPolicy);
+  }
+
   /**
    * Queries equipment availability.
    * Conforms to Section 3 & 4: In disconnected mode, returns honest not_connected or snapshot state.
@@ -351,7 +433,12 @@ export class RentalsAdapterEngine {
         availableQuantity: 0,
         projectExistingReservations: 0,
         shortfall: query.quantity,
-        bufferApplied: { prepHours: 0, returnHours: 0 },
+        bufferApplied: { prepHours: 0, returnHours: 0, policyProvenance: 'disconnected_mode' },
+        effectiveWindow: {
+          start: query.window.start,
+          end: query.window.end,
+          basis: query.window.basis || 'occupied_including_buffers',
+        },
         sourceCheckTime: now,
         connectionStatus: 'not_connected',
         warehouseRef: 'Unknown (Rentals Disconnected)',

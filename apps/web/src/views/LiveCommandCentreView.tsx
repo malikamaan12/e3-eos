@@ -142,8 +142,9 @@ export const LiveCommandCentreView: React.FC = () => {
   const isTourism = projectId === 'f1111111-1111-4111-8111-111111111111' || projectId === 'PRJ-2026-QATAR-01' || currentProject?.code === 'PRJ-2026-QATAR-01' || (currentProject as any)?.projectCode === 'PRJ-2026-QATAR-01' || selectedProjectId?.startsWith('f1a0');
   const isQnd = projectId === '00000000-0000-4000-8000-000000000001' || projectId === 'PRJ-QND-2026' || projectId === 'QND26' || currentProject?.code === 'PRJ-QND-2026' || (currentProject as any)?.projectCode === 'PRJ-QND-2026';
 
-  const resolvedProjectCode = currentProject?.projectCode || (currentProject as any)?.code || (isTourism ? 'PRJ-2026-QATAR-01' : isQnd ? 'PRJ-QND-2026' : (projectId && !projectId.includes('-') ? projectId : 'PRJ-2026-QATAR-01'));
-  const resolvedProjectTitle = currentProject?.title || (currentProject as any)?.name || (isTourism ? 'Qatar Tourism Annual Exhibition & Gala 2026' : isQnd ? 'Qatar National Day 2026 Celebrations' : 'Live Event Production');
+  const isHexOrUuid = projectId && (/^[0-9a-fA-F-]{32,}$/.test(projectId) || /^[0-9a-f]{8}-[0-9a-f]{4}/.test(projectId));
+  const resolvedProjectCode = currentProject?.projectCode || (currentProject as any)?.code || (isTourism ? 'PRJ-2026-QATAR-01' : isQnd ? 'PRJ-QND-2026' : (!isHexOrUuid && projectId ? projectId : 'PRJ-2026-QATAR-01'));
+  const resolvedProjectTitle = currentProject?.title || (currentProject as any)?.name || (isTourism ? 'Qatar Tourism Annual Exhibition & Gala 2026' : isQnd ? 'Qatar National Day 2026 Celebrations' : 'Qatar Tourism Annual Exhibition & Gala 2026');
   const projectName = `${resolvedProjectCode} — ${resolvedProjectTitle}`;
 
   const [data, setData] = useState<any>(null);

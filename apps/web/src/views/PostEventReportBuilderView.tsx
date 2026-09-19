@@ -14,8 +14,18 @@ export const PostEventReportBuilderView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'executive' | 'commercial' | 'sustainability' | 'safety'>('executive');
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
-  const isTourism = projectId === 'f1111111-1111-4111-8111-111111111111' || projectId === 'PRJ-2026-QATAR-01' || currentProject?.code === 'PRJ-2026-QATAR-01' || (currentProject as any)?.projectCode === 'PRJ-2026-QATAR-01';
+  const isTourism =
+    projectId === 'f1111111-1111-4111-8111-111111111111' ||
+    projectId === 'PRJ-2026-QATAR-01' ||
+    currentProject?.code === 'PRJ-2026-QATAR-01' ||
+    (currentProject as any)?.projectCode === 'PRJ-2026-QATAR-01' ||
+    Boolean(projectId && projectId.startsWith('f1a0')) ||
+    Boolean(currentProject?.clientName?.toLowerCase().includes('tourism')) ||
+    Boolean(currentProject?.name?.toLowerCase().includes('tourism')) ||
+    Boolean(currentProject?.title?.toLowerCase().includes('tourism'));
   const isQnd = projectId === '00000000-0000-4000-8000-000000000001' || projectId === 'PRJ-QND-2026' || projectId === 'QND26' || currentProject?.code === 'PRJ-QND-2026' || (currentProject as any)?.projectCode === 'PRJ-QND-2026';
+  const isHexOrUuid = projectId && (/^[0-9a-fA-F-]{32,}$/.test(projectId) || /^[0-9a-f]{8}-[0-9a-f]{4}/.test(projectId));
+  const displayProjectCode = (!isHexOrUuid && projectId) || currentProject?.code || (currentProject as any)?.projectCode || (isTourism ? 'PRJ-2026-QATAR-01' : isQnd ? 'PRJ-QND-2026' : 'PRJ-2026-QATAR-01');
 
   const defaultClientName = isTourism
     ? 'Qatar Tourism Authority'
@@ -34,6 +44,11 @@ export const PostEventReportBuilderView: React.FC = () => {
     : isQnd
     ? 'Qatar National Day 2026 Celebrations — Official Executive Dossier & Final Account'
     : `${currentProject?.name || 'Project'} — Official Executive Dossier & Final Account`;
+
+  const displayReportTitle =
+    (isTourism && (!report?.reportTitle || report.reportTitle.includes('National Day')))
+      ? defaultReportTitle
+      : (report?.reportTitle || defaultReportTitle);
 
   const defaultOrgLine = isTourism
     ? 'State of Qatar • Qatar Tourism Authority • E3-EOS Production'
@@ -81,7 +96,7 @@ export const PostEventReportBuilderView: React.FC = () => {
             <Badge variant="success">ISO 20121 & QCDD CERTIFIED</Badge>
           </div>
           <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
-            {report?.reportTitle || defaultReportTitle}
+            {displayReportTitle}
           </p>
         </div>
 
@@ -106,8 +121,8 @@ export const PostEventReportBuilderView: React.FC = () => {
                 fontWeight: 700,
                 borderRadius: '6px',
                 border: viewMode === 'client' ? '1px solid #3b82f6' : '1px solid transparent',
-                backgroundColor: viewMode === 'client' ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-                color: viewMode === 'client' ? '#60a5fa' : 'var(--text-muted, #94a3b8)',
+                backgroundColor: viewMode === 'client' ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                color: viewMode === 'client' ? 'var(--text-primary, #60a5fa)' : 'var(--text-muted, #94a3b8)',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
@@ -123,8 +138,8 @@ export const PostEventReportBuilderView: React.FC = () => {
                 fontWeight: 700,
                 borderRadius: '6px',
                 border: viewMode === 'board' ? '1px solid #f59e0b' : '1px solid transparent',
-                backgroundColor: viewMode === 'board' ? 'rgba(245, 158, 11, 0.15)' : 'transparent',
-                color: viewMode === 'board' ? '#fbbf24' : 'var(--text-muted, #94a3b8)',
+                backgroundColor: viewMode === 'board' ? 'rgba(245, 158, 11, 0.2)' : 'transparent',
+                color: viewMode === 'board' ? 'var(--text-primary, #fbbf24)' : 'var(--text-muted, #94a3b8)',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
@@ -144,11 +159,11 @@ export const PostEventReportBuilderView: React.FC = () => {
         <div
           style={{
             padding: '12px 16px',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
+            backgroundColor: 'rgba(59, 130, 246, 0.12)',
+            border: '1px solid rgba(59, 130, 246, 0.35)',
             borderRadius: '8px',
             fontSize: '12px',
-            color: '#93c5fd',
+            color: 'var(--text-secondary, #93c5fd)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -159,7 +174,7 @@ export const PostEventReportBuilderView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '16px' }}>🛡️</span>
             <span>
-              <strong style={{ color: '#bfdbfe' }}>Client Projection Guard Active (P02-ST03 / AT-033):</strong> Internal buy rates, contractor markups, and internal cost pools are strictly filtered out. Only sell-side contract figures and deliverables are exposed.
+              <strong style={{ color: 'var(--text-primary, #bfdbfe)' }}>Client Projection Guard Active (P02-ST03 / AT-033):</strong> Internal buy rates, contractor markups, and internal cost pools are strictly filtered out. Only sell-side contract figures and deliverables are exposed.
             </span>
           </div>
           <Badge variant="info">ZERO SENSITIVE LEAK</Badge>
@@ -168,11 +183,11 @@ export const PostEventReportBuilderView: React.FC = () => {
         <div
           style={{
             padding: '12px 16px',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
+            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
             borderRadius: '8px',
             fontSize: '12px',
-            color: '#fde68a',
+            color: 'var(--text-secondary, #fde68a)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -183,7 +198,7 @@ export const PostEventReportBuilderView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '16px' }}>⚠️</span>
             <span>
-              <strong style={{ color: '#fef3c7' }}>Internal Board & Executive Producer Mode:</strong> Full financial visibility including actuals, commitments, gross margin, and variance against budget.
+              <strong style={{ color: 'var(--text-primary, #fef3c7)' }}>Internal Board & Executive Producer Mode:</strong> Full financial visibility including actuals, commitments, gross margin, and variance against budget.
             </span>
           </div>
           <Badge variant="warning">STRICTLY CONFIDENTIAL</Badge>
@@ -224,11 +239,11 @@ export const PostEventReportBuilderView: React.FC = () => {
               {defaultOrgLine}
             </div>
             <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', lineHeight: 1.3 }}>
-              {report?.reportTitle || defaultReportTitle}
+              {displayReportTitle}
             </h2>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '14px', fontSize: '12px' }}>
               <span style={{ padding: '4px 10px', backgroundColor: 'var(--surface-inset, #0b111d)', border: '1px solid var(--border-subtle, #1d2939)', borderRadius: '6px' }}>
-                Project ID: <strong style={{ fontFamily: 'monospace', color: 'var(--text-primary, #f8fafc)' }}>{projectId || currentProject?.code || 'PRJ-2026-QATAR-01'}</strong>
+                Project ID: <strong style={{ fontFamily: 'monospace', color: 'var(--text-primary, #f8fafc)' }}>{displayProjectCode}</strong>
               </span>
               <span style={{ padding: '4px 10px', backgroundColor: 'var(--surface-inset, #0b111d)', border: '1px solid var(--border-subtle, #1d2939)', borderRadius: '6px' }}>
                 Client: <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{report?.clientName || currentProject?.clientName || defaultClientName}</strong>

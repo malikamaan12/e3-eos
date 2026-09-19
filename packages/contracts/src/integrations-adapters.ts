@@ -48,7 +48,13 @@ export const EquipmentAvailabilityResultSchema = z.object({
   bufferApplied: z.object({
     prepHours: z.number().nonnegative(),
     returnHours: z.number().nonnegative(),
+    policyProvenance: z.string().optional(),
   }),
+  effectiveWindow: z.object({
+    start: z.string(),
+    end: z.string(),
+    basis: z.string(),
+  }).optional(),
   sourceCheckTime: z.string().datetime(),
   connectionStatus: z.enum(['connected', 'disconnected_snapshot', 'not_connected', 'unreachable']),
   warehouseRef: z.string(),

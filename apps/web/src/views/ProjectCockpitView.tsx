@@ -16,6 +16,7 @@ import { LogisticsDeliveryView } from './LogisticsDeliveryView.js';
 import { CrewDeliveryView } from './CrewDeliveryView.js';
 import { SiteOpsDeliveryView } from './SiteOpsDeliveryView.js';
 import { CrossModuleTraceabilityModal } from './CrossModuleTraceabilityModal.js';
+import { PortfolioResourcePlannerView } from './PortfolioResourcePlannerView.js';
 import { isSyntheticDemo } from '../services/api-client.js';
 
 export const ProjectCockpitView: React.FC = () => {
@@ -76,6 +77,7 @@ export const ProjectCockpitView: React.FC = () => {
     | 'procurement'
     | 'production'
     | 'assets'
+    | 'resources'
     | 'logistics'
     | 'crew'
     | 'site'
@@ -85,6 +87,9 @@ export const ProjectCockpitView: React.FC = () => {
       const pathname = window.location.pathname;
       if (pathname.endsWith('/scope') || pathname.includes('/scope') || pathname.endsWith('/requirements') || pathname.includes('/requirements')) {
         return 'requirements';
+      }
+      if (pathname.endsWith('/resources') || pathname.includes('/resources') || pathname.endsWith('/resource-plan') || pathname.includes('/resource-plan')) {
+        return 'resources';
       }
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
@@ -101,6 +106,7 @@ export const ProjectCockpitView: React.FC = () => {
           'procurement',
           'production',
           'assets',
+          'resources',
           'logistics',
           'crew',
           'site',
@@ -457,6 +463,14 @@ export const ProjectCockpitView: React.FC = () => {
                 🔗 {isRtl ? 'سلسلة التتبع' : 'Lineage'}
               </Button>
               <Button
+                id="cockpit-resources-btn"
+                variant={cockpitModuleTab === 'resources' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setCockpitModuleTab('resources')}
+              >
+                📦 {isRtl ? 'خطة الموارد' : 'Resource Plan'}
+              </Button>
+              <Button
                 id="cockpit-live-cmd-btn"
                 variant="ghost"
                 size="sm"
@@ -564,6 +578,7 @@ export const ProjectCockpitView: React.FC = () => {
             <option value="procurement">🛒 {isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ'}</option>
             <option value="production">🏭 {isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC'}</option>
             <option value="assets">📦 {isRtl ? 'الأصول والمستودع' : 'Assets & Depot'}</option>
+            <option value="resources">📦 {isRtl ? 'خطة الموارد والسعة' : 'Resource Plan'}</option>
             <option value="logistics">🚚 {isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet'}</option>
             <option value="crew">👷 {isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster'}</option>
             <option value="site">📝 {isRtl ? 'تقارير الموقع DSR' : 'Site & DSR'}</option>
@@ -572,51 +587,25 @@ export const ProjectCockpitView: React.FC = () => {
         </div>
       )}
 
-      {/* Cockpit Workstream Navigation Strip with Chevrons and Quick Jump Selector */}
+      {/* Cockpit Workstream Navigation Strip */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: '12px',
           borderBottom: '2px solid var(--border-default, #2a374b)',
           marginBottom: '20px',
           paddingBottom: '2px',
         }}
       >
-        {/* Left Scroll Chevron (Desktop Only) */}
-        {!isMobile && (
-          <button
-            type="button"
-            id="btn-cockpit-tabs-scroll-left"
-            title={isRtl ? 'التمرير لليمين' : 'Scroll left'}
-            onClick={() => {
-              const el = document.getElementById('cockpit-module-tabs');
-              if (el) el.scrollBy({ left: isRtl ? 260 : -260, behavior: 'smooth' });
-            }}
-            style={{
-              width: '28px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'var(--surface-2, #151e2e)',
-              border: '1px solid var(--border-default, #2a374b)',
-              borderRadius: '4px',
-              color: 'var(--text-secondary, #cbd5e1)',
-              fontWeight: 800,
-              fontSize: '16px',
-              cursor: 'pointer',
-              flexShrink: 0,
-              userSelect: 'none',
-            }}
-          >
-            {isRtl ? '›' : '‹'}
-          </button>
-        )}
-
         {/* Scrollable Workstream Tab Strip */}
         <div
           id="cockpit-module-tabs"
+          onWheel={(e) => {
+            if (e.deltaY !== 0 && !e.deltaX) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
           style={{
             display: 'flex',
             gap: '4px',
@@ -624,6 +613,7 @@ export const ProjectCockpitView: React.FC = () => {
             flex: 1,
             scrollbarWidth: 'thin',
             scrollBehavior: 'smooth',
+            paddingBottom: '2px',
           }}
         >
           {[
@@ -637,6 +627,7 @@ export const ProjectCockpitView: React.FC = () => {
             { id: 'procurement', icon: '🛒', label: isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ', badge: isDemo ? (isRtl ? 'أمر شراء صادر' : 'PO Released') : null },
             { id: 'production', icon: '🏭', label: isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC', badge: isDemo ? (isRtl ? 'تم اجتياز QC' : 'QC Passed') : null },
             { id: 'assets', icon: '📦', label: isRtl ? 'الأصول والمستودع' : 'Assets & Depot', badge: isDemo ? (isRtl ? '٨ مقفلة' : '8 Locked') : null },
+            { id: 'resources', icon: '📦', label: isRtl ? 'خطة الموارد' : 'Resource Plan', badge: isDemo ? '20' : null },
             { id: 'logistics', icon: '🚚', label: isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet', badge: isDemo ? (isRtl ? 'تم التوقيع' : 'POD Signed') : null },
             { id: 'crew', icon: '👷', label: isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster', badge: isDemo ? (isRtl ? '١١ س راحة' : '11h Rest') : null },
             { id: 'site', icon: '📝', label: isRtl ? 'تقارير الموقع DSR' : 'Site & DSR', badge: isDemo ? (isRtl ? 'مسجل' : 'DSR Logged') : null },
@@ -686,37 +677,6 @@ export const ProjectCockpitView: React.FC = () => {
           })}
         </div>
 
-        {/* Right Scroll Chevron (Desktop Only) */}
-        {!isMobile && (
-          <button
-            type="button"
-            id="btn-cockpit-tabs-scroll-right"
-            title={isRtl ? 'التمرير لليسار' : 'Scroll right'}
-            onClick={() => {
-              const el = document.getElementById('cockpit-module-tabs');
-              if (el) el.scrollBy({ left: isRtl ? -260 : 260, behavior: 'smooth' });
-            }}
-            style={{
-              width: '28px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'var(--surface-2, #151e2e)',
-              border: '1px solid var(--border-default, #2a374b)',
-              borderRadius: '4px',
-              color: 'var(--text-secondary, #cbd5e1)',
-              fontWeight: 800,
-              fontSize: '16px',
-              cursor: 'pointer',
-              flexShrink: 0,
-              userSelect: 'none',
-            }}
-          >
-            {isRtl ? '‹' : '›'}
-          </button>
-        )}
-
         {/* Jump to Workstream Dropdown (Desktop) */}
         {!isMobile && (
           <div style={{ flexShrink: 0, marginInlineStart: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -756,6 +716,7 @@ export const ProjectCockpitView: React.FC = () => {
               <option value="procurement">🛒 {isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ'}</option>
               <option value="production">🏭 {isRtl ? 'الإنتاج وضبط الجودة' : 'Production & QC'}</option>
               <option value="assets">📦 {isRtl ? 'الأصول والمستودع' : 'Assets & Depot'}</option>
+              <option value="resources">📦 {isRtl ? 'خطة الموارد' : 'Resource Plan'}</option>
               <option value="logistics">🚚 {isRtl ? 'اللوجستيات والأسطول' : 'Logistics & Fleet'}</option>
               <option value="crew">👷 {isRtl ? 'طاقم العمل والورديات' : 'Crew & Roster'}</option>
               <option value="site">📝 {isRtl ? 'تقارير الموقع DSR' : 'Site & DSR'}</option>
@@ -821,6 +782,7 @@ export const ProjectCockpitView: React.FC = () => {
       {cockpitModuleTab === 'procurement' && <ProcurementDeliveryView projectId={projectId} />}
       {cockpitModuleTab === 'production' && <ProductionDeliveryView projectId={projectId} />}
       {cockpitModuleTab === 'assets' && <AssetsDeliveryView projectId={projectId} />}
+      {cockpitModuleTab === 'resources' && <PortfolioResourcePlannerView initialProjectId={projectId} isEmbedded={true} />}
       {cockpitModuleTab === 'logistics' && <LogisticsDeliveryView projectId={projectId} />}
       {cockpitModuleTab === 'crew' && <CrewDeliveryView projectId={projectId} />}
       {cockpitModuleTab === 'site' && <SiteOpsDeliveryView projectId={projectId} initialSection="dsr" />}

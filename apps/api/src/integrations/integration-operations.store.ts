@@ -1,7 +1,12 @@
-import fs from 'fs';
-import path from 'path';
 import { IntegrationOperation } from '@e3-eos/domain';
-import { getDbPool } from '@e3-eos/db';
+import { getDbPool, PgPool } from '@e3-eos/db';
+
+export class DatastoreUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'DatastoreUnavailableError';
+  }
+}
 
 export interface IntegrationOperationsFile {
   version: number;
@@ -53,32 +58,26 @@ export interface ConflictDecisionRecord {
   resolvedAt?: string;
 }
 
+/**
+ * Durable PostgreSQL Store for Integration Operations, Project Demands,
+ * Multi-Sourcing Scenarios, and Capacity Conflict Decisions.
+ *
+ * Conforms strictly to the 19 September 2026 Enterprise Architecture Amendment:
+ * - Direct queries to PostgreSQL 16 via @e3-eos/db pool.
+ * - Ephemeral file-system persistence (apps/api/data/integration-operations.json) is retired.
+ * - Fail-closed error handling: never silently falls back to JSON or in-memory state on DB error.
+ * - Database-level unique constraints and atomic conditional updates for optimistic versioning.
+ */
 export class IntegrationOperationsStore {
   private static instance: IntegrationOperationsStore;
-  private filePath: string;
-  private operations: Map<string, IntegrationOperation> = new Map();
-  private localDrafts: Map<string, unknown> = new Map();
-  private pool = getDbPool();
+  private pool: PgPool;
   private isDbReady = false;
+  private offlineMockMode = false;
+  private mockOperations: Map<string, IntegrationOperation> = new Map();
+  private mockDrafts: Map<string, unknown> = new Map();
 
-  private constructor() {
-    const candidatePaths = [
-      path.resolve(process.cwd(), 'apps', 'api', 'data', 'integration-operations.json'),
-      path.resolve(process.cwd(), 'data', 'integration-operations.json'),
-      path.resolve(process.cwd(), 'integration-operations.json'),
-    ];
-
-    let chosenPath = candidatePaths[0];
-    for (const p of candidatePaths) {
-      if (fs.existsSync(path.dirname(p))) {
-        chosenPath = p;
-        break;
-      }
-    }
-    this.filePath = chosenPath;
-    this.ensureDirectory();
-    this.loadFromDisk();
-    this.initializeDbAndMigrateJson();
+  constructor(pool?: PgPool) {
+    this.pool = pool || getDbPool();
   }
 
   static getInstance(): IntegrationOperationsStore {
@@ -88,104 +87,24 @@ export class IntegrationOperationsStore {
     return this.instance;
   }
 
+  /**
+   * Factory method to construct an independent store instance connected to the
+   * durable datastore, simulating instance replacement or multiple concurrent API processes.
+   */
+  static createFreshInstance(pool?: PgPool): IntegrationOperationsStore {
+    return new IntegrationOperationsStore(pool);
+  }
+
   isReady(): boolean {
     return this.isDbReady;
   }
 
-  private ensureDirectory() {
-    try {
-      const dir = path.dirname(this.filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-    } catch {
-      // Ignore in read-only filesystem environments (e.g. Vercel)
-    }
-  }
-
-  private loadFromDisk() {
-    try {
-      if (fs.existsSync(this.filePath)) {
-        const raw = fs.readFileSync(this.filePath, 'utf-8');
-        const parsed: IntegrationOperationsFile = JSON.parse(raw);
-        if (parsed.operations) {
-          for (const [k, v] of Object.entries(parsed.operations)) {
-            this.operations.set(k, v);
-          }
-        }
-        if (parsed.localDrafts) {
-          for (const [k, v] of Object.entries(parsed.localDrafts)) {
-            this.localDrafts.set(k, v);
-          }
-        }
-      }
-    } catch {
-      // File missing or unreadable; start with clean in-memory map
-    }
-  }
-
-  private persistToDisk() {
-    try {
-      this.ensureDirectory();
-      const payload: IntegrationOperationsFile = {
-        version: 1,
-        updatedAt: new Date().toISOString(),
-        operations: Object.fromEntries(this.operations),
-        localDrafts: Object.fromEntries(this.localDrafts),
-      };
-      fs.writeFileSync(this.filePath, JSON.stringify(payload, null, 2), 'utf-8');
-    } catch {
-      // Gracefully ignore on read-only environments (Vercel Functions / Cloud Run)
-    }
-  }
-
   /**
-   * Initializes database connectivity and backfills any legitimate
-   * historical JSON records from disk into PostgreSQL.
+   * Allows isolated test suites to explicitly enable mock in-memory mode if desired.
+   * In production, this is strictly false.
    */
-  private async initializeDbAndMigrateJson() {
-    try {
-      const client = await this.pool.connect();
-      try {
-        // Test query
-        await client.query('SELECT 1 FROM integration_operations LIMIT 1');
-        this.isDbReady = true;
-
-        // Backfill / migrate legitimate JSON records from disk to DB
-        if (this.operations.size > 0) {
-          for (const op of this.operations.values()) {
-            await client.query(
-              `INSERT INTO integration_operations (
-                id, organisation_id, project_id, connection_id, action,
-                idempotency_key, payload_hash, operation_state, business_state,
-                source_record, error_detail, status_url, created_at, updated_at
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-              ON CONFLICT (idempotency_key) DO NOTHING`,
-              [
-                op.operationId,
-                op.tenantId || 'tenant-e3-default',
-                op.projectId,
-                op.connectionId,
-                op.action,
-                op.idempotencyKey,
-                op.payloadHash,
-                op.operationState,
-                op.businessState,
-                op.sourceRecord ? JSON.stringify(op.sourceRecord) : null,
-                op.errorDetail || null,
-                op.statusUrl,
-                op.createdAt ? new Date(op.createdAt) : new Date(),
-                op.updatedAt ? new Date(op.updatedAt) : new Date(),
-              ]
-            );
-          }
-        }
-      } finally {
-        client.release();
-      }
-    } catch (err: any) {
-      // DB not ready or not migrated yet
-    }
+  setOfflineMockMode(enabled: boolean): void {
+    this.offlineMockMode = enabled;
   }
 
   // =========================================================================
@@ -193,8 +112,10 @@ export class IntegrationOperationsStore {
   // =========================================================================
 
   async saveOperation(operation: IntegrationOperation, organisationId: string = 'tenant-e3-default'): Promise<void> {
-    this.operations.set(operation.operationId, operation);
-    this.persistToDisk();
+    if (this.offlineMockMode) {
+      this.mockOperations.set(operation.operationId, operation);
+      return;
+    }
 
     try {
       await this.pool.query(
@@ -226,112 +147,119 @@ export class IntegrationOperationsStore {
           operation.updatedAt ? new Date(operation.updatedAt) : new Date(),
         ]
       );
-    } catch {
-      // Database fallback to in-memory map
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Could not save integration operation ${operation.operationId} to durable datastore: ${err.message}`);
     }
   }
 
   async getOperation(operationId: string): Promise<IntegrationOperation | undefined> {
+    if (this.offlineMockMode) {
+      return this.mockOperations.get(operationId);
+    }
+
     try {
       const res = await this.pool.query(
         `SELECT * FROM integration_operations WHERE id = $1`,
         [operationId]
       );
-      if (res.rows.length > 0) {
-        const row = res.rows[0];
-        const op: IntegrationOperation = {
-          operationId: row.id,
-          tenantId: row.organisation_id,
-          projectId: row.project_id,
-          connectionId: row.connection_id,
-          action: row.action,
-          idempotencyKey: row.idempotency_key,
-          payloadHash: row.payload_hash,
-          operationState: row.operation_state,
-          businessState: row.business_state,
-          sourceRecord: row.source_record,
-          errorDetail: row.error_detail,
-          statusUrl: row.status_url,
-          createdAt: row.created_at?.toISOString() || new Date().toISOString(),
-          updatedAt: row.updated_at?.toISOString() || new Date().toISOString(),
-        };
-        this.operations.set(operationId, op);
-        return op;
+      if (res.rows.length === 0) {
+        return undefined;
       }
-    } catch {
-      // Fall through to in-memory cache
+      const row = res.rows[0];
+      return {
+        operationId: row.id,
+        tenantId: row.organisation_id,
+        projectId: row.project_id,
+        connectionId: row.connection_id,
+        action: row.action,
+        idempotencyKey: row.idempotency_key,
+        payloadHash: row.payload_hash,
+        operationState: row.operation_state,
+        businessState: row.business_state,
+        sourceRecord: row.source_record,
+        errorDetail: row.error_detail,
+        statusUrl: row.status_url,
+        createdAt: row.created_at?.toISOString() || new Date().toISOString(),
+        updatedAt: row.updated_at?.toISOString() || new Date().toISOString(),
+      };
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Could not retrieve integration operation ${operationId} from durable datastore: ${err.message}`);
     }
-    return this.operations.get(operationId);
   }
 
   async getOperationByIdempotencyKey(key: string): Promise<IntegrationOperation | undefined> {
+    if (this.offlineMockMode) {
+      for (const op of this.mockOperations.values()) {
+        if (op.idempotencyKey === key) return op;
+      }
+      return undefined;
+    }
+
     try {
       const res = await this.pool.query(
         `SELECT * FROM integration_operations WHERE idempotency_key = $1`,
         [key]
       );
-      if (res.rows.length > 0) {
-        const row = res.rows[0];
-        return {
-          operationId: row.id,
-          tenantId: row.organisation_id,
-          projectId: row.project_id,
-          connectionId: row.connection_id,
-          action: row.action,
-          idempotencyKey: row.idempotency_key,
-          payloadHash: row.payload_hash,
-          operationState: row.operation_state,
-          businessState: row.business_state,
-          sourceRecord: row.source_record,
-          errorDetail: row.error_detail,
-          statusUrl: row.status_url,
-          createdAt: row.created_at?.toISOString() || new Date().toISOString(),
-          updatedAt: row.updated_at?.toISOString() || new Date().toISOString(),
-        };
+      if (res.rows.length === 0) {
+        return undefined;
       }
-    } catch {
-      // Fall through to in-memory map
+      const row = res.rows[0];
+      return {
+        operationId: row.id,
+        tenantId: row.organisation_id,
+        projectId: row.project_id,
+        connectionId: row.connection_id,
+        action: row.action,
+        idempotencyKey: row.idempotency_key,
+        payloadHash: row.payload_hash,
+        operationState: row.operation_state,
+        businessState: row.business_state,
+        sourceRecord: row.source_record,
+        errorDetail: row.error_detail,
+        statusUrl: row.status_url,
+        createdAt: row.created_at?.toISOString() || new Date().toISOString(),
+        updatedAt: row.updated_at?.toISOString() || new Date().toISOString(),
+      };
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Could not query idempotency key from durable datastore: ${err.message}`);
     }
-    for (const op of this.operations.values()) {
-      if (op.idempotencyKey === key) return op;
-    }
-    return undefined;
   }
 
   async listOperations(projectId?: string): Promise<IntegrationOperation[]> {
+    if (this.offlineMockMode) {
+      const all = Array.from(this.mockOperations.values());
+      return projectId ? all.filter((op) => op.projectId === projectId) : all;
+    }
+
     try {
       const query = projectId
         ? `SELECT * FROM integration_operations WHERE project_id = $1 ORDER BY created_at DESC`
         : `SELECT * FROM integration_operations ORDER BY created_at DESC`;
       const params = projectId ? [projectId] : [];
       const res = await this.pool.query(query, params);
-      if (res.rows.length > 0) {
-        return res.rows.map((row) => ({
-          operationId: row.id,
-          tenantId: row.organisation_id,
-          projectId: row.project_id,
-          connectionId: row.connection_id,
-          action: row.action,
-          idempotencyKey: row.idempotency_key,
-          payloadHash: row.payload_hash,
-          operationState: row.operation_state,
-          businessState: row.business_state,
-          sourceRecord: row.source_record,
-          errorDetail: row.error_detail,
-          statusUrl: row.status_url,
-          createdAt: row.created_at?.toISOString() || new Date().toISOString(),
-          updatedAt: row.updated_at?.toISOString() || new Date().toISOString(),
-        }));
-      }
-    } catch {
-      // Fallback
+      return res.rows.map((row: any) => ({
+        operationId: row.id,
+        tenantId: row.organisation_id,
+        projectId: row.project_id,
+        connectionId: row.connection_id,
+        action: row.action,
+        idempotencyKey: row.idempotency_key,
+        payloadHash: row.payload_hash,
+        operationState: row.operation_state,
+        businessState: row.business_state,
+        sourceRecord: row.source_record,
+        errorDetail: row.error_detail,
+        statusUrl: row.status_url,
+        createdAt: row.created_at?.toISOString() || new Date().toISOString(),
+        updatedAt: row.updated_at?.toISOString() || new Date().toISOString(),
+      }));
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Could not list integration operations from durable datastore: ${err.message}`);
     }
-    const all = Array.from(this.operations.values());
-    return projectId ? all.filter((op) => op.projectId === projectId) : all;
   }
 
   // =========================================================================
-  // Project Resource Demands (with Optimistic Versioning)
+  // Project Resource Demands (Atomic Optimistic Versioning)
   // =========================================================================
 
   async saveProjectDemand(params: {
@@ -344,7 +272,26 @@ export class IntegrationOperationsStore {
   }): Promise<{ record: ProjectDemandRecord; isConflict: boolean }> {
     const orgId = params.organisationId || 'tenant-e3-default';
 
+    if (this.offlineMockMode) {
+      const cached = this.mockDrafts.get(`demand:${params.projectId}`) as ProjectDemandRecord | undefined;
+      if (cached && params.expectedVersion !== undefined && cached.version !== params.expectedVersion) {
+        return { record: cached, isConflict: true };
+      }
+      const record: ProjectDemandRecord = {
+        projectId: params.projectId,
+        organisationId: orgId,
+        requirements: params.requirements,
+        assumptions: params.assumptions,
+        version: (cached?.version || 0) + 1,
+        updatedBy: params.updatedBy,
+        updatedAt: new Date().toISOString(),
+      };
+      this.mockDrafts.set(`demand:${params.projectId}`, record);
+      return { record, isConflict: false };
+    }
+
     try {
+      // Step 1: Check if an existing record exists for this project
       const existingRes = await this.pool.query(
         `SELECT * FROM project_resource_demands WHERE project_id = $1 ORDER BY version DESC LIMIT 1`,
         [params.projectId]
@@ -352,7 +299,8 @@ export class IntegrationOperationsStore {
 
       if (existingRes.rows.length > 0) {
         const existing = existingRes.rows[0];
-        // Concurrency Guard: Optimistic version check
+
+        // Optimistic concurrency check: if client sent expectedVersion and it doesn't match, return conflict immediately
         if (params.expectedVersion !== undefined && existing.version !== params.expectedVersion) {
           return {
             record: {
@@ -363,42 +311,83 @@ export class IntegrationOperationsStore {
               assumptions: existing.assumptions,
               version: existing.version,
               updatedBy: existing.updated_by,
+              createdAt: existing.created_at?.toISOString(),
               updatedAt: existing.updated_at?.toISOString(),
             },
             isConflict: true,
           };
         }
 
-        const newVersion = existing.version + 1;
+        // Atomic conditional update: update ONLY IF version still equals existing.version
+        const targetVersion = params.expectedVersion !== undefined ? params.expectedVersion : existing.version;
         const updateRes = await this.pool.query(
           `UPDATE project_resource_demands
-           SET requirements = $1, assumptions = $2, version = $3, updated_by = $4, updated_at = NOW()
-           WHERE id = $5
+           SET requirements = $1, assumptions = $2, version = version + 1, updated_by = $3, updated_at = NOW()
+           WHERE id = $4 AND version = $5
            RETURNING *`,
           [
             JSON.stringify(params.requirements),
             params.assumptions ? JSON.stringify(params.assumptions) : null,
-            newVersion,
             params.updatedBy || 'system',
             existing.id,
+            targetVersion,
           ]
         );
-        const row = updateRes.rows[0];
-        const record: ProjectDemandRecord = {
-          id: row.id,
-          projectId: row.project_id,
-          organisationId: row.organisation_id,
-          requirements: row.requirements,
-          assumptions: row.assumptions,
-          version: row.version,
-          updatedBy: row.updated_by,
-          updatedAt: row.updated_at?.toISOString(),
-        };
-        this.saveLocalDraft(`demand:${params.projectId}`, record);
-        return { record, isConflict: false };
+
+        if (updateRes.rows.length === 1) {
+          const row = updateRes.rows[0];
+          return {
+            record: {
+              id: row.id,
+              projectId: row.project_id,
+              organisationId: row.organisation_id,
+              requirements: row.requirements,
+              assumptions: row.assumptions,
+              version: row.version,
+              updatedBy: row.updated_by,
+              createdAt: row.created_at?.toISOString(),
+              updatedAt: row.updated_at?.toISOString(),
+            },
+            isConflict: false,
+          };
+        } else {
+          // Race condition: another concurrent write bumped version between select and update!
+          const refreshed = await this.pool.query(
+            `SELECT * FROM project_resource_demands WHERE id = $1`,
+            [existing.id]
+          );
+          const r = refreshed.rows[0] || existing;
+          return {
+            record: {
+              id: r.id,
+              projectId: r.project_id,
+              organisationId: r.organisation_id,
+              requirements: r.requirements,
+              assumptions: r.assumptions,
+              version: r.version,
+              updatedBy: r.updated_by,
+              createdAt: r.created_at?.toISOString(),
+              updatedAt: r.updated_at?.toISOString(),
+            },
+            isConflict: true,
+          };
+        }
       }
 
-      // Insert fresh demand
+      // If expectedVersion is specified as > 0 but no record exists, conflict!
+      if (params.expectedVersion !== undefined && params.expectedVersion > 0) {
+        return {
+          record: {
+            projectId: params.projectId,
+            organisationId: orgId,
+            requirements: [],
+            version: 0,
+          },
+          isConflict: true,
+        };
+      }
+
+      // Fresh insert
       const insertRes = await this.pool.query(
         `INSERT INTO project_resource_demands (
           organisation_id, project_id, requirements, assumptions, version, updated_by, created_at, updated_at
@@ -413,47 +402,8 @@ export class IntegrationOperationsStore {
         ]
       );
       const row = insertRes.rows[0];
-      const record: ProjectDemandRecord = {
-        id: row.id,
-        projectId: row.project_id,
-        organisationId: row.organisation_id,
-        requirements: row.requirements,
-        assumptions: row.assumptions,
-        version: row.version,
-        updatedBy: row.updated_by,
-        updatedAt: row.updated_at?.toISOString(),
-      };
-      this.saveLocalDraft(`demand:${params.projectId}`, record);
-      return { record, isConflict: false };
-    } catch {
-      // In-memory fallback
-      const cached = this.getLocalDraft<ProjectDemandRecord>(`demand:${params.projectId}`);
-      if (cached && params.expectedVersion !== undefined && cached.version !== params.expectedVersion) {
-        return { record: cached, isConflict: true };
-      }
-      const record: ProjectDemandRecord = {
-        projectId: params.projectId,
-        organisationId: orgId,
-        requirements: params.requirements,
-        assumptions: params.assumptions,
-        version: (cached?.version || 0) + 1,
-        updatedBy: params.updatedBy,
-        updatedAt: new Date().toISOString(),
-      };
-      this.saveLocalDraft(`demand:${params.projectId}`, record);
-      return { record, isConflict: false };
-    }
-  }
-
-  async getProjectDemand(projectId: string): Promise<ProjectDemandRecord | null> {
-    try {
-      const res = await this.pool.query(
-        `SELECT * FROM project_resource_demands WHERE project_id = $1 ORDER BY version DESC LIMIT 1`,
-        [projectId]
-      );
-      if (res.rows.length > 0) {
-        const row = res.rows[0];
-        return {
+      return {
+        record: {
           id: row.id,
           projectId: row.project_id,
           organisationId: row.organisation_id,
@@ -463,16 +413,46 @@ export class IntegrationOperationsStore {
           updatedBy: row.updated_by,
           createdAt: row.created_at?.toISOString(),
           updatedAt: row.updated_at?.toISOString(),
-        };
-      }
-    } catch {
-      // Fall through to local cache
+        },
+        isConflict: false,
+      };
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Failed to persist project resource demand to PostgreSQL: ${err.message}`);
     }
-    return this.getLocalDraft<ProjectDemandRecord>(`demand:${projectId}`) || null;
+  }
+
+  async getProjectDemand(projectId: string): Promise<ProjectDemandRecord | null> {
+    if (this.offlineMockMode) {
+      return (this.mockDrafts.get(`demand:${projectId}`) as ProjectDemandRecord) || null;
+    }
+
+    try {
+      const res = await this.pool.query(
+        `SELECT * FROM project_resource_demands WHERE project_id = $1 ORDER BY version DESC LIMIT 1`,
+        [projectId]
+      );
+      if (res.rows.length === 0) {
+        return null;
+      }
+      const row = res.rows[0];
+      return {
+        id: row.id,
+        projectId: row.project_id,
+        organisationId: row.organisation_id,
+        requirements: row.requirements,
+        assumptions: row.assumptions,
+        version: row.version,
+        updatedBy: row.updated_by,
+        createdAt: row.created_at?.toISOString(),
+        updatedAt: row.updated_at?.toISOString(),
+      };
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Failed to fetch project resource demand from PostgreSQL: ${err.message}`);
+    }
   }
 
   // =========================================================================
-  // Project Sourcing Scenarios & Multi-Sourcing Records
+  // Project Sourcing Scenarios (Atomic Optimistic Versioning)
   // =========================================================================
 
   async saveSourcingScenario(params: {
@@ -489,6 +469,28 @@ export class IntegrationOperationsStore {
   }): Promise<{ record: ProjectSourcingScenarioRecord; isConflict: boolean }> {
     const orgId = params.organisationId || 'tenant-e3-default';
     const status = params.status || 'draft';
+
+    if (this.offlineMockMode) {
+      const cached = this.mockDrafts.get(`scenario:${params.projectId}:${params.name}`) as ProjectSourcingScenarioRecord | undefined;
+      if (cached && params.expectedVersion !== undefined && cached.version !== params.expectedVersion) {
+        return { record: cached, isConflict: true };
+      }
+      const record: ProjectSourcingScenarioRecord = {
+        projectId: params.projectId,
+        organisationId: orgId,
+        name: params.name,
+        status,
+        demandId: params.demandId,
+        allocations: params.allocations,
+        costBreakdown: params.costBreakdown,
+        readinessConditions: params.readinessConditions,
+        version: (cached?.version || 0) + 1,
+        createdBy: params.createdBy,
+        updatedAt: new Date().toISOString(),
+      };
+      this.mockDrafts.set(`scenario:${params.projectId}:${params.name}`, record);
+      return { record, isConflict: false };
+    }
 
     try {
       const existingRes = await this.pool.query(
@@ -512,44 +514,87 @@ export class IntegrationOperationsStore {
               readinessConditions: existing.readiness_conditions,
               version: existing.version,
               createdBy: existing.created_by,
+              createdAt: existing.created_at?.toISOString(),
               updatedAt: existing.updated_at?.toISOString(),
             },
             isConflict: true,
           };
         }
 
-        const newVersion = existing.version + 1;
+        const targetVersion = params.expectedVersion !== undefined ? params.expectedVersion : existing.version;
         const updateRes = await this.pool.query(
           `UPDATE project_sourcing_scenarios
-           SET allocations = $1, cost_breakdown = $2, readiness_conditions = $3, status = $4, version = $5, updated_at = NOW()
-           WHERE id = $6
+           SET allocations = $1, cost_breakdown = $2, readiness_conditions = $3, status = $4, version = version + 1, updated_at = NOW()
+           WHERE id = $5 AND version = $6
            RETURNING *`,
           [
             JSON.stringify(params.allocations),
             JSON.stringify(params.costBreakdown),
             JSON.stringify(params.readinessConditions),
             status,
-            newVersion,
             existing.id,
+            targetVersion,
           ]
         );
-        const row = updateRes.rows[0];
-        const record: ProjectSourcingScenarioRecord = {
-          id: row.id,
-          projectId: row.project_id,
-          organisationId: row.organisation_id,
-          name: row.name,
-          status: row.status,
-          demandId: row.demand_id,
-          allocations: row.allocations,
-          costBreakdown: row.cost_breakdown,
-          readinessConditions: row.readiness_conditions,
-          version: row.version,
-          createdBy: row.created_by,
-          updatedAt: row.updated_at?.toISOString(),
+
+        if (updateRes.rows.length === 1) {
+          const row = updateRes.rows[0];
+          return {
+            record: {
+              id: row.id,
+              projectId: row.project_id,
+              organisationId: row.organisation_id,
+              name: row.name,
+              status: row.status,
+              demandId: row.demand_id,
+              allocations: row.allocations,
+              costBreakdown: row.cost_breakdown,
+              readinessConditions: row.readiness_conditions,
+              version: row.version,
+              createdBy: row.created_by,
+              createdAt: row.created_at?.toISOString(),
+              updatedAt: row.updated_at?.toISOString(),
+            },
+            isConflict: false,
+          };
+        } else {
+          const refreshed = await this.pool.query(`SELECT * FROM project_sourcing_scenarios WHERE id = $1`, [existing.id]);
+          const r = refreshed.rows[0] || existing;
+          return {
+            record: {
+              id: r.id,
+              projectId: r.project_id,
+              organisationId: r.organisation_id,
+              name: r.name,
+              status: r.status,
+              demandId: r.demand_id,
+              allocations: r.allocations,
+              costBreakdown: r.cost_breakdown,
+              readinessConditions: r.readiness_conditions,
+              version: r.version,
+              createdBy: r.created_by,
+              createdAt: r.created_at?.toISOString(),
+              updatedAt: r.updated_at?.toISOString(),
+            },
+            isConflict: true,
+          };
+        }
+      }
+
+      if (params.expectedVersion !== undefined && params.expectedVersion > 0) {
+        return {
+          record: {
+            projectId: params.projectId,
+            organisationId: orgId,
+            name: params.name,
+            status,
+            allocations: params.allocations,
+            costBreakdown: params.costBreakdown,
+            readinessConditions: params.readinessConditions,
+            version: 0,
+          },
+          isConflict: true,
         };
-        this.saveLocalDraft(`scenario:${params.projectId}:${params.name}`, record);
-        return { record, isConflict: false };
       }
 
       const insertRes = await this.pool.query(
@@ -570,49 +615,8 @@ export class IntegrationOperationsStore {
         ]
       );
       const row = insertRes.rows[0];
-      const record: ProjectSourcingScenarioRecord = {
-        id: row.id,
-        projectId: row.project_id,
-        organisationId: row.organisation_id,
-        name: row.name,
-        status: row.status,
-        demandId: row.demand_id,
-        allocations: row.allocations,
-        costBreakdown: row.cost_breakdown,
-        readinessConditions: row.readiness_conditions,
-        version: row.version,
-        createdBy: row.created_by,
-        updatedAt: row.updated_at?.toISOString(),
-      };
-      this.saveLocalDraft(`scenario:${params.projectId}:${params.name}`, record);
-      return { record, isConflict: false };
-    } catch {
-      const record: ProjectSourcingScenarioRecord = {
-        projectId: params.projectId,
-        organisationId: orgId,
-        name: params.name,
-        status,
-        demandId: params.demandId,
-        allocations: params.allocations,
-        costBreakdown: params.costBreakdown,
-        readinessConditions: params.readinessConditions,
-        version: 1,
-        createdBy: params.createdBy,
-        updatedAt: new Date().toISOString(),
-      };
-      this.saveLocalDraft(`scenario:${params.projectId}:${params.name}`, record);
-      return { record, isConflict: false };
-    }
-  }
-
-  async listSourcingScenarios(projectId: string): Promise<ProjectSourcingScenarioRecord[]> {
-    try {
-      const res = await this.pool.query(
-        `SELECT * FROM project_sourcing_scenarios WHERE project_id = $1 ORDER BY updated_at DESC`,
-        [projectId]
-      );
-      if (res.rows.length > 0) {
-        return res.rows.map((row) => ({
+      return {
+        record: {
           id: row.id,
           projectId: row.project_id,
           organisationId: row.organisation_id,
@@ -626,12 +630,48 @@ export class IntegrationOperationsStore {
           createdBy: row.created_by,
           createdAt: row.created_at?.toISOString(),
           updatedAt: row.updated_at?.toISOString(),
-        }));
-      }
-    } catch {
-      // Fall through to memory
+        },
+        isConflict: false,
+      };
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Failed to persist sourcing scenario to PostgreSQL: ${err.message}`);
     }
-    return this.listLocalDrafts<ProjectSourcingScenarioRecord>(`scenario:${projectId}`);
+  }
+
+  async listSourcingScenarios(projectId: string): Promise<ProjectSourcingScenarioRecord[]> {
+    if (this.offlineMockMode) {
+      const results: ProjectSourcingScenarioRecord[] = [];
+      for (const [k, v] of this.mockDrafts.entries()) {
+        if (k.startsWith(`scenario:${projectId}`)) {
+          results.push(v as ProjectSourcingScenarioRecord);
+        }
+      }
+      return results;
+    }
+
+    try {
+      const res = await this.pool.query(
+        `SELECT * FROM project_sourcing_scenarios WHERE project_id = $1 ORDER BY updated_at DESC`,
+        [projectId]
+      );
+      return res.rows.map((row: any) => ({
+        id: row.id,
+        projectId: row.project_id,
+        organisationId: row.organisation_id,
+        name: row.name,
+        status: row.status,
+        demandId: row.demand_id,
+        allocations: row.allocations,
+        costBreakdown: row.cost_breakdown,
+        readinessConditions: row.readiness_conditions,
+        version: row.version,
+        createdBy: row.created_by,
+        createdAt: row.created_at?.toISOString(),
+        updatedAt: row.updated_at?.toISOString(),
+      }));
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Failed to list sourcing scenarios from PostgreSQL: ${err.message}`);
+    }
   }
 
   // =========================================================================
@@ -651,6 +691,24 @@ export class IntegrationOperationsStore {
   }): Promise<ConflictDecisionRecord> {
     const orgId = params.organisationId || 'tenant-e3-default';
     const status = params.status || 'unresolved';
+
+    if (this.offlineMockMode) {
+      const record: ConflictDecisionRecord = {
+        projectId: params.projectId,
+        organisationId: orgId,
+        conflictRef: params.conflictRef,
+        resourcePoolId: params.resourcePoolId,
+        assignedOwner: params.assignedOwner,
+        resolutionAction: params.resolutionAction,
+        rationale: params.rationale,
+        status,
+        decidedBy: params.decidedBy,
+        createdAt: new Date().toISOString(),
+        resolvedAt: status === 'approved' ? new Date().toISOString() : undefined,
+      };
+      this.mockDrafts.set(`conflict:${params.projectId}:${params.conflictRef}`, record);
+      return record;
+    }
 
     try {
       const existingRes = await this.pool.query(
@@ -694,8 +752,8 @@ export class IntegrationOperationsStore {
 
       const insertRes = await this.pool.query(
         `INSERT INTO capacity_conflict_decisions (
-          organisation_id, project_id, conflict_ref, resource_pool_id, assigned_owner, resolution_action, rationale, status, decided_by, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+          organisation_id, project_id, conflict_ref, resource_pool_id, assigned_owner, resolution_action, rationale, status, decided_by, created_at, resolved_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), CASE WHEN $8 = 'approved' THEN NOW() ELSE NULL END)
         RETURNING *`,
         [
           orgId,
@@ -724,68 +782,61 @@ export class IntegrationOperationsStore {
         createdAt: row.created_at?.toISOString(),
         resolvedAt: row.resolved_at?.toISOString(),
       };
-    } catch {
-      const record: ConflictDecisionRecord = {
-        projectId: params.projectId,
-        organisationId: orgId,
-        conflictRef: params.conflictRef,
-        resourcePoolId: params.resourcePoolId,
-        assignedOwner: params.assignedOwner,
-        resolutionAction: params.resolutionAction,
-        rationale: params.rationale,
-        status,
-        decidedBy: params.decidedBy,
-        createdAt: new Date().toISOString(),
-      };
-      this.saveLocalDraft(`conflict:${params.projectId}:${params.conflictRef}`, record);
-      return record;
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Failed to persist capacity conflict decision to PostgreSQL: ${err.message}`);
     }
   }
 
   async listConflictDecisions(projectId: string): Promise<ConflictDecisionRecord[]> {
+    if (this.offlineMockMode) {
+      const results: ConflictDecisionRecord[] = [];
+      for (const [k, v] of this.mockDrafts.entries()) {
+        if (k.startsWith(`conflict:${projectId}`)) {
+          results.push(v as ConflictDecisionRecord);
+        }
+      }
+      return results;
+    }
+
     try {
       const res = await this.pool.query(
         `SELECT * FROM capacity_conflict_decisions WHERE project_id = $1 ORDER BY created_at DESC`,
         [projectId]
       );
-      if (res.rows.length > 0) {
-        return res.rows.map((row) => ({
-          id: row.id,
-          projectId: row.project_id,
-          organisationId: row.organisation_id,
-          conflictRef: row.conflict_ref,
-          resourcePoolId: row.resource_pool_id,
-          assignedOwner: row.assigned_owner,
-          resolutionAction: row.resolution_action,
-          rationale: row.rationale,
-          status: row.status,
-          decidedBy: row.decided_by,
-          createdAt: row.created_at?.toISOString(),
-          resolvedAt: row.resolved_at?.toISOString(),
-        }));
-      }
-    } catch {
-      // Fallback
+      return res.rows.map((row: any) => ({
+        id: row.id,
+        projectId: row.project_id,
+        organisationId: row.organisation_id,
+        conflictRef: row.conflict_ref,
+        resourcePoolId: row.resource_pool_id,
+        assignedOwner: row.assigned_owner,
+        resolutionAction: row.resolution_action,
+        rationale: row.rationale,
+        status: row.status,
+        decidedBy: row.decided_by,
+        createdAt: row.created_at?.toISOString(),
+        resolvedAt: row.resolved_at?.toISOString(),
+      }));
+    } catch (err: any) {
+      throw new DatastoreUnavailableError(`Failed to list conflict decisions from PostgreSQL: ${err.message}`);
     }
-    return this.listLocalDrafts<ConflictDecisionRecord>(`conflict:${projectId}`);
   }
 
   // =========================================================================
-  // Local In-Memory Fallback & Testing Utilities
+  // Ephemeral Preparation Drafts (Non-Durable Working State)
   // =========================================================================
 
   saveLocalDraft(key: string, data: unknown): void {
-    this.localDrafts.set(key, data);
-    this.persistToDisk();
+    this.mockDrafts.set(key, data);
   }
 
   getLocalDraft<T = unknown>(key: string): T | undefined {
-    return this.localDrafts.get(key) as T | undefined;
+    return this.mockDrafts.get(key) as T | undefined;
   }
 
-  listLocalDrafts<T = unknown>(prefix?: string): T[] {
+  listLocalDrafts<T = any>(prefix?: string): T[] {
     const results: T[] = [];
-    for (const [k, v] of this.localDrafts.entries()) {
+    for (const [k, v] of this.mockDrafts.entries()) {
       if (!prefix || k.startsWith(prefix)) {
         results.push(v as T);
       }
@@ -793,17 +844,27 @@ export class IntegrationOperationsStore {
     return results;
   }
 
-  async clearForTesting(): Promise<void> {
-    this.operations.clear();
-    this.localDrafts.clear();
-    this.persistToDisk();
+  // =========================================================================
+  // Testing & Cleanup Utilities
+  // =========================================================================
+
+  async clearForTesting(projectId?: string): Promise<void> {
+    this.mockOperations.clear();
+    this.mockDrafts.clear();
     try {
-      await this.pool.query('DELETE FROM integration_operations');
-      await this.pool.query('DELETE FROM project_resource_demands');
-      await this.pool.query('DELETE FROM project_sourcing_scenarios');
-      await this.pool.query('DELETE FROM capacity_conflict_decisions');
+      if (projectId) {
+        await this.pool.query('DELETE FROM integration_operations WHERE project_id = $1', [projectId]);
+        await this.pool.query('DELETE FROM project_resource_demands WHERE project_id = $1', [projectId]);
+        await this.pool.query('DELETE FROM project_sourcing_scenarios WHERE project_id = $1', [projectId]);
+        await this.pool.query('DELETE FROM capacity_conflict_decisions WHERE project_id = $1', [projectId]);
+      } else {
+        await this.pool.query('DELETE FROM integration_operations');
+        await this.pool.query('DELETE FROM project_resource_demands');
+        await this.pool.query('DELETE FROM project_sourcing_scenarios');
+        await this.pool.query('DELETE FROM capacity_conflict_decisions');
+      }
     } catch {
-      // Ignore if DB offline
+      // Ignore if DB not reachable during clear
     }
   }
 }

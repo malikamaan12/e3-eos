@@ -44,7 +44,14 @@ export class ProblemDetailsFilter implements ExceptionFilter {
         permittedNextActions = obj.permittedNextActions;
       }
     } else if (exception instanceof Error) {
-      detail = exception.message;
+      if (exception.name === 'DatastoreUnavailableError' || (exception as any).constructor?.name === 'DatastoreUnavailableError') {
+        status = HttpStatus.SERVICE_UNAVAILABLE;
+        code = 'DATASTORE_UNAVAILABLE';
+        title = 'Durable Datastore Unavailable';
+        detail = exception.message;
+      } else {
+        detail = exception.message;
+      }
     }
 
     const problemDoc = ProblemDocumentFactory.create({

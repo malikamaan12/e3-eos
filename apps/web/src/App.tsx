@@ -168,7 +168,14 @@ const AppRouter: React.FC = () => {
     if (currentPath === '/bump-out') {
       return <BumpOutCloseoutView />;
     }
-    if (currentPath === '/portfolio/resources' || currentPath === '/portfolio/capacity' || currentPath === '/portfolio/resource-planner') {
+    if (
+      currentPath === '/portfolio/resources' ||
+      currentPath === '/portfolio/capacity' ||
+      currentPath === '/portfolio/resource-planner' ||
+      currentPath === '/resource-plan' ||
+      currentPath.endsWith('/resources') ||
+      currentPath.endsWith('/resource-plan')
+    ) {
       return <PortfolioResourcePlannerView />;
     }
     if (currentPath === '/commercial/financial-control' || currentPath === '/commercial' || currentPath === '/portfolio') {

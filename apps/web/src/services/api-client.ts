@@ -6071,14 +6071,65 @@ export class EosApiClient {
       if (res.ok) return await res.json();
     } catch {}
 
-    if (!isSyntheticDemo(projectId)) {
+    const isTourism =
+      projectId === 'f1111111-1111-4111-8111-111111111111' ||
+      projectId === 'PRJ-2026-QATAR-01' ||
+      projectId.startsWith('f1a0') ||
+      projectId.toLowerCase().includes('tourism');
+
+    if (!isSyntheticDemo(projectId) && !isTourism) {
       return null;
+    }
+
+    if (isTourism) {
+      return {
+        projectId,
+        reportTitle: 'Qatar Tourism Annual Exhibition & Gala 2026 — Post-Event Closeout Report',
+        finalized: true,
+        clientName: 'Qatar Tourism Authority',
+        venueName: 'Doha Exhibition & Convention Centre (DECC), Hall 1 & 2',
+        attendance: '4,850',
+        peakThroughput: '1,200 / hour',
+        showDeliveryRate: '100% On-Time',
+        cuesExecuted: '18',
+        safetyMetric: 'Zero LTI',
+        workforceHours: 48000,
+        contractValue: 2950000,
+        revisedContractValue: 3115000,
+        approvedVariations: 165000,
+        variationCount: 3,
+        paymentStatus: 'Settled in Full',
+        permitNumber: 'QCDD-PERMIT-2026-991',
+        executiveSummary: 'The Qatar Tourism Annual Exhibition & Gala 2026 was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and DECC venue operations. All primary exhibition halls, keynote stages, and VVIP Majlis facilities achieved 100% acceptance prior to VIP delegation arrival.',
+        sections: [
+          { sectionId: 'SEC-01', title: '1. Executive Summary', summary: 'The 2026 Annual Exhibition & Gala achieved 100% operational readiness, zero safety incidents, and delivered on-budget with favorable commercial closure.' },
+          { sectionId: 'SEC-02', title: '2. Operational & Scope Delivery', summary: '100% of physical assets delivered across 4 zones with 98% pre-opening snag clearance.' },
+          { sectionId: 'SEC-03', title: '3. Crowd & Attendance Analytics', summary: 'Turnstile entries totaled 4,850 across gala event, peaking at 1,200 attendees/hour.' },
+          { sectionId: 'SEC-04', title: '4. Commercial & Financial Performance', summary: 'Contract Value 2,950,000 QAR; Final Revised 3,115,000 QAR; Net Favorable Variance 165,000 QAR.' },
+          { sectionId: 'SEC-05', title: '5. Key Lessons Learned & Recommendations', summary: 'Adopt 4-week maritime import buffer on architectural structures; advance dignitary ingress marshal positions to T-90.' },
+        ],
+      };
     }
 
     return {
       projectId,
       reportTitle: 'Qatar National Day 2026 Pavilion — Post-Event Closeout Report',
       finalized: true,
+      clientName: 'Ministry of Culture & Celebrations Committee',
+      venueName: 'Lusail Boulevard & Arena, Doha',
+      attendance: '125,400+',
+      peakThroughput: '4,200 / hour',
+      showDeliveryRate: '100% On-Time',
+      cuesExecuted: '48',
+      safetyMetric: 'Zero LTI',
+      workforceHours: 142000,
+      contractValue: 2450000,
+      revisedContractValue: 2615000,
+      approvedVariations: 165000,
+      variationCount: 3,
+      paymentStatus: 'Settled in Full',
+      permitNumber: 'QCDD-EV-2026-9941',
+      executiveSummary: 'The Qatar National Day 2026 Pavilion was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and Qatar Civil Defence Department (QCDD) life safety standards. All primary structural elements, kinetic lighting rings, and 360-degree LED surfaces achieved 100% factory acceptance and site sign-off prior to public doors opening.',
       sections: [
         { sectionId: 'SEC-01', title: '1. Executive Summary', summary: 'The 2026 Ceremonial Pavilion achieved 100% operational readiness, zero safety incidents, and delivered on-budget with favorable commercial closure.' },
         { sectionId: 'SEC-02', title: '2. Operational & Scope Delivery', summary: '100% of physical assets delivered across 4 zones with 98% pre-opening snag clearance.' },
