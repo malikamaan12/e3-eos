@@ -134,17 +134,28 @@ const INITIAL_SHOW_CUES: ShowCue[] = [
 ];
 
 export const LiveCommandCentreView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId, currentProject, currentUser } = useEosContext();
+  const { currentLanguage, apiClient, selectedProjectId, setSelectedProjectId, projects, currentProject, currentUser } = useEosContext();
   const isRtl = currentLanguage === 'ar';
   const isDemo = isSyntheticDemo(selectedProjectId);
   const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
-  const isTourism = projectId === 'f1111111-1111-4111-8111-111111111111' || projectId === 'PRJ-2026-QATAR-01' || currentProject?.code === 'PRJ-2026-QATAR-01' || (currentProject as any)?.projectCode === 'PRJ-2026-QATAR-01' || selectedProjectId?.startsWith('f1a0');
-  const isQnd = projectId === '00000000-0000-4000-8000-000000000001' || projectId === 'PRJ-QND-2026' || projectId === 'QND26' || currentProject?.code === 'PRJ-QND-2026' || (currentProject as any)?.projectCode === 'PRJ-QND-2026';
+  const isAccA = projectId === 'PROJ-ACC-001' || currentProject?.id === 'PROJ-ACC-001' || (currentProject as any)?.code === 'PROJ-ACC-001' || (currentProject as any)?.projectCode === 'PROJ-ACC-001';
+  const isAccB = projectId === 'PROJ-ACC-002' || currentProject?.id === 'PROJ-ACC-002' || (currentProject as any)?.code === 'PROJ-ACC-002' || (currentProject as any)?.projectCode === 'PROJ-ACC-002';
+  const isTourism = !isAccA && !isAccB && (projectId === 'f1111111-1111-4111-8111-111111111111' || projectId === 'PRJ-2026-QATAR-01' || currentProject?.code === 'PRJ-2026-QATAR-01' || (currentProject as any)?.projectCode === 'PRJ-2026-QATAR-01');
+  const isQnd = !isAccA && !isAccB && (projectId === '00000000-0000-4000-8000-000000000001' || projectId === 'PRJ-QND-2026' || projectId === 'QND26' || currentProject?.code === 'PRJ-QND-2026' || (currentProject as any)?.projectCode === 'PRJ-QND-2026');
 
   const isHexOrUuid = projectId && (/^[0-9a-fA-F-]{32,}$/.test(projectId) || /^[0-9a-f]{8}-[0-9a-f]{4}/.test(projectId));
-  const resolvedProjectCode = currentProject?.projectCode || (currentProject as any)?.code || (isTourism ? 'PRJ-2026-QATAR-01' : isQnd ? 'PRJ-QND-2026' : (!isHexOrUuid && projectId ? projectId : 'PRJ-2026-QATAR-01'));
-  const resolvedProjectTitle = currentProject?.title || (currentProject as any)?.name || (isTourism ? 'Qatar Tourism Annual Exhibition & Gala 2026' : isQnd ? 'Qatar National Day 2026 Celebrations' : 'Qatar Tourism Annual Exhibition & Gala 2026');
+  const resolvedProjectCode = isAccA
+    ? 'PROJ-ACC-001'
+    : isAccB
+    ? 'PROJ-ACC-002'
+    : currentProject?.projectCode || (currentProject as any)?.code || (isTourism ? 'PRJ-2026-QATAR-01' : isQnd ? 'PRJ-QND-2026' : (!isHexOrUuid && projectId ? projectId : 'PRJ-2026-QATAR-01'));
+
+  const resolvedProjectTitle = isAccA
+    ? 'Acceptance A'
+    : isAccB
+    ? 'Acceptance B'
+    : currentProject?.title || (currentProject as any)?.name || (isTourism ? 'Qatar Tourism Annual Exhibition & Gala 2026' : isQnd ? 'Qatar National Day 2026 Celebrations' : 'Operational Event Project');
   const projectName = `${resolvedProjectCode} — ${resolvedProjectTitle}`;
 
   const [data, setData] = useState<any>(null);
@@ -442,6 +453,33 @@ export const LiveCommandCentreView: React.FC = () => {
           <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary, #94a3b8)', fontSize: '13px' }}>
             {isRtl ? `${projectName} — القياس الفوري، تدابير الحماية الوقائية، وذكاء إدارة الفعاليات.` : `${projectName} — Real-time telemetry, protective controls, and event intelligence.`}
           </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+            <label htmlFor="command-project-select" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted, #94a3b8)' }}>
+              {isRtl ? 'تبديل المشروع:' : 'Select Project:'}
+            </label>
+            <select
+              id="command-project-select"
+              value={selectedProjectId || ''}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              style={{
+                padding: '4px 10px',
+                fontSize: '12px',
+                fontWeight: 700,
+                borderRadius: '6px',
+                border: '1.5px solid var(--accent, #d97706)',
+                backgroundColor: 'var(--surface-1, #0f1624)',
+                color: 'var(--text-primary, #f8fafc)',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {(p as any).code || (p as any).projectCode || p.id} — {p.name || (p as any).title}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>

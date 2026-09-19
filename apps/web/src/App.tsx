@@ -105,76 +105,79 @@ const AppRouter: React.FC = () => {
 
   // Shell-Wrapped Views
   const renderContent = () => {
-    if (currentPath === '/account') {
+    const cleanPath = currentPath.split('?')[0].split('#')[0];
+
+    if (cleanPath === '/account') {
       return <AccountView />;
     }
-    if (currentPath === '/my-work' || currentPath === '/approvals') {
+    if (cleanPath === '/my-work' || cleanPath === '/approvals') {
       return <MyWorkView />;
     }
-    if (currentPath === '/projects/new') {
+    if (cleanPath === '/projects/new') {
       return <NewProjectWizardView />;
     }
-    if (currentPath.match(/^\/projects\/[^/]+\/designs/)) {
-      const match = currentPath.match(/^\/projects\/([^/?#]+)\/designs/);
+    if (cleanPath.match(/^\/projects\/[^/]+\/designs/)) {
+      const match = cleanPath.match(/^\/projects\/([^/?#]+)\/designs/);
       const prjId = match ? match[1] : 'f1111111-1111-4111-8111-111111111111';
       return <DesignCreativeModuleView projectId={prjId} />;
     }
     if (
-      currentPath === '/documents/controlled' ||
-      currentPath === '/vault' ||
-      currentPath === '/packs' ||
-      currentPath.includes('/controlled-documents') ||
-      currentPath.includes('/vault') ||
-      currentPath.includes('/packs')
+      cleanPath === '/documents/controlled' ||
+      cleanPath === '/vault' ||
+      cleanPath === '/packs' ||
+      cleanPath.includes('/controlled-documents') ||
+      cleanPath.includes('/vault') ||
+      cleanPath.includes('/packs')
     ) {
-      const match = currentPath.match(/\/projects\/([^/?#]+)/);
+      const match = cleanPath.match(/\/projects\/([^/?#]+)/);
       const prjId = match ? match[1] : undefined;
-      const initialTab = currentPath.includes('vault') ? 'vault' : currentPath.includes('pack') ? 'pack' : 'vault';
+      const initialTab = cleanPath.includes('vault') ? 'vault' : cleanPath.includes('pack') ? 'pack' : 'vault';
       return <ControlledDocumentsWorkspaceView initialProjectId={prjId} initialTab={initialTab} />;
     }
-    if (currentPath.startsWith('/projects/') && currentPath !== '/projects') {
+    if (cleanPath.startsWith('/projects/') && cleanPath !== '/projects') {
       return <ProjectCockpitView />;
     }
-    if (currentPath === '/projects') {
+    if (cleanPath === '/projects') {
       return <ProjectListView />;
     }
-    if (currentPath === '/vendors') {
+    if (cleanPath === '/vendors') {
       return <VendorDirectoryView />;
     }
-    if (currentPath === '/warehouse' || currentPath === '/inventory') {
+    if (cleanPath === '/warehouse' || cleanPath === '/inventory') {
       return <WarehouseOperationsView />;
     }
-    if (currentPath === '/admin/users' || currentPath === '/admin') {
+    if (cleanPath === '/admin/users' || cleanPath === '/admin') {
       return <AdminUsersView />;
     }
-    if (currentPath === '/admin/roles') {
+    if (cleanPath === '/admin/roles') {
       return <AdminRolesView />;
     }
-    if (currentPath === '/field' || currentPath.startsWith('/field')) {
+    if (cleanPath === '/field' || cleanPath.startsWith('/field')) {
       return <FieldOpsView />;
     }
-    if (currentPath === '/live/command-center' || currentPath === '/command-center' || currentPath === '/live') {
+    if (cleanPath === '/live/command-center' || cleanPath === '/command-center' || cleanPath === '/live') {
       return <LiveCommandCentreView />;
     }
-    if (currentPath === '/live/run-sheet' || currentPath === '/run-sheet') {
+    if (cleanPath === '/live/run-sheet' || cleanPath === '/run-sheet') {
       return <LiveRunSheetView />;
     }
-    if (currentPath === '/live/compliance' || currentPath === '/compliance') {
+    if (cleanPath === '/live/compliance' || cleanPath === '/compliance') {
       return <ComplianceRegisterView />;
     }
-    if (currentPath === '/live/roster' || currentPath === '/roster') {
+    if (cleanPath === '/live/roster' || cleanPath === '/roster') {
       return <LiveRosterAttendanceView />;
     }
-    if (currentPath === '/bump-out') {
+    if (cleanPath === '/bump-out') {
       return <BumpOutCloseoutView />;
     }
     if (
-      currentPath === '/portfolio/resources' ||
-      currentPath === '/portfolio/capacity' ||
-      currentPath === '/portfolio/resource-planner' ||
-      currentPath === '/resource-plan' ||
-      currentPath.endsWith('/resources') ||
-      currentPath.endsWith('/resource-plan')
+      cleanPath === '/portfolio/resources' ||
+      cleanPath === '/portfolio/capacity' ||
+      cleanPath === '/portfolio/resource-planner' ||
+      cleanPath === '/resource-plan' ||
+      cleanPath === '/resources' ||
+      cleanPath.endsWith('/resources') ||
+      cleanPath.endsWith('/resource-plan')
     ) {
       return <PortfolioResourcePlannerView />;
     }

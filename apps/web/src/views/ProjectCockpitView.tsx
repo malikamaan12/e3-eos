@@ -601,9 +601,56 @@ export const ProjectCockpitView: React.FC = () => {
         {/* Scrollable Workstream Tab Strip */}
         <div
           id="cockpit-module-tabs"
+          role="tablist"
+          aria-label={isRtl ? 'وحدات المشروع' : 'Project Workstreams'}
+          tabIndex={0}
           onWheel={(e) => {
             if (e.deltaY !== 0 && !e.deltaX) {
-              e.currentTarget.scrollLeft += e.deltaY;
+              const atLeft = e.currentTarget.scrollLeft <= 0;
+              const atRight = e.currentTarget.scrollLeft + e.currentTarget.clientWidth >= e.currentTarget.scrollWidth - 2;
+              if ((e.deltaY > 0 && !atRight) || (e.deltaY < 0 && !atLeft)) {
+                e.currentTarget.scrollLeft += e.deltaY;
+                e.preventDefault();
+              }
+            }
+          }}
+          onKeyDown={(e) => {
+            const tabs = [
+              'overview', 'requirements', 'clarifications', 'documents', 'timeline',
+              'design', 'commercial', 'procurement', 'production', 'assets',
+              'resources', 'logistics', 'crew', 'site', 'readiness'
+            ];
+            const currentIndex = tabs.indexOf(cockpitModuleTab);
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const nextIndex = isRtl ? Math.max(0, currentIndex - 1) : Math.min(tabs.length - 1, currentIndex + 1);
+              const nextTab = tabs[nextIndex];
+              setCockpitModuleTab(nextTab as any);
+              const btn = document.getElementById(`tab-cockpit-${nextTab}`);
+              btn?.focus();
+              btn?.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            } else if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const prevIndex = isRtl ? Math.min(tabs.length - 1, currentIndex + 1) : Math.max(0, currentIndex - 1);
+              const prevTab = tabs[prevIndex];
+              setCockpitModuleTab(prevTab as any);
+              const btn = document.getElementById(`tab-cockpit-${prevTab}`);
+              btn?.focus();
+              btn?.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            } else if (e.key === 'Home') {
+              e.preventDefault();
+              const firstTab = tabs[0];
+              setCockpitModuleTab(firstTab as any);
+              const btn = document.getElementById(`tab-cockpit-${firstTab}`);
+              btn?.focus();
+              btn?.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            } else if (e.key === 'End') {
+              e.preventDefault();
+              const lastTab = tabs[tabs.length - 1];
+              setCockpitModuleTab(lastTab as any);
+              const btn = document.getElementById(`tab-cockpit-${lastTab}`);
+              btn?.focus();
+              btn?.scrollIntoView({ behavior: 'smooth', inline: 'center' });
             }
           }}
           style={{
@@ -614,6 +661,7 @@ export const ProjectCockpitView: React.FC = () => {
             scrollbarWidth: 'thin',
             scrollBehavior: 'smooth',
             paddingBottom: '2px',
+            outline: 'none',
           }}
         >
           {[

@@ -4,7 +4,7 @@ import { Badge, Button, Tabs } from '../components/DesignSystem.js';
 import { isSyntheticDemo } from '../services/api-client.js';
 
 export const PostEventReportBuilderView: React.FC = () => {
-  const { currentLanguage, apiClient, selectedProjectId, currentProject, currentUser } = useEosContext();
+  const { currentLanguage, apiClient, selectedProjectId, setSelectedProjectId, projects, currentProject, currentUser } = useEosContext();
   const isDemo = isSyntheticDemo(selectedProjectId);
   const projectId = selectedProjectId || (isDemo ? 'PRJ-QND-2026' : '');
 
@@ -25,40 +25,61 @@ export const PostEventReportBuilderView: React.FC = () => {
     Boolean(currentProject?.title?.toLowerCase().includes('tourism'));
   const isQnd = projectId === '00000000-0000-4000-8000-000000000001' || projectId === 'PRJ-QND-2026' || projectId === 'QND26' || currentProject?.code === 'PRJ-QND-2026' || (currentProject as any)?.projectCode === 'PRJ-QND-2026';
   const isHexOrUuid = projectId && (/^[0-9a-fA-F-]{32,}$/.test(projectId) || /^[0-9a-f]{8}-[0-9a-f]{4}/.test(projectId));
-  const displayProjectCode = (!isHexOrUuid && projectId) || currentProject?.code || (currentProject as any)?.projectCode || (isTourism ? 'PRJ-2026-QATAR-01' : isQnd ? 'PRJ-QND-2026' : 'PRJ-2026-QATAR-01');
+  const displayProjectCode =
+    currentProject?.code ||
+    (currentProject as any)?.projectCode ||
+    (!isHexOrUuid && projectId ? projectId : (isTourism ? 'PRJ-2026-QATAR-01' : isQnd ? 'PRJ-QND-2026' : (projectId ? `PRJ-${projectId.slice(0, 8).toUpperCase()}` : 'PRJ-NEW')));
 
-  const defaultClientName = isTourism
-    ? 'Qatar Tourism Authority'
-    : isQnd
-    ? 'Ministry of Culture & Celebrations Committee'
-    : (currentProject?.clientName || 'Client Organization');
+  const defaultClientName =
+    currentProject?.clientName ||
+    (isTourism
+      ? 'Qatar Tourism Authority'
+      : isQnd
+      ? 'Ministry of Culture & Celebrations Committee'
+      : 'Client Organization');
 
-  const defaultVenueName = isTourism
-    ? 'Doha Exhibition & Convention Centre (DECC), Hall 1'
-    : isQnd
-    ? 'Lusail Boulevard & Arena, Doha'
-    : (currentProject?.venueName || 'Main Venue');
+  const defaultVenueName =
+    (typeof currentProject?.venue === 'string' ? currentProject.venue : currentProject?.venue?.name) ||
+    currentProject?.venueName ||
+    (isTourism
+      ? 'Doha Exhibition & Convention Centre (DECC), Hall 1'
+      : isQnd
+      ? 'Lusail Boulevard & Arena, Doha'
+      : 'Main Venue');
 
-  const defaultReportTitle = isTourism
-    ? 'Qatar Tourism Annual Exhibition & Gala 2026 — Official Executive Dossier & Final Account'
+  const defaultReportTitle = currentProject?.name
+    ? `${currentProject.name} — Post-Event Closeout Report`
+    : currentProject?.title
+    ? `${currentProject.title} — Post-Event Closeout Report`
+    : isTourism
+    ? 'Qatar Tourism Annual Exhibition & Gala 2026 — Post-Event Closeout Report'
     : isQnd
-    ? 'Qatar National Day 2026 Celebrations — Official Executive Dossier & Final Account'
-    : `${currentProject?.name || 'Project'} — Official Executive Dossier & Final Account`;
+    ? 'Qatar National Day 2026 Celebrations — Post-Event Closeout Report'
+    : 'Project Closeout Report';
 
   const displayReportTitle =
     (isTourism && (!report?.reportTitle || report.reportTitle.includes('National Day')))
       ? defaultReportTitle
       : (report?.reportTitle || defaultReportTitle);
 
-  const defaultOrgLine = isTourism
-    ? 'State of Qatar • Qatar Tourism Authority • E3-EOS Production'
-    : isQnd
-    ? 'State of Qatar • National Celebrations Committee • E3-EOS Production'
-    : `${currentProject?.clientName || 'Client Organization'} • E3-EOS Production`;
+  const isAcc =
+    projectId === 'PROJ-ACC-001' ||
+    projectId === 'PROJ-ACC-002' ||
+    currentProject?.code === 'PROJ-ACC-001' ||
+    currentProject?.code === 'PROJ-ACC-002';
 
-  const defaultAttendance = isTourism ? '4,850' : isQnd ? '125,400+' : '—';
-  const defaultThroughput = isTourism ? 'Peak throughput 1,200 / hour' : isQnd ? 'Peak throughput 4,200 / hour' : 'Verified turnout';
-  const defaultCues = isTourism ? 'All 18 keynote and gala cues delivered' : isQnd ? 'Zero cue latency on 48 live cues' : 'Operational delivery verified';
+  const defaultOrgLine =
+    currentProject?.clientName && !isTourism && !isQnd
+      ? `${currentProject.clientName} • E3-EOS Production`
+      : isTourism
+      ? 'State of Qatar • Qatar Tourism Authority • E3-EOS Production'
+      : isQnd
+      ? 'State of Qatar • National Celebrations Committee • E3-EOS Production'
+      : `${currentProject?.clientName || 'Client Organization'} • E3-EOS Production`;
+
+  const defaultAttendance = isAcc ? '—' : isTourism ? '4,850' : isQnd ? '125,400+' : (isDemo ? '2,400+' : '—');
+  const defaultThroughput = isAcc ? '—' : isTourism ? 'Peak throughput 1,200 / hour' : isQnd ? 'Peak throughput 4,200 / hour' : (isDemo ? 'Verified turnout' : '—');
+  const defaultCues = isAcc ? '—' : isTourism ? 'All 18 keynote and gala cues delivered' : isQnd ? 'Zero cue latency on 48 live cues' : (isDemo ? 'Operational delivery verified' : '—');
 
   const loadData = async () => {
     setLoading(true);
@@ -98,6 +119,33 @@ export const PostEventReportBuilderView: React.FC = () => {
           <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
             {displayReportTitle}
           </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+            <label htmlFor="dossier-project-select" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted, #94a3b8)' }}>
+              {currentLanguage === 'ar' ? 'تبديل المشروع:' : 'Select Project:'}
+            </label>
+            <select
+              id="dossier-project-select"
+              value={selectedProjectId || ''}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              style={{
+                padding: '4px 10px',
+                fontSize: '12px',
+                fontWeight: 700,
+                borderRadius: '6px',
+                border: '1.5px solid var(--accent, #d97706)',
+                backgroundColor: 'var(--surface-1, #0f1624)',
+                color: 'var(--text-primary, #f8fafc)',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {(p as any).code || (p as any).projectCode || p.id} — {p.name || (p as any).title}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -281,7 +329,7 @@ export const PostEventReportBuilderView: React.FC = () => {
               <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '16px 20px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', fontWeight: 700 }}>Live Show Delivery</span>
                 <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '6px 0 4px 0' }}>
-                  {report?.showDeliveryRate || '100% On-Time'}
+                  {report?.showDeliveryRate || (isAcc ? '—' : '100% On-Time')}
                 </div>
                 <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 600 }}>
                   {report?.cuesExecuted ? `Zero cue latency on ${report.cuesExecuted} live cues` : defaultCues}
@@ -290,10 +338,10 @@ export const PostEventReportBuilderView: React.FC = () => {
               <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '16px 20px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', fontWeight: 700 }}>HSE & Life Safety</span>
                 <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '6px 0 4px 0' }}>
-                  {report?.safetyMetric || 'Zero LTI'}
+                  {report?.safetyMetric || (isAcc ? '—' : 'Zero LTI')}
                 </div>
                 <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 600 }}>
-                  {report?.workforceHours ? `${report.workforceHours.toLocaleString()} workforce hours injury-free` : (isTourism ? '48,000 workforce hours injury-free' : '142,000 workforce hours injury-free')}
+                  {report?.workforceHours ? `${report.workforceHours.toLocaleString()} workforce hours injury-free` : (isAcc ? '—' : isTourism ? '48,000 workforce hours injury-free' : '142,000 workforce hours injury-free')}
                 </span>
               </div>
             </div>
@@ -303,7 +351,9 @@ export const PostEventReportBuilderView: React.FC = () => {
                 Project Performance Executive Narrative
               </h3>
               <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.65 }}>
-                {report?.executiveSummary || (isTourism
+                {report?.executiveSummary || (isAcc
+                  ? 'Post-event closeout reporting is in preparation. Operational narrative and delivery milestones will populate upon event completion.'
+                  : isTourism
                   ? 'The Qatar Tourism Annual Exhibition & Gala 2026 was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and DECC venue operations. All primary exhibition halls, keynote stages, and VVIP Majlis facilities achieved 100% acceptance prior to VIP delegation arrival.'
                   : isQnd
                   ? 'The Qatar National Day 2026 Pavilion was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and Qatar Civil Defence Department (QCDD) life safety standards. All primary structural elements, kinetic lighting rings, and 360-degree LED surfaces achieved 100% factory acceptance and site sign-off prior to public doors opening.'
@@ -526,46 +576,80 @@ export const PostEventReportBuilderView: React.FC = () => {
             <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', fontWeight: 700 }}>Executive Producer</div>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
-                {currentUser?.name || (isDemo ? 'Elena Rostova' : 'Executive Producer')}
+                {report?.signOffs?.producer || (isDemo ? (currentUser?.name || 'Elena Rostova') : 'Pending Sign-off')}
+              </div>
+              <div style={{ fontSize: '11px', color: report?.signOffs?.producer ? '#22c55e' : 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
+                {report?.signOffs?.producerDate || (isDemo ? 'Verified & Signed' : 'Awaiting Review')}
               </div>
             </div>
             <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', fontWeight: 700 }}>Commercial Director</div>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
-                {isDemo ? 'Hamad Al-Kuwari' : 'Commercial Director'}
+                {report?.signOffs?.commercial || (isDemo ? 'Hamad Al-Kuwari' : 'Pending Sign-off')}
+              </div>
+              <div style={{ fontSize: '11px', color: report?.signOffs?.commercial ? '#22c55e' : 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
+                {report?.signOffs?.commercialDate || (isDemo ? 'Verified & Signed' : 'Awaiting Audit')}
               </div>
             </div>
             <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', fontWeight: 700 }}>Client Authority</div>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
-                {currentProject?.clientName || (isDemo ? 'State Celebrations Committee (Doha, Qatar)' : 'Client Representative')}
+                {report?.signOffs?.client || (isDemo ? (currentProject?.clientName || 'State Celebrations Committee') : 'Pending Sign-off')}
+              </div>
+              <div style={{ fontSize: '11px', color: report?.signOffs?.client ? '#22c55e' : 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
+                {report?.signOffs?.clientDate || (isDemo ? 'Verified & Signed' : 'Awaiting Sign-off')}
               </div>
             </div>
           </div>
 
           {/* Cryptographic Hash Seal Well */}
-          <div
-            style={{
-              backgroundColor: 'var(--surface-inset, #0b111d)',
-              border: '1px solid rgba(34, 197, 94, 0.3)',
-              padding: '12px 18px',
-              borderRadius: '8px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px',
-              minWidth: '280px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: '#22c55e', fontSize: '14px' }}>✓</span>
-              <span style={{ color: '#22c55e', fontSize: '12px', fontWeight: 800, letterSpacing: '0.04em' }}>
-                CRYPTOGRAPHICALLY AUDITED & SEALED
-              </span>
+          {report?.hash || (isDemo && isTourism) ? (
+            <div
+              style={{
+                backgroundColor: 'var(--surface-inset, #0b111d)',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
+                padding: '12px 18px',
+                borderRadius: '8px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                minWidth: '280px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#22c55e', fontSize: '14px' }}>✓</span>
+                <span style={{ color: '#22c55e', fontSize: '12px', fontWeight: 800, letterSpacing: '0.04em' }}>
+                  CRYPTOGRAPHICALLY AUDITED & SEALED
+                </span>
+              </div>
+              <div style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', wordBreak: 'break-all' }}>
+                SHA-256: {report?.hash || 'b4a6cf80e3198dc00451fa2889211d04b321a99471fec9983716a782a514d720'}
+              </div>
             </div>
-            <div style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', wordBreak: 'break-all' }}>
-              SHA-256: b4a6cf80e3198dc00451fa2889211d04b321a99471fec9983716a782a514d720
+          ) : (
+            <div
+              style={{
+                backgroundColor: 'var(--surface-inset, #0b111d)',
+                border: '1px solid var(--border-default, #2a374b)',
+                padding: '12px 18px',
+                borderRadius: '8px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                minWidth: '280px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '14px' }}>⏳</span>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.04em' }}>
+                  DRAFT DOSSIER — AWAITING FINAL SEAL
+                </span>
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
+                Audit seal will be generated once all three governance authorities complete sign-off.
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

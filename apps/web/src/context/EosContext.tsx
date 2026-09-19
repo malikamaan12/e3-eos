@@ -585,7 +585,96 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPendingMutations([]);
   };
 
-  const projects = Object.values(SYNTHETIC_PROJECTS);
+  const [projects, setProjects] = useState<ExtendedSyntheticProject[]>(() => {
+    const base = Object.values(SYNTHETIC_PROJECTS) as any[];
+    const accA: ExtendedSyntheticProject = {
+      id: 'PROJ-ACC-001',
+      code: 'PROJ-ACC-001',
+      projectCode: 'PROJ-ACC-001',
+      name: 'Acceptance A',
+      title: 'Acceptance A',
+      clientName: 'Qatar Tourism Authority',
+      venueName: 'DECC — Hall 1 & 2',
+      venue: { name: 'DECC — Hall 1 & 2', address: 'Doha Exhibition and Convention Center' },
+      status: 'operational',
+      currency: 'QAR',
+    } as any;
+    const accB: ExtendedSyntheticProject = {
+      id: 'PROJ-ACC-002',
+      code: 'PROJ-ACC-002',
+      projectCode: 'PROJ-ACC-002',
+      name: 'Acceptance B',
+      title: 'Acceptance B',
+      clientName: 'Ministry of Culture',
+      venueName: 'DECC — VIP Pavilion',
+      venue: { name: 'DECC — VIP Pavilion', address: 'Doha Exhibition and Convention Center' },
+      status: 'operational',
+      currency: 'QAR',
+    } as any;
+    return [accA, accB, ...base];
+  });
+
+  React.useEffect(() => {
+    let isMounted = true;
+    apiClient
+      .getProjects()
+      .then((remoteList) => {
+        if (isMounted && Array.isArray(remoteList) && remoteList.length > 0) {
+          setProjects((prev) => {
+            const map = new Map<string, any>();
+            prev.forEach((p) => map.set(p.id, p));
+            remoteList.forEach((p) => {
+              const existing = map.get(p.id) || {};
+              map.set(p.id, { ...existing, ...p });
+            });
+            return Array.from(map.values());
+          });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [apiClient, refreshTrigger]);
+
+  React.useEffect(() => {
+    if (!selectedProjectId) return;
+    let isMounted = true;
+    const clean = selectedProjectId.split('?')[0].split('#')[0];
+    const exists = projects.some(
+      (p) => p.id === clean || (p as any).code === clean || (p as any).projectCode === clean
+    );
+    if (!exists && clean !== 'new' && clean !== 'projects') {
+      apiClient
+        .getCockpit(clean)
+        .then((c) => {
+          if (isMounted && c) {
+            const venueStr = typeof c.venue === 'string'
+              ? c.venue
+              : typeof c.venue === 'object' && c.venue?.name
+              ? (typeof c.venue.name === 'string' ? c.venue.name : 'Doha Exhibition & Convention Center')
+              : 'Doha Exhibition & Convention Center';
+            const synth: ExtendedSyntheticProject = {
+              id: clean,
+              name: c.title || c.name || `Project ${clean.slice(0, 8)}`,
+              title: c.title || c.name || `Project ${clean.slice(0, 8)}`,
+              code: c.projectCode || c.code || clean,
+              projectCode: c.projectCode || c.code || clean,
+              clientName: c.clientName || 'Client Organization',
+              venueName: venueStr,
+              venue: { name: venueStr, address: 'Doha, Qatar' },
+              currency: 'QAR',
+              status: 'operational',
+            } as any;
+            setProjects((prev) => [synth, ...prev]);
+          }
+        })
+        .catch(() => {});
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedProjectId, apiClient, projects]);
 
   React.useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -652,18 +741,38 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentPath,
     selectedProjectId,
     projects,
-    currentProject: projects.find((p) => {
+    currentProject: (() => {
       const clean = selectedProjectId?.split('?')[0].split('#')[0];
-      return (
-        p.id === clean ||
-        (p as any).code === clean ||
-        (p as any).projectCode === clean ||
-        (clean === 'QND26' && ((p as any).projectCode === 'PRJ-QND-2026' || p.id === '00000000-0000-4000-8000-000000000001')) ||
-        (clean === 'PRJ-QND-2026' && (p.id === '00000000-0000-4000-8000-000000000001' || (p as any).projectCode === 'PRJ-QND-2026')) ||
-        (clean === 'PRJ-2026-SYNTH-01' && ((p as any).projectCode === 'PRJ-2026-QATAR-01' || p.id === 'f1111111-1111-4111-8111-111111111111')) ||
-        (clean === 'PRJ-2026-QATAR-01' && (p.id === 'f1111111-1111-4111-8111-111111111111' || (p as any).projectCode === 'PRJ-2026-QATAR-01'))
-      );
-    }) || projects[0],
+      const found = projects.find((p) => {
+        return (
+          p.id === clean ||
+          (p as any).code === clean ||
+          (p as any).projectCode === clean ||
+          (clean === 'QND26' && ((p as any).projectCode === 'PRJ-QND-2026' || p.id === '00000000-0000-4000-8000-000000000001')) ||
+          (clean === 'PRJ-QND-2026' && (p.id === '00000000-0000-4000-8000-000000000001' || (p as any).projectCode === 'PRJ-QND-2026')) ||
+          (clean === 'PRJ-2026-SYNTH-01' && ((p as any).projectCode === 'PRJ-2026-QATAR-01' || p.id === 'f1111111-1111-4111-8111-111111111111')) ||
+          (clean === 'PRJ-2026-QATAR-01' && (p.id === 'f1111111-1111-4111-8111-111111111111' || (p as any).projectCode === 'PRJ-2026-QATAR-01'))
+        );
+      });
+      if (found) return found;
+      if (clean && clean !== 'projects' && clean !== 'new') {
+        const isAccA = clean === 'PROJ-ACC-001' || clean === 'a0000000-0000-4000-8000-000000000001';
+        const isAccB = clean === 'PROJ-ACC-002' || clean === 'a0000000-0000-4000-8000-000000000002';
+        return {
+          id: clean,
+          name: isAccA ? 'Acceptance A' : isAccB ? 'Acceptance B' : clean.startsWith('PRJ-') ? clean : `Project ${clean.slice(0, 8)}`,
+          title: isAccA ? 'Acceptance A' : isAccB ? 'Acceptance B' : clean.startsWith('PRJ-') ? clean : `Project ${clean.slice(0, 8)}`,
+          code: isAccA ? 'PROJ-ACC-001' : isAccB ? 'PROJ-ACC-002' : clean,
+          projectCode: isAccA ? 'PROJ-ACC-001' : isAccB ? 'PROJ-ACC-002' : clean,
+          clientName: isAccA ? 'Qatar Tourism Authority' : isAccB ? 'Ministry of Culture' : 'Client Organization',
+          venueName: isAccA ? 'DECC — Hall 1 & 2' : isAccB ? 'DECC — VIP Pavilion' : 'Doha, Qatar',
+          venue: { name: isAccA ? 'DECC — Hall 1 & 2' : isAccB ? 'DECC — VIP Pavilion' : 'Doha, Qatar', address: 'Doha, Qatar' },
+          currency: 'QAR',
+          status: 'operational',
+        } as any;
+      }
+      return projects[0];
+    })(),
     userRole: currentUser?.role,
     get pendingMutations() {
       return mutationsRef.current;

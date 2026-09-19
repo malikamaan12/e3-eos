@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import {
   Card,
@@ -59,14 +59,41 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
   const { currentLanguage, direction, projects, selectedProjectId, setSelectedProjectId, currentUser } = useEosContext();
   const isAr = currentLanguage === 'ar';
 
-  const [activeProjectId, setActiveProjectId] = useState<string>(
-    initialProjectId || selectedProjectId || (projects[0]?.id) || 'PROJ-2026-QATAR-01'
-  );
-  const activeProject = projects.find((p) => p.id === activeProjectId) || {
+  const [activeProjectId, setActiveProjectId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const qPid = params.get('projectId') || params.get('id');
+      if (qPid) return qPid;
+    }
+    return initialProjectId || selectedProjectId || 'PROJ-ACC-001';
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const qPid = params.get('projectId') || params.get('id');
+      if (qPid) {
+        if (qPid !== activeProjectId) {
+          setActiveProjectId(qPid);
+        }
+        if (selectedProjectId !== qPid) {
+          setSelectedProjectId(qPid);
+        }
+        return;
+      }
+    }
+    if (initialProjectId && initialProjectId !== activeProjectId) {
+      setActiveProjectId(initialProjectId);
+    } else if (selectedProjectId && selectedProjectId !== activeProjectId) {
+      setActiveProjectId(selectedProjectId);
+    }
+  }, [initialProjectId, selectedProjectId, activeProjectId]);
+
+  const activeProject = projects.find((p) => p.id === activeProjectId || (p as any).code === activeProjectId || (p as any).projectCode === activeProjectId) || {
     id: activeProjectId,
-    name: 'Qatar Tourism Annual Exhibition & Gala 2026',
-    code: 'PRJ-2026-QATAR-01',
-    venue: 'DECC — Hall 1 & 2',
+    name: activeProjectId === 'PROJ-ACC-001' ? 'Acceptance A' : activeProjectId === 'PROJ-ACC-002' ? 'Acceptance B' : activeProjectId,
+    code: activeProjectId === 'PROJ-ACC-001' ? 'PROJ-ACC-001' : activeProjectId === 'PROJ-ACC-002' ? 'PROJ-ACC-002' : activeProjectId,
+    venue: activeProjectId === 'PROJ-ACC-002' ? 'DECC — VIP Pavilion' : 'DECC — Hall 1 & 2',
     status: 'operational',
   };
 
@@ -79,11 +106,27 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
   const [selectedResource, setSelectedResource] = useState<ResourcePoolItem | null>(null);
 
   // Sourcing modeler interactive inputs
-  const [modelDemandQty, setModelDemandQty] = useState<number>(20);
-  const [modelStockAllocated, setModelStockAllocated] = useState<number>(8);
-  const [modelHireAllocated, setModelHireAllocated] = useState<number>(8);
-  const [modelFabAllocated, setModelFabAllocated] = useState<number>(4);
-  const [currentScenarioVersion, setCurrentScenarioVersion] = useState<number>(1);
+  const [modelDemandQty, setModelDemandQty] = useState<number>(activeProjectId === 'PROJ-ACC-002' ? 6 : 20);
+  const [modelStockAllocated, setModelStockAllocated] = useState<number>(activeProjectId === 'PROJ-ACC-002' ? 6 : 8);
+  const [modelHireAllocated, setModelHireAllocated] = useState<number>(activeProjectId === 'PROJ-ACC-002' ? 0 : 8);
+  const [modelFabAllocated, setModelFabAllocated] = useState<number>(activeProjectId === 'PROJ-ACC-002' ? 0 : 4);
+  const [currentScenarioVersion, setCurrentScenarioVersion] = useState<number>(0);
+  const [savedScenarioDemand, setSavedScenarioDemand] = useState<number>(activeProjectId === 'PROJ-ACC-002' ? 6 : 20);
+
+  // Decision inputs for conflicts
+  const [decisionOwners, setDecisionOwners] = useState<Record<string, string>>({});
+  const [decisionRationales, setDecisionRationales] = useState<Record<string, string>>({});
+  const [hasVersionConflict, setHasVersionConflict] = useState<boolean>(false);
+
+  // Role simulation & RBAC permissions
+  const [simulatedRole, setSimulatedRole] = useState<'project_lead' | 'director_of_operations' | 'crew_member'>(() => {
+    if (currentUser?.role === 'crew_member') return 'crew_member';
+    if (currentUser?.role === 'director_of_operations' || currentUser?.role === 'project_director') return 'director_of_operations';
+    return 'project_lead';
+  });
+  const effectiveRole = simulatedRole || currentUser?.role || 'project_lead';
+  const isRestrictedRole = effectiveRole === 'crew_member';
+  const isDirectorRole = effectiveRole === 'director_of_operations' || effectiveRole === 'project_lead';
 
   // Persistence Status (Saving / Saved / Could not save)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -92,36 +135,58 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
   // Demand Breakdown & Grouping Mode (Section 6 Item 3: non-duplication invariant)
   const [demandGroupingMode, setDemandGroupingMode] = useState<'zone' | 'department' | 'package'>('zone');
 
-  const demandLineItems = [
-    {
-      id: 'req-01-zone-a',
-      title: isAr ? 'منصات تسجيل الحضور - المدخل الرئيسي' : 'Registration Counters - Main Entrance',
-      zone: 'Zone A (Main Atrium)',
-      department: 'Guest Experience',
-      package: 'WP-01 Registration & Reception',
-      quantity: 12,
-      unit: 'each',
-      owner: 'Zaid Mansour (Lead PM)',
-      dates: '10 Nov 2026 10:00 – 18:00',
-    },
-    {
-      id: 'req-01-zone-b',
-      title: isAr ? 'منصات تسجيل الحضور - قاعة كبار الشخصيات' : 'Registration Counters - VIP Majlis',
-      zone: 'Zone B (VIP Hall)',
-      department: 'Protocol & VIP Services',
-      package: 'WP-01 Registration & Reception',
-      quantity: 8,
-      unit: 'each',
-      owner: 'Dr. Sarah Ibrahim',
-      dates: '10 Nov 2026 10:00 – 18:00',
-    },
-  ];
+  // Demand Line Items & Version State
+  const [currentDemandVersion, setCurrentDemandVersion] = useState<number>(0);
+  const [totalDemandQuantity, setTotalDemandQuantity] = useState<number>(activeProjectId === 'PROJ-ACC-002' ? 6 : 20);
+  const [demandLineItems, setDemandLineItems] = useState<any[]>(() => {
+    if (activeProjectId === 'PROJ-ACC-002') {
+      return [
+        {
+          id: 'req-acc-b-01',
+          title: isAr ? 'منصات تسجيل الحضور - الجناح الثقافي' : 'Registration Counters - Cultural Showcase Reception',
+          zone: 'Zone A (Main Hall)',
+          department: 'Guest Experience',
+          package: 'WP-01 Registration',
+          quantity: 6,
+          unit: 'each',
+          owner: 'Fatima Al-Kuwari',
+          dates: '10 Nov 2026 10:00 – 18:00',
+        },
+      ];
+    }
+    return [
+      {
+        id: 'req-01-zone-a',
+        title: isAr ? 'منصات تسجيل الحضور - المدخل الرئيسي' : 'Registration Counters - Main Entrance',
+        zone: 'Zone A (Main Atrium)',
+        department: 'Guest Experience',
+        package: 'WP-01 Registration & Reception',
+        quantity: 12,
+        unit: 'each',
+        owner: 'Zaid Mansour (Lead PM)',
+        dates: '10 Nov 2026 10:00 – 18:00',
+      },
+      {
+        id: 'req-01-zone-b',
+        title: isAr ? 'منصات تسجيل الحضور - قاعة كبار الشخصيات' : 'Registration Counters - VIP Majlis',
+        zone: 'Zone B (VIP Hall)',
+        department: 'Protocol & VIP Services',
+        package: 'WP-01 Registration & Reception',
+        quantity: 8,
+        unit: 'each',
+        owner: 'Dr. Sarah Ibrahim',
+        dates: '10 Nov 2026 10:00 – 18:00',
+      },
+    ];
+  });
+
+  const inFlightProjectIdRef = useRef<string>(activeProjectId);
 
   // Invariant: Switching between zone, department, and package views NEVER creates copies or modifies totals!
-  const groupedBreakdown = React.useMemo(() => {
+  const groupedBreakdown = useMemo(() => {
     const map: Record<string, { totalQty: number; items: typeof demandLineItems }> = {};
     for (const item of demandLineItems) {
-      const groupKey = item[demandGroupingMode];
+      const groupKey = item[demandGroupingMode] || 'General';
       if (!map[groupKey]) {
         map[groupKey] = { totalQty: 0, items: [] };
       }
@@ -133,11 +198,14 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
       totalQuantity: data.totalQty,
       items: data.items,
     }));
-  }, [demandGroupingMode]);
+  }, [demandGroupingMode, demandLineItems]);
 
-  const totalDemandQuantity = demandLineItems.reduce((acc, i) => acc + i.quantity, 0); // Always 20
-  const allocatedQuantity = groupedBreakdown.reduce((acc, g) => acc + g.totalQuantity, 0); // Always 20
-  const unallocatedQuantity = Math.max(0, totalDemandQuantity - allocatedQuantity); // Always 0
+  const allocatedQuantity = useMemo(() => {
+    return demandLineItems.reduce((acc, i) => acc + (Number(i.quantity) || 0), 0);
+  }, [demandLineItems]);
+
+  const unallocatedQuantity = Math.max(0, totalDemandQuantity - allocatedQuantity);
+  const isScenarioOutdated = totalDemandQuantity !== savedScenarioDemand;
 
   // Default resource pools adhering to Section 6 canonical scenario + expanded classes
   const [resources, setResources] = useState<ResourcePoolItem[]>([
@@ -252,7 +320,162 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
   const fabCost = modelFabAllocated * 1200;
   const totalSourcingCost = hireCost + fabCost;
 
+  // Real data loading from PostgreSQL on activeProjectId change
+  const loadProjectData = useCallback(async () => {
+    inFlightProjectIdRef.current = activeProjectId;
+    const reqProjectId = activeProjectId;
+
+    try {
+      // 1. Fetch project resource demand
+      const demandRes = await fetch(`/api/v1/projects/${reqProjectId}/resource-demand`, {
+        headers: {
+          'x-tenant-id': 'tenant-e3-production',
+          'x-user-id': currentUser?.id || 'planner-user',
+        },
+      });
+      if (demandRes.ok) {
+        const demandJson = await demandRes.json();
+        if (inFlightProjectIdRef.current === reqProjectId && demandJson.data) {
+          const data = demandJson.data;
+          if (Array.isArray(data.requirements) && data.requirements.length > 0) {
+            setDemandLineItems(data.requirements);
+            const sum = data.requirements.reduce((acc: number, r: any) => acc + (Number(r.quantity) || 0), 0);
+            const savedTotal = data.assumptions?.totalDemand !== undefined ? Number(data.assumptions.totalDemand) : sum;
+            setTotalDemandQuantity(savedTotal);
+            setModelDemandQty(savedTotal);
+          }
+          if (data.version !== undefined) {
+            setCurrentDemandVersion(data.version);
+          }
+        }
+      }
+
+      // 2. Fetch project sourcing scenarios
+      const scenarioRes = await fetch(`/api/v1/projects/${reqProjectId}/sourcing-scenarios`, {
+        headers: {
+          'x-tenant-id': 'tenant-e3-production',
+          'x-user-id': currentUser?.id || 'planner-user',
+        },
+      });
+      if (scenarioRes.ok) {
+        const scenarioJson = await scenarioRes.json();
+        if (inFlightProjectIdRef.current === reqProjectId && Array.isArray(scenarioJson.data) && scenarioJson.data.length > 0) {
+          const latest = scenarioJson.data[scenarioJson.data.length - 1];
+          if (latest.version !== undefined) setCurrentScenarioVersion(latest.version);
+          if (latest.allocations) {
+            setModelStockAllocated(Number(latest.allocations.internalStock) || 0);
+            setModelHireAllocated(Number(latest.allocations.externalHire) || 0);
+            setModelFabAllocated(Number(latest.allocations.workshopFabrication) || 0);
+            const scTotal = Number(latest.allocations.total) || (Number(latest.allocations.internalStock) || 0) + (Number(latest.allocations.externalHire) || 0) + (Number(latest.allocations.workshopFabrication) || 0);
+            setSavedScenarioDemand(scTotal);
+          }
+        }
+      }
+
+      // 3. Fetch conflict decisions
+      const decisionsRes = await fetch(`/api/v1/projects/${reqProjectId}/conflict-decisions`, {
+        headers: {
+          'x-tenant-id': 'tenant-e3-production',
+          'x-user-id': currentUser?.id || 'planner-user',
+        },
+      });
+      if (decisionsRes.ok) {
+        const decisionsJson = await decisionsRes.json();
+        if (inFlightProjectIdRef.current === reqProjectId && Array.isArray(decisionsJson.data) && decisionsJson.data.length > 0) {
+          setConflicts((prev) =>
+            prev.map((c) => {
+              const dec = decisionsJson.data.find((d: any) => d.conflictRef === c.id);
+              if (dec) {
+                return {
+                  ...c,
+                  resolutionStatus: (dec.status as any) || 'approved',
+                  decisionOwner: dec.assignedOwner || c.decisionOwner,
+                };
+              }
+              return c;
+            })
+          );
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load remote project data for', reqProjectId, e);
+    }
+  }, [activeProjectId, currentUser]);
+
+  useEffect(() => {
+    loadProjectData();
+  }, [loadProjectData]);
+
+  const handleSaveDemandRevision = async () => {
+    const targetProjId = activeProjectId;
+    setSaveStatus('saving');
+    setSaveMessage(isAr ? 'جاري حفظ تعديل المتطلبات في قاعدة بيانات PostgreSQL...' : 'Saving demand revision to PostgreSQL durable store...');
+
+    try {
+      const res = await fetch(`/api/v1/projects/${targetProjId}/resource-demand`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-tenant-id': 'tenant-e3-production',
+          'x-user-id': currentUser?.id || 'planner-user',
+        },
+        body: JSON.stringify({
+          requirements: demandLineItems,
+          assumptions: {
+            totalDemand: totalDemandQuantity,
+            unallocatedQuantity,
+            basis: `Scope revision: demanded ${totalDemandQuantity} units with ${unallocatedQuantity} unallocated`,
+          },
+          expectedVersion: currentDemandVersion,
+          updatedBy: currentUser?.email || 'planner-user',
+        }),
+      });
+
+      // Avoid retargeting or updating UI if project switched during request (Section 5 Item 8)
+      if (inFlightProjectIdRef.current !== targetProjId) {
+        return;
+      }
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          setSaveStatus('error');
+          setHasVersionConflict(true);
+          const currentVer = errJson.currentRecord?.version || 'newer';
+          setSaveMessage(
+            isAr
+              ? `⚠️ تعارض في الإصدار (409): تم تعديل متطلبات المشروع بالتزامن. الإصدار الحالي هو ${currentVer}. تم الاحتفاظ بمدخلاتك.`
+              : `⚠️ Demand Version Conflict (409): Resource demand was modified concurrently. Current version is v${currentVer}. Form inputs preserved.`
+          );
+          return;
+        }
+        throw new Error(errJson.detail || errJson.title || `Server error HTTP ${res.status}`);
+      }
+
+      const resJson = await res.json();
+      const newVersion = resJson.data?.version || (currentDemandVersion + 1);
+      setCurrentDemandVersion(newVersion);
+      setHasVersionConflict(false);
+      setSaveStatus('saved');
+      setSaveMessage(
+        isAr
+          ? `تم حفظ تعديل المتطلبات بنجاح في PostgreSQL (الإصدار v${newVersion}). إجمالي الطلب: ${totalDemandQuantity}، غير المخصص: ${unallocatedQuantity}`
+          : `Demand revision committed and durably persisted in PostgreSQL (v${newVersion}). Total: ${totalDemandQuantity} units, Unallocated: ${unallocatedQuantity}.`
+      );
+    } catch (err: any) {
+      if (inFlightProjectIdRef.current === targetProjId) {
+        setSaveStatus('error');
+        setSaveMessage(
+          isAr
+            ? `تعذر حفظ المتطلبات: ${err.message}. تم الاحتفاظ ببيانات النموذج.`
+            : `Could not save demand revision: ${err.message}. Form inputs preserved.`
+        );
+      }
+    }
+  };
+
   const handleSaveSourcingPlan = async () => {
+    const targetProjId = activeProjectId;
     setSaveStatus('saving');
     setSaveMessage(isAr ? 'جاري حفظ خطة التوريد في قاعدة بيانات PostgreSQL...' : 'Saving sourcing plan to PostgreSQL durable store...');
 
@@ -280,7 +503,7 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
         createdBy: currentUser?.email || 'user-planner-01',
       };
 
-      const res = await fetch(`/api/v1/projects/${activeProjectId}/sourcing-scenarios`, {
+      const res = await fetch(`/api/v1/projects/${targetProjId}/sourcing-scenarios`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -290,18 +513,34 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
         body: JSON.stringify(payload),
       });
 
+      if (inFlightProjectIdRef.current !== targetProjId) {
+        return;
+      }
+
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          setSaveStatus('error');
+          const currentVer = errJson.currentRecord?.version || 'newer';
+          setSaveMessage(
+            isAr
+              ? `⚠️ تعارض في الإصدار (409): تم تعديل خطة التوريد بالتزامن. الإصدار الحالي هو ${currentVer}. تم الاحتفاظ بمدخلاتك.`
+              : `⚠️ Scenario Version Conflict (409): Sourcing scenario was modified concurrently. Current version is v${currentVer}. Form inputs preserved.`
+          );
+          return;
+        }
         throw new Error(errJson.detail || errJson.title || `Server responded with HTTP ${res.status}`);
       }
 
       const data = await res.json();
-      setCurrentScenarioVersion((prev) => (data.data?.version ? data.data.version : prev + 1));
+      const newVer = data.data?.version || (currentScenarioVersion + 1);
+      setCurrentScenarioVersion(newVer);
+      setSavedScenarioDemand(totalModelAllocated);
       setSaveStatus('saved');
       setSaveMessage(
         isAr
-          ? `تم حفظ خطة التوريد بنجاح في قاعدة بيانات PostgreSQL (النسخة ${data.data?.version || 2})`
-          : `Sourcing plan committed and durably persisted in PostgreSQL (v${data.data?.version || 2}). Shortfall resolved.`
+          ? `تم حفظ خطة التوريد بنجاح في قاعدة بيانات PostgreSQL (النسخة v${newVer}).`
+          : `Sourcing plan committed and durably persisted in PostgreSQL (v${newVer}). Split: ${modelStockAllocated} stock + ${modelHireAllocated} hire + ${modelFabAllocated} fab.`
       );
 
       // Update local resource item
@@ -312,29 +551,32 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
             : r
         )
       );
-      // Update conflict item
+      // Update conflict item to proposed (pending Director approval)
       setConflicts((prev) =>
         prev.map((c) =>
-          c.id === 'conf-001' ? { ...c, resolutionStatus: 'approved' } : c
+          c.id === 'conf-001' ? { ...c, resolutionStatus: 'proposed' } : c
         )
       );
     } catch (err: any) {
-      setSaveStatus('error');
-      setSaveMessage(
-        isAr
-          ? `تعذر الحفظ: ${err.message}. تم الاحتفاظ ببيانات النموذج.`
-          : `Could not save: ${err.message}. Form inputs have been preserved.`
-      );
+      if (inFlightProjectIdRef.current === targetProjId) {
+        setSaveStatus('error');
+        setSaveMessage(
+          isAr
+            ? `تعذر الحفظ: ${err.message}. تم الاحتفاظ ببيانات النموذج.`
+            : `Could not save: ${err.message}. Form inputs have been preserved.`
+        );
+      }
     }
   };
 
-  const handleResolveConflict = async (conflictId: string, assignedOwner: string) => {
+  const handleResolveConflict = async (conflictId: string, assignedOwner: string, rationaleText?: string) => {
+    const targetProjId = activeProjectId;
     setSaveStatus('saving');
     setSaveMessage(isAr ? 'جاري حفظ القرار في قاعدة البيانات...' : 'Saving conflict resolution decision to PostgreSQL...');
 
     try {
       const conf = conflicts.find((c) => c.id === conflictId);
-      const res = await fetch(`/api/v1/projects/${activeProjectId}/conflict-decisions`, {
+      const res = await fetch(`/api/v1/projects/${targetProjId}/conflict-decisions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -344,13 +586,17 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
         body: JSON.stringify({
           conflictRef: conflictId,
           resourcePoolId: conf?.resourcePoolId || 'pool-reg-counters-doha',
-          assignedOwner,
+          assignedOwner: assignedOwner || 'Director of Operations',
           resolutionAction: 'multi_sourcing_split',
-          rationale: `Authorized decision: approved sourcing split (${modelStockAllocated} stock + ${modelHireAllocated} hire + ${modelFabAllocated} fab).`,
+          rationale: rationaleText || `Authorized decision: approved sourcing split (${modelStockAllocated} stock + ${modelHireAllocated} hire + ${modelFabAllocated} fab).`,
           status: 'approved',
           decidedBy: currentUser?.email || 'director-user',
         }),
       });
+
+      if (inFlightProjectIdRef.current !== targetProjId) {
+        return;
+      }
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
@@ -371,12 +617,14 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
           : 'Conflict decision recorded and durably committed in PostgreSQL.'
       );
     } catch (err: any) {
-      setSaveStatus('error');
-      setSaveMessage(
-        isAr
-          ? `تعذر حفظ القرار: ${err.message}`
-          : `Could not save conflict decision: ${err.message}`
-      );
+      if (inFlightProjectIdRef.current === targetProjId) {
+        setSaveStatus('error');
+        setSaveMessage(
+          isAr
+            ? `تعذر حفظ القرار: ${err.message}`
+            : `Could not save conflict decision: ${err.message}`
+        );
+      }
     }
   };
 
@@ -406,15 +654,69 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
               ? 'إدارة سعة الموارد متعددة المشاريع، واكتشاف التعارضات، والتوريد المشترك عبر E3 Rentals وتصنيع الورشة'
               : 'Cross-project capacity modeling, dated conflict detection, and multi-sourcing resolution across E3 Rentals and workshop fabrication.'}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
-            <span style={{ color: E3_THEME.text.muted }}>Active Project:</span>
-            <span style={{ fontWeight: '700', color: E3_THEME.text.primary }}>{activeProject.name}</span>
-            <span style={{ color: E3_THEME.text.secondary }}>({activeProjectId})</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', marginTop: '6px', flexWrap: 'wrap' }}>
+            <label htmlFor="planner-project-select" style={{ color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>
+              {isAr ? 'المشروع النشط:' : 'Active Project:'}
+            </label>
+            <select
+              id="planner-project-select"
+              value={activeProjectId}
+              onChange={(e) => {
+                const newId = e.target.value;
+                setActiveProjectId(newId);
+                setSelectedProjectId(newId);
+              }}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '6px',
+                border: '1.5px solid var(--accent, #d97706)',
+                backgroundColor: 'var(--surface-1, #0f1624)',
+                color: 'var(--text-primary, #f8fafc)',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {(p as any).code || (p as any).projectCode || p.id} — {p.name || (p as any).title}
+                </option>
+              ))}
+            </select>
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary, #94a3b8)' }}>
+              ({typeof activeProject.venue === 'string'
+                ? activeProject.venue
+                : typeof activeProject.venue === 'object' && typeof activeProject.venue?.name === 'string'
+                ? activeProject.venue.name
+                : 'DECC — Doha'})
+            </span>
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div style={{ display: 'flex', gap: '12px' }}>
+        {/* Action Controls & Active Role Simulation */}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--surface-1, #0f1624)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted, #94a3b8)' }}>Active Identity:</span>
+            <select
+              id="planner-role-selector"
+              value={simulatedRole}
+              onChange={(e) => setSimulatedRole(e.target.value as any)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: simulatedRole === 'crew_member' ? '#f87171' : simulatedRole === 'director_of_operations' ? '#4ade80' : '#fbbf24',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              <option value="project_lead" style={{ background: '#0f1624', color: '#f8fafc' }}>Planner (Lead PM)</option>
+              <option value="director_of_operations" style={{ background: '#0f1624', color: '#f8fafc' }}>Reviewer (Director of Operations)</option>
+              <option value="crew_member" style={{ background: '#0f1624', color: '#f8fafc' }}>Restricted (Crew Member)</option>
+            </select>
+          </div>
           <Button variant="outline" size="sm" onClick={() => setActiveTab('sourcing')}>
             {isAr ? 'نمذجة التوريد المشترك' : 'Multi-Sourcing Modeler'}
           </Button>
@@ -424,14 +726,59 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
         </div>
       </div>
 
+      {/* Version Conflict Alert (Section 4 Check 5: Concurrent Edits) */}
+      {hasVersionConflict && (
+        <div
+          id="banner-version-conflict"
+          style={{
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1.5px solid #ef4444',
+            color: 'var(--text-primary, #f8fafc)',
+            padding: '14px 18px',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '20px' }}>⚠️</span>
+            <div>
+              <strong style={{ color: '#ef4444' }}>
+                {isAr ? 'تعارض في الإصدار بالتزامن (HTTP 409 Conflict):' : 'Concurrent Edit Conflict (HTTP 409 Conflict):'}
+              </strong>{' '}
+              <span>
+                {isAr
+                  ? 'تم تحديث متطلبات المشروع بواسطة مستخدم آخر بالتزامن. تم رفض التحديث المتقادم لمنع الكتابة الفوقية مع الاحتفاظ بمدخلاتك.'
+                  : 'The project records were modified concurrently by another user or session. Your stale update was rejected to prevent data loss. Form inputs preserved.'}
+              </span>
+            </div>
+          </div>
+          <Button
+            id="btn-conflict-refresh"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setHasVersionConflict(false);
+              loadProjectData();
+            }}
+          >
+            {isAr ? 'تحديث البيانات ومراجعة الأحدث' : 'Refresh Server State'}
+          </Button>
+        </div>
+      )}
+
       {/* Persistence Status Alert (Saving / Saved / Could not save) */}
       {saveStatus !== 'idle' && saveMessage && (
         <div
           id="planner-save-status-banner"
           style={{
-            background: saveStatus === 'saving' ? '#eff6ff' : saveStatus === 'saved' ? '#ecfdf5' : '#fef2f2',
-            border: `1.5px solid ${saveStatus === 'saving' ? '#bfdbfe' : saveStatus === 'saved' ? '#a7f3d0' : '#fecaca'}`,
-            color: saveStatus === 'saving' ? '#1e40af' : saveStatus === 'saved' ? '#065f46' : '#991b1b',
+            background: saveStatus === 'saving' ? 'var(--status-info-bg, rgba(59,130,246,0.15))' : saveStatus === 'saved' ? 'var(--status-success-bg, rgba(34,197,94,0.15))' : 'var(--status-critical-bg, rgba(239,68,68,0.15))',
+            border: `1.5px solid ${saveStatus === 'saving' ? 'var(--status-info-fg, #3b82f6)' : saveStatus === 'saved' ? 'var(--status-success-fg, #22c55e)' : 'var(--status-critical-fg, #ef4444)'}`,
+            color: 'var(--text-primary, #f8fafc)',
             padding: '12px 18px',
             borderRadius: '8px',
             marginBottom: '20px',
@@ -451,7 +798,7 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
           {saveStatus === 'saved' && (
             <button
               onClick={() => setSaveStatus('idle')}
-              style={{ background: 'none', border: 'none', color: '#065f46', cursor: 'pointer', fontWeight: 'bold' }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-primary, #f8fafc)', cursor: 'pointer', fontWeight: 'bold' }}
             >
               ✕
             </button>
@@ -462,23 +809,25 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
       {/* Disconnected Phase & Source Authority Governance Banner */}
       <div
         style={{
-          background: '#fffbeb',
-          border: '1px solid rgba(245, 158, 11, 0.3)',
+          background: 'var(--surface-2, #151e2e)',
+          border: '1px solid var(--accent, #d97706)',
           borderRadius: '8px',
           padding: '16px 20px',
           marginBottom: '24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ fontSize: '24px' }}>🛡️</span>
           <div>
-            <div style={{ fontWeight: '600', fontSize: '14px', color: '#f59e0b', marginBottom: '2px' }}>
+            <div style={{ fontWeight: '700', fontSize: '14px', color: 'var(--accent, #d97706)', marginBottom: '2px' }}>
               {isAr ? 'ضوابط السلطة المؤسسية وحدود الأنظمة الخارجية' : 'Enterprise Source Authority & Disconnected Operating Controls'}
             </div>
-            <div style={{ fontSize: '13px', color: '#78350f' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
               {isAr
                 ? 'E3 Rentals هي المرجع لمخزون المعدات والأصول. E3 PurchaseTracker هي المرجع للموردين وأوامر الشراء. الاتصال المباشر معلق حالياً.'
                 : 'E3 Rentals is authoritative for equipment stock and reservations. E3 PurchaseTracker is authoritative for vendor compliance and POs. Live production connections remain deferred.'}
@@ -494,6 +843,7 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
       {/* Navigation Tabs */}
       <div style={{ borderBottom: `1px solid ${E3_THEME.surface.cardBorder}`, display: 'flex', gap: '24px', marginBottom: '24px' }}>
         <button
+          id="tab-overview"
           onClick={() => setActiveTab('overview')}
           style={{
             padding: '12px 4px',
@@ -509,6 +859,7 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
           {isAr ? 'نظرة عامة على السعة والموارد' : 'Resource Capacity Overview'}
         </button>
         <button
+          id="tab-demand"
           onClick={() => setActiveTab('demand')}
           style={{
             padding: '12px 4px',
@@ -524,6 +875,7 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
           {isAr ? 'متطلبات الموارد والتوزيع (تجميع)' : 'Resource Demand & Grouping'}
         </button>
         <button
+          id="tab-conflicts"
           onClick={() => setActiveTab('conflicts')}
           style={{
             padding: '12px 4px',
@@ -539,6 +891,7 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
           {isAr ? `قائمة التعارضات والقرارات (${conflicts.length})` : `Conflict & Decision Queue (${conflicts.length})`}
         </button>
         <button
+          id="tab-sourcing"
           onClick={() => setActiveTab('sourcing')}
           style={{
             padding: '12px 4px',
@@ -554,6 +907,7 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
           {isAr ? 'نمذجة التوريد المشترك (المخزون / الإيجار / الورشة)' : 'Multi-Sourcing Modeler'}
         </button>
         <button
+          id="tab-source-projections"
           onClick={() => setActiveTab('source_projections')}
           style={{
             padding: '12px 4px',
@@ -813,6 +1167,121 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
             </p>
           </div>
 
+          {/* Sourcing Scenario Needs Review Banner (Section 5 Item 7) */}
+          {isScenarioOutdated && (
+            <div
+              id="sourcing-needs-review-banner"
+              style={{
+                background: 'var(--status-warning-bg, rgba(245, 158, 11, 0.15))',
+                border: '1.5px solid var(--status-warning-fg, #f59e0b)',
+                borderRadius: '8px',
+                padding: '14px 18px',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px',
+                color: 'var(--text-primary, #f8fafc)',
+              }}
+            >
+              <span style={{ fontSize: '20px', lineHeight: 1 }}>⚠️</span>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--status-warning-fg, #f59e0b)', textTransform: 'uppercase', marginBottom: '2px' }}>
+                  {isAr ? 'تنبيه: خطة التوريد الحالية بحاجة إلى مراجعة' : 'SOURCING SCENARIO NEEDS REVIEW (SECTION 5 ITEM 7)'}
+                </div>
+                <div style={{ fontSize: '12px', lineHeight: '1.5' }}>
+                  {isAr
+                    ? `تم تعديل إجمالي الطلب المخطط إلى ${totalDemandQuantity} وحدة (${unallocatedQuantity} وحدة غير مخصصة). سيناريو التوريد الحالي معتمد لـ ${savedScenarioDemand} وحدة فقط. القرار السابق وسجل التخصيص محفوظ بالكامل؛ يجب فتح حاسبة التوريد لمراجعة وتغطية الزيادة.`
+                    : `Planning demand was revised to ${totalDemandQuantity} units (${unallocatedQuantity} unallocated). Existing 20-unit scenario covers ${savedScenarioDemand} units. Prior decision (8 stock + 8 hire + 4 fab) is preserved in history; review required according to current workflow rules.`}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Demand Revision Card */}
+          <Card style={{ padding: '16px', marginBottom: '20px', border: '1px solid var(--border-default, #2a374b)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
+                  {isAr ? 'التحكم في تعديل كمية الطلب (مراجعة النطاق)' : 'Project Demand & Scope Revision Control'}
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
+                  {isAr
+                    ? `تعديل إجمالي الطلب المعتمد للمشروع وتوثيقه في قاعدة البيانات مع دعم القفل التفاؤلي (الإصدار الحالي: v${currentDemandVersion})`
+                    : `Adjust authorized planning demand and commit revisions with optimistic locking (Current Persisted: v${currentDemandVersion})`}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <label htmlFor="input-total-demand" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #94a3b8)' }}>
+                    {isAr ? 'إجمالي الطلب المطلوب:' : 'Total Required Demand:'}
+                  </label>
+                  <input
+                    id="input-total-demand"
+                    type="number"
+                    min={allocatedQuantity}
+                    value={totalDemandQuantity}
+                    onChange={(e) => {
+                      const val = Math.max(0, Number(e.target.value));
+                      setTotalDemandQuantity(val);
+                      setModelDemandQty(val);
+                    }}
+                    style={{
+                      width: '70px',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1.5px solid var(--accent, #d97706)',
+                      backgroundColor: 'var(--surface-1, #0f1624)',
+                      color: 'var(--text-primary, #f8fafc)',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      textAlign: 'center',
+                    }}
+                  />
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>units</span>
+                </div>
+
+                {isRestrictedRole ? (
+                  <span id="badge-restricted-demand"><Badge variant="warning">🔒 Read-Only (Crew Member)</Badge></span>
+                ) : (
+                  <Button
+                    id="btn-save-demand-revision"
+                    variant="primary"
+                    size="sm"
+                    onClick={handleSaveDemandRevision}
+                    disabled={saveStatus === 'saving'}
+                  >
+                    {saveStatus === 'saving'
+                      ? (isAr ? '⏳ جاري الحفظ...' : '⏳ Saving...')
+                      : (isAr ? '💾 حفظ التعديل في PostgreSQL' : '💾 Commit Demand Revision')}
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Reconciliation summary row */}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px' }}>
+              <div>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Total Demanded: </span>
+                <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{totalDemandQuantity} units</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Allocated to Line Items: </span>
+                <strong style={{ color: '#22c55e' }}>{allocatedQuantity} units</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Unallocated Balance: </span>
+                <strong style={{ color: unallocatedQuantity > 0 ? '#f59e0b' : '#22c55e', fontWeight: 800 }}>
+                  {unallocatedQuantity > 0 ? `⚠️ ${unallocatedQuantity} units unallocated` : '0 units (100% Allocated)'}
+                </strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Durable Version: </span>
+                <strong style={{ color: 'var(--text-secondary, #94a3b8)', fontFamily: 'monospace' }}>v{currentDemandVersion}</strong>
+              </div>
+            </div>
+          </Card>
+
           {/* Grouping Switcher Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -972,6 +1441,112 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
                   </div>
                 </div>
 
+                {/* Interactive Decision Panel (Section 5 Item 5) */}
+                {conf.resolutionStatus === 'approved' ? (
+                  <div
+                    id={`conflict-approved-banner-${conf.id}`}
+                    style={{
+                      background: 'rgba(34, 197, 94, 0.12)',
+                      border: '1px solid #22c55e',
+                      borderRadius: '6px',
+                      padding: '12px 16px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <div style={{ color: '#22c55e', fontWeight: 800, fontSize: '12px', marginBottom: '4px' }}>
+                      ✓ DECISION COMMITTED & DURABLY RECORDED IN POSTGRESQL
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-primary, #f8fafc)' }}>
+                      <strong>Assigned Owner:</strong> {conf.decisionOwner || 'Director of Operations'} | <strong>Status:</strong> Approved
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '3px' }}>
+                      Action: Approved 8/8/4 multi-sourcing split with vendor contingency
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    id={`conflict-decision-panel-${conf.id}`}
+                    style={{
+                      background: 'var(--surface-2, #151e2e)',
+                      border: '1px solid var(--border-default, #2a374b)',
+                      borderRadius: '6px',
+                      padding: '14px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '8px' }}>
+                      {isAr ? 'اتخاذ قرار معالجة التعارض (صلاحية المدير / المراجع):' : 'Authorized Conflict Resolution Decision (Reviewer Action):'}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px', marginBottom: '10px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: E3_THEME.text.secondary, marginBottom: '4px' }}>
+                          {isAr ? 'المسؤول المعين للقرار' : 'Assigned Decision Owner'}
+                        </label>
+                        <input
+                          id={`input-decision-owner-${conf.id}`}
+                          type="text"
+                          value={decisionOwners[conf.id] ?? (simulatedRole === 'director_of_operations' ? 'Director of Operations' : currentUser?.name || 'Director of Operations')}
+                          onChange={(e) => setDecisionOwners({ ...decisionOwners, [conf.id]: e.target.value })}
+                          disabled={isRestrictedRole}
+                          style={{
+                            width: '100%',
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-default, #2a374b)',
+                            backgroundColor: 'var(--surface-1, #0f1624)',
+                            color: 'var(--text-primary, #f8fafc)',
+                            fontSize: '12px',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: E3_THEME.text.secondary, marginBottom: '4px' }}>
+                          {isAr ? 'مبررات القرار وخطة المعالجة' : 'Resolution Action & Evidence Rationale'}
+                        </label>
+                        <input
+                          id={`input-decision-rationale-${conf.id}`}
+                          type="text"
+                          value={decisionRationales[conf.id] ?? 'Approved 8/8/4 multi-sourcing split with vendor contingency'}
+                          onChange={(e) => setDecisionRationales({ ...decisionRationales, [conf.id]: e.target.value })}
+                          disabled={isRestrictedRole}
+                          style={{
+                            width: '100%',
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-default, #2a374b)',
+                            backgroundColor: 'var(--surface-1, #0f1624)',
+                            color: 'var(--text-primary, #f8fafc)',
+                            fontSize: '12px',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', alignItems: 'center' }}>
+                      {isRestrictedRole ? (
+                        <span id={`badge-restricted-decision-${conf.id}`}><Badge variant="warning">🔒 Read-Only: Requires Reviewer / Director Role</Badge></span>
+                      ) : (
+                        <Button
+                          id={`btn-approve-decision-${conf.id}`}
+                          variant="accent"
+                          size="sm"
+                          disabled={saveStatus === 'saving'}
+                          onClick={() => handleResolveConflict(
+                            conf.id,
+                            decisionOwners[conf.id] || (simulatedRole === 'director_of_operations' ? 'Director of Operations' : currentUser?.name || 'Director of Operations'),
+                            decisionRationales[conf.id] || 'Approved 8/8/4 multi-sourcing split with vendor contingency'
+                          )}
+                        >
+                          {saveStatus === 'saving' ? '⏳ Committing Decision...' : '✓ Approve Decision & Commit to PostgreSQL'}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                   <Button variant="outline" size="sm" onClick={() => setSelectedResource(resources.find(r => r.id === conf.resourcePoolId) || null)}>
                     {isAr ? 'فحص السجل المرجعي' : 'Inspect Source Record'}
@@ -1000,12 +1575,44 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
             </p>
           </div>
 
+          {/* Needs Review Alert in Sourcing Tab */}
+          {isScenarioOutdated && (
+            <div
+              style={{
+                background: 'var(--status-warning-bg, rgba(245, 158, 11, 0.15))',
+                border: '1.5px solid var(--status-warning-fg, #f59e0b)',
+                borderRadius: '8px',
+                padding: '12px 18px',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                color: 'var(--text-primary, #f8fafc)',
+              }}
+            >
+              <span style={{ fontSize: '20px' }}>⚠️</span>
+              <div>
+                <strong style={{ color: 'var(--status-warning-fg, #f59e0b)' }}>
+                  {isAr ? 'خطة التوريد بحاجة إلى مراجعة:' : 'Sourcing Scenario Needs Review (Demand Revised):'}
+                </strong>{' '}
+                <span style={{ fontSize: '13px' }}>
+                  {isAr
+                    ? `إجمالي الطلب المطلوب هو ${totalDemandQuantity} وحدة، بينما الخطة الحالية تغطي ${savedScenarioDemand} وحدة فقط. القرار السابق محفوظ في السجل؛ يرجى تحديث التخصيص.`
+                    : `Project demand is currently ${totalDemandQuantity} units, but active scenario allocates ${savedScenarioDemand} units (${unallocatedQuantity} unallocated). Prior decision is preserved in history; re-evaluation required.`}
+                </span>
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
             {/* Input Column */}
             <Card>
-              <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px', color: E3_THEME.text.primary }}>
-                {isAr ? 'تخصيص كميات التوريد' : 'Allocation Breakdown'}
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: '600', margin: 0, color: E3_THEME.text.primary }}>
+                  {isAr ? 'تخصيص كميات التوريد' : 'Allocation Breakdown'}
+                </h3>
+                {isScenarioOutdated && <Badge variant="warning">Needs Review</Badge>}
+              </div>
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: E3_THEME.text.secondary, marginBottom: '6px' }}>
@@ -1015,7 +1622,16 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
                   type="number"
                   value={modelDemandQty}
                   onChange={(e) => setModelDemandQty(Number(e.target.value))}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: `1px solid ${E3_THEME.surface.cardBorder}` }}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
+                    color: 'var(--text-primary, #f8fafc)',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
 
@@ -1032,7 +1648,16 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
                   min={0}
                   value={modelStockAllocated}
                   onChange={(e) => setModelStockAllocated(Number(e.target.value))}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: `1px solid ${E3_THEME.surface.cardBorder}` }}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
+                    color: 'var(--text-primary, #f8fafc)',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
 
@@ -1048,7 +1673,16 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
                   min={0}
                   value={modelHireAllocated}
                   onChange={(e) => setModelHireAllocated(Number(e.target.value))}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: `1px solid ${E3_THEME.surface.cardBorder}` }}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
+                    color: 'var(--text-primary, #f8fafc)',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
 
@@ -1064,13 +1698,36 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
                   min={0}
                   value={modelFabAllocated}
                   onChange={(e) => setModelFabAllocated(Number(e.target.value))}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: `1px solid ${E3_THEME.surface.cardBorder}` }}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
+                    color: 'var(--text-primary, #f8fafc)',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
 
-              <Button variant="primary" style={{ width: '100%' }} onClick={handleSaveSourcingPlan} disabled={modelShortfall > 0}>
-                {isAr ? 'اعتماد خطة التوريد وحفظها كمسودة' : 'Commit & Save Sourcing Plan'}
-              </Button>
+              {isRestrictedRole ? (
+                <span id="badge-restricted-sourcing" style={{ display: 'block', width: '100%', textAlign: 'center' }}>
+                  <Badge variant="warning">🔒 Read-Only: Insufficient Permissions (Crew Member)</Badge>
+                </span>
+              ) : (
+                <Button
+                  id="btn-save-sourcing-scenario"
+                  variant="primary"
+                  style={{ width: '100%' }}
+                  onClick={handleSaveSourcingPlan}
+                  disabled={modelShortfall > 0 || saveStatus === 'saving'}
+                >
+                  {saveStatus === 'saving'
+                    ? (isAr ? '⏳ جاري الحفظ...' : '⏳ Saving Sourcing Plan...')
+                    : (isAr ? 'اعتماد خطة التوريد وحفظها كمسودة' : 'Commit & Save Sourcing Plan')}
+                </Button>
+              )}
             </Card>
 
             {/* Evaluation & Summary Column */}
@@ -1124,6 +1781,9 @@ export const PortfolioResourcePlannerView: React.FC<PortfolioResourcePlannerProp
                   <li>External Hire: Supplier PO issued & Site delivery inspection accepted</li>
                   <li>Fabrication: Approved build drawings & Workshop QC sign-off</li>
                 </ul>
+                <div style={{ marginTop: '12px', padding: '8px 12px', borderRadius: '4px', backgroundColor: 'var(--surface-inset, #0b111d)', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
+                  🛡️ <em>Disconnected Invariant: Saving a sourcing scenario creates local planning drafts. External stock confirmation and PO dispatch remain deferred.</em>
+                </div>
               </div>
             </Card>
           </div>

@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
-const API_URL = process.env.API_URL;
+const API_URL = process.env.API_URL || 'http://localhost:4000';
 const DIST_DIR = path.join(__dirname, 'dist');
 
 const MIME_TYPES = {

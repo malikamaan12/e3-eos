@@ -175,6 +175,42 @@ export function seedInitialProjects(): void {
         payrollSchedule: 'CONFIDENTIAL-INTERNAL',
       },
     },
+    {
+      id: 'a0000000-0000-4000-8000-000000000001',
+      organisationId: '11111111-1111-4111-8111-111111111111',
+      projectCode: 'PROJ-ACC-001',
+      title: 'Acceptance A',
+      description: 'Staging acceptance project A: 20 counters allocated 12 to Zone A and 8 to Zone B for demand and revision testing.',
+      originCode: 'DIRECT_AWARD',
+      ownerId: '10000000-0000-4000-8000-000000000001',
+      maturity: 'delivery',
+      outcome: 'undetermined',
+      rowVersion: 1,
+      clientOrganisationId: '22222222-2222-4222-8222-222222222222',
+      costingData: {
+        contractorBuyRateHourly: '120.00 QAR',
+        internalMarginTarget: '43.75%',
+        payrollSchedule: 'CONFIDENTIAL-INTERNAL',
+      },
+    },
+    {
+      id: 'a0000000-0000-4000-8000-000000000002',
+      organisationId: '11111111-1111-4111-8111-111111111111',
+      projectCode: 'PROJ-ACC-002',
+      title: 'Acceptance B',
+      description: 'Staging acceptance project B: 6 counters with overlapping proposed use window for cross-project isolation testing.',
+      originCode: 'DIRECT_AWARD',
+      ownerId: '10000000-0000-4000-8000-000000000001',
+      maturity: 'delivery',
+      outcome: 'undetermined',
+      rowVersion: 1,
+      clientOrganisationId: '22222222-2222-4222-8222-222222222222',
+      costingData: {
+        contractorBuyRateHourly: '120.00 QAR',
+        internalMarginTarget: '43.75%',
+        payrollSchedule: 'CONFIDENTIAL-INTERNAL',
+      },
+    },
   ];
 
   for (const proj of defaultProjects) {

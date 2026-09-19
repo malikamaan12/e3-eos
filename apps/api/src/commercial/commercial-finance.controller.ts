@@ -1822,39 +1822,68 @@ export class PostEventReportingController {
       };
     }
 
+    if (canonicalId === 'PRJ-QND-2026') {
+      return {
+        projectId,
+        reportTitle: 'Qatar National Day 2026 Ceremonial Pavilion — Post-Event Closeout Report',
+        finalized: true,
+        clientName: 'Ministry of Culture & National Day Ceremonial Committee',
+        venueName: 'Lusail Boulevard & Arena, Doha',
+        attendance: 125400,
+        peakThroughput: '4,200 / hour',
+        contractValue: 2950000,
+        approvedVariations: 165000,
+        revisedContractValue: 3115000,
+        variationCount: 3,
+        realizedMarginPct: '41.02%',
+        eacCost: 1740000,
+        paymentStatus: 'Settled in Full',
+        showDeliveryRate: '100% On-Time',
+        cuesExecuted: 48,
+        safetyMetric: 'Zero LTI',
+        workforceHours: 142000,
+        executiveSummary: 'The Qatar National Day 2026 Celebrations Pavilion was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and Qatar Civil Defence Department (QCDD) life safety standards. All primary structural elements, kinetic lighting rings, and 360-degree LED surfaces achieved 100% factory acceptance and site sign-off prior to public doors opening.',
+        deliverables: [
+          { package: 'PKG-01 Ceremonial Kinetic Arch', scope: '360° LED surface, motorization, and structural rigging', status: 'Delivered & Accepted', amount: 1450000 },
+          { package: 'PKG-02 Site Staging & VIP Decking', scope: 'Curved risers, desert dune gold finish, balustrades', status: 'Delivered & Accepted', amount: 820000 },
+          { package: 'PKG-03 Sound Reinforcement & Comms', scope: 'd&b line array, Bolero wireless intercom, VIP cue system', status: 'Delivered & Accepted', amount: 680000 },
+          { package: 'VOR-01 Additional VIP Canopy Arch', scope: 'Client requested shaded VIP holding wing canopy', status: 'Approved Variation', amount: 165000 },
+        ],
+        sections: [
+          { sectionId: 'SEC-01', title: '1. Executive Summary', summary: 'The 2026 Ceremonial Pavilion achieved 100% operational readiness, zero safety incidents, and delivered on-budget with favorable commercial closure.' },
+          { sectionId: 'SEC-02', title: '2. Operational & Scope Delivery', summary: '100% of physical assets delivered across 4 zones with 98% pre-opening snag clearance.' },
+          { sectionId: 'SEC-03', title: '3. Crowd & Attendance Analytics', summary: 'Turnstile entries totaled 125,400 across 3 days along Lusail Boulevard, peaking at 4,200 attendees/hour.' },
+          { sectionId: 'SEC-04', title: '4. Commercial & Financial Performance', summary: 'Contract Value 2,450,000 QAR; Final EAC 1,800,000 QAR; Net Favorable Variance 200,000 QAR; Final Gross Margin 26.53%.' },
+          { sectionId: 'SEC-05', title: '5. Key Lessons Learned & Recommendations', summary: 'Adopt 4-week maritime import buffer on architectural structures; advance dignitary ingress marshal positions to T-90.' },
+        ],
+      };
+    }
+
+    const isAccA = canonicalId === 'PROJ-ACC-001';
+    const isAccB = canonicalId === 'PROJ-ACC-002';
+
     return {
       projectId,
-      reportTitle: 'Qatar National Day 2026 Ceremonial Pavilion — Post-Event Closeout Report',
-      finalized: true,
-      clientName: 'Ministry of Culture & National Day Ceremonial Committee',
-      venueName: 'Lusail Boulevard & Arena, Doha',
-      attendance: 125400,
-      peakThroughput: '4,200 / hour',
-      contractValue: 2950000,
-      approvedVariations: 165000,
-      revisedContractValue: 3115000,
-      variationCount: 3,
-      realizedMarginPct: '41.02%',
-      eacCost: 1740000,
-      paymentStatus: 'Settled in Full',
-      showDeliveryRate: '100% On-Time',
-      cuesExecuted: 48,
-      safetyMetric: 'Zero LTI',
-      workforceHours: 142000,
-      executiveSummary: 'The Qatar National Day 2026 Celebrations Pavilion was executed across all 13 canonical stages in strict alignment with ISO 20121 Sustainable Event Management and Qatar Civil Defence Department (QCDD) life safety standards. All primary structural elements, kinetic lighting rings, and 360-degree LED surfaces achieved 100% factory acceptance and site sign-off prior to public doors opening.',
-      deliverables: [
-        { package: 'PKG-01 Ceremonial Kinetic Arch', scope: '360° LED surface, motorization, and structural rigging', status: 'Delivered & Accepted', amount: 1450000 },
-        { package: 'PKG-02 Site Staging & VIP Decking', scope: 'Curved risers, desert dune gold finish, balustrades', status: 'Delivered & Accepted', amount: 820000 },
-        { package: 'PKG-03 Sound Reinforcement & Comms', scope: 'd&b line array, Bolero wireless intercom, VIP cue system', status: 'Delivered & Accepted', amount: 680000 },
-        { package: 'VOR-01 Additional VIP Canopy Arch', scope: 'Client requested shaded VIP holding wing canopy', status: 'Approved Variation', amount: 165000 },
-      ],
-      sections: [
-        { sectionId: 'SEC-01', title: '1. Executive Summary', summary: 'The 2026 Ceremonial Pavilion achieved 100% operational readiness, zero safety incidents, and delivered on-budget with favorable commercial closure.' },
-        { sectionId: 'SEC-02', title: '2. Operational & Scope Delivery', summary: '100% of physical assets delivered across 4 zones with 98% pre-opening snag clearance.' },
-        { sectionId: 'SEC-03', title: '3. Crowd & Attendance Analytics', summary: 'Turnstile entries totaled 125,400 across 3 days along Lusail Boulevard, peaking at 4,200 attendees/hour.' },
-        { sectionId: 'SEC-04', title: '4. Commercial & Financial Performance', summary: 'Contract Value 2,450,000 QAR; Final EAC 1,800,000 QAR; Net Favorable Variance 200,000 QAR; Final Gross Margin 26.53%.' },
-        { sectionId: 'SEC-05', title: '5. Key Lessons Learned & Recommendations', summary: 'Adopt 4-week maritime import buffer on architectural structures; advance dignitary ingress marshal positions to T-90.' },
-      ],
+      reportTitle: isAccA ? 'Acceptance A — Post-Event Closeout Report' : isAccB ? 'Acceptance B — Post-Event Closeout Report' : `${projectId} — Post-Event Closeout Report`,
+      finalized: false,
+      clientName: isAccA ? 'Qatar Tourism Authority' : isAccB ? 'Ministry of Culture' : 'Client Organization',
+      venueName: isAccA ? 'DECC — Hall 1 & 2' : isAccB ? 'DECC — VIP Pavilion' : 'Main Venue',
+      attendance: null,
+      peakThroughput: null,
+      contractValue: 0,
+      approvedVariations: 0,
+      revisedContractValue: 0,
+      variationCount: 0,
+      realizedMarginPct: null,
+      eacCost: 0,
+      paymentStatus: 'Pending Closeout',
+      showDeliveryRate: null,
+      cuesExecuted: 0,
+      safetyMetric: null,
+      workforceHours: 0,
+      executiveSummary: 'Post-event closeout reporting is in preparation. Operational metrics and safety logs will populate upon event completion.',
+      deliverables: [],
+      sections: [],
     };
   }
 

@@ -111,28 +111,71 @@ export class IntegrationOperationsStore {
   // Integration Operations (Durable & Idempotent)
   // =========================================================================
 
-  async saveOperation(operation: IntegrationOperation, organisationId: string = 'tenant-e3-default'): Promise<void> {
+  async saveOperation(
+    operation: IntegrationOperation,
+    organisationId: string = 'tenant-e3-default'
+  ): Promise<{ isConflict: boolean; isDuplicate: boolean; operation: IntegrationOperation }> {
     if (this.offlineMockMode) {
+      const existing = Array.from(this.mockOperations.values()).find(
+        (op) => op.idempotencyKey === operation.idempotencyKey
+      );
+      if (existing) {
+        if (
+          existing.payloadHash !== operation.payloadHash ||
+          existing.projectId !== operation.projectId
+        ) {
+          return { isConflict: true, isDuplicate: false, operation: existing };
+        }
+        return { isConflict: false, isDuplicate: true, operation: existing };
+      }
       this.mockOperations.set(operation.operationId, operation);
-      return;
+      return { isConflict: false, isDuplicate: false, operation };
     }
 
     try {
+      const existingRes = await this.pool.query(
+        `SELECT * FROM integration_operations WHERE idempotency_key = $1`,
+        [operation.idempotencyKey]
+      );
+
+      if (existingRes.rows.length > 0) {
+        const existingRow = existingRes.rows[0];
+        const existingOp: IntegrationOperation = {
+          operationId: existingRow.id,
+          tenantId: existingRow.organisation_id,
+          projectId: existingRow.project_id,
+          connectionId: existingRow.connection_id,
+          action: existingRow.action,
+          idempotencyKey: existingRow.idempotency_key,
+          payloadHash: existingRow.payload_hash,
+          operationState: existingRow.operation_state,
+          businessState: existingRow.business_state,
+          sourceRecord: existingRow.source_record,
+          errorDetail: existingRow.error_detail,
+          statusUrl: existingRow.status_url,
+          createdAt: existingRow.created_at?.toISOString() || new Date().toISOString(),
+          updatedAt: existingRow.updated_at?.toISOString() || new Date().toISOString(),
+        };
+
+        if (
+          existingRow.payload_hash !== operation.payloadHash ||
+          existingRow.project_id !== operation.projectId
+        ) {
+          return { isConflict: true, isDuplicate: false, operation: existingOp };
+        }
+
+        return { isConflict: false, isDuplicate: true, operation: existingOp };
+      }
+
       await this.pool.query(
         `INSERT INTO integration_operations (
           id, organisation_id, project_id, connection_id, action,
           idempotency_key, payload_hash, operation_state, business_state,
           source_record, error_detail, status_url, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-        ON CONFLICT (idempotency_key) DO UPDATE SET
-          operation_state = EXCLUDED.operation_state,
-          business_state = EXCLUDED.business_state,
-          source_record = EXCLUDED.source_record,
-          error_detail = EXCLUDED.error_detail,
-          updated_at = NOW()`,
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
         [
           operation.operationId,
-          organisationId,
+          operation.tenantId || organisationId,
           operation.projectId,
           operation.connectionId,
           operation.action,
@@ -147,7 +190,37 @@ export class IntegrationOperationsStore {
           operation.updatedAt ? new Date(operation.updatedAt) : new Date(),
         ]
       );
+
+      return { isConflict: false, isDuplicate: false, operation };
     } catch (err: any) {
+      if (err.code === '23505') {
+        const reRead = await this.pool.query(
+          `SELECT * FROM integration_operations WHERE idempotency_key = $1`,
+          [operation.idempotencyKey]
+        );
+        if (reRead.rows.length > 0) {
+          const row = reRead.rows[0];
+          const existingOp: IntegrationOperation = {
+            operationId: row.id,
+            tenantId: row.organisation_id,
+            projectId: row.project_id,
+            connectionId: row.connection_id,
+            action: row.action,
+            idempotencyKey: row.idempotency_key,
+            payloadHash: row.payload_hash,
+            operationState: row.operation_state,
+            businessState: row.business_state,
+            sourceRecord: row.source_record,
+            errorDetail: row.error_detail,
+            statusUrl: row.status_url,
+            createdAt: row.created_at?.toISOString() || new Date().toISOString(),
+            updatedAt: row.updated_at?.toISOString() || new Date().toISOString(),
+          };
+          const hashMismatch =
+            row.payload_hash !== operation.payloadHash || row.project_id !== operation.projectId;
+          return { isConflict: hashMismatch, isDuplicate: !hashMismatch, operation: existingOp };
+        }
+      }
       throw new DatastoreUnavailableError(`Could not save integration operation ${operation.operationId} to durable datastore: ${err.message}`);
     }
   }
@@ -187,21 +260,21 @@ export class IntegrationOperationsStore {
     }
   }
 
-  async getOperationByIdempotencyKey(key: string): Promise<IntegrationOperation | undefined> {
+  async getOperationByIdempotencyKey(key: string, organisationId?: string): Promise<IntegrationOperation | null> {
     if (this.offlineMockMode) {
       for (const op of this.mockOperations.values()) {
-        if (op.idempotencyKey === key) return op;
+        if (op.idempotencyKey === key && (!organisationId || op.tenantId === organisationId)) return op;
       }
-      return undefined;
+      return null;
     }
 
     try {
       const res = await this.pool.query(
-        `SELECT * FROM integration_operations WHERE idempotency_key = $1`,
-        [key]
+        `SELECT * FROM integration_operations WHERE idempotency_key = $1 AND ($2::text IS NULL OR organisation_id = $2)`,
+        [key, organisationId || null]
       );
       if (res.rows.length === 0) {
-        return undefined;
+        return null;
       }
       const row = res.rows[0];
       return {
@@ -421,15 +494,19 @@ export class IntegrationOperationsStore {
     }
   }
 
-  async getProjectDemand(projectId: string): Promise<ProjectDemandRecord | null> {
+  async getProjectDemand(projectId: string, organisationId?: string): Promise<ProjectDemandRecord | null> {
     if (this.offlineMockMode) {
-      return (this.mockDrafts.get(`demand:${projectId}`) as ProjectDemandRecord) || null;
+      const rec = this.mockDrafts.get(`demand:${projectId}`) as ProjectDemandRecord | undefined;
+      if (rec && (!organisationId || rec.organisationId === organisationId)) {
+        return rec;
+      }
+      return null;
     }
 
     try {
       const res = await this.pool.query(
-        `SELECT * FROM project_resource_demands WHERE project_id = $1 ORDER BY version DESC LIMIT 1`,
-        [projectId]
+        `SELECT * FROM project_resource_demands WHERE project_id = $1 AND ($2::text IS NULL OR organisation_id = $2) ORDER BY version DESC LIMIT 1`,
+        [projectId, organisationId || null]
       );
       if (res.rows.length === 0) {
         return null;
@@ -638,12 +715,15 @@ export class IntegrationOperationsStore {
     }
   }
 
-  async listSourcingScenarios(projectId: string): Promise<ProjectSourcingScenarioRecord[]> {
+  async listSourcingScenarios(projectId: string, organisationId?: string): Promise<ProjectSourcingScenarioRecord[]> {
     if (this.offlineMockMode) {
       const results: ProjectSourcingScenarioRecord[] = [];
       for (const [k, v] of this.mockDrafts.entries()) {
         if (k.startsWith(`scenario:${projectId}`)) {
-          results.push(v as ProjectSourcingScenarioRecord);
+          const rec = v as ProjectSourcingScenarioRecord;
+          if (!organisationId || rec.organisationId === organisationId) {
+            results.push(rec);
+          }
         }
       }
       return results;
@@ -651,8 +731,8 @@ export class IntegrationOperationsStore {
 
     try {
       const res = await this.pool.query(
-        `SELECT * FROM project_sourcing_scenarios WHERE project_id = $1 ORDER BY updated_at DESC`,
-        [projectId]
+        `SELECT * FROM project_sourcing_scenarios WHERE project_id = $1 AND ($2::text IS NULL OR organisation_id = $2) ORDER BY updated_at DESC`,
+        [projectId, organisationId || null]
       );
       return res.rows.map((row: any) => ({
         id: row.id,

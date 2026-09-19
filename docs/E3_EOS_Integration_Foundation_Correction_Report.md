@@ -322,3 +322,16 @@ In strict compliance with the 19 September 2026 Architecture Amendment:
 | **10** | **Deferred Connectors Enforcement** | Direct API attempts cannot submit external PRs, issue orders, confirm reservations, or post stock while disabled. | **Verified**: `RentalsAdapterEngine.createReservation()` rejects with `CONNECTOR_DISABLED` (HTTP 501); `PurchaseTrackerAdapterEngine.attemptPurchaseOrderCreation()` rejects with `PO_CREATION_DEFERRED` (HTTP 501). |
 | **11** | **Deterministic Buffer Fixtures** | Zero buffer returns exact window; 2h prep / 6h return buffer expands 10 Nov 10:00-18:00 to 10 Nov 08:00 - 11 Nov 00:00 Asia/Qatar; already-buffered applies 0h; absent policy exposes `absent_policy_unspecified`. | **Verified**: Implemented `calculateOccupiedInterval` in `packages/domain/src/rentals-adapter.ts`. Removed unapproved 24h default constant. Verified in test fixtures. |
 | **12** | **Repeatable JSON Migration** | Dry run, import, and rerun preserve valid records without duplicates (`ON CONFLICT DO NOTHING`) and report ambiguous records. | **Verified**: Created `JsonToPostgresMigrator` (`apps/api/src/integrations/migrate-json-to-postgres.ts`) with SHA-256 backup checksum, dry-run mode, and quarantine reporting. |
+
+---
+
+## 11. Staging Acceptance & Verification Cross-Reference
+
+Following this foundation correction pass, full multi-instance concurrency testing, buffer policy calculations (Cases 1–4), visual QA across 4 core screens (18 screenshots), and PostgreSQL persistent records for Acceptance A (`PROJ-ACC-001`) and Acceptance B (`PROJ-ACC-002`) were formally verified and documented in:
+- **[E3 EOS Staging Acceptance Report](file:///b:/PROJECTS/EOS/docs/E3_EOS_Staging_Acceptance_Report.md)**
+- **Evidence Directory:** `docs/evidence/ui/` (18 screenshots across Desktop/Mobile, Dark/Light, and English/Arabic RTL)
+- **Engineering Staging Acceptance:** **Blocked on release deployment** (due to Cloud Run running prior commit `4fcfb17`).
+- **Human Business UAT:** **Pending**.
+- **Live Rentals / PurchaseTracker Verification:** **Deferred / Not tested**.
+- **Next Implementation Batch:** **RFP → requirements → scope**.
+
