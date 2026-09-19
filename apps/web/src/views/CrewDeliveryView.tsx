@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Card, Badge, Button, Modal, Input, Select } from '../components/DesignSystem.js';
+import { CONFIGURABLE_CREW_POLICIES } from '@e3-eos/domain';
 
 interface CrewDeliveryViewProps {
   projectId: string;
@@ -12,6 +13,11 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
   const [crewAssignments, setCrewAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [conflictWarning, setConflictWarning] = useState<string | null>(null);
+
+  // Configurable Crew Fatigue Policy (Gap 5)
+  const [activePolicyKey, setActivePolicyKey] = useState<string>('POLICY-CREW-E3-INTERNAL-v1.0');
+  const activePolicy = CONFIGURABLE_CREW_POLICIES[activePolicyKey] || CONFIGURABLE_CREW_POLICIES['POLICY-CREW-E3-INTERNAL-v1.0'];
+  const minRestHours = activePolicy.minRestBetweenShiftsHours;
 
   // New assignment modal
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -223,31 +229,57 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
 
         {/* E3 Fatigue Management Policy */}
         <Card>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '18px' }}>🛡️</span>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
-              E3 Fatigue Management Policy (POL-HSE-FATIGUE-01)
-            </h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>🛡️</span>
+              <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+                {activePolicy.name} ({activePolicy.policyCode})
+              </h3>
+            </div>
+            {/* Versioned Policy Selector (Gap 5) */}
+            <div>
+              <select
+                id="crew-fatigue-policy-select"
+                value={activePolicyKey}
+                onChange={(e) => setActivePolicyKey(e.target.value)}
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#f8fafc',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                }}
+              >
+                {Object.values(CONFIGURABLE_CREW_POLICIES).map((pol) => (
+                  <option key={pol.policyCode} value={pol.policyCode}>
+                    {pol.name} ({pol.minRestBetweenShiftsHours}h rest)
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0' }}>
-            Internal E3 Health, Safety & Welfare standard (distinct from statutory legislation).
+            <strong>Authority Source:</strong> {activePolicy.approvedSource || 'Approved Policy Specification'}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
             <div style={{ backgroundColor: '#f0fdf4', padding: '8px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
               <span style={{ color: '#166534' }}>Inter-Shift Rest Interval:</span>
-              <div style={{ fontWeight: 800, color: '#15803d' }}>11 Hours Mandatory Rest</div>
+              <div style={{ fontWeight: 800, color: '#15803d' }}>{minRestHours} Hours Mandatory Rest</div>
             </div>
             <div style={{ backgroundColor: '#f0fdf4', padding: '8px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
-              <span style={{ color: '#166534' }}>Exception Governance:</span>
-              <div style={{ fontWeight: 700, color: '#15803d' }}>Dual HSE & Director Signoff</div>
+              <span style={{ color: '#166534' }}>Daily Work Limit:</span>
+              <div style={{ fontWeight: 700, color: '#15803d' }}>{activePolicy.maxDailyHours || 10}h Max Daily Shift</div>
             </div>
             <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b' }}>Configurable By:</span>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>Role, Crew Type, Event Phase</div>
+              <span style={{ color: '#64748b' }}>Exception Governance:</span>
+              <div style={{ fontWeight: 700, color: '#0f172a' }}>Dual HSE & Director Signoff</div>
             </div>
             <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
               <span style={{ color: '#64748b' }}>Policy Scope:</span>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>Qatar, UAE, KSA Operations</div>
+              <div style={{ fontWeight: 700, color: '#0f172a' }}>Qatar Operations (Version {activePolicy.policyVersion || '1.0.0'})</div>
             </div>
           </div>
         </Card>
@@ -263,13 +295,13 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                 <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#9a3412' }}>
                   Work-Rest Heat Stress & GCC Fatigue Compliance Engine (P04-ST05 / AT-063)
                 </h3>
-                <Badge variant={fatigueSimRestHours < 11 ? 'danger' : 'success'}>
-                  {fatigueSimRestHours < 11 ? 'FATIGUE ROSTER LOCK ACTIVE' : 'FATIGUE CLEARED'}
+                <Badge variant={fatigueSimRestHours < minRestHours ? 'danger' : 'success'}>
+                  {fatigueSimRestHours < minRestHours ? 'FATIGUE ROSTER LOCK ACTIVE' : 'FATIGUE CLEARED'}
                 </Badge>
                 <Badge variant="info">INVARIANT AT-063 ENFORCED</Badge>
               </div>
               <p style={{ fontSize: '13px', color: '#c2410c', margin: '4px 0 0 0' }}>
-                Invariant AT-063 enforces jurisdiction-specific labor and fatigue rules. Shifts violating mandatory 11-hour inter-shift rest gaps or midday outdoor summer bans are rejected with hard roster locks.
+                Invariant AT-063 enforces jurisdiction-specific labor and fatigue rules under {activePolicy.name}. Shifts violating the mandatory {minRestHours}-hour inter-shift rest gap or midday outdoor summer bans are rejected with hard roster locks.
               </p>
             </div>
 
@@ -282,11 +314,11 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                 Simulate 7h Rest Gap (Violation)
               </Button>
               <Button
-                variant={fatigueSimRestHours === 11 ? 'success' : 'secondary'}
+                variant={fatigueSimRestHours === minRestHours ? 'success' : 'secondary'}
                 size="sm"
-                onClick={() => setFatigueSimRestHours(11)}
+                onClick={() => setFatigueSimRestHours(minRestHours)}
               >
-                Set 11h Rest Gap (Compliant)
+                Set {minRestHours}h Rest Gap (Compliant)
               </Button>
             </div>
           </div>
@@ -302,10 +334,10 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
 
             <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fed7aa' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#9a3412' }}>INTER-SHIFT REST INTERVAL</div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: fatigueSimRestHours < 11 ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
-                {fatigueSimRestHours}.0 Hours Rest ({fatigueSimRestHours < 11 ? 'Deficit: 4.0h' : 'Compliant'})
+              <div style={{ fontSize: '14px', fontWeight: 800, color: fatigueSimRestHours < minRestHours ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
+                {fatigueSimRestHours}.0 Hours Rest ({fatigueSimRestHours < minRestHours ? `Deficit: ${(minRestHours - fatigueSimRestHours).toFixed(1)}h` : 'Compliant'})
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Mandatory threshold: Minimum 11.0h</div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>Active Rule: Minimum {minRestHours}.0h ({activePolicy.policyCode})</div>
             </div>
 
             <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fed7aa' }}>
@@ -318,11 +350,11 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
 
             <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fed7aa' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#9a3412' }}>ROSTER GATE DECISION</div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: fatigueSimRestHours < 11 ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
-                {fatigueSimRestHours < 11 ? 'HARD ROSTER LOCK' : 'ASSIGNMENT APPROVED'}
+              <div style={{ fontSize: '14px', fontWeight: 800, color: fatigueSimRestHours < minRestHours ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
+                {fatigueSimRestHours < minRestHours ? 'HARD ROSTER LOCK' : 'ASSIGNMENT APPROVED'}
               </div>
-              <div style={{ fontSize: '11px', color: fatigueSimRestHours < 11 ? '#dc2626' : '#16a34a' }}>
-                {fatigueSimRestHours < 11 ? 'AT-063 Fatigue Invariant Active' : 'Fit for rigging duty'}
+              <div style={{ fontSize: '11px', color: fatigueSimRestHours < minRestHours ? '#dc2626' : '#16a34a' }}>
+                {fatigueSimRestHours < minRestHours ? 'AT-063 Fatigue Invariant Active' : 'Fit for rigging duty'}
               </div>
             </div>
           </div>
@@ -330,19 +362,19 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
           <div style={{
             padding: '12px 16px',
             borderRadius: '6px',
-            backgroundColor: fatigueSimRestHours < 11 ? '#fef2f2' : '#f0fdf4',
-            border: `1px solid ${fatigueSimRestHours < 11 ? '#f87171' : '#86efac'}`,
+            backgroundColor: fatigueSimRestHours < minRestHours ? '#fef2f2' : '#f0fdf4',
+            border: `1px solid ${fatigueSimRestHours < minRestHours ? '#f87171' : '#86efac'}`,
             fontSize: '12px',
-            color: fatigueSimRestHours < 11 ? '#991b1b' : '#166534',
+            color: fatigueSimRestHours < minRestHours ? '#991b1b' : '#166534',
             fontWeight: 700,
           }}>
-            {fatigueSimRestHours < 11 ? (
+            {fatigueSimRestHours < minRestHours ? (
               <span>
-                ⛔ <strong>FATIGUE ROSTER LOCK ENFORCED (AT-063):</strong> Shift candidate start at 10:00 AM provides only 7.0 hours of consecutive rest following a 03:00 AM finish. Qatar Labour Law No. 17 & E3 Safety Policy POL-HSE-FATIGUE-01 require 11.0 consecutive hours. Assignment is strictly blocked.
+                ⛔ <strong>FATIGUE ROSTER LOCK ENFORCED (AT-063):</strong> Shift candidate start at 10:00 AM provides only {fatigueSimRestHours}.0 hours of consecutive rest following a 03:00 AM finish. {activePolicy.name} ({activePolicy.policyCode}) requires {minRestHours}.0 consecutive hours. Assignment is strictly blocked.
               </span>
             ) : (
               <span>
-                ✅ <strong>FATIGUE & STATUTORY COMPLIANCE SATISFIED (AT-063):</strong> Shift candidate start at 02:00 PM provides 11.0 hours of continuous rest. Outdoor heat curfew window (10:00-15:30) is observed with air-conditioned staging prep. Assignment cleared.
+                ✅ <strong>FATIGUE & STATUTORY COMPLIANCE SATISFIED (AT-063):</strong> Shift candidate start provides {fatigueSimRestHours}.0 hours of continuous rest, satisfying the {minRestHours}.0h threshold under {activePolicy.name}. Outdoor heat curfew window (10:00-15:30) is observed with air-conditioned staging prep. Assignment cleared.
               </span>
             )}
           </div>
@@ -382,7 +414,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                 <th style={{ padding: '12px' }}>Personnel Type</th>
                 <th style={{ padding: '12px' }}>Employer</th>
                 <th style={{ padding: '12px' }}>Shift Window</th>
-                <th style={{ padding: '12px' }}>Rest Rule (11h)</th>
+                <th style={{ padding: '12px' }}>Rest Rule ({minRestHours}h)</th>
                 <th style={{ padding: '12px' }}>Status</th>
               </tr>
             </thead>
@@ -458,10 +490,10 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                                   display: 'inline-block',
                                 }}
                               >
-                                ✓ 14h Daily Rest Rule
+                                ✓ {minRestHours}h Rest Rule
                               </span>
                               <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
-                                Qatar Law No. 14: ≤10h/day
+                                {activePolicy.name}: ≤10h/day
                               </div>
                             </div>
                           );
@@ -610,7 +642,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
             </div>
             {new Date(shiftEnd).getTime() - new Date(shiftStart).getTime() > 10 * 3600000 && (
               <div style={{ padding: '10px 12px', borderRadius: '6px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', fontSize: '12px', color: '#1e40af', marginTop: '4px' }}>
-                ℹ️ <strong>Multi-Day Deployment Window:</strong> Total duration is {((new Date(shiftEnd).getTime() - new Date(shiftStart).getTime()) / 3600000).toFixed(1)} hours. Under Qatar Labour Law (Law No. 14 of 2004), daily operational shifts are capped at 10h. This deployment is automatically managed as daily work shifts (08:00–18:00) with mandatory 14-hour inter-shift rest intervals.
+                ℹ️ <strong>Multi-Day Deployment Window:</strong> Total duration is {((new Date(shiftEnd).getTime() - new Date(shiftStart).getTime()) / 3600000).toFixed(1)} hours. Under {activePolicy.name}, daily operational shifts are capped at 10h. This deployment is automatically managed as daily work shifts (08:00–18:00) with mandatory {minRestHours}-hour inter-shift rest intervals.
               </div>
             )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>

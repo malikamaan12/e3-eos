@@ -212,6 +212,7 @@ export class ProjectsController {
         let query = `
           SELECT p.id, p.project_code, p.title, p.description, p.maturity, p.outcome,
                  p.origin_code, p.client_organisation_id, p.organisation_id, p.row_version,
+                 p.metadata,
                  u.name as owner_name, o.name as client_name
           FROM projects p
           LEFT JOIN users u ON u.id = p.owner_id
@@ -241,9 +242,9 @@ export class ProjectsController {
             outcome: r.outcome,
             originCode: r.origin_code,
             clientOrganisationId: r.client_organisation_id,
-            clientName: meta.clientStakeholders?.clientName || r.client_name || matched?.clientStakeholders?.clientName || 'Client',
+            clientName: matched?.clientStakeholders?.clientName || meta.clientStakeholders?.clientName || r.client_name || 'Client',
             organisationId: r.organisation_id,
-            ownerName: meta.team?.projectManagerName || r.owner_name || matched?.team?.projectManagerName || 'Lead PM',
+            ownerName: matched?.team?.projectManagerName || meta.team?.projectManagerName || r.owner_name || 'Lead PM',
             rowVersion: r.row_version || 1,
             isOnboardingComplete: meta.isOnboardingComplete !== undefined ? meta.isOnboardingComplete : (matched?.isOnboardingComplete ?? (r.maturity === 'draft' ? false : true)),
             onboardingCompletionPct: meta.onboardingCompletionPct !== undefined ? meta.onboardingCompletionPct : (matched?.onboardingCompletionPct ?? (r.maturity === 'draft' ? 57 : 100)),

@@ -67,7 +67,7 @@ export async function runMigrations() {
         }
 
         console.log(`[${i + 1}/${migrationFiles.length}] Applying Migration from: ${file}`);
-        const sql = readFileSync(filePath, 'utf8');
+        const sql = readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '');
         try {
           await client.query(sql);
           await client.query('INSERT INTO _migrations (name) VALUES ($1) ON CONFLICT DO NOTHING', [file]);

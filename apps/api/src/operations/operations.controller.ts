@@ -98,8 +98,10 @@ export interface StoredPermit extends RegulatoryPermit {
 }
 
 export interface StoredCheckpoint extends ReadinessCheckpoint {
-  organisationId: string;
+  organisationId?: string;
   projectId: string;
+  description?: string;
+  checkpointType?: string;
 }
 
 export interface StoredOpeningRelease {
@@ -1363,6 +1365,17 @@ export class OperationsController {
         projectId === 'PRJ-2026-QATAR-01' ||
         isQnd;
 
+      // Dynamic Checkpoints (Gap 1: Arbitrary mandatory prerequisites)
+      const projectCheckpoints = Array.from(checkpointRepository.values()).filter(
+        (c) => c.projectId === projectId || c.projectId === 'PRJ-QND-2026' && isQnd
+      );
+      const criticalUnpassed = projectCheckpoints.filter((c) => c.isCritical && c.status !== 'passed');
+      const hasBlocker = isQnd || criticalUnpassed.length > 0;
+
+      const blockerDetails = criticalUnpassed.length > 0
+        ? criticalUnpassed.map((c) => `${c.id}: ${c.description || 'Mandatory safety prerequisite unresolved'}`).join('; ')
+        : (isQnd ? 'QCDD-INSP-441: Smoke flap safety interlock uncertified in Lusail Main Stage Zone' : 'Safety clearance passed');
+
       const defaultChecks: DimensionReadinessCheck[] = [
         { dimension: 'Scope', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Scope defined' : 'Scope pending formal signoff' },
         { dimension: 'Design', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Design approved' : 'Design review pending' },
@@ -1372,14 +1385,12 @@ export class OperationsController {
         { dimension: 'Installation', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Installation completed' : 'Site installation pending' },
         {
           dimension: 'HSE',
-          isPassed: isQnd ? false : isDemo,
+          isPassed: !hasBlocker && isDemo,
           isCritical: true,
-          scorePercent: isQnd ? 70 : (isDemo ? 100 : 0),
-          details: isQnd
-            ? 'QCDD-INSP-441: Smoke flap safety interlock uncertified in Lusail Main Stage Zone'
-            : (isDemo ? 'Safety clearance passed' : 'Civil Defence inspection pending'),
+          scorePercent: hasBlocker ? 70 : (isDemo ? 100 : 0),
+          details: blockerDetails,
         },
-        { dimension: 'Permits', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Permits cleared' : 'Statutory permits pending clearance' },
+        { dimension: 'Permits', isPassed: !criticalUnpassed.some(c => c.checkpointType === 'permit') && isDemo, isCritical: true, scorePercent: criticalUnpassed.some(c => c.checkpointType === 'permit') ? 0 : (isDemo ? 100 : 0), details: isDemo ? 'Permits cleared' : 'Statutory permits pending clearance' },
         { dimension: 'Staffing', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Staff rostered' : 'Crew roster pending confirmation' },
         { dimension: 'Technical Testing', isPassed: isDemo, isCritical: true, scorePercent: isDemo ? 100 : 0, details: isDemo ? 'Systems tested' : 'Commissioning incomplete' },
       ];
@@ -1533,6 +1544,25 @@ export class OperationsController {
 
     if (!gate) {
       throw new HttpException({ message: 'READINESS_EVALUATION_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+
+    // Authoritative Live Revalidation of Checkpoints (Gap 1)
+    const isQnd = projectId.startsWith('PRJ-QND') || projectId === '00000000-0000-4000-8000-000000000001' || projectId === 'QND26';
+    const projectCheckpoints = Array.from(checkpointRepository.values()).filter(
+      (c) => c.projectId === projectId || (c.projectId === 'PRJ-QND-2026' && isQnd)
+    );
+    const criticalUnpassed = projectCheckpoints.filter((c) => c.isCritical && c.status !== 'passed');
+    if (criticalUnpassed.length > 0) {
+      const blockers = criticalUnpassed.map((c) => `${c.id}: ${c.description || 'Mandatory safety prerequisite unresolved'}`);
+      throw new HttpException(
+        {
+          type: 'https://e3-eos.io/errors/opening-authorization-blocked',
+          title: 'Opening Authorization Blocked',
+          status: 422,
+          detail: `OPENING_BLOCKED: Critical prerequisite checkpoint(s) not passed: ${blockers.join('; ')}`,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY
+      );
     }
 
     const authResult = OpeningAuthorizationEngine.authorize(

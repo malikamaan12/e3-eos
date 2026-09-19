@@ -404,10 +404,13 @@ export const QATAR_LABOUR_LAW_BASELINE: QatarLabourLawLimits = {
 
 export interface E3FatiguePolicyConfig {
   policyCode: string;
+  policyVersion?: string;
   name: string;
   country: string;
-  minRestBetweenShiftsHours: number; // Default 11 hours internal policy
+  minRestBetweenShiftsHours: number; // Configurable: 11 hours (E3 standard) or 14 hours (extended statutory)
   maxConsecutiveDays: number; // Default 6 days before mandatory weekly rest
+  maxDailyHours?: number; // Statutory 10h limit
+  approvedSource?: string;
   allowExceptionWithDualSignoff: boolean;
   appliesToRoles?: string[];
   appliesToCrewTypes?: PersonnelType[];
@@ -416,18 +419,50 @@ export interface E3FatiguePolicyConfig {
 }
 
 /**
- * Internal E3 Fatigue Management Policy.
- * Note: E3's 11-hour minimum rest interval between shifts is an internal corporate health & safety policy,
- * not a statutory requirement of the Qatar Ministry of Labour.
+ * Versioned Crew Fatigue Policies.
+ * - E3 Standard: 11-hour minimum inter-shift rest per internal corporate health & safety manual.
+ * - Qatar Labour Extended: 14-hour minimum inter-shift rest per national schedule.
  */
-export const DEFAULT_E3_FATIGUE_POLICY: E3FatiguePolicyConfig = {
-  policyCode: 'POL-HSE-FATIGUE-01',
-  name: 'E3 Live Operations Fatigue Management Policy',
-  country: 'Qatar',
-  minRestBetweenShiftsHours: 11,
-  maxConsecutiveDays: 6,
-  allowExceptionWithDualSignoff: true,
+export const CONFIGURABLE_CREW_POLICIES: Record<string, E3FatiguePolicyConfig> = {
+  'POL-HSE-FATIGUE-01': {
+    policyCode: 'POL-HSE-FATIGUE-01',
+    policyVersion: '1.0.0',
+    name: 'E3 Live Operations Fatigue Policy (11h Rest Standard)',
+    country: 'Qatar',
+    minRestBetweenShiftsHours: 11,
+    maxDailyHours: 10,
+    maxConsecutiveDays: 6,
+    approvedSource: 'E3 Corporate HSE Health & Safety Manual Rev 2026',
+    allowExceptionWithDualSignoff: true,
+  },
+  'POLICY-CREW-E3-INTERNAL-v1.0': {
+    policyCode: 'POL-HSE-FATIGUE-01',
+    policyVersion: '1.0.0',
+    name: 'E3 Live Operations Fatigue Policy (11h Rest Standard)',
+    country: 'Qatar',
+    minRestBetweenShiftsHours: 11,
+    maxDailyHours: 10,
+    maxConsecutiveDays: 6,
+    approvedSource: 'E3 Corporate HSE Health & Safety Manual Rev 2026',
+    allowExceptionWithDualSignoff: true,
+  },
+  'POLICY-CREW-QATAR-LABOUR-v1.0': {
+    policyCode: 'POLICY-CREW-QATAR-LABOUR-v1.0',
+    policyVersion: '1.0.0',
+    name: 'Qatar Labour Extended Rest Standard (14h Rest Profile)',
+    country: 'Qatar',
+    minRestBetweenShiftsHours: 14,
+    maxDailyHours: 10,
+    maxConsecutiveDays: 6,
+    approvedSource: 'Qatar Labour Law No. 14 of 2004 Schedule',
+    allowExceptionWithDualSignoff: true,
+  },
 };
+
+/**
+ * Internal E3 Fatigue Management Policy default (11 hours).
+ */
+export const DEFAULT_E3_FATIGUE_POLICY: E3FatiguePolicyConfig = CONFIGURABLE_CREW_POLICIES['POL-HSE-FATIGUE-01'];
 
 export interface CrewComplianceEvaluation {
   isStatutoryCompliant: boolean;

@@ -18,6 +18,10 @@ export interface PendingOfflineMutation {
   status: 'pending' | 'syncing' | 'synced' | 'failed';
   syncedAt?: string;
   dedupTag?: string;
+  tenantId?: string;
+  projectId?: string;
+  actorId?: string;
+  entityVersion?: number;
 }
 
 export type { CanonicalUser } from './canonical-users.js';
@@ -88,7 +92,7 @@ export interface EosContextValue {
   toggleOffline: () => void;
   setActiveWorkspace: (ws: WorkspaceType) => void;
   setSelectedProjectId: (id: string) => void;
-  queueMutation: (action: string, entity: string, payload: Record<string, unknown>) => void;
+  queueMutation: (action: string, entity: string, payload: Record<string, unknown>, meta?: { projectId?: string; tenantId?: string; actorId?: string; entityVersion?: number }) => void;
   clearPendingMutations: () => void;
   syncPendingMutations: () => Promise<{ success: number; failed: number }>;
   removePendingMutation: (id: string) => void;
@@ -458,17 +462,37 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsOffline((prev) => !prev);
   };
 
-  const queueMutation = (action: string, entity: string, payload: Record<string, unknown>) => {
+  const queueMutation = (
+    action: string,
+    entity: string,
+    payload: Record<string, unknown>,
+    meta?: { projectId?: string; tenantId?: string; actorId?: string; entityVersion?: number }
+  ) => {
     const id = `mut-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const dedupTag = `dedup-${entity.toLowerCase()}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    const boundProjectId = meta?.projectId || (payload.projectId as string) || selectedProjectId || 'unknown-project';
+    const boundTenantId = meta?.tenantId || (payload.tenantId as string) || currentOrg?.id || '11111111-1111-4111-8111-111111111111';
+    const boundActorId = meta?.actorId || (payload.actorId as string) || currentUser?.id || 'actor-field-ops';
+    const boundEntityVersion = meta?.entityVersion || (payload.entityVersion as number) || 1;
+
     const mutation: PendingOfflineMutation = {
       id,
       timestamp: new Date().toISOString(),
       action,
       entity,
-      payload,
+      payload: {
+        ...payload,
+        projectId: boundProjectId,
+        tenantId: boundTenantId,
+        actorId: boundActorId,
+        entityVersion: boundEntityVersion,
+      },
       status: 'pending',
       dedupTag,
+      tenantId: boundTenantId,
+      projectId: boundProjectId,
+      actorId: boundActorId,
+      entityVersion: boundEntityVersion,
     };
     mutationsRef.current = [...mutationsRef.current, mutation];
     setPendingMutations(mutationsRef.current);

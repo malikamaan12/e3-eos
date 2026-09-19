@@ -1,4 +1,4 @@
-﻿-- Progressive Scope & Requirements Management Migration
+-- Progressive Scope & Requirements Management Migration
 ALTER TABLE requirements
   ADD COLUMN IF NOT EXISTS code TEXT,
   ADD COLUMN IF NOT EXISTS original_wording TEXT,

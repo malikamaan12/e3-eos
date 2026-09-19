@@ -40,6 +40,7 @@ import {
   IntegrationReconciliationEngine,
   safeSha256,
   Money,
+  CurrencyCode,
   canApproveCommercialAmount,
 } from '@e3-eos/domain';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
@@ -811,9 +812,26 @@ export class CommercialFinanceController {
   getFinancialControl(@Param('projectId') projectId: string) {
     seedCommercialData();
     const canonicalId = resolveCanonicalProjectId(projectId);
-    const pos = financialPositionsRepo.get(canonicalId) || financialPositionsRepo.get(projectId);
+    let pos = financialPositionsRepo.get(canonicalId) || financialPositionsRepo.get(projectId);
     if (!pos) {
-      throw new HttpException({ code: 'NOT_FOUND', message: `Project ${projectId} financial position not found` }, HttpStatus.NOT_FOUND);
+      const project = projectRepository.get(projectId) || projectRepository.get(canonicalId);
+      if (project) {
+        const rev = project.financialAssumptions?.revenueValue || '0';
+        pos = {
+          currency: project.financialAssumptions?.currency || 'QAR',
+          originalBudget: '0',
+          approvedBudgetChanges: '0',
+          postedActualCost: '0',
+          acceptedAccruedCost: '0',
+          remainingCommitments: '0',
+          uncommittedForecast: '0',
+          approvedRevenueBasis: rev.toString().replace(/,/g, ''),
+        };
+        financialPositionsRepo.set(projectId, pos);
+        financialPositionsRepo.set(canonicalId, pos);
+      } else {
+        throw new HttpException({ code: 'NOT_FOUND', message: `Project ${projectId} financial position not found` }, HttpStatus.NOT_FOUND);
+      }
     }
     const result = FinancialCalculator.calculatePosition(pos);
     return {
@@ -840,13 +858,65 @@ export class CommercialFinanceController {
     };
   }
 
+  @Post('financial-control/:projectId')
+  updateFinancialControl(
+    @Param('projectId') projectId: string,
+    @Body() body: any
+  ) {
+    seedCommercialData();
+    const canonicalId = resolveCanonicalProjectId(projectId);
+    let pos = financialPositionsRepo.get(canonicalId) || financialPositionsRepo.get(projectId);
+    if (!pos) {
+      pos = {
+        currency: (body.currency as CurrencyCode) || 'QAR',
+        originalBudget: '0',
+        approvedBudgetChanges: '0',
+        postedActualCost: '0',
+        acceptedAccruedCost: '0',
+        remainingCommitments: '0',
+        uncommittedForecast: '0',
+        approvedRevenueBasis: '0',
+      };
+    }
+    const updated: FinancialPositionInput = {
+      currency: (body.currency as CurrencyCode) || pos.currency,
+      originalBudget: body.originalBudget !== undefined ? String(body.originalBudget) : pos.originalBudget,
+      approvedBudgetChanges: body.approvedBudgetChanges !== undefined ? String(body.approvedBudgetChanges) : pos.approvedBudgetChanges,
+      postedActualCost: body.postedActualCost !== undefined ? String(body.postedActualCost) : pos.postedActualCost,
+      acceptedAccruedCost: body.acceptedAccruedCost !== undefined ? String(body.acceptedAccruedCost) : pos.acceptedAccruedCost,
+      remainingCommitments: body.remainingCommitments !== undefined ? String(body.remainingCommitments) : pos.remainingCommitments,
+      uncommittedForecast: body.uncommittedForecast !== undefined ? String(body.uncommittedForecast) : pos.uncommittedForecast,
+      approvedRevenueBasis: body.approvedRevenueBasis !== undefined ? String(body.approvedRevenueBasis) : pos.approvedRevenueBasis,
+    };
+    financialPositionsRepo.set(projectId, updated);
+    financialPositionsRepo.set(canonicalId, updated);
+    return this.getFinancialControl(projectId);
+  }
+
   @Get('cash-position/:projectId')
   getCashPosition(@Param('projectId') projectId: string) {
     seedCommercialData();
     const canonicalId = resolveCanonicalProjectId(projectId);
-    const pos = financialPositionsRepo.get(canonicalId) || financialPositionsRepo.get(projectId);
+    let pos = financialPositionsRepo.get(canonicalId) || financialPositionsRepo.get(projectId);
     if (!pos) {
-      throw new HttpException({ code: 'NOT_FOUND', message: 'Project not found' }, HttpStatus.NOT_FOUND);
+      const project = projectRepository.get(projectId) || projectRepository.get(canonicalId);
+      if (project) {
+        const rev = project.financialAssumptions?.revenueValue || '0';
+        pos = {
+          currency: project.financialAssumptions?.currency || 'QAR',
+          originalBudget: '0',
+          approvedBudgetChanges: '0',
+          postedActualCost: '0',
+          acceptedAccruedCost: '0',
+          remainingCommitments: '0',
+          uncommittedForecast: '0',
+          approvedRevenueBasis: rev.toString().replace(/,/g, ''),
+        };
+        financialPositionsRepo.set(projectId, pos);
+        financialPositionsRepo.set(canonicalId, pos);
+      } else {
+        throw new HttpException({ code: 'NOT_FOUND', message: 'Project not found' }, HttpStatus.NOT_FOUND);
+      }
     }
 
     // Aggregate billed and collected from client invoices
@@ -861,7 +931,7 @@ export class CommercialFinanceController {
 
     const cash = FinancialCalculator.calculateCashPosition({
       currency: pos.currency,
-      contractValue: pos.approvedRevenueBasis || '2450000',
+      contractValue: pos.approvedRevenueBasis || '0',
       billedAmount: totalBilled,
       collectedAmount: totalCollected,
       postedActualCost: pos.postedActualCost,
@@ -974,7 +1044,7 @@ export class CommercialFinanceController {
       id: `SNAP-${parsed.data.periodKey}`,
       projectId,
       periodKey: parsed.data.periodKey,
-      contractValue: pos.approvedRevenueBasis || '2450000',
+      contractValue: pos.approvedRevenueBasis || '0',
       currentBudget: result.currentAuthorisedBudget.toString(),
       committedCost: pos.remainingCommitments,
       actualCost: pos.postedActualCost,
@@ -1467,25 +1537,29 @@ export class CommercialFinanceController {
   getCommercialCloseout(@Param('projectId') projectId: string) {
     seedCommercialData();
     const existing = closeoutRecordsRepo.get(projectId);
+    const pos = financialPositionsRepo.get(projectId);
     const checklist: CommercialCloseoutChecklist = existing?.checklist || {
-      posFullyInvoicedOrDecommitted: true,
-      supplierInvoicesSettled: true,
-      clientMilestonesBilled: true,
-      openReceivablesManaged: true,
-      retentionScheduleConfirmed: true,
-      expenseClaimsSettled: true,
-      variationsConcluded: true,
-      costAllocationsConfirmed: true,
-      finalPandLAudited: true,
-      executiveSignoffSealed: true,
+      posFullyInvoicedOrDecommitted: false,
+      supplierInvoicesSettled: false,
+      clientMilestonesBilled: false,
+      openReceivablesManaged: false,
+      retentionScheduleConfirmed: false,
+      expenseClaimsSettled: false,
+      variationsConcluded: false,
+      costAllocationsConfirmed: false,
+      finalPandLAudited: false,
+      executiveSignoffSealed: false,
     };
+
+    const finalRevenue = existing?.financialSummary?.finalRevenue || pos?.approvedRevenueBasis || '0';
+    const finalActualCost = existing?.financialSummary?.finalActualCost || pos?.postedActualCost || '0';
 
     const evaluation = CommercialCloseoutEngine.evaluateCloseout({
       projectId,
-      currency: 'QAR',
+      currency: pos?.currency || 'QAR',
       checklist,
-      finalRevenue: '2450000',
-      finalActualCost: '1800000',
+      finalRevenue,
+      finalActualCost,
       signedBy: existing?.signedBy || 'Hamad Al-Kuwari (Finance Director)',
     });
 
@@ -1510,12 +1584,16 @@ export class CommercialFinanceController {
   @Post('closeout/evaluate')
   evaluateCloseout(@Body() body: any) {
     seedCommercialData();
+    const pos = financialPositionsRepo.get(body.projectId);
+    const finalRevenue = body.finalRevenue || pos?.approvedRevenueBasis || '0';
+    const finalActualCost = body.finalActualCost || pos?.postedActualCost || '0';
+
     const evaluation = CommercialCloseoutEngine.evaluateCloseout({
       projectId: body.projectId || 'PRJ-QND-2026',
-      currency: body.currency || 'QAR',
+      currency: body.currency || pos?.currency || 'QAR',
       checklist: body.checklist,
-      finalRevenue: body.finalRevenue || '2450000',
-      finalActualCost: body.finalActualCost || '1800000',
+      finalRevenue,
+      finalActualCost,
       signedBy: body.signedBy || 'Hamad Al-Kuwari',
     });
     return evaluation;
@@ -1543,12 +1621,16 @@ export class CommercialFinanceController {
       executiveSignoffSealed: ch.claimsSettledOrBonded,
     };
 
+    const pos = financialPositionsRepo.get(parsed.data.projectId);
+    const finalRevenue = body.finalRevenue || pos?.approvedRevenueBasis || '0';
+    const finalActualCost = body.finalActualCost || pos?.postedActualCost || '0';
+
     const evaluation = CommercialCloseoutEngine.evaluateCloseout({
       projectId: parsed.data.projectId,
-      currency: 'QAR',
+      currency: pos?.currency || 'QAR',
       checklist: mappedChecklist,
-      finalRevenue: '2450000',
-      finalActualCost: '1800000',
+      finalRevenue,
+      finalActualCost,
       signedBy: parsed.data.authorizedBy,
     });
 
@@ -1557,6 +1639,12 @@ export class CommercialFinanceController {
       auditHash: evaluation.auditHash,
       decision: evaluation.decision,
       signedAt: evaluation.signedAt,
+      financialSummary: {
+        finalRevenue: evaluation.finalRevenue.toString(),
+        finalActualCost: evaluation.finalActualCost.toString(),
+        finalProfit: evaluation.finalProfit.toString(),
+        finalGrossMarginPercent: evaluation.finalGrossMarginPercent,
+      },
     });
 
     return {

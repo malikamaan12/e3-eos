@@ -1,4 +1,4 @@
-﻿-- Migration: 0009_scope_allocations_and_fulfilment.sql
+-- Migration: 0009_scope_allocations_and_fulfilment.sql
 -- Additive migration for Progressive Scope Phase 2
 
 -- Add multi-dimensional tracking columns to requirements table
