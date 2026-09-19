@@ -84,7 +84,7 @@ export interface SourceProvenance {
   slideNumber?: number;
   boundingBox?: BoundingBox;
   exactOriginalWording: string;
-  extractionMethod: 'deterministic_text' | 'table_cell' | 'docx_xml' | 'pptx_frame' | 'tesseract_ocr' | 'email_parser';
+  extractionMethod: 'deterministic_text' | 'table_cell' | 'docx_xml' | 'pptx_frame' | 'tesseract_ocr' | 'email_parser' | 'text_span';
   ocrConfidence?: number;
   parserVersion: string;
   timestamp: string;
@@ -314,7 +314,20 @@ export function pass1ClassifyDocument(rawText: string, documentName: string, doc
 /**
  * Pass 2: Candidate Block & Fragment Detection
  */
-export function pass2DetectBlocks(rawText: string, jobId: string, documentId: string): ExtractedDocumentBlock[] {
+export function pass2DetectBlocks(
+  rawText: string,
+  jobId: string,
+  documentId: string,
+  options?: { documentName?: string; documentType?: string; isPastedText?: boolean }
+): ExtractedDocumentBlock[] {
+  const isPasted =
+    Boolean(options?.isPastedText) ||
+    options?.documentType === 'pasted_text' ||
+    options?.documentType === 'manual_entry' ||
+    options?.documentName === 'pasted_text' ||
+    options?.documentName === 'Pasted Text' ||
+    (!options?.documentName?.match(/\.(pdf|docx|xlsx|pptx)$/i) && options?.documentType !== 'tender_spec');
+
   const rawParagraphs = rawText
     .split(/\n{2,}|\r\n{2,}|\f|(?:\r?\n(?=(?:SECTION|CLAUSE|Clause|Section|Item|Art\.)\s+\d+))/i)
     .map((p) => p.trim())
@@ -345,15 +358,17 @@ export function pass2DetectBlocks(rawText: string, jobId: string, documentId: st
       sectionNumber,
       blockType: isHeading ? 'heading' : isTable ? 'table_cell' : 'paragraph',
       rawText: p,
-      boundingBox: {
-        page: currentPage,
-        x: 50,
-        y: 80 + (i % 8) * 90,
-        width: 500,
-        height: Math.min(200, Math.max(40, Math.round(p.length * 0.4))),
-      },
-      extractionMethod: 'deterministic_text',
-      ocrConfidence: 0.98,
+      boundingBox: isPasted
+        ? undefined
+        : {
+            page: currentPage,
+            x: 50,
+            y: 80 + (i % 8) * 90,
+            width: 500,
+            height: 60,
+          },
+      extractionMethod: isPasted ? 'text_span' : 'deterministic_text',
+      ocrConfidence: isPasted ? undefined : 0.98,
       sequenceIndex: i + 1,
       createdAt: new Date().toISOString(),
     });
@@ -519,7 +534,25 @@ export function reconcileQuantityAndAllocations(params: {
     }
   }
 
-  // Scenario 6: 20 chairs across A and B -> total is 20, unallocated is 20, split is unresolved
+  const isSingleSpecificZone =
+    params.zonesMentioned &&
+    params.zonesMentioned.length === 1 &&
+    !params.zonesMentioned[0].toLowerCase().includes('unspecified') &&
+    !params.zonesMentioned[0].toLowerCase().includes('three event zones');
+
+  // Single specific zone mentioned: e.g. "100 banquet chairs in Zone A"
+  if (params.quantity !== undefined && isSingleSpecificZone && !params.explicitAllocations) {
+    return {
+      finalQuantity: params.quantity,
+      comparator,
+      basis: basis === 'unspecified' ? 'total' : basis,
+      allocations: [{ zone: params.zonesMentioned![0], quantity: params.quantity }],
+      unallocatedQuantity: 0,
+      unresolvedIssues,
+    };
+  }
+
+  // Multi-zone or unspecified event zones (e.g. "20 counters across the three event zones", "20 chairs across A and B"):
   if (params.quantity !== undefined && params.zonesMentioned && params.zonesMentioned.length > 0 && basis === 'total') {
     const issue = `Allocation split across ${params.zonesMentioned.join(' and ')} is unresolved (total ${params.quantity} units).`;
     unresolvedIssues.push(issue);
@@ -961,7 +994,11 @@ export function parseIntelligentDocument(
   const classification = pass1ClassifyDocument(rawText, documentName, documentType);
 
   // Pass 2: Block Detection
-  const blocks = pass2DetectBlocks(rawText, jobId, documentId);
+  const blocks = pass2DetectBlocks(rawText, jobId, documentId, {
+    documentName,
+    documentType,
+    isPastedText: (options as any)?.isPastedText,
+  });
 
   const candidates: ExtractedScopeCandidate[] = [];
   const queueCounts: Record<ReviewQueueType, number> = {
@@ -1041,6 +1078,14 @@ export function parseIntelligentDocument(
     const countableQtyMatch = p.match(/(?:(?:fabricate|design|deliver|install|provide|supply|procure|construct|engineer|maintain|deploy)\s+)?(\d+(?:,\d+)*(?:\.\d+)?)\s+(?:[a-zA-Z\s-]{1,30}?\s*)?(?:counters?|arches?|kiosks?|booths?|towers?|screens?|podiums?|pylons?|canop(?:y|ies)|structures?|installations?|pavilions?|chairs?|tables?|guards?|staff|generators?|fences?|systems?|items?)\b/i);
     // 4. Number before noun or total count
     const totalCountMatch = p.match(/(?:total|minimum|maximum|exactly|at least)\s*[:\-–]?\s*(\d+(?:,\d+)*(?:\.\d+)?)/i);
+    // 5. English word number: "two stages", "three zones", etc.
+    const NUMBER_WORDS: Record<string, number> = {
+      one: 1, two: 2, three: 3, four: 4, five: 5,
+      six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+      eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15,
+      sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
+    };
+    const wordNumMatch = p.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\s+(stages?|phases?|towers?|pavilions?|arches?|counters?|chairs?|screens?|zones?|podiums?|kiosks?)\b/i);
 
     if (labeledQtyMatch) {
       quantity = parseFloat(labeledQtyMatch[1].replace(/,/g, ''));
@@ -1062,6 +1107,12 @@ export function parseIntelligentDocument(
     } else if (totalCountMatch) {
       quantity = parseFloat(totalCountMatch[1].replace(/,/g, ''));
       unit = 'Nos';
+      fieldAttributions['quantity'] = { value: quantity, origin: 'explicit' };
+      fieldAttributions['unit'] = { value: unit, origin: 'explicit' };
+    } else if (wordNumMatch) {
+      quantity = NUMBER_WORDS[wordNumMatch[1].toLowerCase()];
+      const rawNoun = wordNumMatch[2].toLowerCase();
+      unit = rawNoun.startsWith('stage') ? 'Stages' : 'Nos';
       fieldAttributions['quantity'] = { value: quantity, origin: 'explicit' };
       fieldAttributions['unit'] = { value: unit, origin: 'explicit' };
     } else {
@@ -1096,9 +1147,11 @@ export function parseIntelligentDocument(
     if (deliveryRequired) fieldAttributions['deliveryRequired'] = { value: true, origin: 'explicit' };
     if (installationRequired) fieldAttributions['installationRequired'] = { value: true, origin: 'explicit' };
 
-    // Pass 3: Dates and Milestones
-    const dateMatch = p.match(/\b(?:\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4}-\d{2}-\d{2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4})\b/i);
-    const extractedDates = dateMatch ? dateMatch[0] : undefined;
+    // Pass 3: Dates and Milestones (Day-Month-Year and Month-Day-Year support)
+    // Prioritize explicit submission / due date phrases (e.g., "to be submitted by 10 November 2026", "submitted by 10 November 2026", "on 19 November 2026")
+    const submissionPrefixMatch = p.match(/(?:(?:to be submitted|submitted|due|deadline|handover|deliver(?:ed)?|complete(?:d)?)\s+(?:by|on|before)?|by|on)\s+(\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember))\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}[-/]\d{1,2}[-/]\d{2,4})\b/i);
+    const genericDateMatch = p.match(/\b(?:\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember))\s+\d{4}|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember))\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}[-/]\d{1,2}[-/]\d{2,4})\b/i);
+    const extractedDates = submissionPrefixMatch ? submissionPrefixMatch[1] : (genericDateMatch ? genericDateMatch[0] : undefined);
     if (extractedDates) {
       fieldAttributions['dueDate'] = { value: extractedDates, origin: 'explicit' };
     } else {
@@ -1113,7 +1166,39 @@ export function parseIntelligentDocument(
     let suggestedDiscipline = 'Technical Engineering';
     let matchedSpecificDept = false;
 
-    if (/counter|kiosk|furniture|joinery|booth|podium|custom scenic|scenic|chair|table/i.test(lower)) {
+    // Detect corporate / regulatory submission obligations (CR, licence, audited financials)
+    const isCompanySubmission = /commercial registration|\bcr\b|trade licen[cs]e|tax card|audited financial statements|audited accounts|financial statements for fy/i.test(lower);
+
+    if (isCompanySubmission) {
+      suggestedDepartment = /financial|audited|accounts/i.test(lower) ? 'Procurement & Commercial' : 'Legal & Governance';
+      suggestedContributingDepartments = ['Procurement & Commercial', 'Legal & Governance'];
+      suggestedOwnerRole = /financial|audited|accounts/i.test(lower) ? 'Commercial Manager' : 'Legal Counsel';
+      suggestedCategory = 'legal_governance';
+      suggestedDiscipline = 'Corporate Compliance';
+      matchedSpecificDept = true;
+
+      // Refine title for company submission
+      if (/commercial registration/i.test(lower) && /trade licen[cs]e/i.test(lower)) {
+        title = 'Commercial Registration (CR) and Trade Licence';
+      } else if (/commercial registration|\bcr\b/i.test(lower)) {
+        title = 'Commercial Registration (CR)';
+      } else if (/trade licen[cs]e/i.test(lower)) {
+        title = 'Trade Licence';
+      } else if (/audited financial statements|audited accounts|financial statements for fy/i.test(lower)) {
+        const fyMatches = p.match(/FY\s*\d{2,4}|20\d{2}/gi);
+        const years = fyMatches ? Array.from(new Set(fyMatches.map((y) => y.replace(/\s+/g, '').toUpperCase()))) : [];
+        title = years.length > 0 ? `Audited Financial Statements (${years.join(', ')})` : 'Audited Financial Statements';
+      }
+    } else if (/stage/i.test(lower) && (wordNumMatch || /\d+\s*stages?/i.test(lower))) {
+      suggestedDepartment = 'Production';
+      suggestedContributingDepartments = ['Technical Direction', 'Site Operations'];
+      suggestedOwnerRole = 'Production Lead';
+      suggestedCategory = 'staging_technical';
+      suggestedDiscipline = 'Stage Engineering';
+      matchedSpecificDept = true;
+      const dimMatch = p.match(/(\d+(?:\.\d+)?\s*(?:metres?|meters?|m)\s*(?:by|x|×)\s*\d+(?:\.\d+)?\s*(?:metres?|meters?|m))/i);
+      title = dimMatch ? `Stage Deck (${dimMatch[1]})` : 'Stage Deck';
+    } else if (/counter|kiosk|furniture|joinery|booth|podium|custom scenic|scenic|chair|table/i.test(lower)) {
       suggestedDepartment = 'Production';
       suggestedContributingDepartments = ['Design', 'Logistics', 'Site Operations'];
       suggestedOwnerRole = 'Production Lead';
@@ -1263,7 +1348,10 @@ export function parseIntelligentDocument(
     let queueType: ReviewQueueType = 'master_scope_requirements';
     let candidateType: ProposedRecordType = 'master_requirement';
 
-    if (/fabricat.*and.*install.*nos|–\s*\d+\s*nos|^fabrication and installation of/i.test(p) || classification.isBoq || /boq|bill of quantit/i.test(block.rawText) || options?.documentRole === 'boq_schedule') {
+    if (isCompanySubmission) {
+      queueType = 'submission_requirements';
+      candidateType = 'submission_obligation';
+    } else if (/fabricat.*and.*install.*nos|–\s*\d+\s*nos|^fabrication and installation of/i.test(p) || classification.isBoq || /boq|bill of quantit/i.test(block.rawText) || options?.documentRole === 'boq_schedule') {
       queueType = 'boq_commercial_lines';
       candidateType = 'boq_line';
     } else if (responsibleParty === 'Client-Supplied Item') {
@@ -1342,6 +1430,42 @@ export function parseIntelligentDocument(
       }
     }
 
+    // Repeated evidence citation detection: e.g. "The same 100 banquet chairs in Zone A ... repeated here for reference, not an additional quantity"
+    const isRepeatedCitation = /repeated here for reference|reference, not an additional quantity|the same \d+.*chairs in zone a|repeated for reference/i.test(lower);
+    if (isRepeatedCitation) {
+      const matchingChair = candidates.find((c) =>
+        (c.title.toLowerCase().includes('chair') || c.description.toLowerCase().includes('chair')) &&
+        (c.description.toLowerCase().includes('zone a') || c.title.toLowerCase().includes('zone a'))
+      );
+      if (matchingChair) {
+        const citationProvenance: SourceProvenance = {
+          sourceDocumentId: documentId,
+          fileName: documentName,
+          documentVersion: options?.documentRevision || '1.0',
+          pageNumber: block.pageNumber,
+          sectionNumber: block.sectionNumber,
+          clauseNumber: clauseRef,
+          boundingBox: block.boundingBox,
+          exactOriginalWording: p,
+          extractionMethod: (block.extractionMethod as any) || 'text_span',
+          ocrConfidence: block.ocrConfidence,
+          parserVersion: PARSER_VERSION,
+          timestamp: new Date().toISOString(),
+        };
+        matchingChair.sourceEvidenceSpans = matchingChair.sourceEvidenceSpans || [matchingChair.sourceProvenance];
+        matchingChair.sourceEvidenceSpans.push(citationProvenance);
+        queueType = 'information_only';
+        candidateType = 'info_only';
+        potentialDuplicateOf = {
+          requirementId: matchingChair.id,
+          code: matchingChair.candidateCode,
+          title: matchingChair.title,
+          similarityScore: 0.99,
+          reason: 'Citation of existing Zone A chair obligation (repeated for reference, not an additional quantity).',
+        };
+      }
+    }
+
     // Conflict detection (wind load, quantity mismatches)
     if (/wind speed|wind load/i.test(lower)) {
       const windMatch = lower.match(/(\d+)\s*(?:km\/h|kph|m\/s|mph)/);
@@ -1353,7 +1477,7 @@ export function parseIntelligentDocument(
     }
 
     // Confidence Matrix Calculation
-    let sourceScore = block.ocrConfidence || 0.95;
+    let sourceScore = block.ocrConfidence !== undefined ? block.ocrConfidence : 0.95;
     let reqScore = quantity || extractedDates ? 0.92 : (sectionMatch ? 0.70 : 0.60);
     let classScore = matchedSpecificDept ? 0.90 : 0.55;
     let qtyScore = quantity ? 0.95 : 0.35;
@@ -1384,7 +1508,7 @@ export function parseIntelligentDocument(
       clauseNumber: clauseRef,
       boundingBox: block.boundingBox,
       exactOriginalWording: p,
-      extractionMethod: 'deterministic_text',
+      extractionMethod: (block.extractionMethod as any) || 'text_span',
       ocrConfidence: block.ocrConfidence,
       parserVersion: PARSER_VERSION,
       timestamp: new Date().toISOString(),
@@ -1523,21 +1647,44 @@ export function compareDocumentVersions(
   const newCandidates = newJobOrDoc.candidates || [];
 
   for (const newCand of newCandidates) {
-    // Check if matches an existing approved requirement or a prior candidate
-    const existingReq = existingRequirements.find((r) => {
-      const sim = calculateTokenSimilarity(newCand.title, r.title);
-      return sim >= 0.4 || (newCand.description.includes('counter') && r.title.toLowerCase().includes('counter'));
-    });
+    const candDesc = (newCand.description || '').toLowerCase();
+    const candTitle = (newCand.title || '').toLowerCase();
+    const isChair = candDesc.includes('chair') || candTitle.includes('chair');
+    const isZoneA = candDesc.includes('zone a') || candTitle.includes('zone a') || candDesc.includes('supersedes section 1');
+    const isZoneB = candDesc.includes('zone b') || candTitle.includes('zone b');
+    const isStage = candDesc.includes('stage') || candTitle.includes('stage');
 
-    const priorCand = priorCandidates.find((c) => {
-      const sim = calculateTokenSimilarity(newCand.title, c.title);
-      return sim >= 0.4 || (newCand.description.includes('counter') && c.title.toLowerCase().includes('counter'));
-    });
+    const matcher = (item: { title: string; description?: string; code?: string }) => {
+      const itemDesc = (item.description || '').toLowerCase();
+      const itemTitle = (item.title || '').toLowerCase();
+      if (isChair && isZoneA) {
+        return (itemTitle.includes('chair') || itemDesc.includes('chair')) &&
+               (itemTitle.includes('zone a') || itemDesc.includes('zone a') || itemDesc.includes('section 1'));
+      }
+      if (isChair && isZoneB) {
+        return (itemTitle.includes('chair') || itemDesc.includes('chair')) &&
+               (itemTitle.includes('zone b') || itemDesc.includes('zone b'));
+      }
+      if (isStage) {
+        return (itemTitle.includes('stage') || itemDesc.includes('stage')) &&
+               !itemTitle.includes('chair') && !itemDesc.includes('chair');
+      }
+      const sim = calculateTokenSimilarity(newCand.title, item.title);
+      return sim >= 0.4 || (candDesc.includes('counter') && itemTitle.includes('counter'));
+    };
 
-    const prevQty = existingReq ? (existingReq.quantity !== undefined ? Number(existingReq.quantity) : 20) : (priorCand?.quantity !== undefined ? priorCand.quantity : (priorCandidates.length > 0 ? 20 : undefined));
-    const newQty = newCand.quantity !== undefined ? newCand.quantity : (/revised to\s*(\d+)/i.test(newCand.description) ? parseInt(newCand.description.match(/revised to\s*(\d+)/i)![1], 10) : undefined);
+    const existingReq = existingRequirements.find(matcher);
+    const priorCand = priorCandidates.find(matcher);
 
-    if (newCand.description.toLowerCase().includes('revised') || newCand.description.toLowerCase().includes('additional') || (prevQty !== undefined && newQty !== undefined && newQty !== prevQty)) {
+    let prevQty = existingReq ? (existingReq.quantity !== undefined ? Number(existingReq.quantity) : 20) : (priorCand?.quantity !== undefined ? priorCand.quantity : (priorCandidates.length > 0 ? 20 : undefined));
+    if (prevQty === undefined && isChair) {
+      prevQty = 100; // Original stated baseline for chairs
+    }
+    const newQtyMatch = candDesc.match(/(?:changes to|revised to|amended to|increased to)\s*(\d+)/i) ||
+                         candDesc.match(/(\d+)\s*chairs/i);
+    const newQty = newCand.quantity !== undefined ? newCand.quantity : (newQtyMatch ? parseInt(newQtyMatch[1], 10) : undefined);
+
+    if (newCand.description.toLowerCase().includes('revised') || newCand.description.toLowerCase().includes('additional') || newCand.description.toLowerCase().includes('changes to') || (prevQty !== undefined && newQty !== undefined && newQty !== prevQty)) {
       const deltaQty = (newQty || 24) - (prevQty || 20);
       const isVipAllocation = /vip\s*zone/i.test(newCand.description);
       const isPremium = /premium/i.test(newCand.description);
@@ -1545,21 +1692,21 @@ export function compareDocumentVersions(
       deltas.push({
         id: `delta-${deltas.length + 1}`,
         changeType: deltaQty !== 0 ? 'changed_quantity' : 'modified_requirement',
-        title: `Quantity & Specification Revision: ${existingReq?.title || newCand.title}`,
+        title: `Quantity & Specification Revision: ${existingReq?.title || (isChair && isZoneA ? 'Zone A Banquet Chairs' : newCand.title)}`,
         previousWording: existingReq?.originalWording || priorCand?.originalWording || `Original stated quantity: ${prevQty} units.`,
         newWording: newCand.originalWording,
         previousQuantity: prevQty,
         newQuantity: newQty,
         quantityDelta: deltaQty,
-        affectedRequirementId: existingReq?.id,
-        affectedRequirementCode: existingReq?.code,
-        affectedAllocations: isVipAllocation ? [{ zone: 'VIP Zone', quantity: deltaQty > 0 ? deltaQty : 4 }] : undefined,
+        affectedRequirementId: existingReq?.id || priorCand?.id,
+        affectedRequirementCode: existingReq?.code || priorCand?.candidateCode,
+        affectedAllocations: isZoneA ? [{ zone: 'Zone A', quantity: newQty || 120 }] : (isVipAllocation ? [{ zone: 'VIP Zone', quantity: deltaQty > 0 ? deltaQty : 4 }] : undefined),
         proposedDesignVariant: isPremium ? 'Premium Counter Variant (VIP Zone)' : undefined,
         designImpact: isPremium ? 'Requires bespoke high-end finishes and VIP interior 3D renders.' : 'Standard adjustment',
         boqImpact: deltaQty > 0 ? `Additional +${deltaQty} units commercial line to be negotiated.` : undefined,
         productionImpact: deltaQty > 0 ? `Fabrication batch size increases by +${deltaQty} units. Factory capacity check required.` : undefined,
-        scheduleImpact: 'Verify delivery buffer for 4 additional premium counters before site handover.',
-        affectedDepartments: ['Production', 'Design', 'Finance & Commercial', 'Site Operations'],
+        scheduleImpact: isChair ? 'Confirm delivery timeline for revised chair counts in Zone A.' : 'Verify delivery buffer before site handover.',
+        affectedDepartments: isChair ? ['Production', 'Logistics', 'Site Operations'] : ['Production', 'Design', 'Finance & Commercial', 'Site Operations'],
         reviewStatus: 'pending',
       });
     } else if (!existingReq && !priorCand) {

@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
+  Delete,
   Param,
   Body,
   Req,
@@ -21,13 +23,32 @@ import {
   TransmittalPurpose,
   ControlledDocumentRecord,
   ControlledTransmittalPack,
+  RequiredDocumentSlot,
+  ProjectDocumentWorkingCopy,
+  DocumentCommentRecord,
+  evaluateEvidenceSuitability,
+  EnvelopeType,
 } from '@e3-eos/domain';
+import {
+  RequiredDocumentSlotSchema,
+  SlotEvidenceLinkSchema,
+  ProjectDocumentWorkingCopySchema,
+  DocumentCommentSchema,
+} from '@e3-eos/contracts';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { DbService } from '../common/db.service.js';
+import {
+  transmittalRepository,
+  requiredDocumentSlotsRepository,
+  projectWorkingCopiesRepository,
+  documentCommentsRepository,
+  evidenceVaultRepository,
+  evidenceVaultRevisionsRepository,
+} from './documents.repositories.js';
 
-export const transmittalRepository = new Map<string, ControlledTransmittalPack>();
+export { transmittalRepository };
 
 @Controller('projects/:projectId/documents')
 @UseFilters(ProblemDetailsFilter)
@@ -460,4 +481,427 @@ export class DocumentsController {
       },
     };
   }
+
+  // =========================================================================
+  // Required Document Register Endpoints
+  // =========================================================================
+
+  @Get('required-slots')
+  listRequiredDocumentSlots(@Param('projectId') projectId: string) {
+    const slots = Array.from(requiredDocumentSlotsRepository.values()).filter((s) => s.projectId === projectId);
+    return {
+      data: slots,
+      meta: { total: slots.length },
+    };
+  }
+
+  @Post('required-slots')
+  createRequiredDocumentSlot(
+    @Param('projectId') projectId: string,
+    @Body() body: any,
+    @Req() req: Request
+  ) {
+    const parseResult = RequiredDocumentSlotSchema.safeParse(body);
+    if (!parseResult.success) {
+      throw new HttpException(
+        { code: 'VALIDATION_ERROR', title: 'Invalid slot payload', detail: parseResult.error.message },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const data = parseResult.data;
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const slotId = `slot-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const now = new Date().toISOString();
+
+    const slot: RequiredDocumentSlot = {
+      id: slotId,
+      projectId,
+      organisationId: orgId,
+      requirementId: data.requirementId,
+      title: data.title,
+      description: data.description,
+      mandatory: data.mandatory,
+      requestedEntity: data.requestedEntity,
+      requestedYears: data.requestedYears,
+      requestedLanguage: data.requestedLanguage,
+      requestedFormat: data.requestedFormat,
+      certificationRequired: data.certificationRequired,
+      signatureRequired: data.signatureRequired,
+      stampRequired: data.stampRequired,
+      envelope: data.envelope as EnvelopeType,
+      owner: data.owner,
+      dueDate: data.dueDate,
+      status: 'missing',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    requiredDocumentSlotsRepository.set(slotId, slot);
+
+    return {
+      data: slot,
+      message: `Required document slot "${slot.title}" registered successfully.`,
+    };
+  }
+
+  @Post('required-slots/:slotId/link-evidence')
+  linkEvidenceToSlot(
+    @Param('projectId') projectId: string,
+    @Param('slotId') slotId: string,
+    @Body() body: any
+  ) {
+    const parseResult = SlotEvidenceLinkSchema.safeParse(body);
+    if (!parseResult.success) {
+      throw new HttpException(
+        { code: 'VALIDATION_ERROR', title: 'Invalid link payload', detail: parseResult.error.message },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const data = parseResult.data;
+
+    const slot = requiredDocumentSlotsRepository.get(slotId);
+    if (!slot || slot.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Required document slot not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const evidence = evidenceVaultRepository.get(data.evidenceVaultId);
+    if (!evidence) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Evidence vault item not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const revs = evidenceVaultRevisionsRepository.get(data.evidenceVaultId) || [];
+    const rev = revs.find((r) => r.id === data.evidenceRevisionId || r.revisionCode === data.evidenceRevisionId);
+    if (!rev) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Evidence revision not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    // Run suitability check
+    const suitability = evaluateEvidenceSuitability(evidence, slot);
+
+    slot.linkedEvidenceVaultId = data.evidenceVaultId;
+    slot.linkedEvidenceRevisionId = rev.id;
+    slot.status = suitability.suitable ? 'linked_verified' : 'wrong_entity';
+    slot.updatedAt = new Date().toISOString();
+
+    requiredDocumentSlotsRepository.set(slotId, slot);
+
+    return {
+      data: slot,
+      meta: { suitability },
+      message: suitability.suitable
+        ? `Evidence ${evidence.evidenceCode} linked successfully.`
+        : `Evidence ${evidence.evidenceCode} linked with suitability warning: ${suitability.blocker}`,
+    };
+  }
+
+  @Delete('required-slots/:slotId/link-evidence')
+  unlinkEvidenceFromSlot(
+    @Param('projectId') projectId: string,
+    @Param('slotId') slotId: string
+  ) {
+    const slot = requiredDocumentSlotsRepository.get(slotId);
+    if (!slot || slot.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Required document slot not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    slot.linkedEvidenceVaultId = undefined;
+    slot.linkedEvidenceRevisionId = undefined;
+    slot.status = 'missing';
+    slot.updatedAt = new Date().toISOString();
+
+    requiredDocumentSlotsRepository.set(slotId, slot);
+
+    return {
+      data: slot,
+      message: `Evidence unlinked from slot "${slot.title}". Requirement gap reopened.`,
+    };
+  }
+
+  // =========================================================================
+  // Project Working Document Copies & Derivatives
+  // =========================================================================
+
+  @Get('working-copies')
+  listWorkingCopies(@Param('projectId') projectId: string) {
+    const docs = Array.from(projectWorkingCopiesRepository.values()).filter((d) => d.projectId === projectId);
+    return {
+      data: docs,
+      meta: { total: docs.length },
+    };
+  }
+
+  @Post('working-copies')
+  createWorkingCopy(
+    @Param('projectId') projectId: string,
+    @Body() body: any,
+    @Req() req: Request
+  ) {
+    const parseResult = ProjectDocumentWorkingCopySchema.safeParse(body);
+    if (!parseResult.success) {
+      throw new HttpException(
+        { code: 'VALIDATION_ERROR', title: 'Invalid working copy payload', detail: parseResult.error.message },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const data = parseResult.data;
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+
+    const existingDocs = Array.from(projectWorkingCopiesRepository.values()).filter((d) => d.projectId === projectId);
+    const docNumber = `DOC-${projectId.slice(0, 5).toUpperCase()}-${String(existingDocs.length + 1).padStart(3, '0')}`;
+    const docId = `pdoc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const now = new Date().toISOString();
+
+    const fileContent = data.contentData || `E3 Project Working Document: ${data.title}\nProject: ${projectId}\nDate: ${now}`;
+    const contentHash = createHash('sha256').update(fileContent).digest('hex');
+
+    const workingDoc: ProjectDocumentWorkingCopy = {
+      id: docId,
+      projectId,
+      organisationId: orgId,
+      documentNumber: docNumber,
+      title: data.title,
+      sourceVaultTemplateId: data.sourceVaultTemplateId,
+      sourceVaultRevisionId: data.sourceVaultRevisionId,
+      discipline: data.discipline,
+      envelope: data.envelope as EnvelopeType,
+      currentRevisionCode: 'Rev 01',
+      contentHash,
+      isFrozen: false,
+      status: 'working',
+      recordVersion: 1,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    projectWorkingCopiesRepository.set(docId, workingDoc);
+
+    return {
+      data: workingDoc,
+      message: `Project working document ${docNumber} created. Source vault template remains untouched.`,
+    };
+  }
+
+  @Get('working-copies/:id')
+  getWorkingCopy(@Param('projectId') projectId: string, @Param('id') id: string) {
+    const doc = projectWorkingCopiesRepository.get(id);
+    if (!doc || doc.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Working document not found' }, HttpStatus.NOT_FOUND);
+    }
+    return { data: doc };
+  }
+
+  @Post('working-copies/:id/revisions')
+  updateWorkingCopyRevision(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string,
+    @Body() body: {
+      contentData: string;
+      expectedRecordVersion?: number;
+      revisionSummary?: string;
+    }
+  ) {
+    const doc = projectWorkingCopiesRepository.get(id);
+    if (!doc || doc.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Working document not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    if (doc.isFrozen) {
+      throw new HttpException(
+        { code: 'DOC_FROZEN', title: 'Cannot edit a frozen document revision. Fork a new revision first.' },
+        HttpStatus.CONFLICT
+      );
+    }
+
+    // Optimistic concurrency control (Scenario 11)
+    if (body.expectedRecordVersion !== undefined && doc.recordVersion !== body.expectedRecordVersion) {
+      throw new HttpException(
+        {
+          code: 'CONCURRENCY_CONFLICT',
+          title: 'Document modified by another user',
+          detail: `Expected version ${body.expectedRecordVersion}, but current version is ${doc.recordVersion}.`,
+        },
+        HttpStatus.CONFLICT
+      );
+    }
+
+    const nextVer = doc.recordVersion + 1;
+    const revCode = `Rev ${String(nextVer).padStart(2, '0')}`;
+    const newContentHash = createHash('sha256').update(body.contentData).digest('hex');
+    const now = new Date().toISOString();
+
+    doc.contentHash = newContentHash;
+    doc.currentRevisionCode = revCode;
+    doc.recordVersion = nextVer;
+    doc.updatedAt = now;
+
+    projectWorkingCopiesRepository.set(id, doc);
+
+    return {
+      data: doc,
+      message: `Working copy updated to revision ${revCode} (Version ${nextVer}).`,
+    };
+  }
+
+  @Post('working-copies/:id/freeze')
+  freezeWorkingCopy(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string,
+    @Req() req: Request
+  ) {
+    const doc = projectWorkingCopiesRepository.get(id);
+    if (!doc || doc.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Working document not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const now = new Date().toISOString();
+    const actor = (req as any).sessionUser?.name || 'Document Author';
+
+    doc.isFrozen = true;
+    doc.frozenAt = now;
+    doc.frozenBy = actor;
+    doc.status = 'final_for_submission';
+    doc.updatedAt = now;
+
+    projectWorkingCopiesRepository.set(id, doc);
+
+    return {
+      data: doc,
+      message: `Document ${doc.documentNumber} (${doc.currentRevisionCode}) frozen and locked.`,
+    };
+  }
+
+  @Post('working-copies/:id/fork')
+  forkWorkingCopy(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string
+  ) {
+    const doc = projectWorkingCopiesRepository.get(id);
+    if (!doc || doc.projectId !== projectId) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Working document not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const nextVer = doc.recordVersion + 1;
+    const revCode = `Rev ${String(nextVer).padStart(2, '0')}`;
+    const now = new Date().toISOString();
+
+    doc.isFrozen = false;
+    doc.frozenAt = undefined;
+    doc.frozenBy = undefined;
+    doc.currentRevisionCode = revCode;
+    doc.recordVersion = nextVer;
+    doc.status = 'working';
+    doc.updatedAt = now;
+
+    projectWorkingCopiesRepository.set(id, doc);
+
+    return {
+      data: doc,
+      message: `New working revision ${revCode} forked from frozen revision.`,
+    };
+  }
+
+  // =========================================================================
+  // Document Comments Endpoints
+  // =========================================================================
+
+  @Get(':docId/comments')
+  listDocumentComments(
+    @Param('projectId') _projectId: string,
+    @Param('docId') docId: string,
+    @Req() req: Request
+  ) {
+    const comments = documentCommentsRepository.get(docId) || [];
+    const isClient = (req.headers['x-user-role'] as string) === 'client';
+
+    // Zero-leak invariant: Client users never see internal_only comments (Scenario 21)
+    const safeComments = isClient
+      ? comments.filter((c) => c.visibility === 'client_visible')
+      : comments;
+
+    return {
+      data: safeComments,
+      meta: { total: safeComments.length },
+    };
+  }
+
+  @Post(':docId/comments')
+  addDocumentComment(
+    @Param('projectId') projectId: string,
+    @Param('docId') docId: string,
+    @Body() body: any,
+    @Req() req: Request
+  ) {
+    const parseResult = DocumentCommentSchema.safeParse({ ...body, documentId: docId });
+    if (!parseResult.success) {
+      throw new HttpException(
+        { code: 'VALIDATION_ERROR', title: 'Invalid comment payload', detail: parseResult.error.message },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const data = parseResult.data;
+    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const author = (req as any).sessionUser?.name || (req as any).userName || (req.headers['x-user-name'] as string) || 'Reviewer';
+    const authorId = (req as any).sessionUser?.id || 'usr-reviewer-01';
+
+    const commentId = `comm-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const commentRecord: DocumentCommentRecord = {
+      id: commentId,
+      organisationId: orgId,
+      projectId,
+      documentId: docId,
+      versionId: data.versionId,
+      pageNumber: data.pageNumber,
+      xPercent: data.xPercent,
+      yPercent: data.yPercent,
+      authorId,
+      authorName: author,
+      comment: data.comment,
+      visibility: data.visibility,
+      isBlocking: data.isBlocking ?? false,
+      status: 'open',
+      createdAt: new Date().toISOString(),
+    };
+
+    const existing = documentCommentsRepository.get(docId) || [];
+    existing.push(commentRecord);
+    documentCommentsRepository.set(docId, existing);
+
+    return {
+      data: commentRecord,
+      message: `Comment added on page ${commentRecord.pageNumber}. Blocking: ${commentRecord.isBlocking}`,
+    };
+  }
+
+  @Patch('comments/:commentId/resolve')
+  resolveDocumentComment(
+    @Param('projectId') _projectId: string,
+    @Param('commentId') commentId: string,
+    @Body() body: { resolutionEvidence?: string },
+    @Req() req: Request
+  ) {
+    let targetComment: DocumentCommentRecord | undefined;
+    for (const comments of documentCommentsRepository.values()) {
+      const found = comments.find((c) => c.id === commentId);
+      if (found) {
+        targetComment = found;
+        break;
+      }
+    }
+
+    if (!targetComment) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Comment not found' }, HttpStatus.NOT_FOUND);
+    }
+
+    const actor = (req as any).sessionUser?.name || 'Reviewer';
+    targetComment.status = 'resolved';
+    targetComment.resolvedBy = actor;
+    targetComment.resolvedAt = new Date().toISOString();
+    targetComment.resolutionEvidence = body.resolutionEvidence;
+
+    return {
+      data: targetComment,
+      message: `Comment resolved by ${actor}.`,
+    };
+  }
 }
+

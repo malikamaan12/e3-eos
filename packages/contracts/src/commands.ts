@@ -3283,3 +3283,245 @@ export interface CommandResult<T = any> {
     dataAsOf?: string;
   };
 }
+
+// =========================================================================
+// E3-EOS Controlled Documents, Company Evidence Vault & Submission Packs
+// =========================================================================
+
+export const EvidenceCategoryEnum = z.string().min(2);
+export type EvidenceCategory = z.infer<typeof EvidenceCategoryEnum>;
+
+export const EvidenceDocumentClassEnum = z.enum([
+  'internally_authored',
+  'external_controlled',
+  'reusable_template',
+  'completed_record',
+  'reference_only',
+  'original_record',
+  'certified_copy',
+  'attested_translation',
+]);
+export type EvidenceDocumentClass = z.infer<typeof EvidenceDocumentClassEnum>;
+
+export const EvidenceConfidentialityEnum = z.enum([
+  'public',
+  'internal',
+  'confidential',
+  'restricted',
+]);
+export type EvidenceConfidentiality = z.infer<typeof EvidenceConfidentialityEnum>;
+
+export const EvidenceVerificationStatusEnum = z.enum([
+  'draft',
+  'pending_verification',
+  'approved',
+  'rejected',
+]);
+export type EvidenceVerificationStatus = z.infer<typeof EvidenceVerificationStatusEnum>;
+
+export const ExpiryStateEnum = z.string().min(2);
+export type ExpiryState = z.infer<typeof ExpiryStateEnum>;
+
+export const FinancialAuditStatusEnum = z.enum([
+  'audited',
+  'unaudited',
+  'provisional',
+  'not_applicable',
+]);
+export type FinancialAuditStatus = z.infer<typeof FinancialAuditStatusEnum>;
+
+export const EnvelopeTypeEnum = z.enum([
+  'technical',
+  'commercial',
+  'administrative_eligibility',
+  'financial',
+  'general',
+  'combined',
+]);
+export type EnvelopeType = z.infer<typeof EnvelopeTypeEnum>;
+
+export const EvidenceVaultIntakeSchema = z.object({
+  title: z.string().min(3),
+  category: EvidenceCategoryEnum,
+  legalEntity: z.string().min(2),
+  documentClass: EvidenceDocumentClassEnum.default('external_controlled'),
+  confidentiality: EvidenceConfidentialityEnum.default('internal'),
+  sourceDocumentNumber: z.string().optional(),
+  issuer: z.string().optional(),
+  reportingYear: z.union([z.number(), z.string()]).optional(),
+  periodStart: z.string().optional(),
+  periodEnd: z.string().optional(),
+  auditStatus: FinancialAuditStatusEnum.default('not_applicable'),
+  expiryState: ExpiryStateEnum.default('unknown'),
+  expiryDate: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  originalFilename: z.string().optional(),
+  fileName: z.string().optional(),
+  fileSizeBytes: z.number().optional(),
+  contentHash: z.string().optional(),
+  fileContent: z.string().optional(),
+  isBase64: z.boolean().default(false),
+  mimeType: z.string().default('application/pdf'),
+  verifierNotes: z.string().optional(),
+  retentionHold: z.boolean().default(false),
+}).transform((val) => ({
+  ...val,
+  originalFilename: val.originalFilename || val.fileName || 'evidence.pdf',
+}));
+export type EvidenceVaultIntakeDto = z.infer<typeof EvidenceVaultIntakeSchema>;
+
+export const EvidenceVerificationSchema = z.object({
+  verificationDecision: z.enum(['approved', 'rejected', 'update_required']),
+  verifierId: z.string().optional(),
+  verifierName: z.string().min(2),
+  verifierRole: z.string().min(2),
+  notes: z.string().optional(),
+  permittedUses: z.array(z.string()).default([]),
+});
+export type EvidenceVerificationDto = z.infer<typeof EvidenceVerificationSchema>;
+
+export const RequiredDocumentSlotSchema = z.object({
+  requirementId: z.string().optional(),
+  title: z.string().min(3),
+  mandatory: z.boolean().default(true),
+  requestedEntity: z.string().optional(),
+  requestedYears: z.array(z.union([z.string(), z.number()])).default([]),
+  requestedLanguage: z.enum(['en', 'ar', 'mixed', 'any']).default('any'),
+  requestedFormat: z.string().default('pdf'),
+  certificationRequired: z.boolean().default(false),
+  signatureRequired: z.boolean().default(false),
+  stampRequired: z.boolean().default(false),
+  envelope: EnvelopeTypeEnum.default('technical'),
+  owner: z.string().optional(),
+  dueDate: z.string().optional(),
+  description: z.string().optional(),
+});
+export type RequiredDocumentSlotDto = z.infer<typeof RequiredDocumentSlotSchema>;
+
+export const SlotEvidenceLinkSchema = z.object({
+  evidenceVaultId: z.string(),
+  evidenceRevisionId: z.string(),
+  linkNotes: z.string().optional(),
+});
+export type SlotEvidenceLinkDto = z.infer<typeof SlotEvidenceLinkSchema>;
+
+export const ProjectDocumentWorkingCopySchema = z.object({
+  title: z.string().min(3),
+  sourceVaultTemplateId: z.string().optional(),
+  sourceVaultRevisionId: z.string().optional(),
+  discipline: z.string().default('general'),
+  envelope: EnvelopeTypeEnum.default('technical'),
+  contentData: z.string().optional(),
+  originalFilename: z.string().default('working-document.pdf'),
+  isBase64: z.boolean().default(false),
+});
+export type ProjectDocumentWorkingCopyDto = z.infer<typeof ProjectDocumentWorkingCopySchema>;
+
+export const DocumentCommentSchema = z.object({
+  documentId: z.string(),
+  versionId: z.string().optional(),
+  pageNumber: z.number().default(1),
+  xPercent: z.number().min(0).max(100).optional(),
+  yPercent: z.number().min(0).max(100).optional(),
+  comment: z.string().min(1),
+  visibility: z.enum(['internal_only', 'client_visible']).default('internal_only'),
+  isBlocking: z.boolean().default(false),
+});
+export type DocumentCommentDto = z.infer<typeof DocumentCommentSchema>;
+
+export const SubmissionPackCreateSchema = z.object({
+  title: z.string().min(3),
+  envelope: EnvelopeTypeEnum.default('technical'),
+  description: z.string().optional(),
+  tenderReference: z.string().optional(),
+});
+export type SubmissionPackCreateDto = z.infer<typeof SubmissionPackCreateSchema>;
+
+export const SubmissionPackReorderSchema = z.object({
+  orderedItemIds: z.array(z.string()).min(1),
+});
+export type SubmissionPackReorderDto = z.infer<typeof SubmissionPackReorderSchema>;
+
+export const SubmissionPackItemUpdateSchema = z.object({
+  submissionTitle: z.string().optional(),
+  sectionName: z.string().optional(),
+  isIncluded: z.boolean().optional(),
+  exclusionReason: z.string().optional(),
+  selectedPageRange: z.string().optional(),
+  envelope: EnvelopeTypeEnum.optional(),
+});
+export type SubmissionPackItemUpdateDto = z.infer<typeof SubmissionPackItemUpdateSchema>;
+
+export const SubmissionPackFreezeSchema = z.object({
+  freezeNotes: z.string().optional(),
+  authorizedBy: z.string().optional(),
+});
+export type SubmissionPackFreezeDto = z.infer<typeof SubmissionPackFreezeSchema>;
+
+export const PdfAssemblyConfigSchema = z.object({
+  includeCoverPage: z.boolean().default(true),
+  coverPageTitle: z.string().optional(),
+  includeTableOfContents: z.boolean().default(true),
+  includeSectionDividers: z.boolean().default(true),
+  continuousPageNumbering: z.boolean().default(true),
+  pageNumberFormat: z.string().default('Page {n} of {total}'),
+  watermarkText: z.string().optional(),
+  targetEnvelope: EnvelopeTypeEnum.default('combined'),
+});
+export type PdfAssemblyConfigDto = z.infer<typeof PdfAssemblyConfigSchema>;
+
+export const StampSignaturePlacementSchema = z.object({
+  assetId: z.string().optional(),
+  assetCode: z.string().optional(),
+  signatoryName: z.string().optional(),
+  signatoryAuthority: z.string().optional(),
+  purpose: z.string().default('Tender Executive Declaration'),
+  placements: z.array(
+    z.object({
+      documentId: z.string().optional(),
+      pageNumber: z.number().default(1),
+      x: z.number().default(400),
+      y: z.number().default(100),
+      width: z.number().default(150),
+      height: z.number().default(60),
+    })
+  ).min(1),
+});
+export type StampSignaturePlacementDto = z.infer<typeof StampSignaturePlacementSchema>;
+
+export const PackFinalizeSchema = z.object({
+  authorizationNotes: z.string().optional(),
+  applyAuthorizedMarks: z.boolean().default(false),
+  idempotencyKey: z.string().optional(),
+});
+export type PackFinalizeDto = z.infer<typeof PackFinalizeSchema>;
+
+export const PackIssueSchema = z.object({
+  recipientOrganisation: z.string().min(2),
+  recipientName: z.string().min(2),
+  recipientEmail: z.string().email(),
+  channel: z.enum(['portal', 'email', 'physical_courier', 'hand_delivery', 'api_transmittal']).default('portal'),
+  purpose: z.string().default('tender_submission'),
+  notes: z.string().optional(),
+});
+export type PackIssueDto = z.infer<typeof PackIssueSchema>;
+
+export const PackRecordReceiptSchema = z.object({
+  receiptReference: z.string().min(2),
+  acknowledgedBy: z.string().min(2),
+  acknowledgementDate: z.string().optional(),
+  receiptNotes: z.string().optional(),
+  receiptDocumentUrl: z.string().optional(),
+});
+export type PackRecordReceiptDto = z.infer<typeof PackRecordReceiptSchema>;
+
+export const ClientReviewShareSchema = z.object({
+  recipientName: z.string().min(2),
+  recipientEmail: z.string().email(),
+  expiresInHours: z.number().default(72),
+  watermarkText: z.string().default('CONFIDENTIAL CLIENT REVIEW COPY - E3 EOS'),
+  allowDownload: z.boolean().default(false),
+  requireOtp: z.boolean().default(false),
+});
+export type ClientReviewShareDto = z.infer<typeof ClientReviewShareSchema>;
+

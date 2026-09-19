@@ -53,6 +53,10 @@ import { EnterprisePortfolioIntelligenceView } from './views/EnterprisePortfolio
 import { ProductionRolloutView } from './views/ProductionRolloutView.js';
 import { DesignCreativeModuleView } from './views/DesignCreativeModuleView.js';
 
+// Sprint 08 Controlled Documents, Company Vault & Submission Packs
+import { ControlledDocumentsWorkspaceView } from './views/ControlledDocumentsWorkspaceView.js';
+import { SettingsAiIntegrationsView } from './views/SettingsAiIntegrationsView.js';
+
 const AppRouter: React.FC = () => {
   const { currentPath, currentUser } = useEosContext();
 
@@ -113,6 +117,19 @@ const AppRouter: React.FC = () => {
       const match = currentPath.match(/^\/projects\/([^/?#]+)\/designs/);
       const prjId = match ? match[1] : 'f1111111-1111-4111-8111-111111111111';
       return <DesignCreativeModuleView projectId={prjId} />;
+    }
+    if (
+      currentPath === '/documents/controlled' ||
+      currentPath === '/vault' ||
+      currentPath === '/packs' ||
+      currentPath.includes('/controlled-documents') ||
+      currentPath.includes('/vault') ||
+      currentPath.includes('/packs')
+    ) {
+      const match = currentPath.match(/\/projects\/([^/?#]+)/);
+      const prjId = match ? match[1] : undefined;
+      const initialTab = currentPath.includes('vault') ? 'vault' : currentPath.includes('pack') ? 'pack' : 'vault';
+      return <ControlledDocumentsWorkspaceView initialProjectId={prjId} initialTab={initialTab} />;
     }
     if (currentPath.startsWith('/projects/') && currentPath !== '/projects') {
       return <ProjectCockpitView />;
@@ -218,6 +235,14 @@ const AppRouter: React.FC = () => {
       currentPath.startsWith('/admin/release')
     ) {
       return <ProductionRolloutView />;
+    }
+    if (
+      currentPath === '/settings/integrations' ||
+      currentPath === '/settings/ai' ||
+      currentPath === '/admin/settings' ||
+      currentPath === '/settings'
+    ) {
+      return <SettingsAiIntegrationsView />;
     }
     // Default route: Home View
     return <HomeView />;

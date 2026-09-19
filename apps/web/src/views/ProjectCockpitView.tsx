@@ -4,6 +4,7 @@ import { MetricCard, Card, Badge, Button, Modal, Input, Textarea, Select, format
 import { RequirementsMatrixView } from './RequirementsMatrixView.js';
 import { ClarificationsView } from './ClarificationsView.js';
 import { DocumentRegisterView } from './DocumentRegisterView.js';
+import { ControlledDocumentsWorkspaceView } from './ControlledDocumentsWorkspaceView.js';
 import { MasterGanttView } from './MasterGanttView.js';
 import { DesignReviewView } from './DesignReviewView.js';
 import { DesignCreativeModuleView } from './DesignCreativeModuleView.js';
@@ -62,6 +63,8 @@ export const ProjectCockpitView: React.FC = () => {
   const [workstreamFilter, setWorkstreamFilter] = useState<'needs_attention' | 'on_track' | 'all'>('needs_attention');
   const [selectedAuditDetail, setSelectedAuditDetail] = useState<any | null>(null);
   const [isLineageModalOpen, setIsLineageModalOpen] = useState<boolean>(false);
+  const [docWorkspaceMode, setDocWorkspaceMode] = useState<'hub' | 'technical'>('hub');
+  const [docHubInitialTab, setDocHubInitialTab] = useState<'vault' | 'project' | 'pack'>('project');
   const [cockpitModuleTab, setCockpitModuleTab] = useState<
     | 'overview'
     | 'requirements'
@@ -758,7 +761,54 @@ export const ProjectCockpitView: React.FC = () => {
 
       {cockpitModuleTab === 'requirements' && <RequirementsMatrixView projectId={projectId} />}
       {cockpitModuleTab === 'clarifications' && <ClarificationsView projectId={projectId} />}
-      {cockpitModuleTab === 'documents' && <DocumentRegisterView projectId={projectId} />}
+      {cockpitModuleTab === 'documents' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
+            <Button
+              variant={docWorkspaceMode === 'hub' && docHubInitialTab === 'vault' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => {
+                setDocWorkspaceMode('hub');
+                setDocHubInitialTab('vault');
+              }}
+            >
+              🏛️ Company Vault
+            </Button>
+            <Button
+              variant={docWorkspaceMode === 'hub' && docHubInitialTab === 'project' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => {
+                setDocWorkspaceMode('hub');
+                setDocHubInitialTab('project');
+              }}
+            >
+              📑 Required Document Slots
+            </Button>
+            <Button
+              variant={docWorkspaceMode === 'hub' && docHubInitialTab === 'pack' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => {
+                setDocWorkspaceMode('hub');
+                setDocHubInitialTab('pack');
+              }}
+            >
+              📦 Sealed Submission Packs
+            </Button>
+            <Button
+              variant={docWorkspaceMode === 'technical' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setDocWorkspaceMode('technical')}
+            >
+              📐 Technical Drawing Register
+            </Button>
+          </div>
+          {docWorkspaceMode === 'hub' ? (
+            <ControlledDocumentsWorkspaceView initialProjectId={projectId} initialTab={docHubInitialTab} />
+          ) : (
+            <DocumentRegisterView projectId={projectId} />
+          )}
+        </div>
+      )}
       {cockpitModuleTab === 'timeline' && <MasterGanttView projectId={projectId} />}
       {cockpitModuleTab === 'design' && <DesignCreativeModuleView projectId={projectId} />}
       {cockpitModuleTab === 'commercial' && <CommercialBOQView projectId={projectId} />}

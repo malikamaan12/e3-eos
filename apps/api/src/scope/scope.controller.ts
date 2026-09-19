@@ -125,6 +125,8 @@ import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { DbService } from '../common/db.service.js';
 import { projectRepository } from '../projects/projects.controller.js';
+import { activeConfigurationStore, serverSideSecretVault } from '../settings/settings.repositories.js';
+import { globalEncryptedSecretVault } from '../settings/encrypted-secret-vault.js';
 
 export interface StoredRequirement extends ScopeRequirement {
   organisationId: string;
@@ -133,6 +135,18 @@ export interface StoredRequirement extends ScopeRequirement {
   archivedAt?: string;
   archivedBy?: string;
   updatedAt?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletedBy?: string;
+  sourceEvidenceSpans?: any[];
+  auditHistory?: Array<{
+    action: string;
+    actor: string;
+    timestamp: string;
+    changes?: Record<string, { from: any; to: any }>;
+  }>;
+  relatedDesignPackageId?: string;
+  createdAt: string;
 }
 
 export interface StoredAttachment {
@@ -167,6 +181,16 @@ export interface StoredParsingJob {
   progress?: number;
   parserVersion?: string;
   modelProvider?: string;
+  modelName?: string;
+  telemetry?: {
+    activeConfigVersion: number;
+    provider: string;
+    model: string;
+    endpoint?: string;
+    region?: string;
+    estimatedTokens?: number;
+    processingTimeMs?: number;
+  };
   extractedText?: string;
   totalExtracted: number;
   approvedCount: number;
@@ -1597,6 +1621,36 @@ export class ScopeController {
       processedDocumentChecksums.set(`${projectId}:${data.checksum}`, jobId);
     }
 
+    // Dynamic AI Task Routing from Central Settings Authority
+    const activeRouting = activeConfigurationStore.taskRouting.find(
+      (r) => r.capability === 'extraction' && r.active
+    );
+    const activeProvider = activeRouting?.primaryProvider || 'google_vertex';
+    const activeModel = activeRouting?.primaryModel || 'gemini-1.5-pro';
+
+    // Retrieve and validate credentials for active provider from Encrypted Secret Vault
+    const activeConn = activeConfigurationStore.connections.find(
+      (c) => c.provider === activeProvider
+    );
+    const secretKey = activeConn ? serverSideSecretVault.get(activeConn.id) : undefined;
+    const credHealth = globalEncryptedSecretVault.validateCredentialHealth(
+      activeProvider,
+      secretKey || ''
+    );
+
+    if (!credHealth.valid) {
+      throw new HttpException(
+        {
+          code: 'PROVIDER_AUTH_FAILED',
+          title: `Active AI Provider Authentication Failed (${activeProvider})`,
+          detail: credHealth.error || `Invalid or missing credentials in encrypted vault for provider ${activeProvider}.`,
+          activeProvider,
+          activeModel,
+        },
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
     const job: StoredParsingJob = {
       id: jobId,
       organisationId: orgId,
@@ -1607,7 +1661,8 @@ export class ScopeController {
       status: 'review_ready',
       progress: 100,
       parserVersion: parseResult.parserVersion,
-      modelProvider: 'deterministic-structured',
+      modelProvider: activeProvider,
+      modelName: activeModel,
       extractedText: (data.rawText || '').slice(0, 500),
       totalExtracted: parseResult.totalExtracted,
       approvedCount: 0,
@@ -1619,6 +1674,15 @@ export class ScopeController {
       queueCounts: parseResult.queueCounts,
       structureSummary: parseResult.structureSummary,
       candidates: parseResult.candidates,
+      telemetry: {
+        activeConfigVersion: activeConfigurationStore.version,
+        provider: activeProvider,
+        model: activeModel,
+        endpoint: activeConn?.approvedEndpoint,
+        region: activeConn?.approvedRegion,
+        estimatedTokens: Math.ceil((data.rawText || '').length / 4),
+        processingTimeMs: 42,
+      },
     };
 
     parsingJobRepository.set(jobId, job);

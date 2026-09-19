@@ -401,9 +401,9 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
         </div>
 
         {activeTab === 'candidates' ? (
-          <div className="flex-1 grid grid-cols-12 overflow-hidden">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
             {/* ================= LEFT PANEL: DOCUMENT SOURCE VIEWER ================= */}
-            <div className="col-span-5 flex flex-col border-r border-slate-800 bg-slate-950/70 overflow-hidden">
+            <div className="col-span-1 lg:col-span-4 xl:col-span-4 flex flex-col border-r border-slate-800 bg-slate-950/70 overflow-hidden">
               {/* Document Header & Navigation */}
               <div className="flex items-center justify-between px-3 py-2 bg-slate-900/90 border-b border-slate-800 text-xs">
                 <div className="flex items-center gap-2">
@@ -498,7 +498,7 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
             </div>
 
             {/* ================= RIGHT PANEL: STRUCTURED CANDIDATE REVIEW ================= */}
-            <div className="col-span-7 flex flex-col bg-slate-900/40 overflow-hidden">
+            <div className="col-span-1 lg:col-span-8 xl:col-span-8 flex flex-col bg-slate-900/40 overflow-hidden">
               {/* 19 Review Queues Filter Header */}
               <div className="px-3 py-2 bg-slate-900 border-b border-slate-800 overflow-x-auto">
                 <div className="flex items-center gap-1.5 min-w-max pb-1">
@@ -591,9 +591,9 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
               </div>
 
               {/* Candidates List and Detailed Card Split */}
-              <div className="flex-1 grid grid-cols-12 overflow-hidden">
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-12 overflow-hidden">
                 {/* Candidate Selector List */}
-                <div className="col-span-5 border-r border-slate-800 overflow-y-auto divide-y divide-slate-800/60 bg-slate-950/40">
+                <div className="col-span-1 md:col-span-5 lg:col-span-5 border-r border-slate-800 overflow-y-auto divide-y divide-slate-800/60 bg-slate-950/40">
                   {filteredCandidates.length === 0 ? (
                     <div className="p-6 text-center text-slate-500 text-xs">
                       No extraction candidates match your filter.
@@ -681,7 +681,7 @@ export const DocumentIntelligenceWorkspace: React.FC<DocumentIntelligenceWorkspa
                 </div>
 
                 {/* Candidate Detailed Review & Attribution Card */}
-                <div className="col-span-7 p-4 overflow-y-auto space-y-4 bg-slate-900/20">
+                <div className="col-span-1 md:col-span-7 lg:col-span-7 p-4 overflow-y-auto space-y-4 bg-slate-900/20">
                   {currentCandidate ? (
                     <>
                       {/* Candidate Header */}

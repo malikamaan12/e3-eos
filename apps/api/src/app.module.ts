@@ -21,6 +21,8 @@ import { GovernanceController } from './governance/governance.controller.js';
 import { AuthController } from './auth/auth.controller.js';
 import { AdminController } from './admin/admin.controller.js';
 import { DocumentsController } from './documents/documents.controller.js';
+import { CompanyVaultController } from './documents/company-vault.controller.js';
+import { SubmissionPacksController } from './documents/submission-packs.controller.js';
 import { ConstraintsController } from './operations/constraints.controller.js';
 import { HealthController } from './common/health.controller.js';
 import { LiveOpsController } from './live-ops/live-ops.controller.js';
@@ -37,6 +39,7 @@ import { WorkflowBuilderController } from './governance/workflow-builder.control
 import { PolicySimulatorController } from './governance/policy-simulator.controller.js';
 import { CountryPacksController } from './compliance/country-packs.controller.js';
 import { PortfolioIntelligenceController } from './portfolio/portfolio-intelligence.controller.js';
+import { SettingsController } from './settings/settings.controller.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
 import { IdempotencyGuard } from './common/idempotency.guard.js';
 import { TenantIsolationGuard } from './common/tenant.guard.js';
@@ -54,6 +57,8 @@ import { DbService } from './common/db.service.js';
     GovernanceController,
     ScopeController,
     DocumentsController,
+    CompanyVaultController,
+    SubmissionPacksController,
     ConstraintsController,
     WorkController,
     CommercialController,
@@ -81,6 +86,7 @@ import { DbService } from './common/db.service.js';
     PolicySimulatorController,
     CountryPacksController,
     PortfolioIntelligenceController,
+    SettingsController,
   ],
   providers: [DbService, DocumentQuarantineService, IdempotencyGuard, TenantIsolationGuard],
   exports: [DbService],

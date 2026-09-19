@@ -740,3 +740,140 @@ export class ClientPortalSanitizer {
   }
 }
 
+export interface Mesh3D {
+  name: string;
+  vertices: [number, number, number][]; // [x, y, z]
+  faces: number[][]; // polygon indices
+  wireframeEdges?: [number, number][];
+  bounds: { minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number };
+}
+
+export interface StoredAssetRecord {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  data: any;
+  sizeBytes: number;
+  hash: string;
+  uploadedAt: string;
+}
+
+export function parseWavefrontObj(objText: string, modelName: string = 'Uploaded 3D Model'): Mesh3D {
+  const lines = objText.split(/\r?\n/);
+  const rawVertices: [number, number, number][] = [];
+  const faces: number[][] = [];
+  const edgeSet = new Set<string>();
+  const wireframeEdges: [number, number][] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('v ')) {
+      const parts = trimmed.split(/\s+/).slice(1).map(Number);
+      if (parts.length >= 3 && parts.every((n) => !isNaN(n))) {
+        rawVertices.push([parts[0], parts[1], parts[2]]);
+      }
+    } else if (trimmed.startsWith('f ')) {
+      const parts = trimmed.split(/\s+/).slice(1);
+      const faceIndices: number[] = [];
+      for (const p of parts) {
+        const vIdx = parseInt(p.split('/')[0], 10);
+        if (!isNaN(vIdx)) {
+          const index = vIdx > 0 ? vIdx - 1 : rawVertices.length + vIdx;
+          faceIndices.push(index);
+        }
+      }
+      if (faceIndices.length >= 3) {
+        faces.push(faceIndices);
+        for (let i = 0; i < faceIndices.length; i++) {
+          const a = faceIndices[i];
+          const b = faceIndices[(i + 1) % faceIndices.length];
+          const key = a < b ? `${a}-${b}` : `${b}-${a}`;
+          if (!edgeSet.has(key)) {
+            edgeSet.add(key);
+            wireframeEdges.push([a, b]);
+          }
+        }
+      }
+    }
+  }
+
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  for (const [x, y, z] of rawVertices) {
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z;
+    if (z > maxZ) maxZ = z;
+  }
+
+  return {
+    name: modelName,
+    vertices: rawVertices,
+    faces,
+    wireframeEdges,
+    bounds: { minX, maxX, minY, maxY, minZ, maxZ },
+  };
+}
+
+export function getBundledStageMesh(): Mesh3D {
+  // Real 3D geometry vertices for Qatar National Day Main Stage (10m x 8m with 4.5m structural truss gantry)
+  const v: [number, number, number][] = [
+    // Stage Deck Platform (8 vertices)
+    [-100, 40, -80], [100, 40, -80], [100, 40, 80], [-100, 40, 80],
+    [-100, 10, -80], [100, 10, -80], [100, 10, 80], [-100, 10, 80],
+    // Tower 1 (Front Left)
+    [-90, -70, -70], [-70, -70, -70], [-70, -70, -50], [-90, -70, -50],
+    // Tower 2 (Front Right)
+    [70, -70, -70], [90, -70, -70], [90, -70, -50], [70, -70, -50],
+    // Tower 3 (Back Right)
+    [70, -70, 50], [90, -70, 50], [90, -70, 70], [70, -70, 70],
+    // Tower 4 (Back Left)
+    [-90, -70, 50], [-70, -70, 50], [-70, -70, 70], [-90, -70, 70],
+    // Kinetic Circular Crown Center Arch (8 vertices)
+    [0, -90, 0], [45, -85, -20], [60, -80, 0], [45, -85, 20],
+    [0, -90, 30], [-45, -85, 20], [-60, -80, 0], [-45, -85, -20],
+  ];
+
+  const f: number[][] = [
+    // Deck Top & Bottom
+    [0, 1, 2, 3], [7, 6, 5, 4],
+    // Deck Sides
+    [0, 4, 5, 1], [1, 5, 6, 2], [2, 6, 7, 3], [3, 7, 4, 0],
+    // Tower 1 Top
+    [8, 9, 10, 11],
+    // Tower 2 Top
+    [12, 13, 14, 15],
+    // Tower 3 Top
+    [16, 17, 18, 19],
+    // Tower 4 Top
+    [20, 21, 22, 23],
+    // Overhead Roof Beam Trusses
+    [8, 12, 13, 9], [13, 17, 18, 14], [18, 22, 23, 19], [23, 9, 8, 20],
+  ];
+
+  const edges: [number, number][] = [
+    // Deck wireframe
+    [0, 1], [1, 2], [2, 3], [3, 0],
+    [4, 5], [5, 6], [6, 7], [7, 4],
+    [0, 4], [1, 5], [2, 6], [3, 7],
+    // Towers vertical legs
+    [0, 8], [1, 13], [2, 18], [3, 23],
+    // Roof truss perimeter
+    [8, 12], [13, 17], [18, 22], [23, 9],
+    // Kinetic crown ring
+    [24, 25], [25, 26], [26, 27], [27, 28], [28, 29], [29, 30], [30, 31], [31, 24],
+  ];
+
+  return {
+    name: 'Ceremonial_Main_Stage_10x8m.obj',
+    vertices: v,
+    faces: f,
+    wireframeEdges: edges,
+    bounds: { minX: -100, maxX: 100, minY: -90, maxY: 40, minZ: -80, maxZ: 80 },
+  };
+}
+
+
