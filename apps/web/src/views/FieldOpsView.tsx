@@ -683,8 +683,8 @@ export const FieldOpsView: React.FC = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: '#1e293b',
-          color: '#ffffff',
+          backgroundColor: 'var(--surface-2, #151e2e)',
+          color: 'var(--surface-1, #0f1624)',
           borderRadius: '8px 8px 0 0',
           padding: '8px 16px',
           fontSize: '12px',
@@ -702,8 +702,8 @@ export const FieldOpsView: React.FC = () => {
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 700,
-              backgroundColor: isMobileFrame ? '#2563eb' : '#334155',
-              color: '#ffffff',
+              backgroundColor: isMobileFrame ? '#2563eb' : 'var(--text-secondary, #cbd5e1)',
+              color: 'var(--surface-1, #0f1624)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -717,8 +717,8 @@ export const FieldOpsView: React.FC = () => {
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 700,
-              backgroundColor: !isMobileFrame ? '#2563eb' : '#334155',
-              color: '#ffffff',
+              backgroundColor: !isMobileFrame ? '#2563eb' : 'var(--text-secondary, #cbd5e1)',
+              color: 'var(--surface-1, #0f1624)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -731,8 +731,8 @@ export const FieldOpsView: React.FC = () => {
       {/* Main Field PWA Frame */}
       <div
         style={{
-          backgroundColor: '#f8fafc',
-          border: '2px solid #cbd5e1',
+          backgroundColor: 'var(--surface-2, #151e2e)',
+          border: '2px solid var(--border-default, #2a374b)',
           borderRadius: '0 0 12px 12px',
           padding: isNarrowScreen ? '12px' : '16px',
           boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
@@ -744,8 +744,8 @@ export const FieldOpsView: React.FC = () => {
         {/* Mobile Header */}
         <div
           style={{
-            backgroundColor: '#0f172a',
-            color: '#ffffff',
+            backgroundColor: 'var(--text-primary, #f8fafc)',
+            color: 'var(--surface-1, #0f1624)',
             borderRadius: '8px',
             padding: '14px 16px',
             marginBottom: '14px',
@@ -767,7 +767,7 @@ export const FieldOpsView: React.FC = () => {
             <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>{currentProject.projectCode || currentProject.code}</span>
           </div>
           {/* Multi-Project Selector for Field Operations */}
-          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #334155' }}>
+          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle, #1d2939)' }}>
             <label htmlFor="field-ops-project-select" style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
               {isAr ? 'المشروع النشط للعمليات الميدانية:' : 'Active Operational Project:'}
             </label>
@@ -782,9 +782,9 @@ export const FieldOpsView: React.FC = () => {
                 width: '100%',
                 padding: '6px 10px',
                 borderRadius: '6px',
-                backgroundColor: '#1e293b',
-                color: '#f8fafc',
-                border: '1px solid #475569',
+                backgroundColor: 'var(--surface-2, #151e2e)',
+                color: 'var(--surface-2, #151e2e)',
+                border: '1px solid var(--border-default, #2a374b)',
                 fontSize: '12px',
                 fontWeight: 600,
                 outline: 'none',
@@ -824,7 +824,7 @@ export const FieldOpsView: React.FC = () => {
         {/* Mobile Dropdown Selector for 390px Viewports */}
         {isNarrowScreen && (
           <div style={{ marginBottom: '12px' }}>
-            <label htmlFor="field-mobile-tool-select" style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+            <label htmlFor="field-mobile-tool-select" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '4px' }}>
               {isAr ? 'أداة العمل الميداني الحالية:' : 'Active Field Tool:'}
             </label>
             <select
@@ -835,12 +835,12 @@ export const FieldOpsView: React.FC = () => {
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: '6px',
-                border: '1.5px solid #cbd5e1',
-                backgroundColor: '#ffffff',
+                border: '1.5px solid var(--border-default, #2a374b)',
+                backgroundColor: 'var(--surface-1, #0f1624)',
                 fontSize: '13px',
                 fontWeight: 700,
-                color: '#0f172a',
-                minHeight: '44px',
+                color: 'var(--text-primary, #f8fafc)',
+                minHeight: '48px',
               }}
             >
               {[
@@ -870,7 +870,7 @@ export const FieldOpsView: React.FC = () => {
             WebkitOverflowScrolling: 'touch',
             paddingBottom: '8px',
             marginBottom: '14px',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '1px solid var(--border-default, #2a374b)',
           }}
         >
           {[
@@ -894,16 +894,16 @@ export const FieldOpsView: React.FC = () => {
                   fontSize: '12px',
                   fontWeight: 700,
                   whiteSpace: 'nowrap',
-                  border: isActive ? '1px solid #0f172a' : '1px solid #cbd5e1',
-                  backgroundColor: isActive ? '#0f172a' : '#ffffff',
-                  color: isActive ? '#ffffff' : '#334155',
+                  border: isActive ? '1px solid var(--accent, #d97706)' : '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: isActive ? 'var(--accent-soft, rgba(217,119,6,0.14))' : 'var(--surface-1, #0f1624)',
+                  color: isActive ? 'var(--accent, #d97706)' : 'var(--text-secondary, #cbd5e1)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  minHeight: '44px',
+                  minHeight: '48px',
                   flexShrink: 0,
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -911,11 +911,11 @@ export const FieldOpsView: React.FC = () => {
                 {tab.badge > 0 && (
                   <span
                     style={{
-                      backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : '#fee2e2',
-                      color: isActive ? '#ffffff' : '#b91c1c',
-                      padding: '1px 6px',
+                      backgroundColor: isActive ? 'rgba(217,119,6,0.25)' : 'rgba(239,68,68,0.2)',
+                      color: isActive ? 'var(--accent, #d97706)' : '#f87171',
+                      padding: '2px 8px',
                       borderRadius: '8px',
-                      fontSize: '10px',
+                      fontSize: '11px',
                       fontWeight: 800,
                     }}
                   >
@@ -930,16 +930,16 @@ export const FieldOpsView: React.FC = () => {
         {/* 1. WORKFLOW: POD SIGN-OFF (PROOF OF DELIVERY) */}
         {mobileTab === 'pod' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
+            <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                   Proof of Delivery (POD) Receipt
                 </h3>
                 <Badge variant={selectedPod.signed ? 'success' : 'warning'}>
                   {selectedPod.signed ? 'POD SIGNED & SEALED' : 'PENDING SIGN-OFF'}
                 </Badge>
               </div>
-              <p style={{ fontSize: '11px', color: '#64748b', margin: '0 0 12px 0' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', margin: '0 0 12px 0' }}>
                 Physical freight acceptance at venue dock. Signature establishes custodial transfer.
               </p>
 
@@ -957,7 +957,7 @@ export const FieldOpsView: React.FC = () => {
                   }))}
                 />
 
-                <div style={{ backgroundColor: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #f1f5f9' }}>
+                <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: isNarrowScreen ? '1fr' : '1fr 1fr', gap: '6px', fontSize: '11px' }}>
                     <div><strong>Carrier:</strong> {selectedPod.carrier}</div>
                     <div><strong>Truck Reg:</strong> {selectedPod.truckPlate}</div>
@@ -992,7 +992,7 @@ export const FieldOpsView: React.FC = () => {
 
                 {/* Digital Signature Pad Simulator */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Digital Touch Signature Pad
                   </label>
                   <div
@@ -1000,7 +1000,7 @@ export const FieldOpsView: React.FC = () => {
                       border: '2px dashed #94a3b8',
                       borderRadius: '6px',
                       height: '80px',
-                      backgroundColor: '#f1f5f9',
+                      backgroundColor: 'var(--surface-2, #151e2e)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1009,16 +1009,16 @@ export const FieldOpsView: React.FC = () => {
                     }}
                   >
                     {selectedPod.signed || signatureConfirmed ? (
-                      <div style={{ textAlign: 'center', color: '#166534' }}>
+                      <div style={{ textAlign: 'center', color: '#22c55e' }}>
                         <div style={{ fontFamily: 'Brush Script MT, cursive', fontSize: '24px', fontWeight: 700 }}>
                           {podRecipient}
                         </div>
-                        <div style={{ fontSize: '10px', color: '#15803d' }}>
+                        <div style={{ fontSize: '10px', color: '#4ade80' }}>
                           Verified Digital Stamp • {selectedPod.signatureTimestamp || 'Signed Just Now'}
                         </div>
                       </div>
                     ) : (
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         ✍️ Sign Here with Finger / Stylus
                       </span>
                     )}
@@ -1038,7 +1038,7 @@ export const FieldOpsView: React.FC = () => {
                 )}
 
                 {selectedPod.signed && (
-                  <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', padding: '10px', fontSize: '11px', color: '#166534' }}>
+                  <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px', padding: '10px', fontSize: '11px', color: '#22c55e' }}>
                     ✅ <strong>Custodial Transfer Completed:</strong> Goods verified and custody transferred to DECC Site Staging Bay. POD archived into project audit register.
                   </div>
                 )}
@@ -1050,8 +1050,8 @@ export const FieldOpsView: React.FC = () => {
         {/* 2. WORKFLOW: SNAG CREATION WITH PHOTO UPLOAD */}
         {mobileTab === 'snag' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
-              <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+            <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 Capture Field Snag & Photographic Evidence
               </h3>
 
@@ -1099,7 +1099,7 @@ export const FieldOpsView: React.FC = () => {
 
                 {/* Mobile Camera / Photo Upload Simulator */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Attach Site Photos ({snagPhotos.length} Attached)
                   </label>
 
@@ -1113,7 +1113,7 @@ export const FieldOpsView: React.FC = () => {
                       style={{
                         flex: 1,
                         padding: '6px 10px',
-                        border: '1px solid #cbd5e1',
+                        border: '1px solid var(--border-default, #2a374b)',
                         borderRadius: '4px',
                         fontSize: '11px',
                         minHeight: '44px',
@@ -1131,12 +1131,12 @@ export const FieldOpsView: React.FC = () => {
                       <div
                         key={i}
                         style={{
-                          backgroundColor: '#f1f5f9',
-                          border: '1px solid #cbd5e1',
+                          backgroundColor: 'var(--surface-2, #151e2e)',
+                          border: '1px solid var(--border-default, #2a374b)',
                           borderRadius: '4px',
                           padding: '4px 8px',
                           fontSize: '10px',
-                          color: '#334155',
+                          color: 'var(--text-secondary, #cbd5e1)',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '4px',
@@ -1157,32 +1157,32 @@ export const FieldOpsView: React.FC = () => {
 
             {/* List of Recent Snags */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                 Active Field Snags ({snags.length})
               </div>
               {snags.map((snag) => (
                 <div
                   key={snag.id}
                   style={{
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e2e8f0',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
+                    border: '1px solid var(--border-default, #2a374b)',
                     borderRadius: '6px',
                     padding: '10px',
                     fontSize: '11px',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 800, color: '#0f172a' }}>{snag.title}</span>
+                    <span style={{ fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>{snag.title}</span>
                     <Badge variant={snag.severity === 'critical' ? 'danger' : snag.severity === 'moderate' ? 'warning' : 'neutral'}>
                       {snag.severity.toUpperCase()}
                     </Badge>
                   </div>
-                  <div style={{ color: '#64748b', marginBottom: '4px' }}>
+                  <div style={{ color: 'var(--text-muted, #94a3b8)', marginBottom: '4px' }}>
                     📍 {snag.location} • 🔧 {snag.trade}
                   </div>
                   <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                     {snag.photos.map((p, idx) => (
-                      <span key={idx} style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '1px 5px', borderRadius: '3px', fontSize: '9px' }}>
+                      <span key={idx} style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', padding: '1px 5px', borderRadius: '3px', fontSize: '9px' }}>
                         📷 {p}
                       </span>
                     ))}
@@ -1196,9 +1196,9 @@ export const FieldOpsView: React.FC = () => {
         {/* 3. WORKFLOW: WAREHOUSE PICKING & QR SCANNER */}
         {mobileTab === 'scanner' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
+            <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                   Real-Time Camera Barcode & QR Scanner
                 </h3>
                 <Badge variant={isCameraActive ? 'success' : 'neutral'}>
@@ -1210,9 +1210,9 @@ export const FieldOpsView: React.FC = () => {
               {scanFeedbackMsg && (
                 <div
                   style={{
-                    backgroundColor: '#f0fdf4',
-                    border: '1px solid #86efac',
-                    color: '#166534',
+                    backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                    border: '1px solid rgba(34, 197, 94, 0.3)',
+                    color: '#22c55e',
                     padding: '8px 12px',
                     borderRadius: '6px',
                     fontSize: '12px',
@@ -1232,9 +1232,9 @@ export const FieldOpsView: React.FC = () => {
               {cameraError && (
                 <div
                   style={{
-                    backgroundColor: '#fffbeb',
-                    border: '1px solid #fde68a',
-                    color: '#92400e',
+                    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    color: '#f59e0b',
                     padding: '8px 12px',
                     borderRadius: '6px',
                     fontSize: '11px',
@@ -1248,7 +1248,7 @@ export const FieldOpsView: React.FC = () => {
               {/* Viewfinder Viewport */}
               <div
                 style={{
-                  backgroundColor: '#090d16',
+                  backgroundColor: 'var(--canvas, #090d16)',
                   borderRadius: '10px',
                   height: '210px',
                   display: 'flex',
@@ -1387,13 +1387,13 @@ export const FieldOpsView: React.FC = () => {
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: '#f1f5f9',
-                    border: '1px solid #cbd5e1',
+                    backgroundColor: 'var(--surface-2, #151e2e)',
+                    border: '1px solid var(--border-default, #2a374b)',
                     borderRadius: '6px',
                     padding: '6px 10px',
                     fontSize: '11px',
                     fontWeight: 600,
-                    color: '#334155',
+                    color: 'var(--text-secondary, #cbd5e1)',
                     cursor: 'pointer',
                     minHeight: '44px',
                     flex: isNarrowScreen ? 1 : 'none',
@@ -1433,7 +1433,7 @@ export const FieldOpsView: React.FC = () => {
                       flex: 1,
                       padding: '8px 10px',
                       fontSize: '12px',
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid var(--border-default, #2a374b)',
                       borderRadius: '6px',
                       outline: 'none',
                     }}
@@ -1446,7 +1446,7 @@ export const FieldOpsView: React.FC = () => {
 
               {/* Quick Field Asset Test Chips */}
               <div style={{ marginBottom: '14px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '6px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', marginBottom: '6px' }}>
                   Quick Field Demo Test Presets:
                 </div>
                 <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
@@ -1465,9 +1465,9 @@ export const FieldOpsView: React.FC = () => {
                       onClick={() => handleProcessCode(preset.tag)}
                       style={{
                         padding: '4px 8px',
-                        backgroundColor: scannedTag === preset.tag ? '#0f172a' : '#f8fafc',
-                        color: scannedTag === preset.tag ? '#ffffff' : '#334155',
-                        border: '1px solid #cbd5e1',
+                        backgroundColor: scannedTag === preset.tag ? '#0f172a' : 'var(--surface-2, #151e2e)',
+                        color: scannedTag === preset.tag ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
+                        border: '1px solid var(--border-default, #2a374b)',
                         borderRadius: '4px',
                         fontSize: '10px',
                         fontWeight: 600,
@@ -1484,8 +1484,8 @@ export const FieldOpsView: React.FC = () => {
               {scanResult && (
                 <div
                   style={{
-                    backgroundColor: '#f8fafc',
-                    border: '1px solid #e2e8f0',
+                    backgroundColor: 'var(--surface-2, #151e2e)',
+                    border: '1px solid var(--border-default, #2a374b)',
                     borderRadius: '8px',
                     padding: '12px',
                     fontSize: '12px',
@@ -1493,10 +1493,10 @@ export const FieldOpsView: React.FC = () => {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
                     <div>
-                      <strong style={{ color: '#0f172a', fontSize: '13px', display: 'block' }}>
+                      <strong style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '13px', display: 'block' }}>
                         {scanResult.description}
                       </strong>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                         Category: <strong>{scanResult.category}</strong>
                       </span>
                     </div>
@@ -1510,8 +1510,8 @@ export const FieldOpsView: React.FC = () => {
                       display: 'grid',
                       gridTemplateColumns: isNarrowScreen ? '1fr' : '1fr 1fr',
                       gap: '6px',
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #f1f5f9',
+                      backgroundColor: 'var(--surface-1, #0f1624)',
+                      border: '1px solid var(--border-subtle, #1d2939)',
                       borderRadius: '6px',
                       padding: '8px',
                       marginBottom: '10px',
@@ -1519,27 +1519,27 @@ export const FieldOpsView: React.FC = () => {
                     }}
                   >
                     <div>
-                      <span style={{ color: '#64748b' }}>Location / Zone: </span>
-                      <strong style={{ color: '#0f172a' }}>{scanResult.zone}</strong>
+                      <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Location / Zone: </span>
+                      <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{scanResult.zone}</strong>
                     </div>
                     <div>
-                      <span style={{ color: '#64748b' }}>Status: </span>
+                      <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Status: </span>
                       <strong style={{ color: scanResult.status.includes('QC') ? '#0284c7' : '#16a34a' }}>
                         {scanResult.status}
                       </strong>
                     </div>
                     <div>
-                      <span style={{ color: '#64748b' }}>Assigned Lead: </span>
-                      <span style={{ color: '#334155' }}>{scanResult.assignedTech}</span>
+                      <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Assigned Lead: </span>
+                      <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{scanResult.assignedTech}</span>
                     </div>
                     <div>
-                      <span style={{ color: '#64748b' }}>Serial / Hardware: </span>
-                      <span style={{ fontFamily: 'monospace', color: '#334155' }}>{scanResult.serialNumber}</span>
+                      <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Serial / Hardware: </span>
+                      <span style={{ fontFamily: 'monospace', color: 'var(--text-secondary, #cbd5e1)' }}>{scanResult.serialNumber}</span>
                     </div>
                     {scanResult.dimensions && (
                       <div style={{ gridColumn: isNarrowScreen ? 'span 1' : 'span 2' }}>
-                        <span style={{ color: '#64748b' }}>Dimensions / Specs: </span>
-                        <span style={{ color: '#334155' }}>{scanResult.dimensions}</span>
+                        <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Dimensions / Specs: </span>
+                        <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{scanResult.dimensions}</span>
                       </div>
                     )}
                   </div>
@@ -1601,11 +1601,11 @@ export const FieldOpsView: React.FC = () => {
         {/* 4. WORKFLOW: QC INSPECTION */}
         {mobileTab === 'qc' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+            <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 Mobile QC Inspection Sign-off
               </h3>
-              <p style={{ fontSize: '11px', color: '#64748b', margin: '0 0 10px 0' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', margin: '0 0 10px 0' }}>
                 Sprint 03 Module 08 Invariant: Damaged goods are automatically routed to Quarantine.
               </p>
 
@@ -1643,8 +1643,8 @@ export const FieldOpsView: React.FC = () => {
         {/* 5. WORKFLOW: CREW CHECK-IN & COMPLIANCE */}
         {mobileTab === 'crew' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+            <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 Site Crew Check-in (Fatigue Policy Check)
               </h3>
 
@@ -1664,14 +1664,14 @@ export const FieldOpsView: React.FC = () => {
                 />
 
                 {/* Compliance verification pills */}
-                <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', padding: '8px 10px', fontSize: '11px' }}>
-                  <div style={{ fontWeight: 700, color: '#166534', marginBottom: '2px' }}>
+                <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px', padding: '8px 10px', fontSize: '11px' }}>
+                  <div style={{ fontWeight: 700, color: '#22c55e', marginBottom: '2px' }}>
                     Governance Compliance Verified:
                   </div>
-                  <div style={{ color: '#15803d' }}>
+                  <div style={{ color: '#4ade80' }}>
                     • Qatar Labour Law: Shift ≤ 8h (Ramadan: 6h)
                   </div>
-                  <div style={{ color: '#15803d' }}>
+                  <div style={{ color: '#4ade80' }}>
                     • E3 Fatigue Policy: 11h Rest Interval Satisfied (Prior shift ended 14h ago)
                   </div>
                 </div>
@@ -1693,7 +1693,7 @@ export const FieldOpsView: React.FC = () => {
         {/* 6. WORKFLOW: READINESS CHECKLIST */}
         {(mobileTab === 'checklist' || !isMobileFrame) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {isAr ? 'قائمة الجاهزية الميدانية المباشرة' : 'Live Field Readiness Checklist'}
             </h3>
 
@@ -1707,8 +1707,8 @@ export const FieldOpsView: React.FC = () => {
                   gap: '10px',
                   padding: '10px 12px',
                   borderRadius: '6px',
-                  backgroundColor: item.completed ? '#f0fdf4' : '#ffffff',
-                  border: `1px solid ${item.completed ? '#86efac' : '#e2e8f0'}`,
+                  backgroundColor: item.completed ? '#f0fdf4' : 'var(--surface-1, #0f1624)',
+                  border: `1px solid ${item.completed ? '#86efac' : 'var(--border-default, #2a374b)'}`,
                   cursor: 'pointer',
                   fontSize: '12px',
                 }}
@@ -1721,7 +1721,7 @@ export const FieldOpsView: React.FC = () => {
                   style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                 />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: item.completed ? '#166534' : '#0f172a' }}>
+                  <div style={{ fontWeight: 600, color: item.completed ? '#166534' : 'var(--text-primary, #f8fafc)' }}>
                     {isAr && (item as any).labelAr ? (item as any).labelAr : item.label}
                   </div>
                   {item.critical && (
@@ -1744,12 +1744,12 @@ export const FieldOpsView: React.FC = () => {
             {/* Storage Eviction Contingency Disclosure (AT-058) */}
             <div
               style={{
-                backgroundColor: '#fffbeb',
-                border: '1px solid #fde68a',
+                backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
                 padding: '12px',
                 borderRadius: '6px',
                 fontSize: '11px',
-                color: '#92400e',
+                color: '#f59e0b',
               }}
               id="disclosure-storage-eviction"
             >
@@ -1761,12 +1761,12 @@ export const FieldOpsView: React.FC = () => {
             {/* Bounded Offline Policy Warning */}
             <div
               style={{
-                backgroundColor: '#eff6ff',
-                border: '1px solid #bfdbfe',
+                backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
                 padding: '12px',
                 borderRadius: '6px',
                 fontSize: '11px',
-                color: '#1e40af',
+                color: '#60a5fa',
               }}
               id="bounded-offline-warning"
             >
@@ -1796,7 +1796,7 @@ export const FieldOpsView: React.FC = () => {
               )}
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                <h4 style={{ margin: 0, fontSize: '13px', color: '#0f172a' }}>
+                <h4 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                   Queued Field Operations ({pendingMutations.length})
                 </h4>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -1856,10 +1856,10 @@ export const FieldOpsView: React.FC = () => {
                   style={{
                     padding: '24px 16px',
                     textAlign: 'center',
-                    backgroundColor: '#ffffff',
-                    border: '1px dashed #cbd5e1',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
+                    border: '1px dashed var(--border-default, #2a374b)',
                     borderRadius: '8px',
-                    color: '#64748b',
+                    color: 'var(--text-muted, #94a3b8)',
                     fontSize: '12px',
                   }}
                 >
@@ -1876,16 +1876,16 @@ export const FieldOpsView: React.FC = () => {
                       key={op.id}
                       style={{
                         padding: '10px 12px',
-                        backgroundColor: '#ffffff',
-                        border: `1px solid ${op.status === 'synced' ? '#86efac' : op.status === 'failed' ? '#fca5a5' : '#e2e8f0'}`,
+                        backgroundColor: 'var(--surface-1, #0f1624)',
+                        border: `1px solid ${op.status === 'synced' ? '#86efac' : op.status === 'failed' ? '#fca5a5' : 'var(--border-default, #2a374b)'}`,
                         borderRadius: '6px',
                         fontSize: '12px',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                         <div>
-                          <strong style={{ color: '#0f172a' }}>{op.action}</strong>
-                          <span style={{ marginLeft: '6px', color: '#64748b', fontSize: '11px' }}>({op.entity})</span>
+                          <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{op.action}</strong>
+                          <span style={{ marginLeft: '6px', color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>({op.entity})</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Badge
@@ -1919,7 +1919,7 @@ export const FieldOpsView: React.FC = () => {
                         </div>
                       </div>
 
-                      <div style={{ color: '#475569', marginBottom: '4px', fontFamily: 'monospace', fontSize: '10px', backgroundColor: '#f8fafc', padding: '4px 6px', borderRadius: '4px' }}>
+                      <div style={{ color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px', fontFamily: 'monospace', fontSize: '10px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '4px 6px', borderRadius: '4px' }}>
                         {JSON.stringify(op.payload)}
                       </div>
 
@@ -1940,13 +1940,13 @@ export const FieldOpsView: React.FC = () => {
 
             {/* Media Upload Verification Gate (AT-057) */}
             <div>
-              <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#0f172a' }}>Binary Media Upload Verification Gate (AT-057)</h4>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>Binary Media Upload Verification Gate (AT-057)</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div
                   style={{
                     padding: '10px 12px',
-                    backgroundColor: '#f0fdf4',
-                    border: '1px solid #86efac',
+                    backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                    border: '1px solid rgba(34, 197, 94, 0.3)',
                     borderRadius: '6px',
                     fontSize: '12px',
                   }}
@@ -1955,7 +1955,7 @@ export const FieldOpsView: React.FC = () => {
                     <strong>snag-counter14-full.jpg</strong>
                     <Badge variant="success">BINARY COMPLETE (2.4 MB / 2.4 MB)</Badge>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#166534' }}>
+                  <div style={{ fontSize: '11px', color: '#22c55e' }}>
                     ✓ Upload complete & verified. Snag inspection accepted as verified evidence.
                   </div>
                 </div>

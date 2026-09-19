@@ -347,12 +347,12 @@ export const FinancialControlCenterView: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-        <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid #e2e8f0', borderTopColor: '#d97706', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
-        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+      <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+        <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid var(--border-default, #2a374b)', borderTopColor: 'var(--accent, #d97706)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
+        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
           {isRtl ? 'جارٍ تحميل مركز الرقابة المالية والمطابقة...' : 'Loading Commercial Financial Control System...'}
         </h3>
-        <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#64748b' }}>
+        <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
           {isRtl ? 'مطابقة معادلات EAC و VAC والتحقق من منع الازدواج الحسابي' : 'Evaluating EAC, VAC, and strict zero double-counting invariants'}
         </p>
       </div>
@@ -374,9 +374,9 @@ export const FinancialControlCenterView: React.FC = () => {
       {/* Header Banner */}
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           padding: '20px 24px',
           marginBottom: '20px',
           display: 'flex',
@@ -384,12 +384,12 @@ export const FinancialControlCenterView: React.FC = () => {
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
         }}
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? 'مركز الرقابة المالية والمطابقة' : 'Commercial Financial Control Center'}
             </h1>
             {error || !finControl ? (
@@ -403,17 +403,17 @@ export const FinancialControlCenterView: React.FC = () => {
               </>
             )}
           </div>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
             {isRtl ? 'المشروع:' : 'Project:'}{' '}
-            <span style={{ color: '#d97706', fontWeight: 700, fontFamily: 'monospace' }}>{projectId}</span>
+            <span style={{ color: 'var(--accent, #d97706)', fontWeight: 700, fontFamily: 'monospace' }}>{projectId}</span>
             {currentProject?.name ? ` — ${currentProject.name}` : (isDemo ? (isRtl ? ' — جناح الاحتفالات الرسمية لليوم الوطني ٢٠٢٦' : ' — Qatar National Day 2026 Ceremonial Pavilion') : '')}
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {/* Dynamic Currency Converter Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '3px' }}>
-            <span style={{ fontSize: '10px', fontWeight: 800, color: '#475569', padding: '0 8px', textTransform: 'uppercase' }}>
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--surface-inset, #0b111d)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '3px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-muted, #94a3b8)', padding: '0 8px', textTransform: 'uppercase' }}>
               💱 Currency:
             </span>
             {CURRENCIES.map((c) => (
@@ -422,8 +422,8 @@ export const FinancialControlCenterView: React.FC = () => {
                 type="button"
                 onClick={() => setSelectedCurrency(c.code)}
                 style={{
-                  backgroundColor: selectedCurrency === c.code ? '#2563eb' : 'transparent',
-                  color: selectedCurrency === c.code ? '#ffffff' : '#334155',
+                  backgroundColor: selectedCurrency === c.code ? 'var(--accent, #d97706)' : 'transparent',
+                  color: selectedCurrency === c.code ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                   border: 'none',
                   borderRadius: '4px',
                   padding: '4px 8px',
@@ -460,7 +460,7 @@ export const FinancialControlCenterView: React.FC = () => {
           <Button
             variant="outline"
             onClick={handlePrintFinancialReport}
-            style={{ color: '#475569', borderColor: '#cbd5e1' }}
+            style={{ color: 'var(--text-secondary, #cbd5e1)', borderColor: 'var(--border-default, #2a374b)' }}
             title="Print or export formatted PDF financial control report"
           >
             🖨️ Print / PDF
@@ -478,7 +478,7 @@ export const FinancialControlCenterView: React.FC = () => {
       {/* Financial Governed Invariants Banner */}
       <div
         style={{
-          backgroundColor: '#090d16',
+          backgroundColor: 'var(--canvas, #090d16)',
           border: '1px solid rgba(217, 119, 6, 0.4)',
           borderRadius: '8px',
           padding: '14px 18px',
@@ -498,17 +498,17 @@ export const FinancialControlCenterView: React.FC = () => {
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', padding: '5px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px' }}>
             <span style={{ color: '#fbbf24', fontFamily: 'monospace', fontWeight: 700 }}>Current Budget</span>
             <span style={{ color: '#94a3b8' }}>=</span>
-            <span style={{ color: '#e2e8f0' }}>Baseline + Approved Changes</span>
+            <span style={{ color: 'var(--border-default, #2a374b)' }}>Baseline + Approved Changes</span>
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', padding: '5px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px' }}>
             <span style={{ color: '#34d399', fontFamily: 'monospace', fontWeight: 700 }}>EAC</span>
             <span style={{ color: '#94a3b8' }}>=</span>
-            <span style={{ color: '#e2e8f0' }}>Actuals + Accrued + Commitments + ETC</span>
+            <span style={{ color: 'var(--border-default, #2a374b)' }}>Actuals + Accrued + Commitments + ETC</span>
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', padding: '5px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px' }}>
             <span style={{ color: '#60a5fa', fontFamily: 'monospace', fontWeight: 700 }}>VAC</span>
             <span style={{ color: '#94a3b8' }}>=</span>
-            <span style={{ color: '#e2e8f0' }}>Current Budget − EAC</span>
+            <span style={{ color: 'var(--border-default, #2a374b)' }}>Current Budget − EAC</span>
           </div>
         </div>
         <div style={{ color: '#34d399', fontWeight: 600, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -519,12 +519,12 @@ export const FinancialControlCenterView: React.FC = () => {
       {(() => {
         if (error && !finControl) {
           return (
-            <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fecaca', marginBottom: '20px' }}>
+            <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)', marginBottom: '20px' }}>
               <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 800, color: '#991b1b' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 800, color: '#f87171' }}>
                 {isRtl ? 'البيانات المالية غير متوفرة لهذا المشروع' : 'Financial Ledger Unavailable For Selected Project'}
               </h3>
-              <p style={{ margin: '0 auto 16px auto', fontSize: '13px', color: '#64748b', maxWidth: '520px' }}>
+              <p style={{ margin: '0 auto 16px auto', fontSize: '13px', color: 'var(--text-muted, #94a3b8)', maxWidth: '520px' }}>
                 {error || (isRtl ? 'لم يتم العثور على سجلات الرقابة المالية وموقف السيولة لهذا المشروع.' : `The financial control ledger and cash position records could not be loaded for project ID ${projectId}.`)}
               </p>
               <Button variant="primary" onClick={loadData}>
@@ -605,7 +605,7 @@ export const FinancialControlCenterView: React.FC = () => {
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           <th style={{ padding: '12px 16px', fontWeight: 700 }}>{isRtl ? 'بند هيكلية التكلفة' : 'Cost Architecture Component'}</th>
                           <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'right' }}>{isRtl ? 'المبلغ' : `Amount (${activeCurrency.code})`}</th>
                           <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'right' }}>{isRtl ? '٪ من العقد' : '% of Contract'}</th>
@@ -614,75 +614,75 @@ export const FinancialControlCenterView: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0f172a' }}>{isRtl ? 'ميزانية العطاء الأصلية' : 'Original Tender Budget'}</td>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                          <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{isRtl ? 'ميزانية العطاء الأصلية' : 'Original Tender Budget'}</td>
                           <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
                             {formatWithCurrency(origBudget)}
                           </td>
-                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(origBudget)}</td>
-                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'الأساس التعاقدي المعتمد' : 'Contractual Baseline'}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-muted, #94a3b8)', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(origBudget)}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'الأساس التعاقدي المعتمد' : 'Contractual Baseline'}</td>
                           <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="neutral">{isRtl ? 'إقفال العطاء' : 'Tender Lock'}</Badge></td>
                         </tr>
-                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0f172a' }}>{isRtl ? 'أوامر التغيير المعتمدة' : 'Approved Scope Variations'}</td>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                          <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{isRtl ? 'أوامر التغيير المعتمدة' : 'Approved Scope Variations'}</td>
                           <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#059669' }}>
                             +{formatWithCurrency(budgetChanges)}
                           </td>
-                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>+{calcPct(budgetChanges)}</td>
-                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'تضاف إلى الميزانية المعتمدة الحالية' : 'Adds to Current Authorised Budget'}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-muted, #94a3b8)', textAlign: 'right', fontFamily: 'monospace' }}>+{calcPct(budgetChanges)}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'تضاف إلى الميزانية المعتمدة الحالية' : 'Adds to Current Authorised Budget'}</td>
                           <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'موقع من العميل' : 'Client Signed'}</Badge></td>
                         </tr>
-                        <tr style={{ backgroundColor: '#fffbeb', borderTop: '2px solid #fde68a', borderBottom: '2px solid #fde68a', fontWeight: 700 }}>
-                          <td style={{ padding: '14px 16px', color: '#92400e' }}>{isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorised Budget'}</td>
+                        <tr style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', borderTop: '2px solid #fde68a', borderBottom: '2px solid #fde68a', fontWeight: 700 }}>
+                          <td style={{ padding: '14px 16px', color: '#f59e0b' }}>{isRtl ? 'الميزانية المعتمدة الحالية' : 'Current Authorised Budget'}</td>
                           <td style={{ padding: '14px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#b45309' }}>
                             {formatWithCurrency(curBudget)}
                           </td>
-                          <td style={{ padding: '14px 16px', color: '#92400e', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(curBudget)}</td>
-                          <td style={{ padding: '14px 16px', color: '#92400e' }}>{isRtl ? 'المعيار الحاكم لحساب وفر الميزانية (VAC)' : 'Benchmark for VAC Calculation'}</td>
+                          <td style={{ padding: '14px 16px', color: '#f59e0b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(curBudget)}</td>
+                          <td style={{ padding: '14px 16px', color: '#f59e0b' }}>{isRtl ? 'المعيار الحاكم لحساب وفر الميزانية (VAC)' : 'Benchmark for VAC Calculation'}</td>
                           <td style={{ padding: '14px 16px', textAlign: 'center' }}><Badge variant="warning">{isRtl ? 'السقف الحاكم' : 'Governed Ceiling'}</Badge></td>
                         </tr>
-                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: 'var(--text-secondary, #cbd5e1)' }}>
                             {isRtl ? '١. التكلفة الفعلية المقيدة (مفوترة ومعتمدة)' : '1. Posted Actual Cost (Invoiced & Approved)'}
                           </td>
                           <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
                             {formatWithCurrency(actualsVal)}
                           </td>
-                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(actualsVal)}</td>
-                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'جزء من التكلفة الفعلية المنفقة' : 'Component of Cost Incurred'}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-muted, #94a3b8)', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(actualsVal)}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'جزء من التكلفة الفعلية المنفقة' : 'Component of Cost Incurred'}</td>
                           <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'مطابقة ثلاثية' : '3-Way Matched'}</Badge></td>
                         </tr>
-                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: 'var(--text-secondary, #cbd5e1)' }}>
                             {isRtl ? '٢. التكلفة المستحقة المقبولة (أعمال منجزة لم تفوتر بعد)' : '2. Accepted Accrued Cost (Unbilled Work Delivered)'}
                           </td>
                           <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
                             {formatWithCurrency(accruedVal)}
                           </td>
-                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(accruedVal)}</td>
-                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'تم قبول تقدم العمل في الموقع' : 'Site Progress Accepted'}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-muted, #94a3b8)', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(accruedVal)}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'تم قبول تقدم العمل في الموقع' : 'Site Progress Accepted'}</td>
                           <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="info">{isRtl ? 'توقيع الأعمال' : 'Work Signed-off'}</Badge></td>
                         </tr>
-                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: 'var(--text-secondary, #cbd5e1)' }}>
                             {isRtl ? '٣. الالتزامات المتبقية (أوامر الشراء المفتوحة)' : '3. Remaining Commitments (Open PO Balances)'}
                           </td>
                           <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
                             {formatWithCurrency(commitmentsVal)}
                           </td>
-                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(commitmentsVal)}</td>
-                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'أوامر شراء لم تنفذ بالكامل بعد' : 'Unperformed Purchase Orders'}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-muted, #94a3b8)', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(commitmentsVal)}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'أوامر شراء لم تنفذ بالكامل بعد' : 'Unperformed Purchase Orders'}</td>
                           <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="neutral">{isRtl ? 'أمر شراء مختوم' : 'PO Sealed'}</Badge></td>
                         </tr>
-                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: '#334155' }}>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                          <td style={{ padding: '12px 16px', paddingInlineStart: '28px', color: 'var(--text-secondary, #cbd5e1)' }}>
                             {isRtl ? '٤. التقدير غير المرتبط (ETC حتى الإغلاق)' : '4. Uncommitted Forecast (ETC to Closeout)'}
                           </td>
                           <td style={{ padding: '12px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
                             {formatWithCurrency(etcVal)}
                           </td>
-                          <td style={{ padding: '12px 16px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(etcVal)}</td>
-                          <td style={{ padding: '12px 16px', color: '#475569' }}>{isRtl ? 'مخصص أعمال التفكيك النهائي والإرجاع' : 'Allowance for Final Bump-Out & Returns'}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-muted, #94a3b8)', textAlign: 'right', fontFamily: 'monospace' }}>{calcPct(etcVal)}</td>
+                          <td style={{ padding: '12px 16px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'مخصص أعمال التفكيك النهائي والإرجاع' : 'Allowance for Final Bump-Out & Returns'}</td>
                           <td style={{ padding: '12px 16px', textAlign: 'center' }}><Badge variant="neutral">{isRtl ? 'تقدير مدير المشروع' : 'PM Forecast'}</Badge></td>
                         </tr>
                         <tr style={{ backgroundColor: '#ecfdf5', borderTop: '2px solid #a7f3d0', borderBottom: '1px solid #a7f3d0', fontWeight: 700 }}>
@@ -694,7 +694,7 @@ export const FinancialControlCenterView: React.FC = () => {
                           <td style={{ padding: '14px 16px', color: '#065f46' }}>{isRtl ? 'إجمالي التكلفة المتوقعة للمشروع' : 'Total Projected Project Cost'}</td>
                           <td style={{ padding: '14px 16px', textAlign: 'center' }}><Badge variant="success">{isRtl ? 'مطابق للمعادلة' : 'Invariant Verified'}</Badge></td>
                         </tr>
-                        <tr style={{ backgroundColor: '#f0fdf4', fontWeight: 800 }}>
+                        <tr style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', fontWeight: 800 }}>
                           <td style={{ padding: '14px 16px', color: '#047857' }}>{isRtl ? 'وفر الميزانية عند الاكتمال (VAC = الميزانية - EAC)' : 'Variance at Completion (VAC = Budget - EAC)'}</td>
                           <td style={{ padding: '14px 16px', fontFamily: 'monospace', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#047857' }}>
                             {vacVal >= 0 ? '+' : ''}{formatWithCurrency(vacVal)}
@@ -725,7 +725,7 @@ export const FinancialControlCenterView: React.FC = () => {
                     <Badge variant="accent">AT-066 EAC INVARIANT</Badge>
                     <Badge variant="success">MATHEMATICAL PARITY ENFORCED</Badge>
                   </div>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                     Demonstrating zero double-counting: when 10,000 QAR converts from accrued unbilled cost to posted supplier invoice, EAC remains exactly invariant at 90,000 QAR.
                   </p>
                 </div>
@@ -742,7 +742,7 @@ export const FinancialControlCenterView: React.FC = () => {
               </div>
 
               {/* Formula & Live Invariant Visualizer */}
-              <div style={{ backgroundColor: '#0f172a', borderRadius: '8px', padding: '16px 20px', color: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ backgroundColor: 'var(--text-primary, #f8fafc)', borderRadius: '8px', padding: '16px 20px', color: 'var(--surface-2, #151e2e)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                   <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>EAC Governing Formula</div>
                   <div style={{ fontSize: '16px', fontWeight: 800, marginTop: '4px', fontFamily: 'monospace' }}>
@@ -760,45 +760,45 @@ export const FinancialControlCenterView: React.FC = () => {
 
               {/* 4 Cost Buckets Breakdown */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: isAccrualConverted ? '#f0fdf4' : '#ffffff', border: `1px solid ${isAccrualConverted ? '#86efac' : '#e2e8f0'}` }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>1. Posted Actuals</div>
-                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: isAccrualConverted ? '#f0fdf4' : 'var(--surface-1, #0f1624)', border: `1px solid ${isAccrualConverted ? '#86efac' : 'var(--border-default, #2a374b)'}` }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700, textTransform: 'uppercase' }}>1. Posted Actuals</div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>
                     {isAccrualConverted ? '50,000' : '40,000'} QAR
                   </div>
-                  <div style={{ fontSize: '11px', color: isAccrualConverted ? '#15803d' : '#64748b' }}>
+                  <div style={{ fontSize: '11px', color: isAccrualConverted ? '#15803d' : 'var(--text-muted, #94a3b8)' }}>
                     {isAccrualConverted ? '▲ +10,000 QAR (Invoice Posted)' : 'Initial Posted Invoices'}
                   </div>
                 </div>
 
-                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: isAccrualConverted ? '#fefce8' : '#ffffff', border: `1px solid ${isAccrualConverted ? '#fef08a' : '#e2e8f0'}` }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>2. Accepted Accruals</div>
-                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: isAccrualConverted ? '#fefce8' : 'var(--surface-1, #0f1624)', border: `1px solid ${isAccrualConverted ? '#fef08a' : 'var(--border-default, #2a374b)'}` }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700, textTransform: 'uppercase' }}>2. Accepted Accruals</div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>
                     {isAccrualConverted ? '10,000' : '20,000'} QAR
                   </div>
-                  <div style={{ fontSize: '11px', color: isAccrualConverted ? '#b45309' : '#64748b' }}>
+                  <div style={{ fontSize: '11px', color: isAccrualConverted ? '#b45309' : 'var(--text-muted, #94a3b8)' }}>
                     {isAccrualConverted ? '▼ -10,000 QAR (Converted to Actual)' : 'Unbilled Accepted Cost'}
                   </div>
                 </div>
 
-                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>3. Remaining Commitments</div>
-                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700, textTransform: 'uppercase' }}>3. Remaining Commitments</div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>
                     20,000 QAR
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b' }}>Open Purchase Orders</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Open Purchase Orders</div>
                 </div>
 
-                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>4. Estimate to Complete (ETC)</div>
-                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700, textTransform: 'uppercase' }}>4. Estimate to Complete (ETC)</div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>
                     10,000 QAR
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b' }}>Uncommitted Forecast</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Uncommitted Forecast</div>
                 </div>
               </div>
 
               {/* Status Alert Banner */}
-              <div style={{ padding: '12px 16px', borderRadius: '6px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: '12px', color: '#166534', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ padding: '12px 16px', borderRadius: '6px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', fontSize: '12px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span>✓</span>
                 <div>
                   <strong>Zero Double-Counting Invariant Verified:</strong> Converting an accrual to a posted invoice shifts value from bucket #2 to bucket #1 with zero change to EAC (ΔEAC = 0 QAR). No costs are double-counted.
@@ -810,14 +810,14 @@ export const FinancialControlCenterView: React.FC = () => {
           {/* External ERP / Ledger Quarantine Matrix (AT-068) */}
           <Card title="Accounting Ledger Quarantine & Rejection Gate (AT-068)">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '13px', color: '#64748b' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                 Invoices rejected or quarantined by the corporate ERP ledger (SAP / Oracle) are quarantined with clear statutory error codes and strictly prohibited from payment disbursement until reconciled.
               </div>
 
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                    <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                       <th style={{ padding: '10px 12px' }}>Invoice Ref</th>
                       <th style={{ padding: '10px 12px' }}>Supplier Name</th>
                       <th style={{ padding: '10px 12px' }}>Invoice Amount</th>
@@ -827,42 +827,42 @@ export const FinancialControlCenterView: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#fff1f2' }}>
-                      <td style={{ padding: '12px', fontWeight: 700, color: '#991b1b' }}>INV-QA-2026-901</td>
+                    <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', backgroundColor: '#fff1f2' }}>
+                      <td style={{ padding: '12px', fontWeight: 700, color: '#f87171' }}>INV-QA-2026-901</td>
                       <td style={{ padding: '12px' }}>Gulf Heavy Transport WLL</td>
                       <td style={{ padding: '12px', fontWeight: 800 }}>34,500 QAR</td>
                       <td style={{ padding: '12px' }}>
                         <Badge variant="danger">quarantined_by_ledger</Badge>
                       </td>
-                      <td style={{ padding: '12px', color: '#991b1b' }}>
+                      <td style={{ padding: '12px', color: '#f87171' }}>
                         SAP GL account 60210 locked for fiscal period close
                       </td>
                       <td style={{ padding: '12px' }}>
                         <strong style={{ color: '#dc2626', fontSize: '12px' }}>🛑 PAYMENT BLOCKED (AT-068)</strong>
                       </td>
                     </tr>
-                    <tr style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#fffbeb' }}>
+                    <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', backgroundColor: 'rgba(245, 158, 11, 0.12)' }}>
                       <td style={{ padding: '12px', fontWeight: 700 }}>INV-QA-2026-902</td>
                       <td style={{ padding: '12px' }}>Al-Mana Sound & Lighting</td>
                       <td style={{ padding: '12px', fontWeight: 800 }}>28,000 QAR</td>
                       <td style={{ padding: '12px' }}>
                         <Badge variant="warning">awaiting_ledger_clearance</Badge>
                       </td>
-                      <td style={{ padding: '12px', color: '#92400e' }}>
+                      <td style={{ padding: '12px', color: '#f59e0b' }}>
                         Bank routing code verification pending at treasury
                       </td>
                       <td style={{ padding: '12px' }}>
                         <span style={{ color: '#b45309', fontWeight: 600 }}>⏳ HELD PENDING CLEARANCE</span>
                       </td>
                     </tr>
-                    <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                       <td style={{ padding: '12px', fontWeight: 700 }}>INV-QA-2026-903</td>
                       <td style={{ padding: '12px' }}>Doha Scenic Fabrication</td>
                       <td style={{ padding: '12px', fontWeight: 800 }}>66,000 QAR</td>
                       <td style={{ padding: '12px' }}>
                         <Badge variant="success">posted_to_ledger</Badge>
                       </td>
-                      <td style={{ padding: '12px', color: '#64748b' }}>
+                      <td style={{ padding: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         Three-way match verified (GRN-QA-2026-089)
                       </td>
                       <td style={{ padding: '12px' }}>
@@ -883,13 +883,13 @@ export const FinancialControlCenterView: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#64748b' }}>
+                <p style={{ margin: '0 0 4px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                   Audited scope adjustments, client variation instructions, contractor buy-cost impacts, and authorized sell additions.
                 </p>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <Badge variant="success">ISO 20121 Governed</Badge>
                   <Badge variant="info">Zero Double-Counting Invariant Active</Badge>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     Active Currency: <strong style={{ color: '#2563eb' }}>{activeCurrency.code} ({activeCurrency.label})</strong>
                   </span>
                 </div>
@@ -923,38 +923,38 @@ export const FinancialControlCenterView: React.FC = () => {
 
               return (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
-                  <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Total Approved Variations</div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '2px 0' }}>{approvedVariations.length} VOs</div>
+                  <div style={{ padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700, textTransform: 'uppercase' }}>Total Approved Variations</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '2px 0' }}>{approvedVariations.length} VOs</div>
                     <div style={{ fontSize: '11px', color: '#059669' }}>100% Contractually Sealed ({variations.length} Total Logged)</div>
                   </div>
 
-                  <div style={{ padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
-                    <div style={{ fontSize: '11px', color: '#166534', fontWeight: 700, textTransform: 'uppercase' }}>Approved Sell Price Addition</div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#15803d', margin: '2px 0' }}>
+                  <div style={{ padding: '12px', backgroundColor: 'rgba(34, 197, 94, 0.12)', borderRadius: '6px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                    <div style={{ fontSize: '11px', color: '#22c55e', fontWeight: 700, textTransform: 'uppercase' }}>Approved Sell Price Addition</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#4ade80', margin: '2px 0' }}>
                       +{formatWithCurrency(approvedSell)}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#166534' }}>
+                    <div style={{ fontSize: '11px', color: '#22c55e' }}>
                       Base: +{approvedSell.toLocaleString()} QAR
                     </div>
                   </div>
 
-                  <div style={{ padding: '12px', backgroundColor: '#eff6ff', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
-                    <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: 700, textTransform: 'uppercase' }}>Approved Contractor Buy Cost</div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#1d4ed8', margin: '2px 0' }}>
+                  <div style={{ padding: '12px', backgroundColor: 'rgba(59, 130, 246, 0.12)', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+                    <div style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase' }}>Approved Contractor Buy Cost</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#60a5fa', margin: '2px 0' }}>
                       +{formatWithCurrency(approvedCost)}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#1e40af' }}>
+                    <div style={{ fontSize: '11px', color: '#60a5fa' }}>
                       Base: +{approvedCost.toLocaleString()} QAR
                     </div>
                   </div>
 
-                  <div style={{ padding: '12px', backgroundColor: '#fefce8', borderRadius: '6px', border: '1px solid #fef08a' }}>
-                    <div style={{ fontSize: '11px', color: '#854d0e', fontWeight: 700, textTransform: 'uppercase' }}>Blended Gross Margin</div>
+                  <div style={{ padding: '12px', backgroundColor: 'rgba(245, 158, 11, 0.12)', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                    <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 700, textTransform: 'uppercase' }}>Blended Gross Margin</div>
                     <div style={{ fontSize: '20px', fontWeight: 800, color: '#a16207', margin: '2px 0' }}>
                       {approvedMarginPct}%
                     </div>
-                    <div style={{ fontSize: '11px', color: '#854d0e' }}>
+                    <div style={{ fontSize: '11px', color: '#fbbf24' }}>
                       Net Margin: +{formatWithCurrency(approvedNetMargin)}
                     </div>
                   </div>
@@ -966,7 +966,7 @@ export const FinancialControlCenterView: React.FC = () => {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', minWidth: '950px', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                     <th style={{ padding: '10px 12px', fontWeight: 700 }}>VO Code</th>
                     <th style={{ padding: '10px 12px', fontWeight: 700 }}>Scope Description</th>
                     <th style={{ padding: '10px 12px', fontWeight: 700 }}>Category</th>
@@ -984,13 +984,13 @@ export const FinancialControlCenterView: React.FC = () => {
                     const margin = vo.clientSellQar > 0 ? (((profit) / vo.clientSellQar) * 100).toFixed(1) : '0.0';
 
                     return (
-                      <tr key={vo.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <tr key={vo.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                         <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#2563eb' }}>
                           {vo.code}
                         </td>
                         <td style={{ padding: '12px' }}>
-                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{vo.title}</div>
-                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{vo.notes}</div>
+                          <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{vo.title}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>{vo.notes}</div>
                         </td>
                         <td style={{ padding: '12px' }}>
                           <span
@@ -999,8 +999,8 @@ export const FinancialControlCenterView: React.FC = () => {
                               fontWeight: 700,
                               padding: '2px 6px',
                               borderRadius: '4px',
-                              backgroundColor: '#f1f5f9',
-                              color: '#334155',
+                              backgroundColor: 'var(--surface-2, #151e2e)',
+                              color: 'var(--text-secondary, #cbd5e1)',
                               textTransform: 'uppercase',
                             }}
                           >
@@ -1012,7 +1012,7 @@ export const FinancialControlCenterView: React.FC = () => {
                             {vo.status === 'approved' ? 'Client Signed' : vo.status === 'implemented' ? 'Delivered' : 'Client Review'}
                           </Badge>
                         </td>
-                        <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', color: '#64748b' }}>
+                        <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', color: 'var(--text-muted, #94a3b8)' }}>
                           {Math.round(vo.contractorCostQar * activeCurrency.rate).toLocaleString()}
                           {selectedCurrency !== 'QAR' && (
                             <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8' }}>
@@ -1033,11 +1033,11 @@ export const FinancialControlCenterView: React.FC = () => {
                             {margin}%
                           </Badge>
                         </td>
-                        <td style={{ padding: '12px', fontSize: '11px', color: '#334155' }}>
+                        <td style={{ padding: '12px', fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>
                           <div>{vo.authorizedBy}</div>
-                          <div style={{ color: '#64748b', fontSize: '10px' }}>{vo.approvedDate}</div>
+                          <div style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '10px' }}>{vo.approvedDate}</div>
                         </td>
-                        <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '10px', color: '#64748b' }}>
+                        <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>
                           {vo.hash}
                         </td>
                       </tr>
@@ -1053,7 +1053,7 @@ export const FinancialControlCenterView: React.FC = () => {
       {/* TAB 3: Margin Bridge Waterfall */}
       {activeTab === 'bridge' && (
         <Card title={isRtl ? 'مخطط جسر الهامش الربحي — من العطاء حتى التوقع النهائي' : 'Margin Bridge Waterfall — Tender to Final Forecast Completion'}>
-          <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#64748b' }}>
+          <p style={{ margin: '0 0 20px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             {isRtl
               ? 'تسوية تجارية تفصيلية تتبع أداء الهامش الربحي بدءاً من تقديم العطاء وحتى أوامر التغيير وتحسينات المشتريات.'
               : 'Detailed reconciliation tracing commercial margin performance from initial tender submission through approved variations and procurement optimizations.'}
@@ -1064,8 +1064,8 @@ export const FinancialControlCenterView: React.FC = () => {
               <div
                 key={idx}
                 style={{
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '8px',
                   padding: '16px 20px',
                   display: 'flex',
@@ -1076,20 +1076,20 @@ export const FinancialControlCenterView: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0f172a', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '13px' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--text-primary, #f8fafc)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '13px' }}>
                     {idx + 1}
                   </div>
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>{step.step}</h4>
-                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
-                      {isRtl ? 'الإيراد:' : 'Revenue:'} <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#334155' }}>{formatCurrency(step.revenue, 'QAR')}</span> | {isRtl ? 'التكلفة:' : 'Cost:'} <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#334155' }}>{formatCurrency(step.cost, 'QAR')}</span>
+                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{step.step}</h4>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
+                      {isRtl ? 'الإيراد:' : 'Revenue:'} <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>{formatCurrency(step.revenue, 'QAR')}</span> | {isRtl ? 'التكلفة:' : 'Cost:'} <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>{formatCurrency(step.cost, 'QAR')}</span>
                     </p>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '11px', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>{isRtl ? 'إجمالي الهامش' : 'Gross Margin'}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'block', textTransform: 'uppercase' }}>{isRtl ? 'إجمالي الهامش' : 'Gross Margin'}</span>
                     <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#059669', fontSize: '16px' }}>{formatCurrency(step.margin, 'QAR')}</span>
                   </div>
                   <Badge variant={step.marginPercent?.includes('26') ? 'success' : 'neutral'}>
@@ -1122,24 +1122,24 @@ export const FinancialControlCenterView: React.FC = () => {
             <Card title={isRtl ? 'سجل مستحقات العميل' : 'Client Receivables Ledger'}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: '#64748b' }}>{isRtl ? 'إجمالي قيمة العقد:' : 'Total Contract Value:'}</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0f172a' }}>{formatCurrency(contractVal, 'QAR')}</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'إجمالي قيمة العقد:' : 'Total Contract Value:'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{formatCurrency(contractVal, 'QAR')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: '#64748b' }}>{isRtl ? 'إجمالي المفوتر حتى الآن:' : 'Total Billed to Date:'}</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'إجمالي المفوتر حتى الآن:' : 'Total Billed to Date:'}</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#d97706' }}>{formatCurrency(billedAmt, 'QAR')} ({billedPct})</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: '#64748b' }}>{isRtl ? 'إجمالي النقد المحصل:' : 'Total Cash Collected:'}</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'إجمالي النقد المحصل:' : 'Total Cash Collected:'}</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#059669' }}>{formatCurrency(collectedAmt, 'QAR')} ({collectedPct})</span>
                 </div>
-                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
+                <div style={{ borderTop: '1px solid var(--border-default, #2a374b)', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
                   <span style={{ color: '#dc2626' }}>{isRtl ? 'المستحقات المفتوحة (مفوترة غير محصلة):' : 'Open Receivables (Billed Uncollected):'}</span>
                   <span style={{ fontFamily: 'monospace', color: '#dc2626' }}>{formatCurrency(openReceivables, 'QAR')}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#64748b' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                   <span>{isRtl ? 'قيمة العقد غير المفوترة بعد:' : 'Unbilled Contract Value:'}</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#475569' }}>{formatCurrency(unbilledContractAmount, 'QAR')}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>{formatCurrency(unbilledContractAmount, 'QAR')}</span>
                 </div>
               </div>
             </Card>
@@ -1147,16 +1147,16 @@ export const FinancialControlCenterView: React.FC = () => {
             <Card title={isRtl ? 'التزامات الموردين وتدفقات التكلفة' : 'Supplier Commitments & Cost Outflow'}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: '#64748b' }}>{isRtl ? 'المدفوع والفعلي المعتمد:' : 'Posted Actual Paid/Approved:'}</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0f172a' }}>{formatCurrency(postedActual, 'QAR')}</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'المدفوع والفعلي المعتمد:' : 'Posted Actual Paid/Approved:'}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{formatCurrency(postedActual, 'QAR')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: '#64748b' }}>{isRtl ? 'التزامات أوامر الشراء النشطة:' : 'Active PO Commitments:'}</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'التزامات أوامر الشراء النشطة:' : 'Active PO Commitments:'}</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#d97706' }}>{formatCurrency(activeCommitments, 'QAR')}</span>
                 </div>
-                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
-                  <span style={{ color: '#334155' }}>{isRtl ? 'إجمالي التدفقات الخارجة والالتزامات:' : 'Total Outflow & Liability:'}</span>
-                  <span style={{ fontFamily: 'monospace', color: '#0f172a' }}>{formatCurrency(totalOutflow, 'QAR')}</span>
+                <div style={{ borderTop: '1px solid var(--border-default, #2a374b)', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
+                  <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'إجمالي التدفقات الخارجة والالتزامات:' : 'Total Outflow & Liability:'}</span>
+                  <span style={{ fontFamily: 'monospace', color: 'var(--text-primary, #f8fafc)' }}>{formatCurrency(totalOutflow, 'QAR')}</span>
                 </div>
               </div>
             </Card>
@@ -1164,13 +1164,13 @@ export const FinancialControlCenterView: React.FC = () => {
             <Card title={isRtl ? 'صافي السيولة ومؤشر التعرض' : 'Net Cash & Exposure Index'}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: '#64748b' }}>{isRtl ? 'صافي التدفق النقدي:' : 'Net Cash Flow:'}</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'صافي التدفق النقدي:' : 'Net Cash Flow:'}</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: netCash >= 0 ? '#059669' : '#dc2626' }}>
                     {netCash >= 0 ? '+' : ''}{formatCurrency(netCash, 'QAR')}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: '#64748b' }}>{isRtl ? 'صافي التعرض المالي (مع أوامر الشراء):' : 'Net Exposure (incl. POs):'}</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'صافي التعرض المالي (مع أوامر الشراء):' : 'Net Exposure (incl. POs):'}</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: netExposure >= 0 ? '#059669' : '#dc2626' }}>
                     {netExposure >= 0 ? '+' : ''}{formatCurrency(netExposure, 'QAR')}
                   </span>
@@ -1196,46 +1196,46 @@ export const FinancialControlCenterView: React.FC = () => {
               <div
                 key={snap.id}
                 style={{
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '8px',
                   padding: '16px 20px',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid var(--border-default, #2a374b)', paddingBottom: '10px', marginBottom: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Badge variant="success">{isRtl ? 'فترة مقفلة:' : 'LOCKED PERIOD:'} {snap.periodKey}</Badge>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>ID: {snap.id}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>ID: {snap.id}</span>
                   </div>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                     {isRtl ? 'أقفل بواسطة:' : 'Locked By:'} {snap.lockedBy} on {new Date(snap.lockedAt).toLocaleDateString()}
                   </span>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', fontSize: '12px', marginBottom: '12px' }}>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'الميزانية الحالية:' : 'Current Budget:'}</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>{formatCurrency(snap.currentBudget, 'QAR')}</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px' }}>{isRtl ? 'الميزانية الحالية:' : 'Current Budget:'}</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{formatCurrency(snap.currentBudget, 'QAR')}</span>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'التكلفة الفعلية المنفقة:' : 'Actual Cost:'}</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>{formatCurrency(snap.actualCost, 'QAR')}</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px' }}>{isRtl ? 'التكلفة الفعلية المنفقة:' : 'Actual Cost:'}</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{formatCurrency(snap.actualCost, 'QAR')}</span>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'التكلفة المقدرة (EAC):' : 'Estimate at Completion (EAC):'}</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px' }}>{isRtl ? 'التكلفة المقدرة (EAC):' : 'Estimate at Completion (EAC):'}</span>
                     <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{formatCurrency(snap.eac, 'QAR')}</span>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'وفر الميزانية (VAC):' : 'Budget Variance (VAC):'}</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px' }}>{isRtl ? 'وفر الميزانية (VAC):' : 'Budget Variance (VAC):'}</span>
                     <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#059669' }}>+{formatCurrency(snap.vac, 'QAR')}</span>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'الهامش ٪:' : 'Margin %:'}</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px' }}>{isRtl ? 'الهامش ٪:' : 'Margin %:'}</span>
                     <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#059669' }}>{snap.marginPercent}</span>
                   </div>
                 </div>
 
-                <div style={{ backgroundColor: '#090d16', padding: '8px 12px', borderRadius: '4px', border: '1px solid #1e293b', fontSize: '11px', fontFamily: 'monospace', color: '#94a3b8', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ backgroundColor: 'var(--canvas, #090d16)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-subtle, #1d2939)', fontSize: '11px', fontFamily: 'monospace', color: '#94a3b8', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <span>SHA-256: {snap.snapshotHash}</span>
                   <span style={{ color: '#34d399', fontWeight: 600 }}>✓ {isRtl ? 'مغلق تشفيرياً ومحمي من التعديل' : 'Cryptographically Sealed'}</span>
                 </div>
@@ -1253,24 +1253,24 @@ export const FinancialControlCenterView: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '20px' }}>📑</span>
-                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                     Financial Batch Ingest & Expense Allocation Gates (AT-067 / AT-070)
                   </h3>
                   <Badge variant="info">INVARIANT AT-067 ACTIVE</Badge>
                   <Badge variant="success">INVARIANT AT-070 ACTIVE</Badge>
                 </div>
-                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
                   Prevents duplicate financial source file ingest via unique SHA-256 fingerprinting (AT-067), and enforces strict line-allocation ceiling invariants preventing expense inflation (AT-070).
                 </p>
               </div>
             </div>
 
             {/* Invariant 1: Source File Deduplication (AT-067) */}
-            <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '16px' }}>🛡️</span>
-                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                     1. Bank / ERP Source File Ingest Deduplication Gate (AT-067)
                   </h4>
                 </div>
@@ -1282,49 +1282,49 @@ export const FinancialControlCenterView: React.FC = () => {
                   {duplicateImportAttempted ? 'Reset Import Simulator' : 'Simulate Duplicate File Ingest'}
                 </Button>
               </div>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 Under AT-067, importing an identical source statement twice is detected via file checksum and transaction references, strictly preventing duplicate cash movements or GL postings.
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>SOURCE BATCH FILE</div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+                <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>SOURCE BATCH FILE</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                     QNB_Corp_Settlements_20260914.xml
                   </div>
-                  <div style={{ fontSize: '10px', color: '#64748b' }}>Format: ISO 20022 CAMT.053</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>Format: ISO 20022 CAMT.053</div>
                 </div>
 
-                <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>FIRST INGESTION STATUS</div>
+                <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>FIRST INGESTION STATUS</div>
                   <div style={{ fontSize: '13px', fontWeight: 700, color: '#059669', marginTop: '2px' }}>
                     COMMITTED (Batch #QA-0992)
                   </div>
                   <div style={{ fontSize: '10px', color: '#059669' }}>32 entries (+450,000 QAR)</div>
                 </div>
 
-                <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>CRYPTOGRAPHIC FILE SHA-256</div>
+                <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>CRYPTOGRAPHIC FILE SHA-256</div>
                   <div style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: '#2563eb', marginTop: '2px' }}>
                     e3b0c44298fc1c...7852b855
                   </div>
-                  <div style={{ fontSize: '10px', color: '#64748b' }}>Idempotency fingerprint locked</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>Idempotency fingerprint locked</div>
                 </div>
               </div>
 
               {duplicateImportAttempted && (
-                <div style={{ padding: '12px 16px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '6px', color: '#991b1b', fontSize: '12px', fontWeight: 700 }}>
+                <div style={{ padding: '12px 16px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', color: '#f87171', fontSize: '12px', fontWeight: 700 }}>
                   ⛔ <strong>IMPORT REJECTED — DUPLICATE SOURCE IDENTITY (AT-067):</strong> Invariant AT-067 enforced: The uploaded batch shares fingerprint e3b0...2b855 with committed Batch #QA-0992. Re-import is rejected with zero duplicate business effects. Original batch audit history preserved.
                 </div>
               )}
             </div>
 
             {/* Invariant 2: Invoice Line Expense Allocation Ceiling Check (AT-070) */}
-            <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '16px' }}>⚖️</span>
-                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                     2. Invoice Line Expense Allocation Ceiling Gate (AT-070)
                   </h4>
                 </div>
@@ -1336,39 +1336,39 @@ export const FinancialControlCenterView: React.FC = () => {
                   {allocationExceededAttempted ? 'Restore Exact Allocation Parity' : 'Simulate Line Allocation Overrun (+5,000 QAR)'}
                 </Button>
               </div>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 Under AT-070, cost allocations mapped to internal work packages cannot exceed the invoice line item total.
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>SOURCE INVOICE LINE</div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>SOURCE INVOICE LINE</div>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                     INV-2026-881 (Timber & Joinery)
                   </div>
                   <div style={{ fontSize: '11px', color: '#2563eb', fontWeight: 700 }}>Total Line Value: 100,000 QAR</div>
                 </div>
 
-                <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>PKG 1: MAIN STAGE JOINERY</div>
+                <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>PKG 1: MAIN STAGE JOINERY</div>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
                     60,000 QAR (60.0%)
                   </div>
-                  <div style={{ fontSize: '10px', color: '#64748b' }}>Valid cost allocation</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>Valid cost allocation</div>
                 </div>
 
-                <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>PKG 2: AUDITORIUM FINISHES</div>
+                <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>PKG 2: AUDITORIUM FINISHES</div>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: allocationExceededAttempted ? '#dc2626' : '#059669', marginTop: '2px' }}>
                     {allocationExceededAttempted ? '45,000 QAR (Overrun)' : '40,000 QAR (40.0%)'}
                   </div>
-                  <div style={{ fontSize: '10px', color: allocationExceededAttempted ? '#dc2626' : '#64748b' }}>
+                  <div style={{ fontSize: '10px', color: allocationExceededAttempted ? '#dc2626' : 'var(--text-muted, #94a3b8)' }}>
                     {allocationExceededAttempted ? '+5,000 QAR excess allocation' : 'Valid cost allocation'}
                   </div>
                 </div>
 
-                <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>TOTAL ALLOCATIONS</div>
+                <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>TOTAL ALLOCATIONS</div>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: allocationExceededAttempted ? '#dc2626' : '#059669', marginTop: '2px' }}>
                     {allocationExceededAttempted ? '105,000 QAR' : '100,000 QAR'}
                   </div>
@@ -1379,11 +1379,11 @@ export const FinancialControlCenterView: React.FC = () => {
               </div>
 
               {allocationExceededAttempted ? (
-                <div style={{ padding: '12px 16px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '6px', color: '#991b1b', fontSize: '12px', fontWeight: 700 }}>
+                <div style={{ padding: '12px 16px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', color: '#f87171', fontSize: '12px', fontWeight: 700 }}>
                   ⛔ <strong>ALLOCATION CEILING EXCEEDED (AT-070):</strong> Invariant AT-070 enforced: Allocation sum (105,000 QAR) exceeds source invoice total (100,000 QAR) by +5,000 QAR. Allocation transaction is rejected with zero expense duplication.
                 </div>
               ) : (
-                <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', color: '#166534', fontSize: '12px', fontWeight: 700 }}>
+                <div style={{ padding: '12px 16px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px', color: '#22c55e', fontSize: '12px', fontWeight: 700 }}>
                   ✓ <strong>ALLOCATION CEILING INVARIANT SATISFIED (AT-070):</strong> Total allocations match source invoice exactly (100,000 QAR = 60,000 QAR + 40,000 QAR). No duplicate source expense created.
                 </div>
               )}
@@ -1399,7 +1399,7 @@ export const FinancialControlCenterView: React.FC = () => {
         title={isRtl ? 'إقفال اللقطة المحاسبية التجارية للشهر' : 'Lock Month-End Period Commercial Snapshot'}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5 }}>
             {isRtl
               ? 'إقفال الفترة المحاسبية يقوم بختم سجل الرقابة المالية للمشروع برمز تجزئة SHA-256 دقيق وغير قابل للتغيير. لا يمكن إجراء أي تعديلات بأثر رجعي دون إنشاء إشعار دائن أو قيد تسوية مدقق.'
               : 'Locking an accounting period seals the project commercial control ledger with a deterministic SHA-256 hash. No backward alterations can be made without creating an audited credit note or explicit adjustment entry.'}
@@ -1451,7 +1451,7 @@ export const FinancialControlCenterView: React.FC = () => {
               <select
                 value={newVoCategory}
                 onChange={(e) => setNewVoCategory(e.target.value as any)}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
               >
                 <option value="client_request">Client Request (Amiri Diwan / Organiser)</option>
                 <option value="site_condition">Site Condition (Venue / Access / Wind)</option>
@@ -1482,7 +1482,7 @@ export const FinancialControlCenterView: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ padding: '8px 12px', backgroundColor: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0', fontSize: '11px', color: '#166534' }}>
+            <div style={{ padding: '8px 12px', backgroundColor: 'rgba(34, 197, 94, 0.12)', borderRadius: '6px', border: '1px solid rgba(34, 197, 94, 0.3)', fontSize: '11px', color: '#22c55e' }}>
               Projected Gross Margin: <strong>{((parseFloat(newVoSellQar) - parseFloat(newVoBuyQar)) / (parseFloat(newVoSellQar) || 1) * 100).toFixed(1)}%</strong>
               {' '}(+{formatCurrency(parseFloat(newVoSellQar) - parseFloat(newVoBuyQar) || 0, 'QAR')})
             </div>

@@ -379,9 +379,9 @@ export const ProjectCockpitView: React.FC = () => {
       {/* Cockpit Top Header */}
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           padding: '20px 24px',
           marginBottom: '20px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
@@ -392,7 +392,7 @@ export const ProjectCockpitView: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
               <span
                 id="cockpit-project-code"
-                style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 800, color: '#d97706', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: '4px' }}
+                style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 800, color: '#d97706', backgroundColor: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '2px 8px', borderRadius: '4px' }}
               >
                 {projectCode}
               </span>
@@ -401,9 +401,9 @@ export const ProjectCockpitView: React.FC = () => {
                 <span
                   id="cockpit-incomplete-badge"
                   style={{
-                    backgroundColor: '#fffbeb',
+                    backgroundColor: 'rgba(245, 158, 11, 0.12)',
                     color: '#b45309',
-                    border: '1px solid #fde68a',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
                     fontWeight: 800,
                     fontSize: '11px',
                     padding: '2px 8px',
@@ -415,14 +415,14 @@ export const ProjectCockpitView: React.FC = () => {
                 </span>
               )}
               <Badge variant="neutral">{cockpitData?.maturity || 'delivery'}</Badge>
-              <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700 }}>
-                ● Doha Cell (me-central1)
+              <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 700 }}>
+                ● {isRtl ? 'النظام مباشر' : 'Live System Online'}
               </span>
             </div>
-            <h1 id="cockpit-project-title" style={{ margin: '0 0 6px', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 id="cockpit-project-title" style={{ margin: '0 0 6px', fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {projectTitle}
             </h1>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px', color: '#64748b' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
               <span>🏢 Client: <strong>{clientName}</strong></span>
               <span>📍 {isRtl ? 'المكان:' : 'Venue:'} <strong>{venue}</strong></span>
               <span>👤 {isRtl ? 'مدير المشروع:' : 'Lead PM:'} <strong>{pmLeadName}</strong></span>
@@ -447,7 +447,7 @@ export const ProjectCockpitView: React.FC = () => {
             >
               + {isRtl ? 'مهمة جديدة' : 'Task'}
             </Button>
-            <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--surface-inset, #0b111d)', border: '1px solid var(--border-default, #2a374b)', padding: '3px', borderRadius: '6px', flexWrap: 'wrap' }}>
               <Button
                 id="cockpit-lineage-btn"
                 variant="ghost"
@@ -508,12 +508,12 @@ export const ProjectCockpitView: React.FC = () => {
       {isMobile && (
         <div
           style={{
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--surface-1, #0f1624)',
             borderRadius: '8px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-default, #2a374b)',
             padding: '12px 14px',
             marginBottom: '14px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           }}
         >
           <label
@@ -522,7 +522,7 @@ export const ProjectCockpitView: React.FC = () => {
               display: 'block',
               fontSize: '11px',
               fontWeight: 700,
-              color: '#64748b',
+              color: 'var(--text-muted, #94a3b8)',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
               marginBottom: '6px',
@@ -545,9 +545,9 @@ export const ProjectCockpitView: React.FC = () => {
               fontSize: '13px',
               fontWeight: 700,
               borderRadius: '6px',
-              border: '1.5px solid #d97706',
-              backgroundColor: '#fffbeb',
-              color: '#92400e',
+              border: '1.5px solid var(--accent, #d97706)',
+              backgroundColor: 'var(--surface-inset, #0b111d)',
+              color: 'var(--text-primary, #f8fafc)',
               outline: 'none',
               cursor: 'pointer',
               boxSizing: 'border-box',
@@ -578,7 +578,7 @@ export const ProjectCockpitView: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          borderBottom: '2px solid #e2e8f0',
+          borderBottom: '2px solid var(--border-default, #2a374b)',
           marginBottom: '20px',
           paddingBottom: '2px',
         }}
@@ -599,10 +599,10 @@ export const ProjectCockpitView: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#f1f5f9',
-              border: '1px solid #cbd5e1',
+              backgroundColor: 'var(--surface-2, #151e2e)',
+              border: '1px solid var(--border-default, #2a374b)',
               borderRadius: '4px',
-              color: '#334155',
+              color: 'var(--text-secondary, #cbd5e1)',
               fontWeight: 800,
               fontSize: '16px',
               cursor: 'pointer',
@@ -654,9 +654,9 @@ export const ProjectCockpitView: React.FC = () => {
                   fontSize: '13px',
                   fontWeight: isActive ? 700 : 600,
                   border: 'none',
-                  borderBottom: isActive ? '3px solid #d97706' : '3px solid transparent',
-                  backgroundColor: isActive ? '#fffbeb' : 'transparent',
-                  color: isActive ? '#92400e' : '#64748b',
+                  borderBottom: isActive ? '2px solid var(--accent, #d97706)' : '2px solid transparent',
+                  backgroundColor: isActive ? 'var(--accent-soft, rgba(217,119,6,0.14))' : 'transparent',
+                  color: isActive ? 'var(--text-primary, #f8fafc)' : 'var(--text-muted, #94a3b8)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -671,8 +671,8 @@ export const ProjectCockpitView: React.FC = () => {
                   <span
                     style={{
                       fontSize: '11px',
-                      backgroundColor: isActive ? '#fef3c7' : '#f1f5f9',
-                      color: isActive ? '#78350f' : '#475569',
+                      backgroundColor: isActive ? 'rgba(217,119,6,0.25)' : 'var(--surface-3, #1b2638)',
+                      color: isActive ? 'var(--accent-hover, #f59e0b)' : 'var(--text-muted, #94a3b8)',
                       padding: '1px 6px',
                       borderRadius: '10px',
                       fontWeight: 700,
@@ -702,10 +702,10 @@ export const ProjectCockpitView: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#f1f5f9',
-              border: '1px solid #cbd5e1',
+              backgroundColor: 'var(--surface-2, #151e2e)',
+              border: '1px solid var(--border-default, #2a374b)',
               borderRadius: '4px',
-              color: '#334155',
+              color: 'var(--text-secondary, #cbd5e1)',
               fontWeight: 800,
               fontSize: '16px',
               cursor: 'pointer',
@@ -734,9 +734,9 @@ export const ProjectCockpitView: React.FC = () => {
                 fontSize: '12px',
                 fontWeight: 600,
                 borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#f8fafc',
-                color: '#1e293b',
+                border: '1px solid var(--border-default, #2a374b)',
+                backgroundColor: 'var(--surface-inset, #0b111d)',
+                color: 'var(--text-primary, #f8fafc)',
                 cursor: 'pointer',
               }}
               title={isRtl ? 'الانتقال السريع إلى أي وحدة عمل' : 'Quick Jump to Any Workstream'}
@@ -828,7 +828,7 @@ export const ProjectCockpitView: React.FC = () => {
         <div
           id="cockpit-incomplete-banner"
           style={{
-            backgroundColor: '#fffbeb',
+            backgroundColor: 'rgba(245, 158, 11, 0.12)',
             border: '1.5px solid #fde68a',
             borderRadius: '8px',
             padding: '14px 20px',
@@ -843,7 +843,7 @@ export const ProjectCockpitView: React.FC = () => {
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400e', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase' }}>
                 ⚠️ FAST-TRACK INTAKE: ONBOARDING INCOMPLETE ({onboardingPct}% Complete)
               </span>
               <Badge variant="warning" size="sm">Action Required</Badge>
@@ -869,7 +869,7 @@ export const ProjectCockpitView: React.FC = () => {
         <div
           id="cockpit-rejection-banner"
           style={{
-            backgroundColor: '#fef2f2',
+            backgroundColor: 'rgba(239, 68, 68, 0.12)',
             border: '1.5px solid #f87171',
             borderRadius: '8px',
             padding: '16px 20px',
@@ -880,7 +880,7 @@ export const ProjectCockpitView: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
             <div style={{ flex: 1, minWidth: '280px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#991b1b', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#f87171', textTransform: 'uppercase' }}>
                   🚨 APPROVAL REJECTED — REWORK REQUIRED
                 </span>
                 <Badge variant="danger" size="sm">{rejectedApproval.requiredRole?.toUpperCase() || 'EXECUTIVE'}</Badge>
@@ -894,17 +894,17 @@ export const ProjectCockpitView: React.FC = () => {
                   style={{
                     marginTop: '8px',
                     fontSize: '12px',
-                    color: '#991b1b',
-                    backgroundColor: '#fee2e2',
+                    color: '#f87171',
+                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    border: '1px solid #fca5a5',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
                   }}
                 >
                   <strong>Reviewer Feedback:</strong> "{rejectedApproval.comment}"
                 </div>
               )}
-              <div style={{ fontSize: '11px', color: '#b91c1c', marginTop: '6px' }}>
+              <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px' }}>
                 🔒 Governance invariant POL-GOV-02: Workstream advancement blocked until revisions are resubmitted.
               </div>
             </div>
@@ -957,13 +957,13 @@ export const ProjectCockpitView: React.FC = () => {
           title="Committed Cost"
           value={committedCost !== null ? formatCurrency(committedCost, 'QAR') : 'To Be Confirmed'}
           subtitle="Contracted POs & Orders"
-          accentColor="#64748b"
+          accentColor="var(--border-strong, #475467)"
         />
         <MetricCard
           title="Actual Cost"
           value={actualCost !== null ? formatCurrency(actualCost, 'QAR') : formatCurrency(0, 'QAR')}
           subtitle="Invoiced / Spent to Date"
-          accentColor="#0f172a"
+          accentColor="var(--accent, #d97706)"
         />
         <MetricCard
           title="Forecast to Complete"
@@ -993,9 +993,9 @@ export const ProjectCockpitView: React.FC = () => {
       <div
         id="cockpit-cash-position-card"
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           padding: '16px 20px',
           marginBottom: '20px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
@@ -1003,12 +1003,12 @@ export const ProjectCockpitView: React.FC = () => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+            <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               💵 CASH POSITION & LIQUIDITY
             </span>
             <Badge variant="neutral" size="sm">Treasury & Working Capital</Badge>
           </div>
-          <span style={{ fontSize: '11px', color: '#64748b' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
             Live currency: <strong>QAR</strong> • Scoped to project account
           </span>
         </div>
@@ -1018,50 +1018,50 @@ export const ProjectCockpitView: React.FC = () => {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
             gap: '12px',
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'var(--surface-2, #151e2e)',
             padding: '12px 16px',
             borderRadius: '6px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-default, #2a374b)',
           }}
         >
           <div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Contract Value</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Contract Value</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
               {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.expectedRevenue ?? (isDemo ? 3500000 : (baselineCost || 0)), 'QAR')}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Invoiced to Client</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Invoiced to Client</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
               {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.invoiced ?? (isDemo ? 1050000 : 0), 'QAR')}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Collected (Cash In)</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Collected (Cash In)</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
               {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.collected ?? (isDemo ? 1050000 : 0), 'QAR')}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Outstanding Receivables</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Outstanding Receivables</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
               {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.receivables ?? 0, 'QAR')}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Supplier Committed</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Supplier Committed</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#d97706', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
               {isDraft ? 'Not yet available' : formatCurrency(committedCost || 0, 'QAR')}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Supplier Paid</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Supplier Paid</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
               {isDraft ? 'Not yet available' : formatCurrency(actualCost || 0, 'QAR')}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Net Cash Exposure</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Net Cash Exposure</div>
             <div style={{ fontSize: '14px', fontWeight: 800, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
               {isDraft ? 'Not yet available' : `+${formatCurrency(isDemo ? 470000 : Math.max(0, (cockpitData?.financials?.collected || 0) - (actualCost || 0)), 'QAR')}`}
             </div>
@@ -1072,22 +1072,22 @@ export const ProjectCockpitView: React.FC = () => {
       {/* Needs Attention Engine */}
       <div style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
             🚨 Needs Attention Engine
           </h3>
-          <span style={{ fontSize: '12px', color: '#64748b' }}>Automated priority evaluation</span>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Automated priority evaluation</span>
         </div>
 
         {isDemo ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
             {/* Card 1: Blocker (Red) */}
-            <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>🔴 Critical Blocker</span>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase' }}>🔴 Critical Blocker</span>
                   <Badge variant="danger" size="sm">Gate 03</Badge>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#991b1b', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#f87171', marginBottom: '4px' }}>
                   Stage 03 Executive Gate Sign-Off Pending
                 </div>
                 <p style={{ fontSize: '12px', color: '#7f1d1d', margin: 0 }}>
@@ -1102,13 +1102,13 @@ export const ProjectCockpitView: React.FC = () => {
             </div>
 
             {/* Card 2: Medium Action (Orange) */}
-            <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🟠 HSE Compliance</span>
                   <Badge variant="warning" size="sm">Permits</Badge>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#f59e0b', marginBottom: '4px' }}>
                   Civil Defence Fire Safety Clearance
                 </div>
                 <p style={{ fontSize: '12px', color: '#78350f', margin: 0 }}>
@@ -1123,13 +1123,13 @@ export const ProjectCockpitView: React.FC = () => {
             </div>
 
             {/* Card 3: Notice (Yellow) */}
-            <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>🟡 Procurement Alert</span>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#4ade80', textTransform: 'uppercase' }}>🟡 Procurement Alert</span>
                   <Badge variant="success" size="sm">Vendor RFQ</Badge>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#166534', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e', marginBottom: '4px' }}>
                   Structural Rigging Contractor Quotes
                 </div>
                 <p style={{ fontSize: '12px', color: '#14532d', margin: 0 }}>
@@ -1155,8 +1155,8 @@ export const ProjectCockpitView: React.FC = () => {
                 <div
                   id="cockpit-all-nominal-card"
                   style={{
-                    backgroundColor: '#f0fdf4',
-                    border: '1px solid #bbf7d0',
+                    backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                    border: '1px solid rgba(34, 197, 94, 0.3)',
                     borderRadius: '8px',
                     padding: '20px 24px',
                     display: 'flex',
@@ -1169,12 +1169,12 @@ export const ProjectCockpitView: React.FC = () => {
                 >
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#4ade80', textTransform: 'uppercase' }}>
                         🟢 All Systems Nominal
                       </span>
                       <Badge variant="success" size="sm">Project on track</Badge>
                     </div>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#166534' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#22c55e' }}>
                       No critical governance blockers, pending approvals, or statutory compliance risks. The project operational pipeline is ready for delivery execution.
                     </p>
                   </div>
@@ -1196,8 +1196,8 @@ export const ProjectCockpitView: React.FC = () => {
                   <div
                     key={appr.id}
                     style={{
-                      backgroundColor: '#fef2f2',
-                      border: '1px solid #fecaca',
+                      backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
                       borderRadius: '8px',
                       padding: '14px',
                       display: 'flex',
@@ -1207,10 +1207,10 @@ export const ProjectCockpitView: React.FC = () => {
                   >
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>🔴 Pending Approval</span>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase' }}>🔴 Pending Approval</span>
                         <Badge variant="danger" size="sm">{appr.requiredRole || 'Executive'}</Badge>
                       </div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#991b1b', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#f87171', marginBottom: '4px' }}>
                         {appr.reason || `Approval required for ${appr.targetType}`}
                       </div>
                       <p style={{ fontSize: '12px', color: '#7f1d1d', margin: 0 }}>
@@ -1236,8 +1236,8 @@ export const ProjectCockpitView: React.FC = () => {
                   <div
                     key={idx}
                     style={{
-                      backgroundColor: '#fffbeb',
-                      border: '1px solid #fde68a',
+                      backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
                       borderRadius: '8px',
                       padding: '14px',
                       display: 'flex',
@@ -1250,7 +1250,7 @@ export const ProjectCockpitView: React.FC = () => {
                         <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🟠 Operational Blocker</span>
                         <Badge variant="warning" size="sm">{blk.owner || 'Operations'}</Badge>
                       </div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#f59e0b', marginBottom: '4px' }}>
                         {blk.title}
                       </div>
                       <p style={{ fontSize: '12px', color: '#78350f', margin: 0 }}>
@@ -1264,8 +1264,8 @@ export const ProjectCockpitView: React.FC = () => {
                   <div
                     key={idx}
                     style={{
-                      backgroundColor: '#eff6ff',
-                      border: '1px solid #bfdbfe',
+                      backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
                       borderRadius: '8px',
                       padding: '14px',
                       display: 'flex',
@@ -1275,10 +1275,10 @@ export const ProjectCockpitView: React.FC = () => {
                   >
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase' }}>ℹ️ Project Notice</span>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase' }}>ℹ️ Project Notice</span>
                         <Badge variant="info" size="sm">Notice</Badge>
                       </div>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e40af' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#60a5fa' }}>
                         {item}
                       </div>
                     </div>
@@ -1294,13 +1294,13 @@ export const ProjectCockpitView: React.FC = () => {
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               📊 Workstream Health & Progress Matrix
             </h3>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>9 core event operational functions</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>9 core event operational functions</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
+          <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '3px', borderRadius: '6px' }}>
             <button
               id="ws-filter-needs-attention"
               type="button"
@@ -1312,8 +1312,8 @@ export const ProjectCockpitView: React.FC = () => {
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
-                backgroundColor: workstreamFilter === 'needs_attention' ? '#ffffff' : 'transparent',
-                color: workstreamFilter === 'needs_attention' ? '#b45309' : '#64748b',
+                backgroundColor: workstreamFilter === 'needs_attention' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: workstreamFilter === 'needs_attention' ? '#b45309' : 'var(--text-muted, #94a3b8)',
                 boxShadow: workstreamFilter === 'needs_attention' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
               }}
             >
@@ -1330,8 +1330,8 @@ export const ProjectCockpitView: React.FC = () => {
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
-                backgroundColor: workstreamFilter === 'on_track' ? '#ffffff' : 'transparent',
-                color: workstreamFilter === 'on_track' ? '#15803d' : '#64748b',
+                backgroundColor: workstreamFilter === 'on_track' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: workstreamFilter === 'on_track' ? '#15803d' : 'var(--text-muted, #94a3b8)',
                 boxShadow: workstreamFilter === 'on_track' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
               }}
             >
@@ -1348,8 +1348,8 @@ export const ProjectCockpitView: React.FC = () => {
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
-                backgroundColor: workstreamFilter === 'all' ? '#ffffff' : 'transparent',
-                color: workstreamFilter === 'all' ? '#0f172a' : '#64748b',
+                backgroundColor: workstreamFilter === 'all' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: workstreamFilter === 'all' ? '#0f172a' : 'var(--text-muted, #94a3b8)',
                 boxShadow: workstreamFilter === 'all' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
               }}
             >
@@ -1374,8 +1374,8 @@ export const ProjectCockpitView: React.FC = () => {
             <div
               key={i}
               style={{
-                backgroundColor: '#ffffff',
-                border: '1px solid #e2e8f0',
+                backgroundColor: 'var(--surface-1, #0f1624)',
+                border: '1px solid var(--border-default, #2a374b)',
                 borderRadius: '8px',
                 padding: '12px 14px',
                 display: 'flex',
@@ -1384,14 +1384,14 @@ export const ProjectCockpitView: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>{ws.name}</span>
+                <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>{ws.name}</span>
                 <Badge variant={ws.status === 'healthy' ? 'success' : ws.status === 'warning' ? 'warning' : 'info'} size="sm">
                   {ws.progress}%
                 </Badge>
               </div>
 
               {/* Progress bar */}
-              <div style={{ width: '100%', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '6px', backgroundColor: 'var(--border-default, #2a374b)', borderRadius: '3px', overflow: 'hidden' }}>
                 <div
                   style={{
                     width: `${ws.progress}%`,
@@ -1402,7 +1402,7 @@ export const ProjectCockpitView: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                 <span>Lead: <strong>{ws.lead}</strong></span>
                 <span>{ws.openTasks} open • {ws.blockers > 0 ? <strong style={{ color: '#ef4444' }}>{ws.blockers} blocker</strong> : '0 blockers'}</span>
               </div>
@@ -1425,7 +1425,7 @@ export const ProjectCockpitView: React.FC = () => {
           noPadding
         >
           {tasks.length === 0 ? (
-            <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+            <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
               No tasks created yet for this project. Click "+ Add Task" to begin.
             </div>
           ) : (
@@ -1441,8 +1441,8 @@ export const ProjectCockpitView: React.FC = () => {
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       padding: '12px 18px',
-                      borderBottom: '1px solid #f1f5f9',
-                      backgroundColor: isCompleted ? '#f8fafc' : '#ffffff',
+                      borderBottom: '1px solid var(--border-subtle, #1d2939)',
+                      backgroundColor: isCompleted ? '#f8fafc' : 'var(--surface-1, #0f1624)',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1458,13 +1458,13 @@ export const ProjectCockpitView: React.FC = () => {
                           style={{
                             fontSize: '13px',
                             fontWeight: 600,
-                            color: isCompleted ? '#94a3b8' : '#0f172a',
+                            color: isCompleted ? '#94a3b8' : 'var(--text-primary, #f8fafc)',
                             textDecoration: isCompleted ? 'line-through' : 'none',
                           }}
                         >
                           {t.title}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                           Assignee: {t.assignee || t.assigneeName || (isDemo ? 'Zaid Mansour (Lead PM)' : 'Unassigned')}
                         </div>
                       </div>
@@ -1503,7 +1503,7 @@ export const ProjectCockpitView: React.FC = () => {
           noPadding
         >
           {approvals.length === 0 ? (
-            <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+            <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
               No approvals requested yet.
             </div>
           ) : (
@@ -1514,7 +1514,7 @@ export const ProjectCockpitView: React.FC = () => {
                   id={`approval-item-${appr.id}`}
                   style={{
                     padding: '14px 18px',
-                    borderBottom: '1px solid #f1f5f9',
+                    borderBottom: '1px solid var(--border-subtle, #1d2939)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -1527,10 +1527,10 @@ export const ProjectCockpitView: React.FC = () => {
                           {appr.status?.toUpperCase()}
                         </Badge>
                       </div>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                         {appr.reason || `Sign-off for ${appr.targetType}`}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                         Role: <strong>{appr.requiredRole || 'Executive'}</strong>
                       </div>
                       {appr.comment && (
@@ -1603,7 +1603,7 @@ export const ProjectCockpitView: React.FC = () => {
         }
       >
         {auditHistory.length === 0 ? (
-          <div style={{ padding: '16px', textAlign: 'center', color: '#64748b' }}>
+          <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
             No audit records recorded yet.
           </div>
         ) : (
@@ -1613,8 +1613,8 @@ export const ProjectCockpitView: React.FC = () => {
                 key={item.id || idx}
                 style={{
                   padding: '12px 16px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '6px',
                 }}
               >
@@ -1623,7 +1623,7 @@ export const ProjectCockpitView: React.FC = () => {
                     <span style={{ fontSize: '14px' }}>
                       {item.action === 'TASK_COMPLETED' ? '✅' : item.action === 'APPROVAL_DECIDED' ? '✍️' : '📋'}
                     </span>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                       {item.action === 'PROJECT_CREATED'
                         ? 'Project Onboarding Initialized'
                         : item.action === 'TASK_COMPLETED'
@@ -1641,7 +1641,7 @@ export const ProjectCockpitView: React.FC = () => {
                   </span>
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', marginTop: '4px' }}>
                   Recorded by: <strong>{item.actor || 'Tareq Al-Kuwari (Super Admin)'}</strong>
                 </div>
 
@@ -1651,11 +1651,11 @@ export const ProjectCockpitView: React.FC = () => {
                     style={{
                       marginTop: '10px',
                       padding: '8px 12px',
-                      backgroundColor: '#0f172a',
+                      backgroundColor: 'var(--text-primary, #f8fafc)',
                       borderRadius: '4px',
                       fontFamily: 'monospace',
                       fontSize: '11px',
-                      color: '#cbd5e1',
+                      color: 'var(--border-default, #2a374b)',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1740,7 +1740,7 @@ export const ProjectCockpitView: React.FC = () => {
           />
 
           <div style={{ marginBottom: '14px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
               Transaction Monetary Value (QAR) *
             </label>
             <input
@@ -1750,9 +1750,9 @@ export const ProjectCockpitView: React.FC = () => {
               step="1000"
               value={approvalAmountQar}
               onChange={(e) => setApprovalAmountQar(Number(e.target.value) || 0)}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
             />
-            <span style={{ fontSize: '11px', color: '#64748b' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
               Evaluated under <code>@e3-eos/policy</code> threshold matrix.
             </span>
           </div>
@@ -1762,14 +1762,14 @@ export const ProjectCockpitView: React.FC = () => {
             id="cockpit-policy-resolution-card"
             style={{
               padding: '12px 14px',
-              backgroundColor: '#fffbeb',
-              border: '1px solid #fde68a',
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
               borderRadius: '6px',
               marginBottom: '16px',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#92400e' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#f59e0b' }}>
                 Required Approver: <strong>{cockpitThreshold.roleTitle}</strong>
               </span>
               <span
@@ -1789,7 +1789,7 @@ export const ProjectCockpitView: React.FC = () => {
             <div style={{ fontSize: '11px', color: '#78350f', lineHeight: 1.4 }}>
               <strong>Reason:</strong> {cockpitThreshold.reason}
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '6px', fontSize: '10px', color: '#92400e', fontFamily: 'monospace' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '6px', fontSize: '10px', color: '#f59e0b', fontFamily: 'monospace' }}>
               <span>Policy: {cockpitThreshold.policyId || 'E3-POL-COMMERCIAL-GLOBAL'} (v{cockpitThreshold.policyVersion || 1})</span>
               <span>• Scope: {cockpitThreshold.policyScopeMatched || 'system_default'}</span>
             </div>
@@ -1820,7 +1820,7 @@ export const ProjectCockpitView: React.FC = () => {
         }
       >
         <form onSubmit={handleDecideApproval}>
-          <p style={{ fontSize: '13px', color: '#64748b', marginTop: 0 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginTop: 0 }}>
             Request ID: <strong>{decidingApproval?.id}</strong>
           </p>
           <Textarea

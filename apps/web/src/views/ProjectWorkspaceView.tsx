@@ -134,9 +134,9 @@ export const ProjectWorkspaceView: React.FC = () => {
       {/* Project Banner */}
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           padding: '20px 24px',
           marginBottom: '16px',
           display: 'flex',
@@ -151,10 +151,10 @@ export const ProjectWorkspaceView: React.FC = () => {
             <Badge variant="purple">{originCode}</Badge>
             {daysRemaining !== null && <Badge variant="success">⏳ {daysRemaining} Days to Opening</Badge>}
           </div>
-          <h1 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+          <h1 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
             {title}
           </h1>
-          <div style={{ fontSize: '13px', color: '#64748b' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             {venueDesc}
           </div>
         </div>
@@ -184,26 +184,26 @@ export const ProjectWorkspaceView: React.FC = () => {
 
       {/* Attention Queue & Critical Blockers */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px 18px' }}>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <span style={{ fontSize: '15px' }}>🚨</span>
-            <span style={{ fontWeight: 700, fontSize: '13px', color: '#991b1b' }}>Critical Path Blockers</span>
+            <span style={{ fontWeight: 700, fontSize: '13px', color: '#f87171' }}>Critical Path Blockers</span>
           </div>
           {blockers.map((b: any, i: number) => (
-            <div key={i} style={{ padding: '8px 10px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '6px', marginBottom: '6px' }}>
-              <div style={{ fontWeight: 600, fontSize: '12px', color: '#991b1b' }}>{b.title}</div>
+            <div key={i} style={{ padding: '8px 10px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', marginBottom: '6px' }}>
+              <div style={{ fontWeight: 600, fontSize: '12px', color: '#f87171' }}>{b.title}</div>
               <div style={{ fontSize: '11px', color: '#7f1d1d', marginTop: '2px' }}>Impact: {b.impact} (Owner: {b.owner})</div>
             </div>
           ))}
         </div>
 
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px 18px' }}>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <span style={{ fontSize: '15px' }}>⚡</span>
-            <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>Operational Attention Queue</span>
+            <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>Operational Attention Queue</span>
           </div>
           {attentionQueue.map((item: string, i: number) => (
-            <div key={i} style={{ padding: '6px 10px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '4px', fontSize: '12px', color: '#334155' }}>
+            <div key={i} style={{ padding: '6px 10px', backgroundColor: 'var(--surface-2, #151e2e)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', marginBottom: '4px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
               • {item}
             </div>
           ))}
@@ -211,13 +211,13 @@ export const ProjectWorkspaceView: React.FC = () => {
       </div>
 
       {/* PostgreSQL Tasks Section */}
-      <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '18px 20px', marginBottom: '16px' }}>
+      <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)', padding: '18px 20px', marginBottom: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               {currentLanguage === 'ar' ? 'مهام حزم العمل المنفذة (PostgreSQL)' : 'WBS Deliverable Tasks (Live PostgreSQL 17)'}
             </h3>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Persistent tasks managed under Stage 06 detailed delivery planning.
             </div>
           </div>
@@ -240,20 +240,20 @@ export const ProjectWorkspaceView: React.FC = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '10px 14px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '6px',
-                  backgroundColor: task.isCompleted ? '#f0fdf4' : '#ffffff',
+                  backgroundColor: task.isCompleted ? '#f0fdf4' : 'var(--surface-1, #0f1624)',
                 }}
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '14px' }}>{task.isCompleted ? '✅' : '⏳'}</span>
-                    <span style={{ fontWeight: 600, fontSize: '13px', color: '#0f172a' }}>{task.title}</span>
+                    <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>{task.title}</span>
                     <Badge variant={task.isCompleted ? 'success' : 'info'}>
                       {task.isCompleted ? 'Completed' : 'In Progress'}
                     </Badge>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '3px' }}>
                     Assignee: <strong>{task.assignee || 'Technical Team'}</strong> • ID: <code>{task.id.slice(0, 12)}...</code>
                   </div>
                 </div>
@@ -290,9 +290,9 @@ export const ProjectWorkspaceView: React.FC = () => {
         {() => (
           <div
             style={{
-              backgroundColor: '#ffffff',
+              backgroundColor: 'var(--surface-1, #0f1624)',
               borderRadius: '8px',
-              border: '1px solid #e2e8f0',
+              border: '1px solid var(--border-default, #2a374b)',
               padding: '24px',
             }}
           >
@@ -302,7 +302,7 @@ export const ProjectWorkspaceView: React.FC = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                borderBottom: '1px solid #f1f5f9',
+                borderBottom: '1px solid var(--border-subtle, #1d2939)',
                 paddingBottom: '16px',
                 marginBottom: '16px',
               }}
@@ -311,7 +311,7 @@ export const ProjectWorkspaceView: React.FC = () => {
                 <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
                   Stage {String(activeStage).padStart(2, '0')}: {getStageTitleInLocale(activeStage, currentLanguage)}
                 </h2>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                   {currentLanguage === 'ar'
                     ? `مكتبة الأنشطة المعيارية (24 نشاطاً) • تم إنجاز ${completedCount} من 24 (${stagePercent}%)`
                     : `Normative Activity Library (24 Activities) • ${completedCount} of 24 Complete (${stagePercent}%)`}
@@ -326,11 +326,11 @@ export const ProjectWorkspaceView: React.FC = () => {
 
             {/* Stage Progress Bar */}
             <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginBottom: '6px' }}>
                 <span>{currentLanguage === 'ar' ? 'نسبة التقدم الإجرائي في المرحلة' : 'Stage Procedural Progress'}</span>
                 <span style={{ fontWeight: 700, color: stagePercent === 100 ? '#059669' : '#2563eb' }}>{stagePercent}%</span>
               </div>
-              <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-default, #2a374b)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div
                   style={{
                     width: `${stagePercent}%`,
@@ -343,7 +343,7 @@ export const ProjectWorkspaceView: React.FC = () => {
             </div>
 
             {/* Sub-Tab Navigation */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--border-default, #2a374b)', paddingBottom: '10px' }}>
               <button
                 onClick={() => setActiveTab('activities')}
                 style={{
@@ -353,8 +353,8 @@ export const ProjectWorkspaceView: React.FC = () => {
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  backgroundColor: activeTab === 'activities' ? '#2563eb' : '#f1f5f9',
-                  color: activeTab === 'activities' ? '#ffffff' : '#475569',
+                  backgroundColor: activeTab === 'activities' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+                  color: activeTab === 'activities' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                 }}
               >
                 {currentLanguage === 'ar' ? '📋 قائمة الأنشطة الإلزامية (24)' : '📋 Normative Activities (24)'}
@@ -368,8 +368,8 @@ export const ProjectWorkspaceView: React.FC = () => {
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  backgroundColor: activeTab === 'drilldown' ? '#2563eb' : '#f1f5f9',
-                  color: activeTab === 'drilldown' ? '#ffffff' : '#475569',
+                  backgroundColor: activeTab === 'drilldown' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+                  color: activeTab === 'drilldown' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                 }}
               >
                 {currentLanguage === 'ar' ? '⚡ حوكمة النطاق والقواعد الخاصة' : '⚡ Domain Invariants & Drilldown'}
@@ -381,7 +381,7 @@ export const ProjectWorkspaceView: React.FC = () => {
               <div>
                 {/* Role Filter Pills */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted, #94a3b8)' }}>
                     {currentLanguage === 'ar' ? 'تصفية حسب الدور المسند:' : 'Filter by Role:'}
                   </span>
                   <button
@@ -389,12 +389,12 @@ export const ProjectWorkspaceView: React.FC = () => {
                     style={{
                       padding: '4px 10px',
                       borderRadius: '12px',
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid var(--border-default, #2a374b)',
                       fontSize: '11px',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      backgroundColor: roleFilter === 'all' ? '#0f172a' : '#ffffff',
-                      color: roleFilter === 'all' ? '#ffffff' : '#475569',
+                      backgroundColor: roleFilter === 'all' ? '#0f172a' : 'var(--surface-1, #0f1624)',
+                      color: roleFilter === 'all' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                     }}
                   >
                     All ({stageActivities.length})
@@ -406,12 +406,12 @@ export const ProjectWorkspaceView: React.FC = () => {
                       style={{
                         padding: '4px 10px',
                         borderRadius: '12px',
-                        border: '1px solid #cbd5e1',
+                        border: '1px solid var(--border-default, #2a374b)',
                         fontSize: '11px',
                         fontWeight: 600,
                         cursor: 'pointer',
-                        backgroundColor: roleFilter === role ? '#0f172a' : '#ffffff',
-                        color: roleFilter === role ? '#ffffff' : '#475569',
+                        backgroundColor: roleFilter === role ? '#0f172a' : 'var(--surface-1, #0f1624)',
+                        color: roleFilter === role ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                       }}
                     >
                       {role}
@@ -433,8 +433,8 @@ export const ProjectWorkspaceView: React.FC = () => {
                           justifyContent: 'space-between',
                           padding: '12px 16px',
                           borderRadius: '6px',
-                          border: isDone ? '1px solid #d1fae5' : '1px solid #e2e8f0',
-                          backgroundColor: isDone ? '#f0fdf4' : '#ffffff',
+                          border: isDone ? '1px solid #d1fae5' : '1px solid var(--border-default, #2a374b)',
+                          backgroundColor: isDone ? '#f0fdf4' : 'var(--surface-1, #0f1624)',
                           transition: 'all 0.15s ease',
                         }}
                       >
@@ -445,9 +445,9 @@ export const ProjectWorkspaceView: React.FC = () => {
                               width: '22px',
                               height: '22px',
                               borderRadius: '4px',
-                              border: isDone ? 'none' : '2px solid #cbd5e1',
-                              backgroundColor: isDone ? '#10b981' : '#ffffff',
-                              color: '#ffffff',
+                              border: isDone ? 'none' : '2px solid var(--border-default, #2a374b)',
+                              backgroundColor: isDone ? '#10b981' : 'var(--surface-1, #0f1624)',
+                              color: 'var(--surface-1, #0f1624)',
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
@@ -468,7 +468,7 @@ export const ProjectWorkspaceView: React.FC = () => {
                                 style={{
                                   fontSize: '13px',
                                   fontWeight: 600,
-                                  color: isDone ? '#065f46' : '#1e293b',
+                                  color: isDone ? '#065f46' : 'var(--surface-2, #151e2e)',
                                   textDecoration: isDone ? 'line-through' : 'none',
                                 }}
                               >
@@ -476,7 +476,7 @@ export const ProjectWorkspaceView: React.FC = () => {
                               </span>
                               <Badge variant="purple">{act.proposedOwnerRole}</Badge>
                             </div>
-                            <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <span>📄</span>
                               <span><strong>Required Output:</strong> {act.completionOutputOrEvidence}</span>
                             </div>
@@ -514,12 +514,12 @@ export const ProjectWorkspaceView: React.FC = () => {
                   Business assumptions and open questions begin explicitly marked as Unknown rather than falsified to zero or default dates.
                 </AlertBanner>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div style={{ border: '1px solid #e2e8f0', padding: '16px', borderRadius: '6px' }}>
+                  <div style={{ border: '1px solid var(--border-default, #2a374b)', padding: '16px', borderRadius: '6px' }}>
                     <div style={{ fontWeight: 600 }}>Tender Submission Deadline</div>
-                    <div style={{ color: '#64748b', fontSize: '13px' }}>Status: Confirmed (28 Sep 2026)</div>
+                    <div style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '13px' }}>Status: Confirmed (28 Sep 2026)</div>
                   </div>
-                  <div style={{ border: '1px solid #fde68a', backgroundColor: '#fffbeb', padding: '16px', borderRadius: '6px' }}>
-                    <div style={{ fontWeight: 600, color: '#92400e' }}>VIP Protocol Seating Capacity</div>
+                  <div style={{ border: '1px solid rgba(245, 158, 11, 0.3)', backgroundColor: 'rgba(245, 158, 11, 0.12)', padding: '16px', borderRadius: '6px' }}>
+                    <div style={{ fontWeight: 600, color: '#f59e0b' }}>VIP Protocol Seating Capacity</div>
                     <div style={{ color: '#b45309', fontSize: '13px' }}>Status: UNKNOWN (Awaiting Ministerial Confirmation)</div>
                   </div>
                 </div>
@@ -532,7 +532,7 @@ export const ProjectWorkspaceView: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '16px' }}>Technical Drawing Revisions</h3>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                       Drawing freezes lock specifications for costing. Subsequent modifications branch as unapproved drafts.
                     </p>
                   </div>
@@ -544,11 +544,11 @@ export const ProjectWorkspaceView: React.FC = () => {
                     {isDrawingFrozen ? 'Locked (Frozen v2.4)' : 'Freeze Version 2.4'}
                   </Button>
                 </div>
-                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '16px' }}>
+                <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: 700 }}>DWG-2026-RIG-004 (Stage Overhead Rigging & Truss Load Calculations)</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>Version: 2.4 • SHA-256: e3b0c44298fc1c149afbf4c8996fb924...</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Version: 2.4 • SHA-256: e3b0c44298fc1c149afbf4c8996fb924...</div>
                     </div>
                     <Badge variant={isDrawingFrozen ? 'purple' : 'neutral'}>
                       {isDrawingFrozen ? 'Frozen Baseline' : 'Draft'}
@@ -566,9 +566,9 @@ export const ProjectWorkspaceView: React.FC = () => {
                   <MetricCard title="Contract Proposal" value={formatCurrencyInLocale('QAR', 160000, currentLanguage)} />
                   <MetricCard title="Target Gross Margin" value="43.75%" badge={{ label: 'Floor > 35%', variant: 'success' }} />
                 </div>
-                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
+                <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', overflow: 'hidden' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
-                    <thead style={{ backgroundColor: '#f8fafc', fontSize: '12px', color: '#64748b' }}>
+                    <thead style={{ backgroundColor: 'var(--surface-2, #151e2e)', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       <tr>
                         <th style={{ padding: '10px 16px' }}>BOQ Line</th>
                         <th style={{ padding: '10px 16px' }}>Category</th>
@@ -578,14 +578,14 @@ export const ProjectWorkspaceView: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody style={{ fontSize: '13px' }}>
-                      <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                         <td style={{ padding: '12px 16px', fontWeight: 600 }}>01.01 Structural Rigging Trussing</td>
                         <td style={{ padding: '12px 16px' }}>Production</td>
                         <td style={{ padding: '12px 16px' }}>35,000 QAR</td>
                         <td style={{ padding: '12px 16px' }}>52,000 QAR</td>
                         <td style={{ padding: '12px 16px', color: '#059669', fontWeight: 600 }}>32.6%</td>
                       </tr>
-                      <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                         <td style={{ padding: '12px 16px', fontWeight: 600 }}>01.02 High-Resolution P2.5 LED Panels</td>
                         <td style={{ padding: '12px 16px' }}>AV & Lighting</td>
                         <td style={{ padding: '12px 16px' }}>42,000 QAR</td>
@@ -604,11 +604,11 @@ export const ProjectWorkspaceView: React.FC = () => {
                 <AlertBanner type="success" title="Serialized Collision Invariant (AT-049)">
                   Non-overlapping reservation engine guarantees zero double-booking across regional project dates.
                 </AlertBanner>
-                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '16px' }}>
+                <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: 700 }}>GEN-200KVA-01 (Primary Heavy Duty Generator)</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>Reserved Interval: 2026-10-10T08:00Z to 2026-10-18T18:00Z</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Reserved Interval: 2026-10-10T08:00Z to 2026-10-18T18:00Z</div>
                     </div>
                     <Badge variant="success">Confirmed Allocation</Badge>
                   </div>
@@ -628,11 +628,11 @@ export const ProjectWorkspaceView: React.FC = () => {
                     : 'A critical condition strictly overrides percentage progress. Operations cannot open without verified safety approval.'}
                 </AlertBanner>
 
-                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '16px', marginBottom: '16px' }}>
+                <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '16px', marginBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: 700 }}>QCDD Temporary Life Safety & Crowd Control Permit</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>Check: Ministry of Interior Civil Defense Sign-off</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Check: Ministry of Interior Civil Defense Sign-off</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <Badge variant={isPermitVerified ? 'success' : 'danger'}>
@@ -679,10 +679,10 @@ export const ProjectWorkspaceView: React.FC = () => {
                   <MetricCard title="Variance" value="20,000 QAR" delta={{ text: 'Under Budget', isPositive: true }} />
                   <MetricCard title="Net Margin" value="43.75%" />
                 </div>
-                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontWeight: 700 }}>Canonical Event Closeout Report</div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>Deterministic SHA-256 Digest: 9a7b...4c21 (Immutable)</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Deterministic SHA-256 Digest: 9a7b...4c21 (Immutable)</div>
                   </div>
                   <Button size="sm" variant="secondary">
                     {currentLanguage === 'ar' ? 'تنزيل الحزمة المعتمدة' : 'Download Signed PDF'}
@@ -693,9 +693,9 @@ export const ProjectWorkspaceView: React.FC = () => {
 
             {/* Fallback for other stages */}
             {![1, 4, 5, 8, 10, 13].includes(activeStage) && (
-              <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                 <div style={{ fontSize: '24px', marginBottom: '8px' }}>📋</div>
-                <h4 style={{ margin: '0 0 4px 0', color: '#1e293b' }}>
+                <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary, #f8fafc)' }}>
                   {getStageTitleInLocale(activeStage, currentLanguage)}
                 </h4>
                 <p style={{ margin: 0, fontSize: '13px' }}>

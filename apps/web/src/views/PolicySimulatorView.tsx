@@ -68,19 +68,19 @@ export const PolicySimulatorView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#0f172a' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               🧪 Management Policy Compiler & Simulation Sandbox
             </h1>
             <Badge variant="accent">AT-020 / AT-024 / AT-025</Badge>
             <Badge variant="neutral">Dry-Run Isolation</Badge>
           </div>
-          <p style={{ color: '#64748b', marginTop: '6px', fontSize: '14px' }}>
+          <p style={{ color: 'var(--text-muted, #94a3b8)', marginTop: '6px', fontSize: '14px' }}>
             Simulate, backtest, and compile governance policy revisions with zero-partial-activation rollback and single-use emergency exception tokens.
           </p>
         </div>
 
-        <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '10px 16px', borderRadius: '8px', fontSize: '12px' }}>
-          <strong style={{ color: '#166534' }}>🔒 Active Snapshot:</strong> {activeSnapshot}
+        <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '10px 16px', borderRadius: '8px', fontSize: '12px' }}>
+          <strong style={{ color: '#22c55e' }}>🔒 Active Snapshot:</strong> {activeSnapshot}
         </div>
       </div>
 
@@ -88,11 +88,11 @@ export const PolicySimulatorView: React.FC = () => {
       <Card title="Policy Compiler & Atomic Snapshot Gate (AT-020)">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
           <div>
-            <div style={{ fontSize: '13px', color: '#475569' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>
               <strong>Zero Partial Activation Invariant:</strong> Compilation evaluates all rules, expressions, and jurisdiction boundaries atomically. If compilation fails, prior valid snapshot remains active without partial corruption.
             </div>
             {compileStatus === 'success' && (
-              <div style={{ color: '#15803d', fontWeight: 700, fontSize: '12px', marginTop: '4px' }}>
+              <div style={{ color: '#4ade80', fontWeight: 700, fontSize: '12px', marginTop: '4px' }}>
                 ✓ Policy compiled successfully into immutable revision V4. All 14 test fixtures passed.
               </div>
             )}
@@ -125,13 +125,13 @@ export const PolicySimulatorView: React.FC = () => {
       </Card>
 
       {/* Simulator Sliders */}
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#0f172a' }}>
+      <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '12px', padding: '20px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: 'var(--text-primary, #f8fafc)' }}>
           Proposed Policy Thresholds
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
               Sole-Source Limit (QAR): {soleSource.toLocaleString()}
             </label>
             <input
@@ -147,7 +147,7 @@ export const PolicySimulatorView: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
               Variation Dual-Approval (QAR): {variationDual.toLocaleString()}
             </label>
             <input
@@ -163,7 +163,7 @@ export const PolicySimulatorView: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
               Max Daily Crew Shift (Hours): {maxHours}h
             </label>
             <input
@@ -179,7 +179,7 @@ export const PolicySimulatorView: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
               Target Gross Margin Minimum (%): {minMargin}%
             </label>
             <input
@@ -198,29 +198,29 @@ export const PolicySimulatorView: React.FC = () => {
 
       {/* Impact Telemetry Dashboard */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>BASELINE EXCEPTION RATE</span>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#334155', marginTop: '4px' }}>{report.baselineExceptionRate}</div>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '10px', padding: '16px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: '600' }}>BASELINE EXCEPTION RATE</span>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--text-secondary, #cbd5e1)', marginTop: '4px' }}>{report.baselineExceptionRate}</div>
           <span style={{ fontSize: '11px', color: '#94a3b8' }}>Active published rule set</span>
         </div>
 
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>SIMULATED EXCEPTION RATE</span>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '10px', padding: '16px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: '600' }}>SIMULATED EXCEPTION RATE</span>
           <div style={{ fontSize: '24px', fontWeight: 'bold', color: report.disposition === 'recommend_adoption' ? '#059669' : '#d97706', marginTop: '4px' }}>
             {report.simulatedExceptionRate}
           </div>
           <span style={{ fontSize: '11px', color: '#94a3b8' }}>Projected historical impact</span>
         </div>
 
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>EXTRA APPROVAL QUEUES</span>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '10px', padding: '16px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: '600' }}>EXTRA APPROVAL QUEUES</span>
           <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#0284c7', marginTop: '4px' }}>+{report.additionalApprovals}</div>
           <span style={{ fontSize: '11px', color: '#94a3b8' }}>Additional executive touchpoints</span>
         </div>
 
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>SCHEDULE FRICTION</span>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#64748b', marginTop: '4px' }}>+{report.frictionHours}h</div>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '10px', padding: '16px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: '600' }}>SCHEDULE FRICTION</span>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>+{report.frictionHours}h</div>
           <span style={{ fontSize: '11px', color: '#94a3b8' }}>Projected turnaround delay</span>
         </div>
       </div>
@@ -228,7 +228,7 @@ export const PolicySimulatorView: React.FC = () => {
       {/* Emergency Exception Token Studio (AT-024 / AT-025) */}
       <Card title="Single-Use Emergency Exception Token Studio (AT-024 / AT-025)">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ fontSize: '13px', color: '#64748b' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             <strong>Policy Invariant AT-024 / AT-025:</strong> Emergency exceptions are issued as single-use, time-bounded cryptographic tokens. Only the authorized target executes once; secondary replay is categorically rejected.
           </div>
 
@@ -241,7 +241,7 @@ export const PolicySimulatorView: React.FC = () => {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                   <th style={{ padding: '10px 12px' }}>Token ID</th>
                   <th style={{ padding: '10px 12px' }}>Governed Rule</th>
                   <th style={{ padding: '10px 12px' }}>Scope & Justification</th>
@@ -252,7 +252,7 @@ export const PolicySimulatorView: React.FC = () => {
               </thead>
               <tbody>
                 {emergencyTokens.map((token) => (
-                  <tr key={token.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr key={token.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
                       {token.id}
                     </td>
@@ -260,8 +260,8 @@ export const PolicySimulatorView: React.FC = () => {
                       <Badge variant="neutral">{token.targetRule}</Badge>
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{token.authorizedScope}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>Recipient: {token.issuedTo}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{token.authorizedScope}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Recipient: {token.issuedTo}</div>
                     </td>
                     <td style={{ padding: '12px', fontSize: '12px', color: '#b45309' }}>
                       ⏳ {token.expiresAt}

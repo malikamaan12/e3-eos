@@ -1035,8 +1035,8 @@ export const ProductionRolloutView: React.FC = () => {
       {/* Top Banner Header */}
       <div
         style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'var(--text-primary, #f8fafc)',
+          color: 'var(--surface-1, #0f1624)',
           borderRadius: '12px',
           padding: '24px',
           display: 'flex',
@@ -1050,14 +1050,14 @@ export const ProductionRolloutView: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
             <span style={{ fontSize: '28px' }}>🚀</span>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: 'var(--surface-1, #0f1624)' }}>
               E3-EOS Production Rollout & Enterprise Go-Live Console
             </h1>
             <Badge variant="success" size="md">Sprint 07 Frozen</Badge>
           </div>
-          <div style={{ fontSize: '13px', color: '#94a3b8', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <span>Release Candidate: <strong style={{ color: '#38bdf8' }}>eos-v1.0.0-rc2</strong></span>
-            <span>Git HEAD: <strong style={{ color: '#e2e8f0' }}>{liveCommit}</strong></span>
+            <span>Git HEAD: <strong style={{ color: 'var(--border-default, #2a374b)' }}>{liveCommit}</strong></span>
             <span>Target Region: <strong style={{ color: '#34d399' }}>me-central1 (Doha, Qatar)</strong></span>
           </div>
         </div>
@@ -1067,7 +1067,7 @@ export const ProductionRolloutView: React.FC = () => {
             variant="secondary"
             size="md"
             onClick={() => setActiveTab('go-no-go-board')}
-            style={{ backgroundColor: '#1e293b', color: '#f8fafc', borderColor: '#334155' }}
+            style={{ backgroundColor: 'var(--surface-2, #151e2e)', color: 'var(--text-primary, #f8fafc)', borderColor: 'var(--border-default, #2a374b)' }}
           >
             ⚖️ Go / No-Go Board
           </Button>
@@ -1084,8 +1084,8 @@ export const ProductionRolloutView: React.FC = () => {
       {/* 15 Sub-Nav Tab Buttons */}
       <div
         style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #e2e8f0',
+          backgroundColor: 'var(--surface-1, #0f1624)',
+          border: '1px solid var(--border-default, #2a374b)',
           borderRadius: '10px',
           padding: '8px',
           display: 'flex',
@@ -1112,7 +1112,7 @@ export const ProductionRolloutView: React.FC = () => {
                 border: '1px solid',
                 borderColor: isActive ? '#2563eb' : 'transparent',
                 backgroundColor: isActive ? '#eff6ff' : 'transparent',
-                color: isActive ? '#1d4ed8' : '#475569',
+                color: isActive ? '#1d4ed8' : 'var(--text-secondary, #cbd5e1)',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease-in-out',
               }}
@@ -1126,8 +1126,8 @@ export const ProductionRolloutView: React.FC = () => {
                     fontWeight: 700,
                     padding: '1px 6px',
                     borderRadius: '4px',
-                    backgroundColor: isActive ? '#bfdbfe' : '#f1f5f9',
-                    color: isActive ? '#1e40af' : '#64748b',
+                    backgroundColor: isActive ? '#bfdbfe' : 'var(--surface-2, #151e2e)',
+                    color: isActive ? '#1e40af' : 'var(--text-muted, #94a3b8)',
                   }}
                 >
                   {tab.badge}
@@ -1175,7 +1175,7 @@ export const ProductionRolloutView: React.FC = () => {
           <Card title="Immutable Artifact Digests & Container Manifests">
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-muted, #94a3b8)', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px' }}>Component</th>
                   <th style={{ padding: '12px' }}>Container Image Repository</th>
                   <th style={{ padding: '12px' }}>Version</th>
@@ -1184,25 +1184,25 @@ export const ProductionRolloutView: React.FC = () => {
                   <th style={{ padding: '12px' }}>Status</th>
                 </tr>
               </thead>
-              <tbody style={{ color: '#334155' }}>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Backend API</td>
+              <tbody style={{ color: 'var(--text-secondary, #cbd5e1)' }}>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Backend API</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '12px' }}>me-central1-docker.pkg.dev/e3-eos-prod/e3-eos/api</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>1.0.0</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#2563eb' }}>sha256:4a8b9f12c8e3...7d91</td>
                   <td style={{ padding: '12px', fontWeight: 600, color: '#059669' }}>me-central1 (Doha)</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">PROD READY</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Web Application</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Web Application</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '12px' }}>me-central1-docker.pkg.dev/e3-eos-prod/e3-eos/web</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>1.0.0</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#2563eb' }}>sha256:8b3e51f041b2...2e68</td>
                   <td style={{ padding: '12px', fontWeight: 600, color: '#059669' }}>me-central1 (Doha)</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">PROD READY</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Worker & Queue Dispatcher</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Worker & Queue Dispatcher</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '12px' }}>me-central1-docker.pkg.dev/e3-eos-prod/e3-eos/worker</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>1.0.0</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#2563eb' }}>sha256:1f24d98a73c1...98ab</td>
@@ -1210,7 +1210,7 @@ export const ProductionRolloutView: React.FC = () => {
                   <td style={{ padding: '12px' }}><Badge variant="success">PROD READY</Badge></td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Regulatory Country Packs</td>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Regulatory Country Packs</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '12px' }}>@e3-eos/country-packs</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>QA-v1.0, SA-v1.0, AE-v1.0</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#2563eb' }}>sha256:d82e4a10c95f...55bc</td>
@@ -1232,14 +1232,14 @@ export const ProductionRolloutView: React.FC = () => {
             action={<Badge variant="primary">Environment: Production (me-central1)</Badge>}
           >
             {flagFeedback && (
-              <div style={{ marginBottom: '16px', padding: '12px 16px', borderRadius: '8px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', fontSize: '13px' }}>
+              <div style={{ marginBottom: '16px', padding: '12px 16px', borderRadius: '8px', backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', color: '#60a5fa', fontSize: '13px' }}>
                 ℹ️ {flagFeedback}
               </div>
             )}
 
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-muted, #94a3b8)', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px' }}>Feature Flag Name & Key</th>
                   <th style={{ padding: '12px' }}>Category</th>
                   <th style={{ padding: '12px' }}>Scope</th>
@@ -1248,12 +1248,12 @@ export const ProductionRolloutView: React.FC = () => {
                   <th style={{ padding: '12px', textAlign: 'right' }}>Toggle</th>
                 </tr>
               </thead>
-              <tbody style={{ color: '#334155' }}>
+              <tbody style={{ color: 'var(--text-secondary, #cbd5e1)' }}>
                 {featureFlags.map((flag) => (
-                  <tr key={flag.key} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr key={flag.key} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{flag.name}</div>
-                      <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>{flag.key}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{flag.name}</div>
+                      <div style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{flag.key}</div>
                     </td>
                     <td style={{ padding: '12px' }}>
                       <Badge variant="neutral">{flag.category}</Badge>
@@ -1270,7 +1270,7 @@ export const ProductionRolloutView: React.FC = () => {
                           🔒 Core Platform (Locked in Prod)
                         </span>
                       ) : (
-                        <span style={{ fontSize: '12px', color: '#64748b' }}>Optional / Configurable</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Optional / Configurable</span>
                       )}
                     </td>
                     <td style={{ padding: '12px', textAlign: 'right' }}>
@@ -1331,7 +1331,7 @@ export const ProductionRolloutView: React.FC = () => {
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-muted, #94a3b8)', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px' }}>Domain Entity</th>
                   <th style={{ padding: '12px' }}>Source System Authority</th>
                   <th style={{ padding: '12px' }}>Source Count</th>
@@ -1342,10 +1342,10 @@ export const ProductionRolloutView: React.FC = () => {
                   <th style={{ padding: '12px' }}>Status</th>
                 </tr>
               </thead>
-              <tbody style={{ color: '#334155' }}>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Projects & Charters</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Primavera P6 & Commercial Excel Register</td>
+              <tbody style={{ color: 'var(--text-secondary, #cbd5e1)' }}>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Projects & Charters</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Primavera P6 & Commercial Excel Register</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>35</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>35</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>QAR 125,000,000</td>
@@ -1353,9 +1353,9 @@ export const ProductionRolloutView: React.FC = () => {
                   <td style={{ padding: '12px', fontFamily: 'monospace', color: '#059669' }}>QAR 0.00</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">RECONCILED</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>BOQ Packages & Lines</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>SAP ECC Commercial Module</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>BOQ Packages & Lines</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>SAP ECC Commercial Module</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>2,410</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>2,410</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>QAR 98,400,000</td>
@@ -1363,9 +1363,9 @@ export const ProductionRolloutView: React.FC = () => {
                   <td style={{ padding: '12px', fontFamily: 'monospace', color: '#059669' }}>QAR 0.00</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">RECONCILED</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Purchase Orders & Commitments</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>SAP ECC MM (Materials Management)</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Purchase Orders & Commitments</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>SAP ECC MM (Materials Management)</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>1,840</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>1,840</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>QAR 76,200,000</td>
@@ -1373,9 +1373,9 @@ export const ProductionRolloutView: React.FC = () => {
                   <td style={{ padding: '12px', fontFamily: 'monospace', color: '#059669' }}>QAR 0.00</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">RECONCILED</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Serialized Warehouse Assets</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Legacy Asset Barcode System</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Serialized Warehouse Assets</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Legacy Asset Barcode System</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>380</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>380</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>QAR 14,500,000</td>
@@ -1384,8 +1384,8 @@ export const ProductionRolloutView: React.FC = () => {
                   <td style={{ padding: '12px' }}><Badge variant="success">RECONCILED</Badge></td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Deliveries & Sign-off Dockets</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>SharePoint Dockets & Run Sheets</td>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Deliveries & Sign-off Dockets</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>SharePoint Dockets & Run Sheets</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>155</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>155</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace' }}>-</td>
@@ -1435,34 +1435,34 @@ export const ProductionRolloutView: React.FC = () => {
 
           <Card title="High-Availability Regional Architecture (me-central1 Doha, Qatar)">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ color: '#0f172a' }}>Zone me-central1-a</strong>
+                  <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>Zone me-central1-a</strong>
                   <Badge variant="success">PRIMARY ACTIVE</Badge>
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.6 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.6 }}>
                   <div>Cloud Run Instances: 3 active</div>
                   <div>Cloud SQL Primary: Active (HA failover ready)</div>
                   <div>Redis Node A: Healthy</div>
                 </div>
               </div>
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ color: '#0f172a' }}>Zone me-central1-b</strong>
+                  <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>Zone me-central1-b</strong>
                   <Badge variant="info">STANDBY SYNCHRONIZED</Badge>
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.6 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.6 }}>
                   <div>Cloud Run Instances: 2 standby</div>
                   <div>Cloud SQL Standby: Synchronous replication</div>
                   <div>Redis Node B: Replicated</div>
                 </div>
               </div>
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ color: '#0f172a' }}>Zone me-central1-c</strong>
+                  <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>Zone me-central1-c</strong>
                   <Badge variant="neutral">WITNESS & VAULT</Badge>
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.6 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.6 }}>
                   <div>Sentinel & Consensus: Connected</div>
                   <div>Continuous WAL Archiving: 60s frequency</div>
                   <div>GCS Regional Vault: 100% encrypted</div>
@@ -1502,20 +1502,20 @@ export const ProductionRolloutView: React.FC = () => {
 
           <Card title="Active On-Call Escalation Roster & Alert Paging">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Tier 1 Operations Lead</div>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', marginTop: '4px' }}>E3 Operations Control Center</div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Doha Operations Room (24/7 Live Monitoring)</div>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Tier 1 Operations Lead</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>E3 Operations Control Center</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>Doha Operations Room (24/7 Live Monitoring)</div>
               </div>
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Tier 2 SRE & Infrastructure</div>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', marginTop: '4px' }}>Senior Platform Engineer</div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Escalation via Automated PagerDuty Roster</div>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Tier 2 SRE & Infrastructure</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>Senior Platform Engineer</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>Escalation via Automated PagerDuty Roster</div>
               </div>
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Tier 3 Incident Commander</div>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', marginTop: '4px' }}>Lead Solution Architect</div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Direct Executive Line & Authority</div>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Tier 3 Incident Commander</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>Lead Solution Architect</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>Direct Executive Line & Authority</div>
               </div>
             </div>
           </Card>
@@ -1527,10 +1527,10 @@ export const ProductionRolloutView: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <Card title="Automated Backup Status & WORM Compliance (me-central1)">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>Cloud SQL Primary Automated Snapshot</div>
-                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>Cloud SQL Primary Automated Snapshot</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                     Snapshot ID: <span style={{ fontFamily: 'monospace', color: '#2563eb' }}>snap-backup-2026-10-01-prod</span> | Size: 1.42 GB
                   </div>
                   <div style={{ fontSize: '12px', color: '#059669', marginTop: '2px' }}>
@@ -1540,13 +1540,13 @@ export const ProductionRolloutView: React.FC = () => {
                 <Badge variant="success">STATUS: REPLICATED & VERIFIED</Badge>
               </div>
 
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>Continuous WAL Archive Stream</div>
-                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>Continuous WAL Archive Stream</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                     Log Sequence Number: <span style={{ fontFamily: 'monospace', color: '#2563eb' }}>0/16B90A0 - 0/16B99F8</span> | RPO Lag: 42 seconds
                   </div>
-                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                     Retention Policy: <strong>365 Days WORM (Write Once Read Many)</strong>
                   </div>
                 </div>
@@ -1605,8 +1605,8 @@ export const ProductionRolloutView: React.FC = () => {
               </Button>
             }
           >
-            <div style={{ backgroundColor: '#0f172a', color: '#e2e8f0', borderRadius: '8px', padding: '16px', fontFamily: 'monospace', fontSize: '12px', lineHeight: 1.6 }}>
-              <div style={{ color: '#94a3b8', fontWeight: 700 }}>// Invariant AT-087 Restore Manifest Parity Log</div>
+            <div style={{ backgroundColor: 'var(--text-primary, #f8fafc)', color: 'var(--border-default, #2a374b)', borderRadius: '8px', padding: '16px', fontFamily: 'monospace', fontSize: '12px', lineHeight: 1.6 }}>
+              <div style={{ color: 'var(--text-muted, #94a3b8)', fontWeight: 700 }}>// Invariant AT-087 Restore Manifest Parity Log</div>
               <div>Authoritative Backup Snapshot ID: {restoreDrillResult.snapshotId}</div>
               <div>Table Verification: projects (35/35) - HASH: 9a8c...41b0 [MATCH]</div>
               <div>Table Verification: boq_packages (2,410/2,410) - HASH: 5d1e...90aa [MATCH]</div>
@@ -1624,11 +1624,11 @@ export const ProductionRolloutView: React.FC = () => {
             subtitle="Guarantees that rolling back an externally dispatched PO executes a compensating business action with delivery reconciliation, strictly prohibiting hard deletions."
           >
             <div id="dr-compensating-action-workbench" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '18px' }}>📜</span>
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                       Dispatched Commitment Target: PO-2026-089 (85,000 QAR)
                     </h4>
                     <Badge variant={at088RollbackSimulated ? 'neutral' : 'warning'}>
@@ -1636,7 +1636,7 @@ export const ProductionRolloutView: React.FC = () => {
                     </Badge>
                     <Badge variant="info">INVARIANT AT-088 ACTIVE</Badge>
                   </div>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                     Vendor: Gulf Stage Lighting LLC • Transmitted via EDI Gateway • Physical loading was scheduled.
                   </p>
                 </div>
@@ -1666,22 +1666,22 @@ export const ProductionRolloutView: React.FC = () => {
               </div>
 
               {at088HardDeleteAttempted && (
-                <div style={{ padding: '14px 18px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b', fontSize: '13px', lineHeight: 1.5, fontWeight: 600 }}>
+                <div style={{ padding: '14px 18px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#f87171', fontSize: '13px', lineHeight: 1.5, fontWeight: 600 }}>
                   ⛔ <strong>HARD DELETE CATEGORICALLY REJECTED (AT-088):</strong> Cannot delete or reset PO-2026-089. An external financial and delivery commitment has already been transmitted to Gulf Stage Lighting LLC. Hard deletions create un-reconciled phantom debts. Compensating business action is strictly required.
                 </div>
               )}
 
               {at088RollbackSimulated && (
-                <div style={{ backgroundColor: '#0f172a', color: '#f8fafc', padding: '16px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '12px', lineHeight: 1.6 }}>
+                <div style={{ backgroundColor: 'var(--text-primary, #f8fafc)', color: 'var(--text-primary, #f8fafc)', padding: '16px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '12px', lineHeight: 1.6 }}>
                   <div style={{ color: '#34d399', fontWeight: 800, marginBottom: '6px' }}>
                     ✓ AT-088 Compensating Business Action Executed Successfully:
                   </div>
                   <div>Compensating Notice ID: <span style={{ color: '#38bdf8' }}>CBRN-2026-0042</span></div>
                   <div>PO Status Transition: <span style={{ color: '#fbbf24' }}>DISPATCHED ➔ COMPENSATED_CANCELLED</span> (Zero hard deletion)</div>
-                  <div>Vendor Transmittal: <span style={{ color: '#cbd5e1' }}>Formal Revocation Memo dispatched to Gulf Stage Lighting LLC</span></div>
+                  <div>Vendor Transmittal: <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>Formal Revocation Memo dispatched to Gulf Stage Lighting LLC</span></div>
                   <div>Commercial Ledger Adjustment: <span style={{ color: '#34d399' }}>-85,000 QAR commitment reversed from Project EAC</span></div>
-                  <div>Delivery Reconciled State: <span style={{ color: '#cbd5e1' }}>Dock loading slot released; dispatch manifest cancelled</span></div>
-                  <div>Cryptographic Seal: <span style={{ color: '#94a3b8' }}>d142ab608b5531fcacdabf8a4b227777d4dd1fc61c6f884f48641d02b4d121d3</span></div>
+                  <div>Delivery Reconciled State: <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>Dock loading slot released; dispatch manifest cancelled</span></div>
+                  <div>Cryptographic Seal: <span style={{ color: 'var(--text-muted, #94a3b8)' }}>d142ab608b5531fcacdabf8a4b227777d4dd1fc61c6f884f48641d02b4d121d3</span></div>
                 </div>
               )}
             </div>
@@ -1726,35 +1726,35 @@ export const ProductionRolloutView: React.FC = () => {
           <Card title="Invariant AT-091: Independent Security Assessment & Penetration Vectors">
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-muted, #94a3b8)', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px' }}>Security Vector Tested</th>
                   <th style={{ padding: '12px' }}>Methodology</th>
                   <th style={{ padding: '12px' }}>Test Scenario</th>
                   <th style={{ padding: '12px' }}>Result</th>
                 </tr>
               </thead>
-              <tbody style={{ color: '#334155' }}>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>PostgreSQL Row-Level Security</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Automated SQL Injection & Cross-Tenant Queries</td>
+              <tbody style={{ color: 'var(--text-secondary, #cbd5e1)' }}>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>PostgreSQL Row-Level Security</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Automated SQL Injection & Cross-Tenant Queries</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>Org B attempt to read/cancel Org A purchase orders</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">BLOCKED (404 NOT FOUND)</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Malicious Document Upload Sandbox</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Quarantine & Antivirus File Signature Scan</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Malicious Document Upload Sandbox</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Quarantine & Antivirus File Signature Scan</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>Polyglot macro-enabled invoice and executable zip payload</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">QUARANTINED & BLOCKED</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>AI Copilot Prompt Injection Defense</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Adversarial Jailbreak & System Prompt Exfiltration</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>AI Copilot Prompt Injection Defense</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Adversarial Jailbreak & System Prompt Exfiltration</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>Embedded prompt injection in tender attachment</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">DEFENDED & AUDITED</Badge></td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>Secret Manager Credentials</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Static Code Analysis & Secret Scanning</td>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Secret Manager Credentials</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Static Code Analysis & Secret Scanning</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>Zero plaintext secrets in source code or Git history</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">PASSED (0 SECRETS)</Badge></td>
                 </tr>
@@ -1793,10 +1793,10 @@ export const ProductionRolloutView: React.FC = () => {
             {/* Top Action Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: 0 }}>
                   Human UAT Launch & Tester Enablement (Admin → Release → Human UAT)
                 </h2>
-                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                   Target Staging Environment: <strong>https://e3-eos-api.vercel.app</strong> | Commit: <strong>{liveCommit}</strong>
                 </div>
               </div>
@@ -1860,7 +1860,7 @@ export const ProductionRolloutView: React.FC = () => {
               <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                    <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-muted, #94a3b8)', fontSize: '11px', textTransform: 'uppercase' }}>
                       <th style={{ padding: '8px 10px' }}>Role</th>
                       <th style={{ padding: '8px 10px' }}>Account Email</th>
                       <th style={{ padding: '8px 10px' }}>Assigned Tester</th>
@@ -1869,22 +1869,22 @@ export const ProductionRolloutView: React.FC = () => {
                       <th style={{ padding: '8px 10px', textAlign: 'center' }}>Action</th>
                     </tr>
                   </thead>
-                  <tbody style={{ color: '#334155' }}>
+                  <tbody style={{ color: 'var(--text-secondary, #cbd5e1)' }}>
                     {uatTesterAccounts.map((account) => {
                       const matchedRole = humanUatList.find((r) => r.code === account.code);
                       const currentAssigned = matchedRole?.assignedTester || account.assignedTester;
                       const isAwaiting = !currentAssigned || currentAssigned === 'Awaiting Assignment';
 
                       return (
-                        <tr key={account.code} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: 600, color: '#0f172a' }}>{account.role}</td>
+                        <tr key={account.code} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                          <td style={{ padding: '8px 10px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{account.role}</td>
                           <td style={{ padding: '8px 10px', fontFamily: 'monospace', color: '#2563eb' }}>{account.email}</td>
                           <td style={{ padding: '8px 10px' }}>
-                            <span style={{ color: isAwaiting ? '#94a3b8' : '#0f172a', fontWeight: isAwaiting ? 400 : 700 }}>
+                            <span style={{ color: isAwaiting ? '#94a3b8' : 'var(--text-primary, #f8fafc)', fontWeight: isAwaiting ? 400 : 700 }}>
                               {currentAssigned}
                             </span>
                           </td>
-                          <td style={{ padding: '8px 10px', color: '#64748b', fontSize: '11px' }}>{account.device}</td>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>{account.device}</td>
                           <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontSize: '11px', color: '#059669' }}>
                             {account.link}
                           </td>
@@ -1926,7 +1926,7 @@ export const ProductionRolloutView: React.FC = () => {
               <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                    <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-muted, #94a3b8)', fontSize: '11px', textTransform: 'uppercase' }}>
                       <th style={{ padding: '10px' }}>Role</th>
                       <th style={{ padding: '10px' }}>Assigned Tester</th>
                       <th style={{ padding: '10px' }}>Status</th>
@@ -1940,17 +1940,17 @@ export const ProductionRolloutView: React.FC = () => {
                       <th style={{ padding: '10px', textAlign: 'center' }}>Action</th>
                     </tr>
                   </thead>
-                  <tbody style={{ color: '#334155' }}>
+                  <tbody style={{ color: 'var(--text-secondary, #cbd5e1)' }}>
                     {humanUatList.map((item) => (
                       <tr
                         key={item.id}
                         style={{
-                          borderBottom: '1px solid #f1f5f9',
+                          borderBottom: '1px solid var(--border-subtle, #1d2939)',
                           backgroundColor: selectedUatRoleCode === item.code ? '#eff6ff' : 'transparent',
                         }}
                       >
-                        <td style={{ padding: '10px', fontWeight: 700, color: '#0f172a' }}>{item.role}</td>
-                        <td style={{ padding: '10px', color: (item.assignedTester && item.assignedTester !== 'Awaiting Assignment') ? '#0f172a' : '#94a3b8', fontWeight: (item.assignedTester && item.assignedTester !== 'Awaiting Assignment') ? 600 : 400 }}>
+                        <td style={{ padding: '10px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{item.role}</td>
+                        <td style={{ padding: '10px', color: (item.assignedTester && item.assignedTester !== 'Awaiting Assignment') ? 'var(--text-primary, #f8fafc)' : 'var(--text-muted, #94a3b8)', fontWeight: (item.assignedTester && item.assignedTester !== 'Awaiting Assignment') ? 600 : 400 }}>
                           {item.assignedTester || item.user || 'Awaiting Assignment'}
                         </td>
                         <td style={{ padding: '10px' }}>
@@ -1971,12 +1971,12 @@ export const ProductionRolloutView: React.FC = () => {
                           </Badge>
                         </td>
                         <td style={{ padding: '10px', maxWidth: '180px' }}>
-                          <span title={item.scenario} style={{ fontSize: '11px', color: '#64748b' }}>
+                          <span title={item.scenario} style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                             {item.scenario.length > 40 ? item.scenario.slice(0, 40) + '...' : item.scenario}
                           </span>
                         </td>
-                        <td style={{ padding: '10px', color: '#64748b', fontSize: '11px' }}>{item.startDate || '—'}</td>
-                        <td style={{ padding: '10px', color: '#64748b', fontSize: '11px' }}>{item.completionDate || '—'}</td>
+                        <td style={{ padding: '10px', color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>{item.startDate || '—'}</td>
+                        <td style={{ padding: '10px', color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>{item.completionDate || '—'}</td>
                         <td style={{ padding: '10px', fontWeight: 600, color: (item.score || item.usabilityScore) ? '#059669' : '#94a3b8' }}>
                           {(item.score || item.usabilityScore) ? `${item.score || item.usabilityScore} / 5` : '—'}
                         </td>
@@ -1986,9 +1986,9 @@ export const ProductionRolloutView: React.FC = () => {
                           </span>
                         </td>
                         <td style={{ padding: '10px', fontFamily: 'monospace', fontSize: '11px' }}>
-                          <span style={{ color: item.p0Defects > 0 ? '#dc2626' : '#64748b', fontWeight: item.p0Defects > 0 ? 700 : 400 }}>P0:{item.p0Defects || 0}</span>{' '}
-                          <span style={{ color: item.p1Defects > 0 ? '#ea580c' : '#64748b', fontWeight: item.p1Defects > 0 ? 700 : 400 }}>P1:{item.p1Defects || 0}</span>{' '}
-                          <span style={{ color: '#64748b' }}>P2/3:{item.p2p3Defects || 0}</span>
+                          <span style={{ color: item.p0Defects > 0 ? '#dc2626' : 'var(--text-muted, #94a3b8)', fontWeight: item.p0Defects > 0 ? 700 : 400 }}>P0:{item.p0Defects || 0}</span>{' '}
+                          <span style={{ color: item.p1Defects > 0 ? '#ea580c' : 'var(--text-muted, #94a3b8)', fontWeight: item.p1Defects > 0 ? 700 : 400 }}>P1:{item.p1Defects || 0}</span>{' '}
+                          <span style={{ color: 'var(--text-muted, #94a3b8)' }}>P2/3:{item.p2p3Defects || 0}</span>
                         </td>
                         <td style={{ padding: '10px' }}>
                           <Badge variant={item.finalDecision === 'approved' ? 'success' : item.finalDecision === 'approved_with_exceptions' ? 'warning' : item.finalDecision === 'rejected' ? 'danger' : 'neutral'}>
@@ -2012,16 +2012,16 @@ export const ProductionRolloutView: React.FC = () => {
             </Card>
 
             {/* Guided UAT Card for Selected Role (Sections 3 to 16) */}
-            <div style={{ padding: '24px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '14px', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ padding: '24px', borderRadius: '10px', border: '1px solid var(--border-default, #2a374b)', backgroundColor: 'var(--surface-1, #0f1624)', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', borderBottom: '1px solid var(--border-default, #2a374b)', paddingBottom: '14px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#2563eb', letterSpacing: '0.05em' }}>
                     Guided Human UAT Card (Sections 3–16)
                   </div>
-                  <h3 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
+                  <h3 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                     {currentRole.role}
                   </h3>
-                  <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                     Assigned Tester: <strong>{currentRole.assignedTester || currentRole.user || 'Awaiting Assignment'}</strong> | Champion: <strong>{currentRole.champion}</strong>
                   </div>
                 </div>
@@ -2042,19 +2042,19 @@ export const ProductionRolloutView: React.FC = () => {
               </div>
 
               {/* Scenario & Expected Journey Banner */}
-              <div style={{ marginBottom: '16px', padding: '14px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
+              <div style={{ marginBottom: '16px', padding: '14px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', textTransform: 'uppercase' }}>
                   Expected Operational Journey:
                 </div>
-                <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, marginTop: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)', fontWeight: 600, marginTop: '4px' }}>
                   {currentRole.scenario}
                 </div>
               </div>
 
               {/* Section 4: Guided Step-by-Step Scenario Checklist */}
-              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                     📋 Step-by-Step Scenario Checklist (Interactive Guidance):
                   </div>
                   <div style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600 }}>
@@ -2073,13 +2073,13 @@ export const ProductionRolloutView: React.FC = () => {
                           alignItems: 'center',
                           gap: '10px',
                           padding: '10px 12px',
-                          backgroundColor: isChecked ? '#f0fdf4' : '#ffffff',
+                          backgroundColor: isChecked ? '#f0fdf4' : 'var(--surface-1, #0f1624)',
                           borderRadius: '6px',
                           border: '1px solid',
-                          borderColor: isChecked ? '#bbf7d0' : '#e2e8f0',
+                          borderColor: isChecked ? '#bbf7d0' : 'var(--border-default, #2a374b)',
                           cursor: 'pointer',
                           fontSize: '13px',
-                          color: isChecked ? '#166534' : '#334155',
+                          color: isChecked ? '#166534' : 'var(--text-secondary, #cbd5e1)',
                           fontWeight: isChecked ? 600 : 400,
                         }}
                       >
@@ -2098,7 +2098,7 @@ export const ProductionRolloutView: React.FC = () => {
                 </div>
 
                 {/* Intermediate Understanding Check */}
-                <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#eff6ff', borderRadius: '6px', border: '1px solid #bfdbfe', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ marginTop: '16px', padding: '12px', backgroundColor: 'rgba(59, 130, 246, 0.12)', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                   <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a8a' }}>
                     Did you understand what required your attention during this workflow?
                   </div>
@@ -2121,8 +2121,8 @@ export const ProductionRolloutView: React.FC = () => {
               </div>
 
               {/* Role-Specific Questions (Sections 5 to 15) */}
-              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#92400e', marginBottom: '6px' }}>
+              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#f59e0b', marginBottom: '6px' }}>
                   🎯 Role-Specific Evaluation Inquiry (Sections 5–15):
                 </div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#78350f', lineHeight: 1.5 }}>
@@ -2131,8 +2131,8 @@ export const ProductionRolloutView: React.FC = () => {
               </div>
 
               {/* Mandatory Adoption Question (Section 14) */}
-              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#15803d', marginBottom: '4px' }}>
+              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '2px solid #22c55e', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#4ade80', marginBottom: '4px' }}>
                   ⭐ Mandatory Adoption Question (Section 14 — Required for Every Tester):
                 </div>
                 <div style={{ fontSize: '15px', fontWeight: 700, color: '#14532d', fontStyle: 'italic', marginBottom: '10px' }}>
@@ -2151,14 +2151,14 @@ export const ProductionRolloutView: React.FC = () => {
                         alignItems: 'center',
                         gap: '6px',
                         padding: '8px 14px',
-                        backgroundColor: editingUatForm.adoptionResponse === opt.val ? '#dcfce7' : '#ffffff',
+                        backgroundColor: editingUatForm.adoptionResponse === opt.val ? '#dcfce7' : 'var(--surface-1, #0f1624)',
                         border: '1px solid',
-                        borderColor: editingUatForm.adoptionResponse === opt.val ? '#16a34a' : '#cbd5e1',
+                        borderColor: editingUatForm.adoptionResponse === opt.val ? '#16a34a' : 'var(--border-default, #2a374b)',
                         borderRadius: '6px',
                         cursor: 'pointer',
                         fontWeight: 600,
                         fontSize: '13px',
-                        color: editingUatForm.adoptionResponse === opt.val ? '#15803d' : '#334155',
+                        color: editingUatForm.adoptionResponse === opt.val ? '#15803d' : 'var(--text-secondary, #cbd5e1)',
                       }}
                     >
                       <input
@@ -2175,14 +2175,14 @@ export const ProductionRolloutView: React.FC = () => {
               </div>
 
               {/* Section 16: UAT Result Form */}
-              <div style={{ padding: '18px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', textTransform: 'uppercase' }}>
+              <div style={{ padding: '18px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)', marginBottom: '20px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginBottom: '12px', textTransform: 'uppercase' }}>
                   UAT Completion & Result Sign-Off Form (Section 16)
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                       Human Practitioner Name *
                     </label>
                     <Input
@@ -2193,11 +2193,11 @@ export const ProductionRolloutView: React.FC = () => {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                       Overall Result (Section 16) *
                     </label>
                     <select
-                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#ffffff', fontWeight: 600 }}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', backgroundColor: 'var(--surface-1, #0f1624)', fontWeight: 600 }}
                       value={editingUatForm.status}
                       onChange={(e) => setEditingUatForm({ ...editingUatForm, status: e.target.value as any, result: (e.target.value === 'Passed' ? 'pass' : e.target.value === 'Failed' ? 'fail' : 'pending') as any })}
                     >
@@ -2211,7 +2211,7 @@ export const ProductionRolloutView: React.FC = () => {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                       Usability Score (1 to 5) *
                     </label>
                     <div style={{ display: 'flex', gap: '6px' }}>
@@ -2230,7 +2230,7 @@ export const ProductionRolloutView: React.FC = () => {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                       Device & Browser Tested
                     </label>
                     <div style={{ display: 'flex', gap: '6px' }}>
@@ -2249,7 +2249,7 @@ export const ProductionRolloutView: React.FC = () => {
                 </div>
 
                 <div style={{ marginBottom: '14px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Comments & Usability Feedback (Free Text)
                   </label>
                   <Textarea
@@ -2261,13 +2261,13 @@ export const ProductionRolloutView: React.FC = () => {
                 </div>
 
                 {currentRoleDefects.length > 0 && (
-                  <div style={{ marginBottom: '14px', padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ marginBottom: '14px', padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: '#dc2626', marginBottom: '6px' }}>
                       Logged Defects for this Persona ({currentRoleDefects.length}):
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       {currentRoleDefects.map((d) => (
-                        <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 8px', backgroundColor: '#fef2f2', borderRadius: '4px' }}>
+                        <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 8px', backgroundColor: 'rgba(239, 68, 68, 0.12)', borderRadius: '4px' }}>
                           <span><strong>{d.id}</strong> [{d.severity}]: {d.description}</span>
                           <Badge variant="neutral" size="sm">{d.status}</Badge>
                         </div>
@@ -2277,7 +2277,7 @@ export const ProductionRolloutView: React.FC = () => {
                 )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#334155', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={editingUatForm.acknowledged}
@@ -2324,7 +2324,7 @@ export const ProductionRolloutView: React.FC = () => {
               {/* Severity Filter Bar */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Filter Severity:</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Filter Severity:</span>
                   {(['ALL', 'P0', 'P1', 'P2', 'P3'] as const).map((sev) => (
                     <Button
                       key={sev}
@@ -2337,7 +2337,7 @@ export const ProductionRolloutView: React.FC = () => {
                   ))}
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#64748b' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                   Total Defects: <strong>{uatDefects.length}</strong> (P0: {uatDefects.filter(d => d.severity === 'P0' && d.status !== 'Closed').length}, P1: {uatDefects.filter(d => d.severity === 'P1' && d.status !== 'Closed').length})
                 </div>
               </div>
@@ -2353,9 +2353,9 @@ export const ProductionRolloutView: React.FC = () => {
                     <div
                       key={status}
                       style={{
-                        backgroundColor: '#f8fafc',
+                        backgroundColor: 'var(--surface-2, #151e2e)',
                         borderRadius: '8px',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--border-default, #2a374b)',
                         padding: '12px',
                         display: 'flex',
                         flexDirection: 'column',
@@ -2364,7 +2364,7 @@ export const ProductionRolloutView: React.FC = () => {
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid', borderColor: isNew ? '#ef4444' : isClosed ? '#22c55e' : '#3b82f6', paddingBottom: '6px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{status}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>{status}</span>
                         <Badge variant={isNew ? "danger" : isClosed ? "success" : "neutral"} size="sm">
                           {itemsInCol.length}
                         </Badge>
@@ -2372,7 +2372,7 @@ export const ProductionRolloutView: React.FC = () => {
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
                         {itemsInCol.length === 0 ? (
-                          <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '12px', padding: '24px 0' }}>
+                          <div style={{ textAlign: 'center', color: 'var(--text-muted, #94a3b8)', fontSize: '12px', padding: '24px 0' }}>
                             No {status.toLowerCase()} defects
                           </div>
                         ) : (
@@ -2380,8 +2380,8 @@ export const ProductionRolloutView: React.FC = () => {
                             <div
                               key={d.id}
                               style={{
-                                backgroundColor: '#ffffff',
-                                border: '1px solid #cbd5e1',
+                                backgroundColor: 'var(--surface-1, #0f1624)',
+                                border: '1px solid var(--border-default, #2a374b)',
                                 borderRadius: '6px',
                                 padding: '10px',
                                 display: 'flex',
@@ -2397,17 +2397,17 @@ export const ProductionRolloutView: React.FC = () => {
                                 </Badge>
                               </div>
 
-                              <div style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>
+                              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                                 {d.description}
                               </div>
 
                               {d.expectedBehavior && (
-                                <div style={{ fontSize: '11px', color: '#475569' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>
                                   <strong>Expected:</strong> {d.expectedBehavior}
                                 </div>
                               )}
 
-                              <div style={{ fontSize: '10px', color: '#64748b' }}>
+                              <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>
                                 Role: {d.roleTitle || d.role}
                               </div>
 
@@ -2416,7 +2416,7 @@ export const ProductionRolloutView: React.FC = () => {
                                 {status !== 'New' && (
                                   <button
                                     onClick={() => handleMoveDefectStatus(d.id, statuses[statuses.indexOf(status) - 1])}
-                                    style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', cursor: 'pointer' }}
+                                    style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', backgroundColor: 'var(--surface-2, #151e2e)', cursor: 'pointer' }}
                                   >
                                     ← Prev
                                   </button>
@@ -2424,7 +2424,7 @@ export const ProductionRolloutView: React.FC = () => {
                                 {status !== 'Closed' && (
                                   <button
                                     onClick={() => handleMoveDefectStatus(d.id, statuses[statuses.indexOf(status) + 1])}
-                                    style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', border: '1px solid #93c5fd', backgroundColor: '#eff6ff', color: '#1d4ed8', fontWeight: 600, cursor: 'pointer' }}
+                                    style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', border: '1px solid #93c5fd', backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', fontWeight: 600, cursor: 'pointer' }}
                                   >
                                     Advance →
                                   </button>
@@ -2452,45 +2452,45 @@ export const ProductionRolloutView: React.FC = () => {
             action={<Badge variant="primary">4 Modules Published</Badge>}
           >
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ color: '#0f172a' }}>Module 1: EOS in 10 Minutes</strong>
+                  <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>Module 1: EOS in 10 Minutes</strong>
                   <Badge variant="info">General</Badge>
                 </div>
-                <p style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5 }}>
                   Core project initialization, requirements ingestion, stage gate progression, and unified navigation.
                 </p>
                 <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '8px' }}>Duration: 10 minutes | Status: Published</div>
               </div>
 
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ color: '#0f172a' }}>Module 2: Commercial & Procurement Mastery</strong>
+                  <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>Module 2: Commercial & Procurement Mastery</strong>
                   <Badge variant="warning">Commercial</Badge>
                 </div>
-                <p style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5 }}>
                   BOQ line authoring, RFQ issuance, three-way matching, vendor scoring, and non-destructive compensating cancellations.
                 </p>
                 <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '8px' }}>Duration: 15 minutes | Status: Published</div>
               </div>
 
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ color: '#0f172a' }}>Module 3: Site Ops & Offline Run Sheets</strong>
+                  <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>Module 3: Site Ops & Offline Run Sheets</strong>
                   <Badge variant="purple">Field Ops</Badge>
                 </div>
-                <p style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5 }}>
                   Offline mobile PWA usage, badge scanning, shift handovers, HSE stop-work triggers, and live cue sequencing.
                 </p>
                 <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '8px' }}>Duration: 12 minutes | Status: Published</div>
               </div>
 
-              <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
+              <div style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ color: '#0f172a' }}>Module 4: Financial Closeout & Audit</strong>
+                  <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>Module 4: Financial Closeout & Audit</strong>
                   <Badge variant="success">Finance</Badge>
                 </div>
-                <p style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5 }}>
                   10-pillar commercial closeout, ZATCA e-invoicing compliance, ledger reconciliations, and tamper-evident audit chains.
                 </p>
                 <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '8px' }}>Duration: 10 minutes | Status: Published</div>
@@ -2519,9 +2519,9 @@ export const ProductionRolloutView: React.FC = () => {
                       padding: '10px 12px',
                       borderRadius: '6px',
                       border: '1px solid',
-                      borderColor: selectedRunbook === rb.id ? '#2563eb' : '#e2e8f0',
-                      backgroundColor: selectedRunbook === rb.id ? '#eff6ff' : '#ffffff',
-                      color: selectedRunbook === rb.id ? '#1d4ed8' : '#334155',
+                      borderColor: selectedRunbook === rb.id ? '#2563eb' : 'var(--border-default, #2a374b)',
+                      backgroundColor: selectedRunbook === rb.id ? '#eff6ff' : 'var(--surface-1, #0f1624)',
+                      color: selectedRunbook === rb.id ? '#1d4ed8' : 'var(--text-secondary, #cbd5e1)',
                       cursor: 'pointer',
                       fontSize: '12px',
                       fontWeight: 600,
@@ -2536,18 +2536,18 @@ export const ProductionRolloutView: React.FC = () => {
                 ))}
               </div>
 
-              <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
+              <div style={{ padding: '20px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 {(() => {
                   const rb = runbooksList.find((r) => r.id === selectedRunbook) || runbooksList[0];
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                           {rb.id} — {rb.title}
                         </h3>
                         <Badge variant="info">{rb.category}</Badge>
                       </div>
-                      <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.6 }}>
                         <div><strong>Trigger Condition:</strong> {rb.trigger}</div>
                         <div style={{ marginTop: '4px' }}><strong>Prescribed Runbook Action:</strong> {rb.action}</div>
                       </div>
@@ -2590,7 +2590,7 @@ export const ProductionRolloutView: React.FC = () => {
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-muted, #94a3b8)', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px' }}>Exception ID</th>
                   <th style={{ padding: '12px' }}>Scope</th>
                   <th style={{ padding: '12px' }}>Risk Assessment</th>
@@ -2600,15 +2600,15 @@ export const ProductionRolloutView: React.FC = () => {
                   <th style={{ padding: '12px' }}>Status</th>
                 </tr>
               </thead>
-              <tbody style={{ color: '#334155' }}>
+              <tbody style={{ color: 'var(--text-secondary, #cbd5e1)' }}>
                 <tr>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>EXC-2026-001</td>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>AI Copilot Telemetry Sampling in Staging</td>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>AI Copilot Telemetry Sampling in Staging</td>
                   <td style={{ padding: '12px' }}><Badge variant="warning">Low</Badge></td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>
                     PII and sensitive pricing data automatically redacted by token filter prior to sampling; strictly isolated in Doha tenant.
                   </td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>AI Tech Lead & Legal Counsel</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>AI Tech Lead & Legal Counsel</td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '12px' }}>2026-12-31</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">APPROVED</Badge></td>
                 </tr>
@@ -2635,12 +2635,12 @@ export const ProductionRolloutView: React.FC = () => {
                 { time: 'T - 0 Hours', title: 'Executive Go-Live Decision & Production Certificate', description: '9-pillar readiness gate evaluation. Owner digital sign-off and tamper-evident audit hash generated.', status: 'READY FOR SIGN-OFF' },
                 { time: 'T + 1 Day', title: 'Post-Deployment Business Reconciliation & Operational Review', description: 'Daily variance audit, user adoption monitoring, and feedback consolidation.', status: 'SCHEDULED' },
               ].map((item, idx) => (
-                <div key={idx} style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div key={idx} style={{ padding: '16px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', backgroundColor: 'var(--surface-1, #0f1624)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '13px', color: '#2563eb', width: '110px' }}>{item.time}</span>
                     <div>
-                      <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '14px' }}>{item.title}</div>
-                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>{item.description}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary, #f8fafc)', fontSize: '14px' }}>{item.title}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>{item.description}</div>
                     </div>
                   </div>
                   <Badge variant={item.status === 'COMPLETED' ? 'success' : item.status === 'READY FOR SIGN-OFF' ? 'warning' : 'neutral'}>
@@ -2694,7 +2694,7 @@ export const ProductionRolloutView: React.FC = () => {
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-muted, #94a3b8)', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px' }}>Readiness Pillar</th>
                   <th style={{ padding: '12px' }}>Mandatory Invariant</th>
                   <th style={{ padding: '12px' }}>Evidence Summary</th>
@@ -2702,76 +2702,76 @@ export const ProductionRolloutView: React.FC = () => {
                   <th style={{ padding: '12px' }}>Status</th>
                 </tr>
               </thead>
-              <tbody style={{ color: '#334155' }}>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>1. Product Scope & Freeze</td>
+              <tbody style={{ color: 'var(--text-secondary, #cbd5e1)' }}>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>1. Product Scope & Freeze</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>Clean tree, RC tagged</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>Commit {liveCommit}, tag eos-v1.0.0-rc2, 496 tests pass (100%).</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Lead Architect</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Lead Architect</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">READY</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>2. Data Migration</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>2. Data Migration</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>Legacy IDs preserved</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>100% match across 4,820 historical entities. 0 discrepancy.</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Migration Lead</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Migration Lead</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">READY</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>3. Security Compliance (AT-091)</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>3. Security Compliance (AT-091)</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>Zero Critical/High CVEs</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>RLS multi-tenant isolation verified, Qatar residency compliant.</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>CISO</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>CISO</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">READY</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>4. Disaster Recovery (AT-087)</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>4. Disaster Recovery (AT-087)</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>RPO &lt; 15m, RTO &lt; 4h</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>Measured RPO 2.4 min, RTO 18.2 min. Cryptographic parity 100%.</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>SRE Lead</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>SRE Lead</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">READY</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>5. Performance Envelope (AT-090)</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>5. Performance Envelope (AT-090)</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>EAC &gt; 30,000 ops/sec</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>Financial calculation &gt; 30k ops/sec, P99 &lt; 10ms.</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Perf Lead</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Perf Lead</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">READY</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>6. Support Operations (AT-092)</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>6. Support Operations (AT-092)</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>RB01–RB12 autonomously run</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>All 12 runbooks tested with zero developer dependency.</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Ops Director</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Ops Director</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">READY</Badge></td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>7. Human UAT Signoffs</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>7. Human UAT Signoffs</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: isUatComplete ? '#059669' : '#dc2626', fontWeight: 600 }}>11 User Personas Signed Off</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>
                     {isUatComplete
                       ? 'All 11 user personas signed off with 0 P0/P1 defects.'
                       : `${completedUatCount} / 11 user personas signed off. Release gate blocked until all 11 personas sign off.`}
                   </td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>UAT Lead</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>UAT Lead</td>
                   <td style={{ padding: '12px' }}>
                     <Badge variant={isUatComplete ? "success" : "danger"}>
                       {isUatComplete ? "READY" : `BLOCKED (${completedUatCount}/11)`}
                     </Badge>
                   </td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>8. Ownership & Sovereignty</td>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>8. Ownership & Sovereignty</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>Secrets & Cloud in E3 Org</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>Developer replaceability test passed; full documentation provided.</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Tech Lead</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Tech Lead</td>
                   <td style={{ padding: '12px' }}><Badge variant="success">READY</Badge></td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>9. Governance & Exceptions</td>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>9. Governance & Exceptions</td>
                   <td style={{ padding: '12px', fontSize: '12px', color: '#b45309', fontWeight: 600 }}>Compensating Controls</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>EXC-2026-001 approved with data redaction filter.</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>Legal Counsel</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Legal Counsel</td>
                   <td style={{ padding: '12px' }}><Badge variant="warning">WITH EXCEPTION</Badge></td>
                 </tr>
               </tbody>
@@ -2838,15 +2838,15 @@ export const ProductionRolloutView: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: '#ffffff', border: '1px solid #a7f3d0' }}>
+                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid #a7f3d0' }}>
                   <span style={{ fontSize: '11px', fontWeight: 700, color: '#047857', textTransform: 'uppercase' }}>Executive Sign-Off Affirmation:</span>
                   <p style={{ fontSize: '13px', color: '#064e3b', marginTop: '4px', fontStyle: 'italic', margin: '4px 0 0 0' }}>
                     "{signoffCertificate.comments}"
                   </p>
                 </div>
 
-                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: '#0f172a', color: '#ffffff' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
+                <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: 'var(--text-primary, #f8fafc)', color: 'var(--surface-1, #0f1624)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>
                     SHA-256 Tamper-Proof Cryptographic Audit Hash:
                   </div>
                   <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#38bdf8', wordBreak: 'break-all', marginTop: '4px' }}>
@@ -2855,10 +2855,10 @@ export const ProductionRolloutView: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#f8fafc', padding: '24px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '24px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                       Authorizing Signer Name
                     </label>
                     <Input
@@ -2867,7 +2867,7 @@ export const ProductionRolloutView: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                       Signer Corporate Role
                     </label>
                     <Input
@@ -2878,7 +2878,7 @@ export const ProductionRolloutView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     Sign-Off Statement & Observations
                   </label>
                   <Textarea
@@ -2888,7 +2888,7 @@ export const ProductionRolloutView: React.FC = () => {
                   />
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#334155' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
@@ -2917,7 +2917,7 @@ export const ProductionRolloutView: React.FC = () => {
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {isUatGateLocked && (
-                        <div style={{ padding: '12px 16px', backgroundColor: '#fef2f2', border: '2px solid #ef4444', borderRadius: '8px', color: '#991b1b', fontSize: '12px', lineHeight: 1.5 }}>
+                        <div style={{ padding: '12px 16px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '2px solid #ef4444', borderRadius: '8px', color: '#f87171', fontSize: '12px', lineHeight: 1.5 }}>
                           <div style={{ fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             🔒 Executive Decision Screen Strictly Locked (Section 21 Gate)
                           </div>
@@ -2954,18 +2954,18 @@ export const ProductionRolloutView: React.FC = () => {
       {/* Section 17: One-Click Issue Reporting Modal */}
       {isReportIssueOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+          <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-default, #2a374b)', paddingBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '20px' }}>🚨</span>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>Report UAT Issue (Section 17)</h3>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>Report UAT Issue (Section 17)</h3>
               </div>
-              <button onClick={() => setIsReportIssueOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}>✕</button>
+              <button onClick={() => setIsReportIssueOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: '18px', cursor: 'pointer', color: 'var(--text-muted, #94a3b8)' }}>✕</button>
             </div>
 
             {/* Automatically Captured Telemetry */}
-            <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '16px', fontSize: '11px', color: '#475569' }}>
-              <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>Automatically Captured Telemetry:</div>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', marginBottom: '16px', fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '4px' }}>Automatically Captured Telemetry:</div>
               <div>• <strong>UAT Role:</strong> {selectedUatRoleCode}</div>
               <div>• <strong>Route:</strong> /admin/release/human-uat?role={selectedUatRoleCode.replace(/_/g, '-')}</div>
               <div>• <strong>Project:</strong> {currentProject?.name ? `${currentProject.projectCode || 'PRJ'} (${currentProject.name})` : 'PRJ-QA-2026-DOH-01 (Production Pilot)'}</div>
@@ -2976,7 +2976,7 @@ export const ProductionRolloutView: React.FC = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   Problem Description *
                 </label>
                 <Textarea
@@ -2988,7 +2988,7 @@ export const ProductionRolloutView: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   Expected Behavior
                 </label>
                 <Input
@@ -2999,11 +2999,11 @@ export const ProductionRolloutView: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   Severity Suggestion (Section 19 Rules) *
                 </label>
                 <select
-                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#ffffff', fontWeight: 600 }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', backgroundColor: 'var(--surface-1, #0f1624)', fontWeight: 600 }}
                   value={issueReportForm.severity}
                   onChange={(e) => setIssueReportForm({ ...issueReportForm, severity: e.target.value as any })}
                 >
@@ -3015,7 +3015,7 @@ export const ProductionRolloutView: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   Screenshot URL or Attachment Reference
                 </label>
                 <Input
@@ -3041,24 +3041,24 @@ export const ProductionRolloutView: React.FC = () => {
       {/* Section 22: UAT Invitation Pack Modal */}
       {isInvitationPackOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+          <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '12px', width: '100%', maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-default, #2a374b)', paddingBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '20px' }}>✉️</span>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>UAT Invitation Pack (Section 22)</h3>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>UAT Invitation Pack (Section 22)</h3>
               </div>
-              <button onClick={() => setIsInvitationPackOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}>✕</button>
+              <button onClick={() => setIsInvitationPackOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: '18px', cursor: 'pointer', color: 'var(--text-muted, #94a3b8)' }}>✕</button>
             </div>
 
-            <div style={{ fontSize: '13px', color: '#475569', marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', marginBottom: '16px' }}>
               Copy and dispatch these pre-formatted invitations directly to the nominated E3 practitioners:
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {uatTesterAccounts.map((acc) => (
-                <div key={acc.code} style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc', fontSize: '12px' }}>
+                <div key={acc.code} style={{ padding: '12px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', backgroundColor: 'var(--surface-2, #151e2e)', fontSize: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <strong style={{ color: '#0f172a' }}>{acc.role}</strong>
+                    <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{acc.role}</strong>
                     <Button
                       variant="secondary"
                       size="sm"
@@ -3071,7 +3071,7 @@ export const ProductionRolloutView: React.FC = () => {
                       📋 Copy Invitation
                     </Button>
                   </div>
-                  <div style={{ color: '#334155', lineHeight: 1.5 }}>
+                  <div style={{ color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5 }}>
                     <div>• <strong>Login:</strong> {acc.email} (Password distributed via secure channel)</div>
                     <div>• <strong>Direct UAT Link:</strong> <span style={{ fontFamily: 'monospace', color: '#2563eb' }}>{acc.link}</span></div>
                     <div>• <strong>Device Requirement:</strong> {acc.device}</div>
@@ -3093,38 +3093,38 @@ export const ProductionRolloutView: React.FC = () => {
       {/* Section 23: UAT Admin Instructions Modal */}
       {isAdminGuideOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+          <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '12px', width: '100%', maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-default, #2a374b)', paddingBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '20px' }}>📖</span>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>UAT Coordinator Guide (Section 23)</h3>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>UAT Coordinator Guide (Section 23)</h3>
               </div>
-              <button onClick={() => setIsAdminGuideOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}>✕</button>
+              <button onClick={() => setIsAdminGuideOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: '18px', cursor: 'pointer', color: 'var(--text-muted, #94a3b8)' }}>✕</button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
-              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.6 }}>
+              <div style={{ padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
                 <strong>1. Assign Tester:</strong> Nominate real human practitioner for each of the 11 roles in the roster.
               </div>
-              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+              <div style={{ padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
                 <strong>2. Send Test Link:</strong> Dispatch role-specific direct links (?role=...) from the Invitation Pack.
               </div>
-              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+              <div style={{ padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
                 <strong>3. Monitor Progress:</strong> Track live completion on the UAT Control Centre (0 / 11).
               </div>
-              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+              <div style={{ padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
                 <strong>4. Triage Defects:</strong> Inspect reported issues on the Defect Triage Board (New → Triaged → Fixing).
               </div>
-              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+              <div style={{ padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
                 <strong>5. Arrange Retest:</strong> Request tester to re-verify once defect is marked 'Ready for Retest'.
               </div>
-              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+              <div style={{ padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
                 <strong>6. Close P0/P1:</strong> Ensure Open P0 = 0 and Open P1 = 0 before presenting to Executive Owner.
               </div>
-              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+              <div style={{ padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
                 <strong>7. Review Adoption Answers:</strong> Verify all 11 testers answered the mandatory adoption question.
               </div>
-              <div style={{ padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
+              <div style={{ padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
                 <strong>8. Prepare Executive Go/No-Go:</strong> Unlock Executive Decision screen only when all gates pass.
               </div>
             </div>

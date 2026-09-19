@@ -159,11 +159,11 @@ export const MyWorkView: React.FC = () => {
   ];
 
   const renderApprovalCard = (appr: any) => (
-    <Card key={appr.id} style={{ borderLeft: `4px solid ${appr.status === 'approved' ? '#10b981' : appr.status === 'rejected' ? '#ef4444' : '#f59e0b'}` }}>
+    <Card key={appr.id} style={{ borderLeft: `4px solid ${appr.status === 'approved' ? '#10b981' : appr.status === 'rejected' ? '#ef4444' : 'var(--accent, #d97706)'}` }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ fontWeight: 700, fontSize: '13px', fontFamily: 'monospace', color: '#2563eb' }}>
+            <span style={{ fontWeight: 700, fontSize: '13px', fontFamily: 'monospace', color: 'var(--accent, #d97706)' }}>
               <span dir="ltr">{appr.id}</span>
             </span>
             <Badge variant={appr.status === 'approved' ? 'success' : appr.status === 'rejected' ? 'danger' : 'warning'}>
@@ -171,19 +171,19 @@ export const MyWorkView: React.FC = () => {
             </Badge>
             <Badge variant="neutral">{appr.requiredRole || 'Executive'}</Badge>
           </div>
-          <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '4px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>
             {appr.reason || `Sign-off for ${appr.targetType}`}
           </div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
             Target: {appr.targetType} ({appr.targetId}) • Role: {appr.requiredRole}
           </div>
           {appr.comment && (
             <div
               style={{
                 fontSize: '12px',
-                color: appr.status === 'rejected' ? '#b91c1c' : '#15803d',
-                backgroundColor: appr.status === 'rejected' ? '#fef2f2' : '#f0fdf4',
-                border: `1px solid ${appr.status === 'rejected' ? '#fecaca' : '#bbf7d0'}`,
+                color: appr.status === 'rejected' ? '#ef4444' : '#22c55e',
+                backgroundColor: appr.status === 'rejected' ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)',
+                border: `1px solid ${appr.status === 'rejected' ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)'}`,
                 padding: '6px 12px',
                 borderRadius: '4px',
                 marginTop: '8px',
@@ -234,7 +234,7 @@ export const MyWorkView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {isApprovalsRoute
                 ? (isRtl ? 'موافقات الحوكمة والاعتماد' : 'Governance Approvals')
                 : (isRtl ? 'مهامي ومسؤولياتي' : 'My Work')}
@@ -245,7 +245,7 @@ export const MyWorkView: React.FC = () => {
                 : (isRtl ? 'العمليات المباشرة' : 'Qatar Live Operations')}
             </Badge>
           </div>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
             {isApprovalsRoute
               ? (isRtl
                 ? 'قائمة مراجعة وتوقيع قرارات الحوكمة، اعتمادات بوابات المراحل، وأوامر الشراء المرفوعة للصلاحيات.'
@@ -335,22 +335,22 @@ export const MyWorkView: React.FC = () => {
               id="mywork-rejection-alert"
               style={{
                 padding: '16px 20px',
-                backgroundColor: '#fff1f2',
-                border: '2px solid #fda4af',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
                 borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(225, 29, 72, 0.08)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '20px' }}>⛔</span>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#9f1239' }}>
+                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#ef4444' }}>
                       {currentLanguage === 'ar'
                         ? `إجراء مطلوب: ${rejectedApprovals.length} موافقة مرفوضة بحاجة إلى مراجعة وتعديل`
                         : `Action Required: ${rejectedApprovals.length} Approval(s) Rejected — Revision Needed`}
                     </h3>
-                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#be123c' }}>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                       {currentLanguage === 'ar'
                         ? 'قام صاحب الصلاحية برفض هذه الطلبات. يرجى الاطلاع على الملاحظات وإعادة الإرسال.'
                         : 'Governance controllers or executives rejected these submissions. Review the rejection comments and resubmit with corrections.'}
@@ -366,8 +366,8 @@ export const MyWorkView: React.FC = () => {
                     key={appr.id}
                     id={`mywork-rejected-card-${appr.id}`}
                     style={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #fecdd3',
+                      backgroundColor: 'var(--surface-1, #0f1624)',
+                      border: '1px solid var(--border-default, #2a374b)',
                       borderRadius: '6px',
                       padding: '14px 16px',
                       display: 'flex',
@@ -380,23 +380,23 @@ export const MyWorkView: React.FC = () => {
                     <div style={{ flex: 1, minWidth: '260px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                         <Badge variant="danger">REJECTED</Badge>
-                        <span style={{ fontSize: '12px', fontFamily: 'monospace', color: '#64748b' }}>{appr.id}</span>
-                        <span style={{ fontSize: '12px', color: '#64748b' }}>
+                        <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted, #94a3b8)' }}>{appr.id}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                           • Decider: <strong>{appr.decider || appr.decidedBy || appr.requiredRole || 'Executive Approver'}</strong>
                         </span>
                       </div>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                         {appr.reason || `Approval Request for ${appr.targetType}`}
                       </div>
                       <div
                         style={{
                           marginTop: '6px',
                           padding: '8px 12px',
-                          backgroundColor: '#fff1f2',
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
                           borderRadius: '4px',
                           fontSize: '12px',
-                          color: '#9f1239',
-                          borderLeft: '3px solid #e11d48',
+                          color: '#f87171',
+                          borderLeft: '3px solid #ef4444',
                         }}
                       >
                         <strong>Governance Reason:</strong> "{appr.comment || 'Revision requested prior to sign-off.'}"
@@ -441,7 +441,7 @@ export const MyWorkView: React.FC = () => {
               {/* Approvals requiring signature */}
               {pendingApprovals.length > 0 && (
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#f59e0b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     ⚠️ Approvals Awaiting Review ({pendingApprovals.length})
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -451,13 +451,13 @@ export const MyWorkView: React.FC = () => {
                           <div style={{ flex: 1, minWidth: '240px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                               <Badge variant="warning">Awaiting Sign-off</Badge>
-                              <span style={{ fontSize: '12px', color: '#64748b', fontFamily: 'monospace' }}>{appr.id}</span>
+                              <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontFamily: 'monospace' }}>{appr.id}</span>
                               <Badge variant="neutral">{appr.requiredRole || 'Executive'}</Badge>
                             </div>
-                            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                               {appr.reason || `Approval Request for ${appr.targetType}`}
                             </div>
-                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '6px' }}>
                               Target: <strong>{appr.targetType}</strong> • Project: <strong>{currentProject?.title || currentProject?.clientName || 'Active Project'}</strong> • Hash: <span style={{ fontFamily: 'monospace' }}>{appr.targetHash ? appr.targetHash.slice(0, 16) + '...' : 'Verified SHA-256'}</span>
                             </div>
                           </div>
@@ -504,7 +504,7 @@ export const MyWorkView: React.FC = () => {
               {/* Active tasks requiring execution */}
               {activeTasks.length > 0 && (
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e40af', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#60a5fa', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     📋 Active Action Items ({activeTasks.length})
                   </div>
                   <Card noPadding>
@@ -518,7 +518,7 @@ export const MyWorkView: React.FC = () => {
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             padding: '12px 18px',
-                            borderBottom: '1px solid #f1f5f9',
+                            borderBottom: '1px solid var(--border-subtle, #1d2939)',
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -529,10 +529,10 @@ export const MyWorkView: React.FC = () => {
                               style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                             />
                             <div>
-                              <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                                 {task.title}
                               </div>
-                              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                                 Assignee: {task.assignee || task.assigneeName || currentUser?.name || 'Assigned'} • Stage: Concept Architecture
                               </div>
                             </div>
@@ -570,9 +570,9 @@ export const MyWorkView: React.FC = () => {
                   padding: '6px 14px',
                   borderRadius: '20px',
                   border: '1px solid',
-                  borderColor: taskFilter === filter ? '#2563eb' : '#cbd5e1',
-                  backgroundColor: taskFilter === filter ? '#eff6ff' : '#ffffff',
-                  color: taskFilter === filter ? '#1d4ed8' : '#64748b',
+                  borderColor: taskFilter === filter ? '#2563eb' : 'var(--border-default, #2a374b)',
+                  backgroundColor: taskFilter === filter ? '#eff6ff' : 'var(--surface-1, #0f1624)',
+                  color: taskFilter === filter ? '#1d4ed8' : 'var(--text-muted, #94a3b8)',
                   fontSize: '12px',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -586,7 +586,7 @@ export const MyWorkView: React.FC = () => {
 
           <Card noPadding>
             {filteredTasks.length === 0 ? (
-              <div style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                 No {taskFilter !== 'all' ? taskFilter : ''} tasks found for your profile.
               </div>
             ) : (
@@ -596,11 +596,11 @@ export const MyWorkView: React.FC = () => {
                     display: 'grid',
                     gridTemplateColumns: '40px 1fr 160px 110px 130px',
                     padding: '10px 18px',
-                    backgroundColor: '#f8fafc',
-                    borderBottom: '1px solid #e2e8f0',
+                    backgroundColor: 'var(--surface-2, #151e2e)',
+                    borderBottom: '1px solid var(--border-default, #2a374b)',
                     fontSize: '11px',
                     fontWeight: 700,
-                    color: '#64748b',
+                    color: 'var(--text-muted, #94a3b8)',
                     textTransform: 'uppercase',
                   }}
                 >
@@ -621,8 +621,8 @@ export const MyWorkView: React.FC = () => {
                         gridTemplateColumns: '40px 1fr 160px 110px 130px',
                         alignItems: 'center',
                         padding: '12px 18px',
-                        borderBottom: '1px solid #f1f5f9',
-                        backgroundColor: completed ? '#f8fafc' : '#ffffff',
+                        borderBottom: '1px solid var(--border-subtle, #1d2939)',
+                        backgroundColor: completed ? '#f8fafc' : 'var(--surface-1, #0f1624)',
                       }}
                     >
                       <div>
@@ -639,14 +639,14 @@ export const MyWorkView: React.FC = () => {
                           style={{
                             fontSize: '13px',
                             fontWeight: 600,
-                            color: completed ? '#94a3b8' : '#0f172a',
+                            color: completed ? '#94a3b8' : 'var(--text-primary, #f8fafc)',
                             textDecoration: completed ? 'line-through' : 'none',
                           }}
                         >
                           {task.title}
                         </span>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         {task.assignee || task.assigneeName || currentUser?.name || 'Assigned'}
                       </div>
                       <div>
@@ -697,9 +697,9 @@ export const MyWorkView: React.FC = () => {
                     padding: '6px 14px',
                     borderRadius: '20px',
                     border: '1px solid',
-                    borderColor: approvalFilter === filter ? '#2563eb' : '#cbd5e1',
-                    backgroundColor: approvalFilter === filter ? '#eff6ff' : '#ffffff',
-                    color: approvalFilter === filter ? '#1d4ed8' : '#64748b',
+                    borderColor: approvalFilter === filter ? '#2563eb' : 'var(--border-default, #2a374b)',
+                    backgroundColor: approvalFilter === filter ? '#eff6ff' : 'var(--surface-1, #0f1624)',
+                    color: approvalFilter === filter ? '#1d4ed8' : 'var(--text-muted, #94a3b8)',
                     fontSize: '12px',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -727,10 +727,10 @@ export const MyWorkView: React.FC = () => {
                         </Badge>
                         <Badge variant="neutral">{appr.requiredRole || 'Executive'}</Badge>
                       </div>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '4px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>
                         {appr.reason || `Sign-off for ${appr.targetType}`}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                         Target: {appr.targetType} ({appr.targetId}) • Role: {appr.requiredRole}
                       </div>
                       {appr.comment && (
@@ -802,10 +802,10 @@ export const MyWorkView: React.FC = () => {
               <div
                 style={{
                   padding: '12px 16px',
-                  backgroundColor: '#fef2f2',
-                  border: '1px solid #fecaca',
+                  backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
                   borderRadius: '6px',
-                  color: '#991b1b',
+                  color: '#f87171',
                   fontSize: '13px',
                 }}
               >
@@ -818,23 +818,23 @@ export const MyWorkView: React.FC = () => {
                     <div style={{ flex: 1, minWidth: '260px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                         <Badge variant="danger">REJECTED / BLOCKED</Badge>
-                        <span style={{ fontSize: '12px', fontFamily: 'monospace', color: '#64748b' }}>{item.id}</span>
-                        <span style={{ fontSize: '12px', color: '#64748b' }}>
+                        <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted, #94a3b8)' }}>{item.id}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                           • Decider: <strong>{item.decider || item.decidedBy || item.requiredRole || 'Executive Approver'}</strong>
                         </span>
                       </div>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                         {item.reason}
                       </div>
                       <div
                         style={{
                           marginTop: '8px',
                           padding: '8px 12px',
-                          backgroundColor: '#fef2f2',
-                          border: '1px solid #fecaca',
+                          backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
                           borderRadius: '4px',
                           fontSize: '12px',
-                          color: '#991b1b',
+                          color: '#f87171',
                         }}
                       >
                         <strong>Governance Reason:</strong> "{item.comment || 'Revision requested prior to sign-off.'}"
@@ -879,19 +879,19 @@ export const MyWorkView: React.FC = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '14px 16px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '6px',
                 }}
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Badge variant="info">Stage Gate 04</Badge>
-                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                       Concept Design & Master Architectural Package
                     </span>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                     Client: <strong>{currentProject?.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')}</strong> • Venue: {currentProject?.venue || (isRtl ? 'الموقع الرئيسي' : 'Main Venue')}
                   </div>
                 </div>
@@ -909,19 +909,19 @@ export const MyWorkView: React.FC = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '14px 16px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '6px',
                 }}
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Badge variant="neutral">Milestone 09</Badge>
-                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                       On-site Bump-in & Technical Rehearsal
                     </span>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                     Location: <strong>{currentProject?.venue || (isRtl ? 'الموقع الميداني' : 'Main Site')}</strong> • Workstream: Live Ops & AV Production
                   </div>
                 </div>
@@ -957,7 +957,7 @@ export const MyWorkView: React.FC = () => {
         }
       >
         <form onSubmit={handleDecideApproval}>
-          <p style={{ fontSize: '13px', color: '#64748b', marginTop: 0 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginTop: 0 }}>
             Request: <strong>{decidingApproval?.id}</strong> ({decidingApproval?.reason})
           </p>
           <Textarea
@@ -1000,18 +1000,18 @@ export const MyWorkView: React.FC = () => {
       >
         {selectedDetailApproval && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <div><strong style={{ color: '#64748b' }}>Request ID:</strong> <span style={{ fontFamily: 'monospace' }}>{selectedDetailApproval.id}</span></div>
-              <div><strong style={{ color: '#64748b' }}>Status:</strong> <Badge variant={selectedDetailApproval.status === 'rejected' ? 'danger' : selectedDetailApproval.status === 'approved' ? 'success' : 'warning'}>{selectedDetailApproval.status?.toUpperCase()}</Badge></div>
-              <div><strong style={{ color: '#64748b' }}>Target Type:</strong> {selectedDetailApproval.targetType}</div>
-              <div><strong style={{ color: '#64748b' }}>Target ID:</strong> <span style={{ fontFamily: 'monospace' }}>{selectedDetailApproval.targetId}</span></div>
-              <div><strong style={{ color: '#64748b' }}>Required Authority:</strong> <Badge variant="neutral">{selectedDetailApproval.requiredRole || 'Executive'}</Badge></div>
-              <div><strong style={{ color: '#64748b' }}>Decider:</strong> {selectedDetailApproval.decider || selectedDetailApproval.decidedBy || selectedDetailApproval.requiredRole || 'Executive'}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <div><strong style={{ color: 'var(--text-muted, #94a3b8)' }}>Request ID:</strong> <span style={{ fontFamily: 'monospace' }}>{selectedDetailApproval.id}</span></div>
+              <div><strong style={{ color: 'var(--text-muted, #94a3b8)' }}>Status:</strong> <Badge variant={selectedDetailApproval.status === 'rejected' ? 'danger' : selectedDetailApproval.status === 'approved' ? 'success' : 'warning'}>{selectedDetailApproval.status?.toUpperCase()}</Badge></div>
+              <div><strong style={{ color: 'var(--text-muted, #94a3b8)' }}>Target Type:</strong> {selectedDetailApproval.targetType}</div>
+              <div><strong style={{ color: 'var(--text-muted, #94a3b8)' }}>Target ID:</strong> <span style={{ fontFamily: 'monospace' }}>{selectedDetailApproval.targetId}</span></div>
+              <div><strong style={{ color: 'var(--text-muted, #94a3b8)' }}>Required Authority:</strong> <Badge variant="neutral">{selectedDetailApproval.requiredRole || 'Executive'}</Badge></div>
+              <div><strong style={{ color: 'var(--text-muted, #94a3b8)' }}>Decider:</strong> {selectedDetailApproval.decider || selectedDetailApproval.decidedBy || selectedDetailApproval.requiredRole || 'Executive'}</div>
             </div>
 
             <div>
-              <strong style={{ color: '#0f172a' }}>Description / Reason:</strong>
-              <div style={{ marginTop: '4px', padding: '8px 12px', backgroundColor: '#f1f5f9', borderRadius: '4px', color: '#1e293b' }}>
+              <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>Description / Reason:</strong>
+              <div style={{ marginTop: '4px', padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '4px', color: 'var(--text-primary, #f8fafc)' }}>
                 {selectedDetailApproval.reason || 'No description provided'}
               </div>
             </div>
@@ -1035,7 +1035,7 @@ export const MyWorkView: React.FC = () => {
               </div>
             )}
 
-            <div style={{ padding: '10px 12px', backgroundColor: '#eff6ff', borderRadius: '6px', border: '1px solid #bfdbfe', fontSize: '12px', color: '#1e40af' }}>
+            <div style={{ padding: '10px 12px', backgroundColor: 'rgba(59, 130, 246, 0.12)', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.3)', fontSize: '12px', color: '#60a5fa' }}>
               <strong>Governance Rule:</strong> Approvals are recorded on the immutable audit log with cryptographic hash verification and timestamping.
             </div>
           </div>

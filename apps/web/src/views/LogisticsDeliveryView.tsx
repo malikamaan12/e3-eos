@@ -78,7 +78,7 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
   };
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Loading logistics and transport intelligence...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>Loading logistics and transport intelligence...</div>;
   }
 
   return (
@@ -110,15 +110,15 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
 
           {/* Dock Slot Scheduling Matrix */}
           <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 01</span>
                 <Badge variant="success">30-MIN ACTIVE</Badge>
               </div>
-              <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-primary, #f8fafc)', fontWeight: 700, marginTop: '4px' }}>
                 Heavy Rigging & Trussing Manifest
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                 Slot: <strong>08:30 – 09:00</strong> • Truck QA-TRK-771
               </div>
               <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700, marginTop: '4px' }}>
@@ -126,15 +126,15 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
               </div>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 02</span>
                 <Badge variant="primary">RESERVED</Badge>
               </div>
-              <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-primary, #f8fafc)', fontWeight: 700, marginTop: '4px' }}>
                 Scenic Carpentry & VIP Arch Units
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                 Slot: <strong>09:00 – 09:30</strong> • 12m Flatbed QA-FLB-201
               </div>
               <div style={{ fontSize: '11px', color: '#2563eb', fontWeight: 700, marginTop: '4px' }}>
@@ -142,15 +142,15 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
               </div>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: 800, color: '#065f46', fontSize: '13px' }}>🚛 Loading Bay Dock 03</span>
                 <Badge variant="warning">CUSTOMS INSPECT</Badge>
               </div>
-              <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700, marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-primary, #f8fafc)', fontWeight: 700, marginTop: '4px' }}>
                 High-Value Laser Projection & LED Panels
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                 Slot: <strong>09:30 – 10:00</strong> • Climate Box Van QA-CBX-442
               </div>
               <div style={{ fontSize: '11px', color: '#d97706', fontWeight: 700, marginTop: '4px' }}>
@@ -160,13 +160,13 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
           </div>
         </Card>
       ) : (
-        <Card style={{ border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+        <Card style={{ border: '1px solid var(--border-default, #2a374b)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#334155' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--text-secondary, #cbd5e1)' }}>
                 Customs Clearance & ATA Carnet Gateway
               </h3>
-              <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0' }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
                 No active customs transit bond or cross-border carnet manifest registered for this project.
               </p>
             </div>
@@ -179,10 +179,10 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               🚚 Transport Plans, Fleet & Access Slots (Sprint 03 Module 10)
             </h3>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
               Configurable open vehicle types (3 Ton, 7 Ton, 12m Flatbed, Crane Truck) mapped to loading bay access windows.
             </p>
           </div>
@@ -195,8 +195,8 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
               style={{
                 padding: '16px',
                 borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
+                border: '1px solid var(--border-default, #2a374b)',
+                backgroundColor: 'var(--surface-1, #0f1624)',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -204,16 +204,16 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
                 <Badge variant={tp.status === 'arrived' ? 'success' : 'primary'}>{tp.status}</Badge>
               </div>
 
-              <div style={{ marginTop: '8px', fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
+              <div style={{ marginTop: '8px', fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 {tp.vehicleType} • {tp.supplier}
               </div>
-              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                 Driver: <strong>{tp.driverName}</strong> ({tp.driverPhone})
               </div>
 
-              <div style={{ marginTop: '12px', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '6px', fontSize: '12px' }}>
+              <div style={{ marginTop: '12px', padding: '10px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', fontSize: '12px' }}>
                 <div>Load: <strong>{tp.loadDescription}</strong></div>
-                <div style={{ marginTop: '4px', color: '#64748b' }}>
+                <div style={{ marginTop: '4px', color: 'var(--text-muted, #94a3b8)' }}>
                   {tp.origin} → <strong>{tp.destination}</strong>
                 </div>
                 <div style={{ marginTop: '4px', color: '#059669', fontWeight: 700 }}>
@@ -223,9 +223,9 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
             </div>
           ))}
           {transportPlans.length === 0 && (
-            <div style={{ padding: '36px', textAlign: 'center', color: '#64748b', gridColumn: '1 / -1' }}>
+            <div style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)', gridColumn: '1 / -1' }}>
               <div style={{ fontSize: '24px', marginBottom: '8px' }}>🚚</div>
-              <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Transport Plans Dispatched</div>
+              <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Transport Plans Dispatched</div>
               <div style={{ fontSize: '12px', marginTop: '4px' }}>Transport assignments and dock access slots will appear here once booked.</div>
             </div>
           )}
@@ -236,10 +236,10 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               📋 Packing Lists & Site Proof of Delivery (Sprint 03 Module 9)
             </h3>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
               Multi-source consolidation: Internal warehouse assets + external fabricator packages unified on single transport manifests.
             </p>
           </div>
@@ -248,7 +248,7 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: 'left' }}>
                 <th style={{ padding: '10px 12px' }}>Packing List #</th>
                 <th style={{ padding: '10px 12px' }}>Consolidated Items</th>
                 <th style={{ padding: '10px 12px' }}>Vehicle / Destination</th>
@@ -260,20 +260,20 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
             </thead>
             <tbody>
               {packingLists.map((pl) => (
-                <tr key={pl.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr key={pl.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                   <td style={{ padding: '12px', fontWeight: 800, color: '#2563eb' }}>{pl.packingListNumber}</td>
                   <td style={{ padding: '12px' }}>
                     {pl.items?.map((it: any, idx: number) => (
-                      <div key={idx} style={{ fontSize: '12px', color: '#1e293b' }}>
+                      <div key={idx} style={{ fontSize: '12px', color: 'var(--text-primary, #f8fafc)' }}>
                         • <strong>{it.quantity}×</strong> {it.description} ({it.casesPallets})
                       </div>
                     ))}
                   </td>
                   <td style={{ padding: '12px' }}>
-                    <div style={{ fontWeight: 700, color: '#0f172a' }}>{pl.vehicleId}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>{pl.destination}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{pl.vehicleId}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{pl.destination}</div>
                   </td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     {new Date(pl.dispatchDate).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                   </td>
                   <td style={{ padding: '12px' }}>
@@ -283,7 +283,7 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
                     {pl.deliveryProof ? (
                       <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
                         ✓ Received by {pl.deliveryProof.receiverName}
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>Photo POD signed & uploaded</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Photo POD signed & uploaded</div>
                       </div>
                     ) : (
                       <span style={{ fontSize: '12px', color: '#94a3b8' }}>Awaiting on-site receipt</span>
@@ -326,9 +326,9 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
               ))}
               {packingLists.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>📋</div>
-                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Packing Lists Created</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Packing Lists Created</div>
                     <div style={{ fontSize: '12px', marginTop: '4px' }}>Generate packing lists from warehouse reservations or subcontractor packages.</div>
                   </td>
                 </tr>
@@ -346,36 +346,36 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
           onClose={() => setPodPackingList(null)}
         >
           <form onSubmit={handlePodSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '6px', fontSize: '13px', color: '#166534' }}>
+            <div style={{ padding: '12px', backgroundColor: 'rgba(34, 197, 94, 0.12)', borderRadius: '6px', fontSize: '13px', color: '#22c55e' }}>
               ✓ All {podPackingList.items?.reduce((acc: number, it: any) => acc + it.quantity, 0)} units verified on loading bay with zero damage discrepancies.
             </div>
 
             {podPackingList.status === 'delivered' ? (
-              <div style={{ backgroundColor: '#f8fafc', padding: '14px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '14px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px' }}>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', marginBottom: '2px' }}>Authorized Receiver:</span>
-                    <strong style={{ fontSize: '13px', color: '#0f172a' }}>{podPackingList.deliveryProof?.receiverName || receiverName}</strong>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', marginBottom: '2px' }}>Authorized Receiver:</span>
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>{podPackingList.deliveryProof?.receiverName || receiverName}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', marginBottom: '2px' }}>Receipt Certified At:</span>
-                    <strong style={{ fontSize: '13px', color: '#0f172a' }}>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', marginBottom: '2px' }}>Receipt Certified At:</span>
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                       {podPackingList.deliveryProof?.receivedAt ? new Date(podPackingList.deliveryProof.receivedAt).toLocaleString() : '16 Sept 2026, 14:22 AST'}
                     </strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', marginBottom: '2px' }}>Electronic Signature:</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', marginBottom: '2px' }}>Electronic Signature:</span>
                     <strong style={{ color: '#16a34a' }}>✓ Cryptographic Digital Sign-Off Verified</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', marginBottom: '2px' }}>GPS Geotag:</span>
-                    <strong style={{ color: '#0f172a' }}>DECC Loading Dock 03 (25.3211° N, 51.5312° E)</strong>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', marginBottom: '2px' }}>GPS Geotag:</span>
+                    <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>DECC Loading Dock 03 (25.3211° N, 51.5312° E)</strong>
                   </div>
                 </div>
               </div>
             ) : (
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Receiving Site Supervisor Name</label>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Receiving Site Supervisor Name</label>
                 <Input
                   type="text"
                   value={receiverName}
@@ -388,18 +388,18 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
             )}
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
                 Photographic POD Evidence & Physical Consignment Seal
               </label>
-              <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', backgroundColor: '#f8fafc' }}>
+              <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '20px' }}>📸</span>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                      <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                         {podPackingList.packingListNumber ? podPackingList.packingListNumber.toLowerCase() : 'pod'}-verified.jpg
                       </div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>High-Resolution Delivery Seal & Pallet Inspection Photo</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>High-Resolution Delivery Seal & Pallet Inspection Photo</div>
                     </div>
                   </div>
                   <Button
@@ -416,7 +416,7 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
                   style={{
                     cursor: 'pointer',
                     height: '120px',
-                    backgroundColor: '#1e293b',
+                    backgroundColor: 'var(--surface-2, #151e2e)',
                     borderRadius: '6px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -424,16 +424,16 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
                     justifyContent: 'center',
                     color: '#94a3b8',
                     fontSize: '12px',
-                    border: '1px solid #334155',
+                    border: '1px solid var(--border-default, #2a374b)',
                     position: 'relative',
                   }}
                 >
                   <div style={{ fontSize: '28px', marginBottom: '4px' }}>📦</div>
-                  <div style={{ color: '#f8fafc', fontWeight: 600 }}>SITE DELIVERY PROOF • PALLET UNLOAD VERIFIED</div>
+                  <div style={{ color: 'var(--surface-2, #151e2e)', fontWeight: 600 }}>SITE DELIVERY PROOF • PALLET UNLOAD VERIFIED</div>
                   <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
                     DECC DOCK 03 • 16-SEP-2026 14:22 AST • ZERO TRANSIT DEFECTS
                   </div>
-                  <div style={{ position: 'absolute', bottom: '6px', right: '8px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>
+                  <div style={{ position: 'absolute', bottom: '6px', right: '8px', backgroundColor: 'rgba(0,0,0,0.7)', color: 'var(--surface-1, #0f1624)', padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>
                     Click to enlarge
                   </div>
                 </div>
@@ -462,17 +462,17 @@ export const LogisticsDeliveryView: React.FC<LogisticsDeliveryViewProps> = ({ pr
           onClose={() => setIsLightboxOpen(false)}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
-            <div style={{ width: '100%', height: '300px', backgroundColor: '#0f172a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+            <div style={{ width: '100%', height: '300px', backgroundColor: 'var(--text-primary, #f8fafc)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--surface-1, #0f1624)' }}>
               <div style={{ fontSize: '48px', marginBottom: '10px' }}>📷</div>
               <div style={{ fontWeight: 700, fontSize: '16px' }}>HIGH-RESOLUTION PHOTOGRAPHIC PROOF OF DELIVERY</div>
               <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>
                 Consignment: {podPackingList.packingListNumber} • Gate Receipt #GRN-2026-0881
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                 GPS: 25.3211° N, 51.5312° E • Timestamp: 16-Sep-2026 14:22:18 AST • SHA-256: d8f3a2c4e...91b2
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '12px', color: '#64748b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               <span>Certified Receiver: <strong>{podPackingList.deliveryProof?.receiverName || receiverName}</strong></span>
               <span>Verification Status: <strong style={{ color: '#16a34a' }}>CERTIFIED & SEALED</strong></span>
             </div>

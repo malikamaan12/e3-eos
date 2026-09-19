@@ -225,38 +225,38 @@ export const VendorDirectoryView: React.FC = () => {
     switch (status) {
       case 'approved':
       case 'active':
-        return { bg: '#dcfce7', text: '#15803d', label: 'Approved' };
+        return { bg: 'rgba(34, 197, 94, 0.14)', text: '#22c55e', label: 'Approved' };
       case 'conditionally_approved':
-        return { bg: '#fef3c7', text: '#b45309', label: 'Conditionally Approved' };
+        return { bg: 'rgba(245, 158, 11, 0.14)', text: '#f59e0b', label: 'Conditionally Approved' };
       case 'under_review':
-        return { bg: '#e0e7ff', text: '#4338ca', label: 'Under Review' };
+        return { bg: 'rgba(59, 130, 246, 0.14)', text: '#3b82f6', label: 'Under Review' };
       case 'registration_pending':
-        return { bg: '#f1f5f9', text: '#475569', label: 'Registration Pending' };
+        return { bg: 'rgba(148, 163, 184, 0.14)', text: 'var(--text-muted, #94a3b8)', label: 'Registration Pending' };
       case 'prospect':
-        return { bg: '#f3e8ff', text: '#7e22ce', label: 'Prospect' };
+        return { bg: 'rgba(139, 92, 246, 0.14)', text: '#8b5cf6', label: 'Prospect' };
       case 'suspended':
-        return { bg: '#fed7aa', text: '#c2410c', label: 'Suspended' };
+        return { bg: 'rgba(249, 115, 22, 0.14)', text: '#f97316', label: 'Suspended' };
       case 'blacklisted':
-        return { bg: '#fee2e2', text: '#b91c1c', label: 'Blacklisted' };
+        return { bg: 'rgba(239, 68, 68, 0.14)', text: '#ef4444', label: 'Blacklisted' };
       case 'archived':
-        return { bg: '#f1f5f9', text: '#94a3b8', label: 'Archived' };
+        return { bg: 'rgba(148, 163, 184, 0.14)', text: 'var(--text-disabled, #64748b)', label: 'Archived' };
       default:
-        return { bg: '#f1f5f9', text: '#475569', label: status };
+        return { bg: 'rgba(148, 163, 184, 0.14)', text: 'var(--text-secondary, #cbd5e1)', label: status };
     }
   };
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
       {/* Top Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span style={{ fontSize: '20px' }}>🏢</span>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Vendor Directory & Governance
             </h1>
           </div>
-          <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary, #94a3b8)' }}>
             Centralised register of all 10 corporate, specialist fabrication, rental, and freelance partners with strict RBAC banking privacy.
           </p>
         </div>
@@ -265,8 +265,8 @@ export const VendorDirectoryView: React.FC = () => {
           onClick={() => setIsRegisterModalOpen(true)}
           style={{
             padding: '10px 18px',
-            backgroundColor: '#2563eb',
-            color: '#fff',
+            backgroundColor: 'var(--accent, #d97706)',
+            color: 'var(--surface-1, #0f1624)',
             borderRadius: '8px',
             border: 'none',
             fontSize: '13px',
@@ -282,32 +282,32 @@ export const VendorDirectoryView: React.FC = () => {
       </div>
 
       {/* KPI Highlights Bar */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Registered Vendors</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>{vendors.length}</div>
-          <div style={{ fontSize: '11px', color: '#16a34a', marginTop: '4px' }}>Across 10 Categories</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Total Registered Vendors</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>{vendors.length}</div>
+          <div style={{ fontSize: '11px', color: '#22c55e', marginTop: '4px' }}>Across 10 Categories</div>
         </div>
-        <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Approved & Qualified</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#16a34a', marginTop: '4px' }}>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Approved & Qualified</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#22c55e', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
             {vendors.filter((v) => v.status === 'approved' || v.status === 'active').length}
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>Full Compliance & Tax Verified</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>Full Compliance & Tax Verified</div>
         </div>
-        <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Conditional / Review</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Conditional / Review</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent, #d97706)', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
             {vendors.filter((v) => ['conditionally_approved', 'under_review', 'registration_pending'].includes(v.status)).length}
           </div>
-          <div style={{ fontSize: '11px', color: '#d97706', marginTop: '4px' }}>Audit or Insurance Pending</div>
+          <div style={{ fontSize: '11px', color: 'var(--accent, #d97706)', marginTop: '4px' }}>Audit or Insurance Pending</div>
         </div>
-        <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Restricted Bank Privacy</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#2563eb', marginTop: '4px' }}>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Restricted Bank Privacy</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-hover, #f59e0b)', marginTop: '4px' }}>
             RBAC Active
           </div>
-          <div style={{ fontSize: '11px', color: '#2563eb', marginTop: '4px' }}>Finance Controller / CFO Only</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', marginTop: '4px' }}>Finance Controller / CFO Only</div>
         </div>
       </div>
 
@@ -317,14 +317,15 @@ export const VendorDirectoryView: React.FC = () => {
           display: 'flex',
           gap: '12px',
           alignItems: 'center',
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           padding: '16px',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           marginBottom: '20px',
+          flexWrap: 'wrap',
         }}
       >
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: '220px' }}>
           <input
             id="input-vendor-search"
             type="text"
@@ -335,8 +336,11 @@ export const VendorDirectoryView: React.FC = () => {
               width: '100%',
               padding: '8px 12px',
               borderRadius: '6px',
-              border: '1px solid #cbd5e1',
+              border: '1px solid var(--border-default, #2a374b)',
+              backgroundColor: 'var(--surface-inset, #0b111d)',
+              color: 'var(--text-primary, #f8fafc)',
               fontSize: '13px',
+              outline: 'none',
             }}
           />
         </div>
@@ -349,9 +353,9 @@ export const VendorDirectoryView: React.FC = () => {
             style={{
               padding: '8px 12px',
               borderRadius: '6px',
-              border: '1px solid #cbd5e1',
+              border: '1px solid var(--border-default, #2a374b)',
               fontSize: '13px',
-              backgroundColor: '#fff',
+              backgroundColor: 'var(--surface-1, #0f1624)',
             }}
           >
             {VENDOR_TYPES.map((t) => (
@@ -370,9 +374,9 @@ export const VendorDirectoryView: React.FC = () => {
             style={{
               padding: '8px 12px',
               borderRadius: '6px',
-              border: '1px solid #cbd5e1',
+              border: '1px solid var(--border-default, #2a374b)',
               fontSize: '13px',
-              backgroundColor: '#fff',
+              backgroundColor: 'var(--surface-1, #0f1624)',
             }}
           >
             {VENDOR_STATUSES.map((s) => (
@@ -387,8 +391,8 @@ export const VendorDirectoryView: React.FC = () => {
           onClick={loadVendors}
           style={{
             padding: '8px 14px',
-            backgroundColor: '#f1f5f9',
-            border: '1px solid #cbd5e1',
+            backgroundColor: 'var(--surface-2, #151e2e)',
+            border: '1px solid var(--border-default, #2a374b)',
             borderRadius: '6px',
             fontSize: '13px',
             cursor: 'pointer',
@@ -399,10 +403,10 @@ export const VendorDirectoryView: React.FC = () => {
       </div>
 
       {/* Vendors Table */}
-      <div style={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
           <thead>
-            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+            <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
               <th style={{ padding: '12px 16px' }}>Code & Name</th>
               <th style={{ padding: '12px 16px' }}>Type</th>
               <th style={{ padding: '12px 16px' }}>CR & Tax ID</th>
@@ -416,13 +420,13 @@ export const VendorDirectoryView: React.FC = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                <td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                   Loading vendor directory...
                 </td>
               </tr>
             ) : filteredVendors.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                <td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                   No vendors found matching your filter criteria.
                 </td>
               </tr>
@@ -432,13 +436,13 @@ export const VendorDirectoryView: React.FC = () => {
                 return (
                   <tr
                     key={vendor.id}
-                    style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
+                    style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', transition: 'background-color 0.15s' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-1, #0f1624)')}
                   >
                     <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{vendor.name}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{vendor.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontFamily: 'monospace' }}>
                         {vendor.vendorCode} {vendor.legalName && vendor.legalName !== vendor.name && `• ${vendor.legalName}`}
                       </div>
                     </td>
@@ -448,8 +452,8 @@ export const VendorDirectoryView: React.FC = () => {
                           display: 'inline-block',
                           padding: '3px 8px',
                           borderRadius: '4px',
-                          backgroundColor: '#f1f5f9',
-                          color: '#334155',
+                          backgroundColor: 'var(--surface-2, #151e2e)',
+                          color: 'var(--text-secondary, #cbd5e1)',
                           fontSize: '11px',
                           fontWeight: 600,
                           textTransform: 'capitalize',
@@ -459,10 +463,10 @@ export const VendorDirectoryView: React.FC = () => {
                       </span>
                     </td>
                     <td style={{ padding: '14px 16px', fontSize: '12px' }}>
-                      <div style={{ color: '#0f172a' }}>{vendor.crNumber || '—'}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>{vendor.taxOrVatNumber || 'No VAT'}</div>
+                      <div style={{ color: 'var(--text-primary, #f8fafc)' }}>{vendor.crNumber || '—'}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{vendor.taxOrVatNumber || 'No VAT'}</div>
                     </td>
-                    <td style={{ padding: '14px 16px', color: '#334155' }}>{vendor.country || 'Qatar'}</td>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-secondary, #cbd5e1)' }}>{vendor.country || 'Qatar'}</td>
                     <td style={{ padding: '14px 16px' }}>
                       <span style={{ fontWeight: 700, color: '#d97706' }}>★ {vendor.rating || '4.5'}</span>
                     </td>
@@ -491,8 +495,8 @@ export const VendorDirectoryView: React.FC = () => {
                                 fontSize: '10px',
                                 padding: '2px 6px',
                                 borderRadius: '4px',
-                                backgroundColor: '#fee2e2',
-                                color: '#b91c1c',
+                                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                                color: '#ef4444',
                                 fontWeight: 700,
                               }}
                             >
@@ -515,8 +519,8 @@ export const VendorDirectoryView: React.FC = () => {
                         }}
                         style={{
                           padding: '6px 12px',
-                          backgroundColor: '#f1f5f9',
-                          border: '1px solid #cbd5e1',
+                          backgroundColor: 'var(--surface-2, #151e2e)',
+                          border: '1px solid var(--border-default, #2a374b)',
                           borderRadius: '6px',
                           fontSize: '12px',
                           fontWeight: 600,
@@ -549,7 +553,7 @@ export const VendorDirectoryView: React.FC = () => {
         >
           <div
             style={{
-              backgroundColor: '#fff',
+              backgroundColor: 'var(--surface-1, #0f1624)',
               borderRadius: '12px',
               maxWidth: '800px',
               width: '90%',
@@ -562,7 +566,7 @@ export const VendorDirectoryView: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
+                  <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                     {selectedVendor.name}
                   </h2>
                   <span
@@ -578,7 +582,7 @@ export const VendorDirectoryView: React.FC = () => {
                     {getStatusBadge(selectedVendor.status).label}
                   </span>
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                   Code: {selectedVendor.vendorCode} • Type: {selectedVendor.vendorType.replace(/_/g, ' ')} • Country: {selectedVendor.country || 'Qatar'}
                 </div>
               </div>
@@ -592,32 +596,32 @@ export const VendorDirectoryView: React.FC = () => {
 
             {/* Profile Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px' }}>
-              <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '8px' }}>
                   Legal & Commercial Identifiers
                 </div>
-                <div style={{ fontSize: '13px', color: '#0f172a', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)', marginBottom: '4px' }}>
                   <strong>Commercial Reg (CR):</strong> {selectedVendor.crNumber || 'Not recorded'}
                 </div>
-                <div style={{ fontSize: '13px', color: '#0f172a', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)', marginBottom: '4px' }}>
                   <strong>Tax / VAT Registration:</strong> {selectedVendor.taxOrVatNumber || 'Not registered'}
                 </div>
-                <div style={{ fontSize: '13px', color: '#0f172a' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                   <strong>Quality Rating:</strong> ★ {selectedVendor.rating || '4.5'} / 5.0
                 </div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '8px' }}>
                   Insurance & Certifications
                 </div>
-                <div style={{ fontSize: '13px', color: '#0f172a', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)', marginBottom: '4px' }}>
                   <strong>Insurance Provider:</strong> {selectedVendor.insurancePolicy?.provider || 'Qatar General Insurance'}
                 </div>
-                <div style={{ fontSize: '13px', color: '#0f172a', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)', marginBottom: '4px' }}>
                   <strong>Policy Expiry:</strong> {selectedVendor.insurancePolicy?.validUntil ? new Date(selectedVendor.insurancePolicy.validUntil).toLocaleDateString() : 'Valid'}
                 </div>
-                <div style={{ fontSize: '13px', color: '#0f172a' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                   <strong>Certifications:</strong> {selectedVendor.certifications?.join(', ') || 'ISO 9001:2015'}
                 </div>
               </div>
@@ -626,19 +630,19 @@ export const VendorDirectoryView: React.FC = () => {
             {/* Restricted Bank Details Section (Strict RBAC Protected) */}
             <div
               style={{
-                backgroundColor: '#f0fdf4',
+                backgroundColor: 'rgba(34, 197, 94, 0.12)',
                 padding: '16px',
                 borderRadius: '8px',
-                border: '1px solid #bbf7d0',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
                 marginBottom: '24px',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#22c55e', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🔒</span> Restricted Bank Account Credentials (RBAC Gated)
                   </div>
-                  <div style={{ fontSize: '11px', color: '#15803d' }}>
+                  <div style={{ fontSize: '11px', color: '#4ade80' }}>
                     Access restricted to Finance Controller and Commercial Director roles.
                   </div>
                 </div>
@@ -651,7 +655,7 @@ export const VendorDirectoryView: React.FC = () => {
                     style={{
                       padding: '6px 12px',
                       backgroundColor: '#16a34a',
-                      color: '#fff',
+                      color: 'var(--surface-1, #0f1624)',
                       borderRadius: '6px',
                       border: 'none',
                       fontSize: '12px',
@@ -667,9 +671,9 @@ export const VendorDirectoryView: React.FC = () => {
               {bankAccessError && (
                 <div
                   style={{
-                    backgroundColor: '#fee2e2',
-                    border: '1px solid #fca5a5',
-                    color: '#991b1b',
+                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: '#f87171',
                     padding: '10px',
                     borderRadius: '6px',
                     fontSize: '12px',
@@ -687,12 +691,12 @@ export const VendorDirectoryView: React.FC = () => {
                   <div><strong>Account Number:</strong> {revealedBankDetails.accountNumber}</div>
                   <div><strong>IBAN:</strong> {revealedBankDetails.iban}</div>
                   <div><strong>SWIFT / BIC:</strong> {revealedBankDetails.swift}</div>
-                  <div style={{ fontSize: '11px', color: '#15803d', gridColumn: 'span 2' }}>
+                  <div style={{ fontSize: '11px', color: '#4ade80', gridColumn: 'span 2' }}>
                     ✅ Authenticated via Role: {userRole || 'finance_controller'}
                   </div>
                 </div>
               ) : (
-                <div style={{ fontSize: '12px', color: '#64748b' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                   Account details masked: <strong>•••• •••• •••• {selectedVendor.bankDetails?.accountNumber?.slice(-4) || '7801'}</strong>
                 </div>
               )}
@@ -701,7 +705,7 @@ export const VendorDirectoryView: React.FC = () => {
               <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px dashed #86efac', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                       🔐 Two-Person Rule (Maker-Checker Gate)
                     </span>
                     <span style={{ backgroundColor: '#e0e7ff', color: '#3730a3', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
@@ -711,27 +715,27 @@ export const VendorDirectoryView: React.FC = () => {
                   <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>Dual-Custody Active</span>
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.4 }}>
                   Policy invariant: Any alteration of vendor remittance IBAN requires dual-custody approval by two distinct authorized corporate officers before purchase order disbursements can execute.
                 </div>
 
-                <div style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px', fontSize: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '10px', fontSize: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <span style={{ color: '#64748b', fontSize: '11px' }}>1. Maker (Initiator):</span>
-                    <div style={{ fontWeight: 700, color: '#0f172a' }}>Salim Al-Nuaimi (Procurement Lead)</div>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>Staged: 2026-09-08 09:15 UTC</div>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>1. Maker (Initiator):</span>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>Salim Al-Nuaimi (Procurement Lead)</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>Staged: 2026-09-08 09:15 UTC</div>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', fontSize: '11px' }}>2. Checker (Reviewer):</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>2. Checker (Reviewer):</span>
                     <div style={{ fontWeight: 700, color: '#059669' }}>Verified by Financial Controller</div>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>SHA-256: e3b0c44298fc1c149afbf4c8</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>SHA-256: e3b0c44298fc1c149afbf4c8</div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Governance Actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid var(--border-default, #2a374b)' }}>
               <button
                 id="btn-open-transition"
                 onClick={() => {
@@ -742,8 +746,8 @@ export const VendorDirectoryView: React.FC = () => {
                 }}
                 style={{
                   padding: '8px 16px',
-                  backgroundColor: '#0f172a',
-                  color: '#fff',
+                  backgroundColor: 'var(--text-primary, #f8fafc)',
+                  color: 'var(--surface-1, #0f1624)',
                   borderRadius: '6px',
                   border: 'none',
                   fontSize: '13px',
@@ -758,8 +762,8 @@ export const VendorDirectoryView: React.FC = () => {
                 onClick={() => setSelectedVendor(null)}
                 style={{
                   padding: '8px 16px',
-                  backgroundColor: '#e2e8f0',
-                  color: '#475569',
+                  backgroundColor: 'var(--border-default, #2a374b)',
+                  color: 'var(--text-secondary, #cbd5e1)',
                   borderRadius: '6px',
                   border: 'none',
                   fontSize: '13px',
@@ -789,7 +793,7 @@ export const VendorDirectoryView: React.FC = () => {
         >
           <div
             style={{
-              backgroundColor: '#fff',
+              backgroundColor: 'var(--surface-1, #0f1624)',
               borderRadius: '10px',
               maxWidth: '500px',
               width: '90%',
@@ -797,19 +801,19 @@ export const VendorDirectoryView: React.FC = () => {
               boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
             }}
           >
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Transition Partner Status
             </h3>
-            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
               Target vendor: <strong>{selectedVendor.name}</strong> ({selectedVendor.vendorCode})
             </p>
 
             {transitionError && (
               <div
                 style={{
-                  backgroundColor: '#fee2e2',
-                  border: '1px solid #fca5a5',
-                  color: '#991b1b',
+                  backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#f87171',
                   padding: '10px',
                   borderRadius: '6px',
                   fontSize: '12px',
@@ -821,7 +825,7 @@ export const VendorDirectoryView: React.FC = () => {
             )}
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                 Target Lifecycle Status
               </label>
               <select
@@ -832,7 +836,7 @@ export const VendorDirectoryView: React.FC = () => {
                   width: '100%',
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border-default, #2a374b)',
                   fontSize: '13px',
                 }}
               >
@@ -848,7 +852,7 @@ export const VendorDirectoryView: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                 Governance Rationale / Audit Notes
               </label>
               <textarea
@@ -860,7 +864,7 @@ export const VendorDirectoryView: React.FC = () => {
                   width: '100%',
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border-default, #2a374b)',
                   fontSize: '13px',
                 }}
               />
@@ -871,8 +875,8 @@ export const VendorDirectoryView: React.FC = () => {
                 onClick={() => setIsTransitionModalOpen(false)}
                 style={{
                   padding: '8px 14px',
-                  backgroundColor: '#f1f5f9',
-                  color: '#475569',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  color: 'var(--text-secondary, #cbd5e1)',
                   borderRadius: '6px',
                   border: 'none',
                   fontSize: '13px',
@@ -888,7 +892,7 @@ export const VendorDirectoryView: React.FC = () => {
                 style={{
                   padding: '8px 18px',
                   backgroundColor: '#2563eb',
-                  color: '#fff',
+                  color: 'var(--surface-1, #0f1624)',
                   borderRadius: '6px',
                   border: 'none',
                   fontSize: '13px',
@@ -918,7 +922,7 @@ export const VendorDirectoryView: React.FC = () => {
         >
           <div
             style={{
-              backgroundColor: '#fff',
+              backgroundColor: 'var(--surface-1, #0f1624)',
               borderRadius: '12px',
               maxWidth: '700px',
               width: '90%',
@@ -929,7 +933,7 @@ export const VendorDirectoryView: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 Register Procurement Partner
               </h3>
               <button
@@ -943,7 +947,7 @@ export const VendorDirectoryView: React.FC = () => {
             <form onSubmit={handleRegisterVendor}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Partner Legal Name *
                   </label>
                   <input
@@ -952,18 +956,18 @@ export const VendorDirectoryView: React.FC = () => {
                     placeholder="e.g. Qatar Rigging & Staging LLC"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Vendor Type *
                   </label>
                   <select
                     value={formData.vendorType}
                     onChange={(e) => setFormData({ ...formData, vendorType: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   >
                     {VENDOR_TYPES.filter((t) => t.value !== 'all').map((t) => (
                       <option key={t.value} value={t.value}>
@@ -974,7 +978,7 @@ export const VendorDirectoryView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Commercial Registration (CR)
                   </label>
                   <input
@@ -982,12 +986,12 @@ export const VendorDirectoryView: React.FC = () => {
                     placeholder="e.g. CR-DOH-889900"
                     value={formData.crNumber}
                     onChange={(e) => setFormData({ ...formData, crNumber: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Tax / VAT Identification
                   </label>
                   <input
@@ -995,32 +999,32 @@ export const VendorDirectoryView: React.FC = () => {
                     placeholder="e.g. QA88776655"
                     value={formData.taxOrVatNumber}
                     onChange={(e) => setFormData({ ...formData, taxOrVatNumber: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   />
                 </div>
               </div>
 
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '8px' }}>
                 Bank Account Credentials
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: '#64748b', marginBottom: '2px' }}>Bank Name</label>
+                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginBottom: '2px' }}>Bank Name</label>
                   <input
                     type="text"
                     value={formData.bankName}
                     onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: '#64748b', marginBottom: '2px' }}>IBAN</label>
+                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginBottom: '2px' }}>IBAN</label>
                   <input
                     type="text"
                     placeholder="QA..."
                     value={formData.iban}
                     onChange={(e) => setFormData({ ...formData, iban: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -1029,14 +1033,14 @@ export const VendorDirectoryView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsRegisterModalOpen(false)}
-                  style={{ padding: '8px 14px', backgroundColor: '#f1f5f9', color: '#475569', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                  style={{ padding: '8px 14px', backgroundColor: 'var(--surface-2, #151e2e)', color: 'var(--text-secondary, #cbd5e1)', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   id="btn-submit-vendor"
-                  style={{ padding: '8px 18px', backgroundColor: '#2563eb', color: '#fff', borderRadius: '6px', border: 'none', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ padding: '8px 18px', backgroundColor: '#2563eb', color: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: 'none', fontWeight: 700, cursor: 'pointer' }}
                 >
                   Register Vendor
                 </button>

@@ -80,17 +80,17 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', color: '#0f172a' }}>
+    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', color: 'var(--text-primary, #f8fafc)' }}>
       {/* Header */}
       <div style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
             🌐 Enterprise Scale & Portfolio Intelligence
           </h1>
           <Badge variant="info">Executive Command Suite</Badge>
           <Badge variant="success">ISO 20121 Governed</Badge>
         </div>
-        <p style={{ color: '#64748b', marginTop: '6px', fontSize: '13px' }}>
+        <p style={{ color: 'var(--text-muted, #94a3b8)', marginTop: '6px', fontSize: '13px' }}>
           Cross-project what-if simulation, collision detection, empirical EVM physical gates, and governance exception analytics.
         </p>
       </div>
@@ -111,7 +111,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
           <Card title="Multi-Project Operational Risk Matrix" noPadding>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px 16px' }}>Project Code</th>
                   <th style={{ padding: '12px 16px' }}>Title</th>
                   <th style={{ padding: '12px 16px' }}>CPI (Cost)</th>
@@ -123,13 +123,13 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
               </thead>
               <tbody>
                 {projects.map((p, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px 16px', fontWeight: 700 }}>{p.code}</td>
                     <td style={{ padding: '12px 16px' }}>{p.title}</td>
                     <td style={{ padding: '12px 16px', fontWeight: 700, color: parseFloat(p.cpi) >= 1.0 ? '#059669' : '#dc2626' }}>{p.cpi}</td>
                     <td style={{ padding: '12px 16px', fontWeight: 700, color: parseFloat(p.spi) >= 1.0 ? '#059669' : '#d97706' }}>{p.spi}</td>
                     <td style={{ padding: '12px 16px' }}>{p.erosion}</td>
-                    <td style={{ padding: '12px 16px', color: '#64748b' }}>{p.factor}</td>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-muted, #94a3b8)' }}>{p.factor}</td>
                     <td style={{ padding: '12px 16px' }}>
                       <Badge variant={p.level === 'high' ? 'danger' : 'success'}>{p.level.toUpperCase()}</Badge>
                     </td>
@@ -142,7 +142,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
           <Card title="Cross-Project Vendor Performance Index (VPI)" noPadding>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px 16px' }}>Vendor Partner</th>
                   <th style={{ padding: '12px 16px' }}>Core Discipline</th>
                   <th style={{ padding: '12px 16px' }}>VPI Score</th>
@@ -153,9 +153,9 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
               </thead>
               <tbody>
                 {vendors.map((v, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px 16px', fontWeight: 600 }}>{v.name}</td>
-                    <td style={{ padding: '12px 16px', color: '#475569' }}>{v.disc}</td>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-secondary, #cbd5e1)' }}>{v.disc}</td>
                     <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0284c7' }}>{v.score} / 100</td>
                     <td style={{ padding: '12px 16px' }}>{v.projects}</td>
                     <td style={{ padding: '12px 16px', color: '#059669', fontWeight: 600 }}>{v.recRate}</td>
@@ -174,11 +174,11 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
       {activeTab === 'whatif' && (
         <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Invariant Banner */}
-          <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '20px' }}>🛡️</span>
               <div>
-                <strong style={{ fontSize: '13px', color: '#1e40af' }}>AT-080 Simulation Invariant Active:</strong>
+                <strong style={{ fontSize: '13px', color: '#60a5fa' }}>AT-080 Simulation Invariant Active:</strong>
                 <div style={{ fontSize: '12px', color: '#3b82f6', marginTop: '2px' }}>
                   What-if scenarios remain strictly read-only sandboxes. Applying a scenario rigorously rechecks live resource reservations.
                 </div>
@@ -190,17 +190,17 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
           <Card title="Configure Portfolio Schedule What-If Parameters">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Scenario Name</label>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Scenario Name</label>
                 <input
                   type="text"
                   value={scenarioName}
                   onChange={(e) => setScenarioName(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', fontSize: '13px' }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
                   Shift Project: Lusail Marina Festival (Days: {shiftDaysProject2 > 0 ? `+${shiftDaysProject2}` : shiftDaysProject2})
                 </label>
                 <input
@@ -211,7 +211,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
                   onChange={(e) => setShiftDaysProject2(Number(e.target.value))}
                   style={{ width: '100%' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                   <span>-10d Earlier</span>
                   <span>Baseline</span>
                   <span>+15d Later</span>
@@ -219,11 +219,11 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Test Resource Contention</label>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Test Resource Contention</label>
                 <select
                   value={selectedAsset}
                   onChange={(e) => setSelectedAsset(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', fontSize: '13px' }}
                 >
                   <option value="RES-HOIST-01">2T CM Lodestar Chain Hoists (Rigging)</option>
                   <option value="RES-PROJ-02">Barco UDX 4K32 Laser Projectors (Video)</option>
@@ -254,7 +254,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
           <Card title="Shared Enterprise Assets & Active Reservation Allocations" noPadding>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px 16px' }}>Asset ID</th>
                   <th style={{ padding: '12px 16px' }}>Resource Name</th>
                   <th style={{ padding: '12px 16px' }}>Category</th>
@@ -267,7 +267,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
                 {sharedResources.map((res) => {
                   const isConflicted = hasCollision && res.id === selectedAsset;
                   return (
-                    <tr key={res.id} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: isConflicted ? '#fff1f2' : 'transparent' }}>
+                    <tr key={res.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', backgroundColor: isConflicted ? '#fff1f2' : 'transparent' }}>
                       <td style={{ padding: '12px 16px', fontWeight: 700, fontFamily: 'monospace' }}>{res.id}</td>
                       <td style={{ padding: '12px 16px', fontWeight: 600 }}>{res.name}</td>
                       <td style={{ padding: '12px 16px' }}>{res.category}</td>
@@ -291,12 +291,12 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
       {activeTab === 'evm' && (
         <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Invariant Banner */}
-          <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '20px' }}>📐</span>
               <div>
-                <strong style={{ fontSize: '13px', color: '#166534' }}>AT-082 EVM Physical Deliverable Invariant:</strong>
-                <div style={{ fontSize: '12px', color: '#15803d', marginTop: '2px' }}>
+                <strong style={{ fontSize: '13px', color: '#22c55e' }}>AT-082 EVM Physical Deliverable Invariant:</strong>
+                <div style={{ fontSize: '12px', color: '#4ade80', marginTop: '2px' }}>
                   Earned Value (EV) is calculated exclusively from verified physical completion percentage. Clocked labor hours and badge scans alone earn zero EV.
                 </div>
               </div>
@@ -319,7 +319,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
             <Card title="Interactive EVM Physical Progress Controller">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
                     Verified Physical Gate Completion: {physicalCompletion}%
                   </label>
                   <input
@@ -331,11 +331,11 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
                     onChange={(e) => setPhysicalCompletion(Number(e.target.value))}
                     style={{ width: '100%' }}
                   />
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>Derived from inspected structural, joinery, and line-array sign-offs.</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Derived from inspected structural, joinery, and line-array sign-offs.</span>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
                     Labor Hours Logged: {hoursLogged}h (Budgeted: {hoursBudgeted}h)
                   </label>
                   <input
@@ -347,40 +347,40 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
                     onChange={(e) => setHoursLogged(Number(e.target.value))}
                     style={{ width: '100%' }}
                   />
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>Field technician biometric timecard hours.</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Field technician biometric timecard hours.</span>
                 </div>
 
-                <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px', fontSize: '12px', color: '#334155' }}>
+                <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '12px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                   <strong>EVM Evaluator Note:</strong>
-                  <div style={{ marginTop: '4px', color: '#475569' }}>{evmCalculation.note}</div>
+                  <div style={{ marginTop: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>{evmCalculation.note}</div>
                 </div>
               </div>
             </Card>
 
             <Card title="EVM Mathematical Invariant Breakdown">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                  <span style={{ color: '#64748b' }}>Formula: EV = Planned Value × % Physical Progress</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle, #1d2939)', paddingBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Formula: EV = Planned Value × % Physical Progress</span>
                   <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>800k × {physicalCompletion}% = {evmCalculation.earnedValue.amount.toNumber().toLocaleString()} QAR</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                  <span style={{ color: '#64748b' }}>Cost Variance (CV = EV - AC)</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle, #1d2939)', paddingBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Cost Variance (CV = EV - AC)</span>
                   <span style={{ fontWeight: 700, fontFamily: 'monospace', color: evmCalculation.costVariance.amount.isNegative() ? '#dc2626' : '#059669' }}>
                     {evmCalculation.costVariance.amount.toNumber().toLocaleString()} QAR
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                  <span style={{ color: '#64748b' }}>Schedule Variance (SV = EV - PV)</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle, #1d2939)', paddingBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Schedule Variance (SV = EV - PV)</span>
                   <span style={{ fontWeight: 700, fontFamily: 'monospace', color: evmCalculation.scheduleVariance.amount.isNegative() ? '#dc2626' : '#059669' }}>
                     {evmCalculation.scheduleVariance.amount.toNumber().toLocaleString()} QAR
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                  <span style={{ color: '#64748b' }}>Schedule Performance Index (SPI = EV / PV)</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle, #1d2939)', paddingBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Schedule Performance Index (SPI = EV / PV)</span>
                   <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{evmCalculation.spi}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '4px' }}>
-                  <span style={{ color: '#64748b' }}>Cost Performance Index (CPI = EV / AC)</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Cost Performance Index (CPI = EV / AC)</span>
                   <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{evmCalculation.cpi}</span>
                 </div>
               </div>
@@ -393,11 +393,11 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
       {activeTab === 'rules' && (
         <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Invariant Banner */}
-          <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '20px' }}>⚖️</span>
               <div>
-                <strong style={{ fontSize: '13px', color: '#92400e' }}>AT-081 Governance Policy Review Invariant:</strong>
+                <strong style={{ fontSize: '13px', color: '#f59e0b' }}>AT-081 Governance Policy Review Invariant:</strong>
                 <div style={{ fontSize: '12px', color: '#b45309', marginTop: '2px' }}>
                   Rules with override rates exceeding the 15% threshold are flagged for committee review with explicit sample sizes, but policy is NEVER automatically weakened.
                 </div>
@@ -409,7 +409,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
           <Card title="Operational Governance Rule Override & Exception Register" noPadding>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
                   <th style={{ padding: '12px 16px' }}>Rule ID</th>
                   <th style={{ padding: '12px 16px' }}>Rule Scope & Policy Description</th>
                   <th style={{ padding: '12px 16px', textAlign: 'center' }}>Evaluations (Sample)</th>
@@ -422,7 +422,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
                 {ruleSummaries.map((r) => {
                   const analytics = RuleAnalyticsEngine.analyzeRuleOverrides(r, 0.15, 10);
                   return (
-                    <tr key={r.ruleId} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <tr key={r.ruleId} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                       <td style={{ padding: '12px 16px', fontWeight: 700, fontFamily: 'monospace' }}>{r.ruleId}</td>
                       <td style={{ padding: '12px 16px', fontWeight: 600 }}>{r.ruleName}</td>
                       <td style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'monospace' }}>{r.totalEvaluations}</td>
@@ -454,7 +454,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
             </Button>
           }
         >
-          <div style={{ fontSize: '13px', lineHeight: 1.6, color: '#1e293b' }}>
+          <div style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--text-primary, #f8fafc)' }}>
             <div style={{
               backgroundColor: applyResult.success ? '#f0fdf4' : '#fff1f2',
               border: `1px solid ${applyResult.success ? '#86efac' : '#fecdd3'}`,
@@ -465,7 +465,7 @@ export const EnterprisePortfolioIntelligenceView: React.FC = () => {
             }}>
               {applyResult.message}
             </div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               {applyResult.success
                 ? 'All affected project work packages have been adjusted in the temporary sandbox.'
                 : 'Under company invariant AT-080, an unapplied simulation cannot supersede an approved, live project commitment.'}

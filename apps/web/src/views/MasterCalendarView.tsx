@@ -244,9 +244,9 @@ export const MasterCalendarView: React.FC = () => {
       {/* Header Banner */}
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           padding: '20px 24px',
           marginBottom: '20px',
           display: 'flex',
@@ -259,12 +259,12 @@ export const MasterCalendarView: React.FC = () => {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? 'التقويم الرئيسي وجدول التسليم الميداني' : 'Master Calendar & Delivery Schedule'}
             </h1>
             <Badge variant="primary">{isRtl ? 'عمليات سبتمبر ٢٠٢٦' : 'September 2026 Ops'}</Badge>
           </div>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             {isRtl
               ? 'الجدول الزمني الموحد لجميع مشاريع الفعاليات: أوقات التركيب، البروفات، العروض المباشرة، ومواعيد التفكيك.'
               : 'Unified event delivery schedule tracking load-in, rehearsals, live operational windows, and venue handovers.'}
@@ -273,7 +273,7 @@ export const MasterCalendarView: React.FC = () => {
 
         {/* View Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
+          <div style={{ display: 'flex', backgroundColor: 'var(--surface-2, #151e2e)', padding: '3px', borderRadius: '6px' }}>
             <button
               id="btn-calendar-view-month"
               onClick={() => setViewMode('month')}
@@ -281,8 +281,8 @@ export const MasterCalendarView: React.FC = () => {
                 padding: '6px 14px',
                 fontSize: '12px',
                 fontWeight: viewMode === 'month' ? 700 : 500,
-                backgroundColor: viewMode === 'month' ? '#ffffff' : 'transparent',
-                color: viewMode === 'month' ? '#0f172a' : '#64748b',
+                backgroundColor: viewMode === 'month' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: viewMode === 'month' ? '#0f172a' : 'var(--text-muted, #94a3b8)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -299,8 +299,8 @@ export const MasterCalendarView: React.FC = () => {
                 padding: '6px 14px',
                 fontSize: '12px',
                 fontWeight: viewMode === 'week' ? 700 : 500,
-                backgroundColor: viewMode === 'week' ? '#ffffff' : 'transparent',
-                color: viewMode === 'week' ? '#0f172a' : '#64748b',
+                backgroundColor: viewMode === 'week' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: viewMode === 'week' ? '#0f172a' : 'var(--text-muted, #94a3b8)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -317,8 +317,8 @@ export const MasterCalendarView: React.FC = () => {
                 padding: '6px 14px',
                 fontSize: '12px',
                 fontWeight: viewMode === 'agenda' ? 700 : 500,
-                backgroundColor: viewMode === 'agenda' ? '#ffffff' : 'transparent',
-                color: viewMode === 'agenda' ? '#0f172a' : '#64748b',
+                backgroundColor: viewMode === 'agenda' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: viewMode === 'agenda' ? '#0f172a' : 'var(--text-muted, #94a3b8)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -376,7 +376,7 @@ export const MasterCalendarView: React.FC = () => {
       <Card style={{ padding: '14px 18px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
               {isRtl ? 'تصفية حسب المكان:' : 'Filter by Venue:'}
             </span>
             <select
@@ -385,10 +385,10 @@ export const MasterCalendarView: React.FC = () => {
               style={{
                 padding: '6px 12px',
                 borderRadius: '6px',
-                border: '1px solid #cbd5e1',
+                border: '1px solid var(--border-default, #2a374b)',
                 fontSize: '12px',
-                backgroundColor: '#f8fafc',
-                color: '#1e293b',
+                backgroundColor: 'var(--surface-2, #151e2e)',
+                color: 'var(--text-primary, #f8fafc)',
               }}
             >
               <option value="all">{isRtl ? 'جميع الأماكن (الدوحة)' : 'All Venues (Doha)'}</option>
@@ -397,7 +397,7 @@ export const MasterCalendarView: React.FC = () => {
               <option value="Lusail">{isRtl ? 'مارينا لوسيل' : 'Lusail Marina'}</option>
             </select>
 
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569', marginInlineStart: '12px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginInlineStart: '12px' }}>
               {isRtl ? 'نوع العملية:' : 'Operation Type:'}
             </span>
             <select
@@ -406,10 +406,10 @@ export const MasterCalendarView: React.FC = () => {
               style={{
                 padding: '6px 12px',
                 borderRadius: '6px',
-                border: '1px solid #cbd5e1',
+                border: '1px solid var(--border-default, #2a374b)',
                 fontSize: '12px',
-                backgroundColor: '#f8fafc',
-                color: '#1e293b',
+                backgroundColor: 'var(--surface-2, #151e2e)',
+                color: 'var(--text-primary, #f8fafc)',
               }}
             >
               <option value="all">{isRtl ? 'جميع المراحل' : 'All Phases'}</option>
@@ -421,7 +421,7 @@ export const MasterCalendarView: React.FC = () => {
           </div>
 
           {/* Legend */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '11px', color: '#64748b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' }} />
               {isRtl ? 'تركيب' : 'Move-in'}
@@ -445,9 +445,9 @@ export const MasterCalendarView: React.FC = () => {
       {/* VIEW MODE 1: Month Grid */}
       {viewMode === 'month' && (
         <Card style={{ padding: '16px' }} noPadding>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle, #1d2939)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 {monthName}
               </h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -462,13 +462,13 @@ export const MasterCalendarView: React.FC = () => {
                 </Button>
               </div>
             </div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl ? 'انقر على أي حدث لمعاينة التفاصيل الفنية' : 'Click on any event chip to view operational details'}
             </div>
           </div>
 
           {isMobile && (
-            <div style={{ margin: '12px 16px 0', padding: '8px 12px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '12px', color: '#1e40af', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ margin: '12px 16px 0', padding: '8px 12px', backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '6px', fontSize: '12px', color: '#60a5fa', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
               <span>💡 {isRtl ? 'عرض جدول الأعمال (Agenda) مُحسّن لشاشات الجوال بدون ضغط للخلايا.' : 'Agenda view is optimized for mobile touchscreens with zero squashing.'}</span>
               <Button size="sm" variant="ghost" onClick={() => setViewMode('agenda')} style={{ fontSize: '11px', height: '28px' }}>
                 {isRtl ? 'تبديل إلى جدول الأعمال' : 'Switch to Agenda'}
@@ -479,18 +479,18 @@ export const MasterCalendarView: React.FC = () => {
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
             <div style={{ minWidth: '760px', width: '100%' }}>
               {/* Days of Week Header */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', textAlign: 'center' }}>
                 {weekdays.map((wd, i) => (
-                  <div key={i} style={{ padding: '10px 4px', fontSize: '12px', fontWeight: 700, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div key={i} style={{ padding: '10px 4px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {wd}
                   </div>
                 ))}
               </div>
 
               {/* Month Calendar Cells */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', borderBottom: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', borderBottom: '1px solid var(--border-default, #2a374b)' }}>
                 {Array.from({ length: firstDayWeekday }).map((_, i) => (
-                  <div key={`blank-${i}`} style={{ minHeight: '110px', minWidth: 0, backgroundColor: '#fafbfc', borderRight: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }} />
+                  <div key={`blank-${i}`} style={{ minHeight: '110px', minWidth: 0, backgroundColor: '#fafbfc', borderRight: '1px solid var(--border-subtle, #1d2939)', borderBottom: '1px solid var(--border-subtle, #1d2939)' }} />
                 ))}
 
                 {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -505,9 +505,9 @@ export const MasterCalendarView: React.FC = () => {
                         minHeight: '110px',
                         minWidth: 0,
                         padding: '8px',
-                        borderRight: '1px solid #f1f5f9',
-                        borderBottom: '1px solid #f1f5f9',
-                        backgroundColor: isToday ? '#fffbeb' : '#ffffff',
+                        borderRight: '1px solid var(--border-subtle, #1d2939)',
+                        borderBottom: '1px solid var(--border-subtle, #1d2939)',
+                        backgroundColor: isToday ? '#fffbeb' : 'var(--surface-1, #0f1624)',
                         transition: 'background-color 0.15s',
                         overflow: 'hidden',
                       }}
@@ -517,7 +517,7 @@ export const MasterCalendarView: React.FC = () => {
                           style={{
                             fontSize: '12px',
                             fontWeight: isToday ? 800 : 600,
-                            color: isToday ? '#d97706' : '#334155',
+                            color: isToday ? '#d97706' : 'var(--text-secondary, #cbd5e1)',
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -531,7 +531,7 @@ export const MasterCalendarView: React.FC = () => {
                           {dayNum}
                         </span>
                         {evts.length > 0 && (
-                          <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {evts.length} {evts.length === 1 ? (isRtl ? 'فعالية' : 'item') : (isRtl ? 'فعاليات' : 'items')}
                           </span>
                         )}
@@ -586,7 +586,7 @@ export const MasterCalendarView: React.FC = () => {
           <div
             style={{
               padding: '16px 20px',
-              borderBottom: '1px solid #f1f5f9',
+              borderBottom: '1px solid var(--border-subtle, #1d2939)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -595,10 +595,10 @@ export const MasterCalendarView: React.FC = () => {
             }}
           >
             <div>
-              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 {isRtl ? 'جدول تسليم الأسبوع' : 'Weekly Milestone View'}
               </h2>
-              <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
+              <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 {isRtl ? 'عرض مفصل لمحطات وأعمال الأسبوع الميدانية' : 'Operational breakdown by day for the selected delivery week'}
               </p>
             </div>
@@ -616,9 +616,9 @@ export const MasterCalendarView: React.FC = () => {
                       borderRadius: '6px',
                       fontSize: '12px',
                       fontWeight: isSelected ? 700 : 500,
-                      backgroundColor: isSelected ? '#0f172a' : '#f1f5f9',
-                      color: isSelected ? '#ffffff' : '#475569',
-                      border: isSelected ? '1px solid #0f172a' : '1px solid #e2e8f0',
+                      backgroundColor: isSelected ? '#0f172a' : 'var(--surface-2, #151e2e)',
+                      color: isSelected ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
+                      border: isSelected ? '1px solid #0f172a' : '1px solid var(--border-default, #2a374b)',
                       cursor: 'pointer',
                       whiteSpace: 'nowrap',
                       minHeight: '36px',
@@ -649,21 +649,21 @@ export const MasterCalendarView: React.FC = () => {
                       <div
                         key={`m-day-${dayNum}`}
                         style={{
-                          backgroundColor: isToday ? '#fffbeb' : '#ffffff',
-                          border: `1px solid ${isToday ? '#fde68a' : '#e2e8f0'}`,
+                          backgroundColor: isToday ? '#fffbeb' : 'var(--surface-1, #0f1624)',
+                          border: `1px solid ${isToday ? '#fde68a' : 'var(--border-default, #2a374b)'}`,
                           borderRadius: '8px',
                           padding: '12px',
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid var(--border-subtle, #1d2939)', paddingBottom: '6px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span
                               style={{
                                 width: '28px',
                                 height: '28px',
                                 borderRadius: '50%',
-                                backgroundColor: isToday ? '#d97706' : '#0f172a',
-                                color: '#ffffff',
+                                backgroundColor: isToday ? '#d97706' : 'var(--text-primary, #f8fafc)',
+                                color: 'var(--surface-1, #0f1624)',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -673,14 +673,14 @@ export const MasterCalendarView: React.FC = () => {
                             >
                               {dayNum}
                             </span>
-                            <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                            <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                               {dayOfWeekName}
                             </span>
                             {isToday && (
                               <Badge variant="warning">{isRtl ? 'اليوم' : 'Today'}</Badge>
                             )}
                           </div>
-                          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>
                             {evts.length} {evts.length === 1 ? (isRtl ? 'فعالية' : 'cue') : (isRtl ? 'فعاليات' : 'cues')}
                           </span>
                         </div>
@@ -713,7 +713,7 @@ export const MasterCalendarView: React.FC = () => {
                                       {evt.startTime} - {evt.endTime}
                                     </span>
                                   </div>
-                                  <div style={{ fontSize: '11px', color: '#475569', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span>📍 {evt.venue} ({evt.hall})</span>
                                     <span style={{ fontWeight: 600 }}>👤 {evt.lead.split(' ')[0]}</span>
                                   </div>
@@ -732,7 +732,7 @@ export const MasterCalendarView: React.FC = () => {
             // Desktop 7-day Column Grid
             return (
               <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <div style={{ minWidth: '840px', display: 'grid', gridTemplateColumns: `repeat(${currentWeekData.days.length}, 1fr)`, borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ minWidth: '840px', display: 'grid', gridTemplateColumns: `repeat(${currentWeekData.days.length}, 1fr)`, borderBottom: '1px solid var(--border-default, #2a374b)' }}>
                   {currentWeekData.days.map((dayNum) => {
                     const evts = getDayEvents(dayNum);
                     const isToday = dayNum === 14;
@@ -745,14 +745,14 @@ export const MasterCalendarView: React.FC = () => {
                         style={{
                           minHeight: '260px',
                           padding: '12px 10px',
-                          borderRight: '1px solid #e2e8f0',
-                          backgroundColor: isToday ? '#fffbeb' : '#ffffff',
+                          borderRight: '1px solid var(--border-default, #2a374b)',
+                          backgroundColor: isToday ? '#fffbeb' : 'var(--surface-1, #0f1624)',
                           display: 'flex',
                           flexDirection: 'column',
                         }}
                       >
-                        <div style={{ textAlign: 'center', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
-                          <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600, textTransform: 'uppercase' }}>
                             {dayOfWeekName}
                           </div>
                           <span
@@ -763,8 +763,8 @@ export const MasterCalendarView: React.FC = () => {
                               width: '28px',
                               height: '28px',
                               borderRadius: '50%',
-                              backgroundColor: isToday ? '#d97706' : '#f1f5f9',
-                              color: isToday ? '#ffffff' : '#0f172a',
+                              backgroundColor: isToday ? '#d97706' : 'var(--surface-2, #151e2e)',
+                              color: isToday ? '#ffffff' : 'var(--text-primary, #f8fafc)',
                               fontWeight: 800,
                               fontSize: '13px',
                               marginTop: '2px',
@@ -799,7 +799,7 @@ export const MasterCalendarView: React.FC = () => {
                                 <div style={{ fontWeight: 700, lineHeight: 1.3, marginBottom: '4px' }}>
                                   {evt.title}
                                 </div>
-                                <div style={{ fontSize: '10px', color: '#64748b' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>
                                   📍 {evt.hall}
                                 </div>
                               </div>
@@ -819,16 +819,16 @@ export const MasterCalendarView: React.FC = () => {
       {/* VIEW MODE 3: Agenda View */}
       {viewMode === 'agenda' && (
         <Card title={isRtl ? 'جدول الأعمال والمحطات التنفيذية' : 'Milestones & Operational Agenda'} noPadding>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle, #1d2939)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 {isRtl ? 'المحطات المجدولة لشهر سبتمبر ٢٠٢٦' : 'Chronological Agenda — September 2026'}
               </span>
-              <span style={{ marginInlineStart: '8px', fontSize: '11px', color: '#64748b' }}>
+              <span style={{ marginInlineStart: '8px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                 ({filteredEvents.length} {isRtl ? 'محطة مسجلة' : 'deliveries scheduled'})
               </span>
             </div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl ? 'مرتبة تصاعدياً حسب التوقيت الميداني' : 'Sorted chronologically by field window'}
             </div>
           </div>
@@ -840,8 +840,8 @@ export const MasterCalendarView: React.FC = () => {
                 <div
                   key={evt.id}
                   style={{
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e2e8f0',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
+                    border: '1px solid var(--border-default, #2a374b)',
                     borderRadius: '8px',
                     padding: '16px 20px',
                     display: 'flex',
@@ -857,18 +857,18 @@ export const MasterCalendarView: React.FC = () => {
                     {/* Date pill */}
                     <div
                       style={{
-                        backgroundColor: '#f8fafc',
-                        border: '1px solid #cbd5e1',
+                        backgroundColor: 'var(--surface-2, #151e2e)',
+                        border: '1px solid var(--border-default, #2a374b)',
                         borderRadius: '6px',
                         padding: '8px 14px',
                         minWidth: isMobile ? 'auto' : '130px',
                         textAlign: isMobile ? 'start' : 'center',
                       }}
                     >
-                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                         {evt.date}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>
                         {evt.startTime} – {evt.endTime}
                       </div>
                     </div>
@@ -901,11 +901,11 @@ export const MasterCalendarView: React.FC = () => {
                         </Badge>
                       </div>
 
-                      <h3 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                      <h3 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                         {evt.title}
                       </h3>
 
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#475569' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                         <span>📍 {evt.venue} — <strong>{evt.hall}</strong></span>
                         <span>👤 {isRtl ? 'المسؤول:' : 'Lead:'} <strong>{evt.lead}</strong></span>
                       </div>
@@ -941,29 +941,29 @@ export const MasterCalendarView: React.FC = () => {
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', fontFamily: 'monospace' }}>
                 {selectedEvent.projectCode}
               </span>
-              <h3 style={{ margin: '4px 0 2px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+              <h3 style={{ margin: '4px 0 2px', fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 {selectedEvent.title}
               </h3>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 {selectedEvent.projectTitle}
               </p>
             </div>
 
-            <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '12px' }}>
+            <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '12px' }}>
               <div>
-                <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'التاريخ والوقت:' : 'Date & Schedule:'}</span>
-                <strong style={{ color: '#0f172a' }}>{selectedEvent.date} ({selectedEvent.startTime} - {selectedEvent.endTime})</strong>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px' }}>{isRtl ? 'التاريخ والوقت:' : 'Date & Schedule:'}</span>
+                <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{selectedEvent.date} ({selectedEvent.startTime} - {selectedEvent.endTime})</strong>
               </div>
               <div>
-                <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'المكان والقاعة:' : 'Venue & Hall:'}</span>
-                <strong style={{ color: '#0f172a' }}>{selectedEvent.venue} ({selectedEvent.hall})</strong>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px' }}>{isRtl ? 'المكان والقاعة:' : 'Venue & Hall:'}</span>
+                <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{selectedEvent.venue} ({selectedEvent.hall})</strong>
               </div>
               <div>
-                <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'المسؤول الميداني:' : 'Operational Lead:'}</span>
-                <strong style={{ color: '#0f172a' }}>{selectedEvent.lead}</strong>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px' }}>{isRtl ? 'المسؤول الميداني:' : 'Operational Lead:'}</span>
+                <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{selectedEvent.lead}</strong>
               </div>
               <div>
-                <span style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>{isRtl ? 'حالة الاعتماد:' : 'Gate Status:'}</span>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px' }}>{isRtl ? 'حالة الاعتماد:' : 'Gate Status:'}</span>
                 <Badge variant={selectedEvent.status === 'in_progress' ? 'warning' : 'success'}>
                   {selectedEvent.status.replace('_', ' ').toUpperCase()}
                 </Badge>
@@ -971,10 +971,10 @@ export const MasterCalendarView: React.FC = () => {
             </div>
 
             <div>
-              <h4 style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+              <h4 style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                 {isRtl ? 'نطاق العمل والإجراءات التشغيلية:' : 'Operational Scope & Actions:'}
               </h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5 }}>
                 {selectedEvent.description}
               </p>
             </div>

@@ -96,12 +96,12 @@ export const LeadershipView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {currentLanguage === 'ar' ? 'محفظة القيادة التنفيذية' : 'Executive Leadership Portfolio'}
             </h1>
             <Badge variant="purple">{currentOrg.code}</Badge>
           </div>
-          <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted, #94a3b8)' }}>
             {currentLanguage === 'ar'
               ? 'مقارنة خطوط الأنابيب، صحة التسليم، التعرض النقدي والقرارات المفتوحة عبر الكيانات المصرح بها'
               : 'Compare pipeline, delivery health, cash exposure and open decisions across authorized entities'}
@@ -161,16 +161,16 @@ export const LeadershipView: React.FC = () => {
                 {/* Active Projects Table */}
                 <div
                   style={{
-                    backgroundColor: '#ffffff',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
                     borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--border-default, #2a374b)',
                     overflow: 'hidden',
                   }}
                 >
                   <div
                     style={{
                       padding: '16px 20px',
-                      borderBottom: '1px solid #e2e8f0',
+                      borderBottom: '1px solid var(--border-default, #2a374b)',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -184,7 +184,7 @@ export const LeadershipView: React.FC = () => {
 
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '12px', color: '#64748b' }}>
+                      <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         <th style={{ padding: '12px 20px' }}>{currentLanguage === 'ar' ? 'كود المشروع' : 'Code'}</th>
                         <th style={{ padding: '12px 20px' }}>{currentLanguage === 'ar' ? 'عنوان الفعالية' : 'Title'}</th>
                         <th style={{ padding: '12px 20px' }}>{currentLanguage === 'ar' ? 'الأصل / الكيان' : 'Origin'}</th>
@@ -195,7 +195,7 @@ export const LeadershipView: React.FC = () => {
                     </thead>
                     <tbody>
                       {projects.map((p) => (
-                        <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9', fontSize: '13px' }}>
+                        <tr key={p.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', fontSize: '13px' }}>
                           <td style={{ padding: '14px 20px', fontWeight: 700, color: '#2563eb' }}>{p.projectCode}</td>
                           <td style={{ padding: '14px 20px', fontWeight: 600 }}>{p.title}</td>
                           <td style={{ padding: '14px 20px' }}>
@@ -228,25 +228,25 @@ export const LeadershipView: React.FC = () => {
             )}
 
             {activeTab === 'resources' && (
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>
                   {currentLanguage === 'ar' ? 'توزيع الأصول والمعدات الحساسة' : 'Serialized Equipment Utilization'}
                 </h3>
-                <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginBottom: '20px' }}>
                   {currentLanguage === 'ar'
                     ? 'ضمان الحتمية: منع تضارب الحجوزات المتزامنة لمولدات الطاقة والمعدات السمعية والبصرية'
                     : 'Invariant enforced: Zero overlapping reservations for serialized power generators and AV assets.'}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '16px' }}>
+                  <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '16px' }}>
                     <div style={{ fontWeight: 700, marginBottom: '6px' }}>GEN-200KVA-01 (Primary Generator)</div>
                     <Badge variant="success">Reserved: 12-16 Oct 2026</Badge>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>Project: PRJ-2026-SYNTH-01</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '8px' }}>Project: PRJ-2026-SYNTH-01</div>
                   </div>
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '16px' }}>
+                  <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '16px' }}>
                     <div style={{ fontWeight: 700, marginBottom: '6px' }}>LINE-ARRAY-K2 (Audio Rig)</div>
                     <Badge variant="neutral">Available from: 18 Oct 2026</Badge>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>Warehouse: Doha Central Depot</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '8px' }}>Warehouse: Doha Central Depot</div>
                   </div>
                 </div>
               </div>
@@ -256,7 +256,7 @@ export const LeadershipView: React.FC = () => {
             {activeTab === 'ai-scenarios' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Section 1: Portfolio What-If Scenario Simulation (AT-080) */}
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -265,7 +265,7 @@ export const LeadershipView: React.FC = () => {
                         </h3>
                         <Badge variant="purple">Read-Only Simulation</Badge>
                       </div>
-                      <div style={{ fontSize: '13px', color: '#64748b' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                         {currentLanguage === 'ar'
                           ? 'اختبر إزاحة الجداول الزمنية ومضاعفات العمل الإضافي دون التأثير على الجداول الحية'
                           : 'Model cross-project schedule shifts, overtime rates, and fabrication buffers without mutating live commitments'}
@@ -290,8 +290,8 @@ export const LeadershipView: React.FC = () => {
 
                   {/* Simulation Controls Grid */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px', marginBottom: '20px' }}>
-                    <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+                    <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)', border: '1px solid var(--border-default, #2a374b)' }}>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '8px' }}>
                         {currentLanguage === 'ar' ? 'إزاحة موعد التسليم (أسابيع):' : 'Schedule Delay Offset (Weeks):'} {scenarioDelayWeeks} wks
                       </label>
                       <input
@@ -303,15 +303,15 @@ export const LeadershipView: React.FC = () => {
                         onChange={(e) => setScenarioDelayWeeks(Number(e.target.value))}
                         style={{ width: '100%' }}
                       />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                         <span>On-Time</span>
                         <span>+2 Weeks</span>
                         <span>+4 Weeks</span>
                       </div>
                     </div>
 
-                    <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+                    <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)', border: '1px solid var(--border-default, #2a374b)' }}>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '8px' }}>
                         {currentLanguage === 'ar' ? 'معامل ساعات العمل الإضافي:' : 'Overtime Premium Multiplier:'} {scenarioOvertimeRate.toFixed(1)}x
                       </label>
                       <input
@@ -323,15 +323,15 @@ export const LeadershipView: React.FC = () => {
                         onChange={(e) => setScenarioOvertimeRate(Number(e.target.value))}
                         style={{ width: '100%' }}
                       />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                         <span>1.0x (Standard)</span>
                         <span>1.5x (Night Shift)</span>
                         <span>2.0x (Double Time)</span>
                       </div>
                     </div>
 
-                    <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+                    <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: 'var(--surface-2, #151e2e)', border: '1px solid var(--border-default, #2a374b)' }}>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '8px' }}>
                         {currentLanguage === 'ar' ? 'احتياطي طاقة الورشة:' : 'Workshop Buffer Capacity:'} {scenarioBufferPercent}%
                       </label>
                       <input
@@ -343,7 +343,7 @@ export const LeadershipView: React.FC = () => {
                         onChange={(e) => setScenarioBufferPercent(Number(e.target.value))}
                         style={{ width: '100%' }}
                       />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                         <span>0% (Tight)</span>
                         <span>20% (Standard)</span>
                         <span>40% (Conservative)</span>
@@ -360,12 +360,12 @@ export const LeadershipView: React.FC = () => {
                     return (
                       <div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '16px' }}>
-                          <div style={{ padding: '12px 16px', borderRadius: '6px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' }}>
-                            <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: 600 }}>Simulated EAC</div>
+                          <div style={{ padding: '12px 16px', borderRadius: '6px', backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+                            <div style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 600 }}>Simulated EAC</div>
                             <div style={{ fontSize: '18px', fontWeight: 800, color: '#1e3a8a', marginTop: '2px' }}>
                               {simEac.toLocaleString()} QAR
                             </div>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>Baseline: 90,000 QAR</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Baseline: 90,000 QAR</div>
                           </div>
 
                           <div style={{ padding: '12px 16px', borderRadius: '6px', backgroundColor: Number(simMargin) >= 35 ? '#ecfdf5' : '#fef2f2', border: Number(simMargin) >= 35 ? '1px solid #a7f3d0' : '1px solid #fecaca' }}>
@@ -373,23 +373,23 @@ export const LeadershipView: React.FC = () => {
                             <div style={{ fontSize: '18px', fontWeight: 800, color: Number(simMargin) >= 35 ? '#047857' : '#dc2626', marginTop: '2px' }}>
                               {simMargin}%
                             </div>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>Floor Target: 35.0%</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Floor Target: 35.0%</div>
                           </div>
 
-                          <div style={{ padding: '12px 16px', borderRadius: '6px', backgroundColor: '#faf5ff', border: '1px solid #e9d5ff' }}>
-                            <div style={{ fontSize: '11px', color: '#6b21a8', fontWeight: 600 }}>Variance vs Baseline</div>
+                          <div style={{ padding: '12px 16px', borderRadius: '6px', backgroundColor: 'rgba(139, 92, 246, 0.12)', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                            <div style={{ fontSize: '11px', color: '#a78bfa', fontWeight: 600 }}>Variance vs Baseline</div>
                             <div style={{ fontSize: '18px', fontWeight: 800, color: '#581c87', marginTop: '2px' }}>
                               {simEac > 90000 ? '+' : ''}{(simEac - 90000).toLocaleString()} QAR
                             </div>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>Contingency absorbed</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Contingency absorbed</div>
                           </div>
                         </div>
 
                         {/* Invariant AT-080 Cross-Project Collision Warning */}
                         {isCollision && (
                           <div style={{
-                            backgroundColor: '#fffbeb',
-                            border: '1px solid #fde68a',
+                            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
                             borderRadius: '8px',
                             padding: '14px 18px',
                             marginBottom: '16px',
@@ -398,7 +398,7 @@ export const LeadershipView: React.FC = () => {
                             gap: '12px'
                           }}>
                             <div style={{ fontSize: '24px' }}>⚠️</div>
-                            <div style={{ fontSize: '13px', color: '#92400e' }}>
+                            <div style={{ fontSize: '13px', color: '#f59e0b' }}>
                               <strong>{currentLanguage === 'ar' ? 'تعارض حرج في الموارد المشتركة (AT-080): ' : 'Cross-Project Conflict Detected (Invariant AT-080): '}</strong>
                               {currentLanguage === 'ar'
                                 ? `إزاحة الجدول بمقدار +${scenarioDelayWeeks} أسابيع يؤدي إلى تضارب مباشر في حجز المولد GEN-200KVA-01 وفريق التركيبات الرئيسي مع مشروع Winter Festival 2026.`
@@ -408,7 +408,7 @@ export const LeadershipView: React.FC = () => {
                         )}
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                          <span style={{ fontSize: '12px', color: '#64748b' }}>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                             🔒 {currentLanguage === 'ar'
                               ? 'السيناريو قراءة فقط. لا يمكن تطبيقه على الجداول الحية دون موافقة مديري المشاريع المتأثرة.'
                               : 'Invariant AT-080: Scenarios do not act as reservations. Applying requires affirmative multi-project commercial authority.'}
@@ -440,7 +440,7 @@ export const LeadershipView: React.FC = () => {
                 </div>
 
                 {/* Section 2: AI-Assisted Tender Extraction & Injection Defense (AT-083, AT-084, AT-085) */}
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -449,7 +449,7 @@ export const LeadershipView: React.FC = () => {
                         </h3>
                         <Badge variant="info">Defense Active</Badge>
                       </div>
-                      <div style={{ fontSize: '13px', color: '#64748b' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                         {currentLanguage === 'ar'
                           ? 'استخراج آمن للبنود الفنية مع تحييد هجمات الحقن الموجه ومطابقة الإسناد المصدري الإلزامي'
                           : 'Extract technical scope with prompt injection neutralization (AT-083) and mandatory human citation verification (AT-085)'}
@@ -457,11 +457,11 @@ export const LeadershipView: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Classification:</span>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Classification:</span>
                       <select
                         value={aiClassification}
                         onChange={(e) => setAiClassification(e.target.value as any)}
-                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
+                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '12px', fontWeight: 600 }}
                       >
                         <option value="STANDARD">STANDARD (Allowed)</option>
                         <option value="CONFIDENTIAL">CONFIDENTIAL (Allowed)</option>
@@ -473,7 +473,7 @@ export const LeadershipView: React.FC = () => {
                   {/* Input Box with Sample Injection Directives */}
                   <div style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                      <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>
                         {currentLanguage === 'ar' ? 'النص الخام لدفتر الشروط / المناقصة:' : 'Raw Tender Document / Brief Content:'}
                       </label>
                       <Button
@@ -496,7 +496,7 @@ export const LeadershipView: React.FC = () => {
                         width: '100%',
                         padding: '10px 14px',
                         borderRadius: '6px',
-                        border: '1px solid #cbd5e1',
+                        border: '1px solid var(--border-default, #2a374b)',
                         fontSize: '13px',
                         fontFamily: 'inherit',
                         boxSizing: 'border-box'
@@ -520,26 +520,26 @@ export const LeadershipView: React.FC = () => {
                   {/* Extraction Output Card */}
                   {aiExtractionResult && (
                     <div style={{
-                      backgroundColor: aiExtractionResult.blocked ? '#fef2f2' : '#f8fafc',
+                      backgroundColor: aiExtractionResult.blocked ? '#fef2f2' : 'var(--surface-2, #151e2e)',
                       borderRadius: '8px',
                       padding: '18px',
-                      border: aiExtractionResult.blocked ? '1px solid #fecaca' : '1px solid #e2e8f0'
+                      border: aiExtractionResult.blocked ? '1px solid #fecaca' : '1px solid var(--border-default, #2a374b)'
                     }}>
                       {aiExtractionResult.blocked ? (
-                        <div style={{ color: '#991b1b', fontSize: '13px', fontWeight: 600 }}>
+                        <div style={{ color: '#f87171', fontSize: '13px', fontWeight: 600 }}>
                           🛑 {aiExtractionResult.reason}
                         </div>
                       ) : (
                         <div>
                           {aiExtractionResult.injectionsDetected > 0 && (
                             <div style={{
-                              backgroundColor: '#fffbeb',
-                              border: '1px solid #fde68a',
+                              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                              border: '1px solid rgba(245, 158, 11, 0.3)',
                               borderRadius: '6px',
                               padding: '10px 14px',
                               marginBottom: '14px',
                               fontSize: '12px',
-                              color: '#92400e',
+                              color: '#f59e0b',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '8px'
@@ -551,7 +551,7 @@ export const LeadershipView: React.FC = () => {
                             </div>
                           )}
 
-                          <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '10px', color: '#0f172a' }}>
+                          <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '10px', color: 'var(--text-primary, #f8fafc)' }}>
                             Extracted Work Package Candidates (Invariant AT-085 Human Review Gate):
                           </div>
 
@@ -565,14 +565,14 @@ export const LeadershipView: React.FC = () => {
                                   alignItems: 'center',
                                   padding: '10px 14px',
                                   borderRadius: '6px',
-                                  backgroundColor: '#ffffff',
-                                  border: '1px solid #e2e8f0',
+                                  backgroundColor: 'var(--surface-1, #0f1624)',
+                                  border: '1px solid var(--border-default, #2a374b)',
                                   fontSize: '13px'
                                 }}
                               >
                                 <div>
-                                  <span style={{ fontWeight: 600, color: '#1e293b' }}>{item.title}</span>
-                                  <div style={{ fontSize: '11px', color: '#64748b' }}>
+                                  <span style={{ fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{item.title}</span>
+                                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                                     Citation: {item.citation}
                                   </div>
                                 </div>
@@ -594,13 +594,13 @@ export const LeadershipView: React.FC = () => {
               </div>
             )}
             {activeTab === 'exceptions' && (
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>
                   {currentLanguage === 'ar' ? 'سجل الاستثناءات المعتمدة' : 'Active Scoped Exceptions'}
                 </h3>
-                <div style={{ border: '1px solid #fde68a', backgroundColor: '#fffbeb', borderRadius: '6px', padding: '16px' }}>
+                <div style={{ border: '1px solid rgba(245, 158, 11, 0.3)', backgroundColor: 'rgba(245, 158, 11, 0.12)', borderRadius: '6px', padding: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontWeight: 700, color: '#92400e' }}>EXC-2026-088: Procurement Ceiling Override</span>
+                    <span style={{ fontWeight: 700, color: '#f59e0b' }}>EXC-2026-088: Procurement Ceiling Override</span>
                     <Badge variant="warning">Expires in 48h</Badge>
                   </div>
                   <p style={{ margin: 0, fontSize: '13px', color: '#78350f' }}>

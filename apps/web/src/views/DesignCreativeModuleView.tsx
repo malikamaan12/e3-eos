@@ -206,16 +206,16 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
           flexWrap: 'wrap',
           gap: '12px',
           padding: '16px 20px',
-          backgroundColor: '#090d16',
+          backgroundColor: 'var(--canvas, #090d16)',
           borderRadius: '8px',
-          border: '1px solid #1e293b',
+          border: '1px solid var(--border-subtle, #1d2939)',
           boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
         }}
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '24px' }}>🎨</span>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#f8fafc' }}>
+            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               Design & Creative Management
             </h2>
             <Badge variant="primary" size="sm">
@@ -227,7 +227,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               </Badge>
             )}
           </div>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#94a3b8' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             Unified drawing control, coordinate markups, 3D viewpoints, POL-DES-01 safety gates & production release adoption.
           </p>
         </div>
@@ -238,7 +238,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               variant="outline"
               size="sm"
               onClick={() => setIsNewWsModalOpen(true)}
-              style={{ color: '#cbd5e1', borderColor: '#334155' }}
+              style={{ color: 'var(--text-secondary, #cbd5e1)', borderColor: 'var(--border-default, #2a374b)' }}
             >
               + New Workspace
             </Button>
@@ -258,7 +258,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
         style={{
           display: 'flex',
           gap: '4px',
-          borderBottom: '1px solid #1e293b',
+          borderBottom: '1px solid var(--border-subtle, #1d2939)',
           paddingBottom: '2px',
           overflowX: 'auto',
         }}
@@ -282,7 +282,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               onClick={() => setActiveTab(tab.id as SubTab)}
               style={{
                 padding: '8px 14px',
-                background: activeTab === tab.id ? '#1e293b' : 'transparent',
+                background: activeTab === tab.id ? 'var(--surface-2, #151e2e)' : 'transparent',
                 color: activeTab === tab.id ? '#f59e0b' : '#94a3b8',
                 border: 'none',
                 borderRadius: '6px 6px 0 0',
@@ -353,7 +353,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
           {/* Workspaces Summary Grid */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#f8fafc' }}>
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 Active Design Workspaces
               </h3>
               <Button
@@ -373,18 +373,18 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               }}
             >
               {workspaces.map((ws) => (
-                <Card key={ws.id} style={{ padding: '16px', backgroundColor: '#0d1322', borderColor: '#1e293b' }}>
+                <Card key={ws.id} style={{ padding: '16px', backgroundColor: 'var(--surface-1, #0f1624)', borderColor: 'var(--surface-2, #151e2e)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                     <span style={{ fontSize: '24px' }}>{ws.icon || '📁'}</span>
                     <div>
-                      <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '14px' }}>{ws.name}</div>
-                      <div style={{ fontSize: '11px', color: '#94a3b8' }}>{ws.responsibleDepartment}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', fontSize: '14px' }}>{ws.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{ws.responsibleDepartment}</div>
                     </div>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '0 0 12px', lineHeight: '1.4' }}>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', margin: '0 0 12px', lineHeight: '1.4' }}>
                     {ws.description}
                   </p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#94a3b8' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                     <span>Lead: <strong>{ws.ownerName}</strong></span>
                     <Badge variant="neutral" size="sm">
                       {designs.filter((d) => d.workspaceId === ws.id).length} items
@@ -410,10 +410,10 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: '10px',
-              backgroundColor: '#0d1322',
+              backgroundColor: 'var(--surface-1, #0f1624)',
               padding: '12px',
               borderRadius: '6px',
-              border: '1px solid #1e293b',
+              border: '1px solid var(--border-subtle, #1d2939)',
             }}
           >
             {/* Search and Filters */}
@@ -462,13 +462,13 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
             </div>
 
             {/* Layout Toggles */}
-            <div style={{ display: 'flex', gap: '4px', backgroundColor: '#1e293b', padding: '2px', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '2px', borderRadius: '4px' }}>
               <button
                 onClick={() => setViewLayout('grid')}
                 style={{
                   padding: '4px 8px',
                   background: viewLayout === 'grid' ? '#2563eb' : 'transparent',
-                  color: '#fff',
+                  color: 'var(--surface-1, #0f1624)',
                   border: 'none',
                   borderRadius: '3px',
                   cursor: 'pointer',
@@ -482,7 +482,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                 style={{
                   padding: '4px 8px',
                   background: viewLayout === 'table' ? '#2563eb' : 'transparent',
-                  color: '#fff',
+                  color: 'var(--surface-1, #0f1624)',
                   border: 'none',
                   borderRadius: '3px',
                   cursor: 'pointer',
@@ -496,7 +496,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                 style={{
                   padding: '4px 8px',
                   background: viewLayout === 'kanban' ? '#2563eb' : 'transparent',
-                  color: '#fff',
+                  color: 'var(--surface-1, #0f1624)',
                   border: 'none',
                   borderRadius: '3px',
                   cursor: 'pointer',
@@ -521,8 +521,8 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                 <Card
                   key={item.id}
                   style={{
-                    backgroundColor: '#0d1322',
-                    borderColor: '#1e293b',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
+                    borderColor: 'var(--surface-2, #151e2e)',
                     padding: '16px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -578,7 +578,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                           padding: '2px 6px',
                           borderRadius: '4px',
                           fontSize: '10px',
-                          color: '#94a3b8',
+                          color: 'var(--text-muted, #94a3b8)',
                         }}
                       >
                         📍 {item.pins?.length || 0} Pins
@@ -586,7 +586,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontFamily: 'monospace' }}>
                         {item.id}
                       </span>
                       <Badge
@@ -603,17 +603,17 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                       </Badge>
                     </div>
 
-                    <h4 style={{ margin: '0 0 6px', fontSize: '14px', fontWeight: 700, color: '#f8fafc', lineHeight: '1.3' }}>
+                    <h4 style={{ margin: '0 0 6px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', lineHeight: '1.3' }}>
                       {item.title}
                     </h4>
-                    <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#94a3b8', lineHeight: '1.4' }}>
+                    <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: '1.4' }}>
                       {item.description?.slice(0, 100)}...
                     </p>
                   </div>
 
-                  <div style={{ borderTop: '1px solid #1e293b', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>
-                      Discipline: <strong style={{ color: '#cbd5e1' }}>{item.discipline}</strong>
+                  <div style={{ borderTop: '1px solid var(--border-subtle, #1d2939)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
+                      Discipline: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{item.discipline}</strong>
                     </div>
                     <Button variant="primary" size="sm">
                       Open Viewer 📐
@@ -626,10 +626,10 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
 
           {/* Table Layout */}
           {viewLayout === 'table' && (
-            <div style={{ backgroundColor: '#0d1322', borderRadius: '6px', border: '1px solid #1e293b', overflowX: 'auto' }}>
+            <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)', overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#090d16', borderBottom: '1px solid #1e293b', color: '#94a3b8' }}>
+                  <tr style={{ backgroundColor: 'var(--canvas, #090d16)', borderBottom: '1px solid var(--border-subtle, #1d2939)', color: 'var(--text-muted, #94a3b8)' }}>
                     <th style={{ padding: '10px 14px' }}>DWG ID</th>
                     <th style={{ padding: '10px 14px' }}>Title</th>
                     <th style={{ padding: '10px 14px' }}>Discipline</th>
@@ -644,12 +644,12 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                   {filteredDesigns.map((d) => (
                     <tr
                       key={d.id}
-                      style={{ borderBottom: '1px solid #1e293b', cursor: 'pointer' }}
+                      style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', cursor: 'pointer' }}
                       onClick={() => setSelectedDesign(d)}
                     >
                       <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#38bdf8' }}>{d.id}</td>
-                      <td style={{ padding: '10px 14px', fontWeight: 600, color: '#f8fafc' }}>{d.title}</td>
-                      <td style={{ padding: '10px 14px', color: '#cbd5e1' }}>{d.discipline}</td>
+                      <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{d.title}</td>
+                      <td style={{ padding: '10px 14px', color: 'var(--text-secondary, #cbd5e1)' }}>{d.discipline}</td>
                       <td style={{ padding: '10px 14px' }}>
                         <Badge variant="neutral" size="sm">
                           {d.currentRevisionCode}
@@ -669,7 +669,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                           {d.currentStatus}
                         </Badge>
                       </td>
-                      <td style={{ padding: '10px 14px', color: '#94a3b8' }}>{d.ownerName}</td>
+                      <td style={{ padding: '10px 14px', color: 'var(--text-muted, #94a3b8)' }}>{d.ownerName}</td>
                       <td style={{ padding: '10px 14px', color: '#f59e0b', fontWeight: 700 }}>
                         {d.pins?.length || 0}
                       </td>
@@ -699,9 +699,9 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                   <div
                     key={col.id}
                     style={{
-                      backgroundColor: '#0d1322',
+                      backgroundColor: 'var(--surface-1, #0f1624)',
                       borderRadius: '6px',
-                      border: '1px solid #1e293b',
+                      border: '1px solid var(--border-subtle, #1d2939)',
                       padding: '12px',
                       display: 'flex',
                       flexDirection: 'column',
@@ -709,7 +709,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#f8fafc' }}>{col.label}</span>
+                      <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>{col.label}</span>
                       <Badge variant="neutral" size="sm">
                         {colItems.length}
                       </Badge>
@@ -720,21 +720,21 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                         <Card
                           key={item.id}
                           style={{
-                            backgroundColor: '#111827',
-                            borderColor: '#1e293b',
+                            backgroundColor: 'var(--surface-inset, #0b111d)',
+                            borderColor: 'var(--surface-2, #151e2e)',
                             padding: '10px',
                             cursor: 'pointer',
                           }}
                           onClick={() => setSelectedDesign(item)}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginBottom: '4px' }}>
                             <span>{item.id}</span>
                             <strong style={{ color: '#f59e0b' }}>{item.currentRevisionCode}</strong>
                           </div>
-                          <div style={{ fontSize: '12px', fontWeight: 600, color: '#f8fafc', marginBottom: '6px' }}>
+                          <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)', marginBottom: '6px' }}>
                             {item.title}
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748b' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>
                             <span>{item.discipline}</span>
                             <span>📍 {item.pins?.length || 0} pins</span>
                           </div>
@@ -756,10 +756,10 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 Departmental Design Workspaces
               </h3>
-              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+              <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 Workspaces provide domain isolation, default approval workflows, and spatial zone alignment.
               </p>
             </div>
@@ -770,7 +770,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
             {workspaces.map((ws) => (
-              <Card key={ws.id} style={{ padding: '16px', backgroundColor: '#0d1322', borderColor: '#1e293b' }}>
+              <Card key={ws.id} style={{ padding: '16px', backgroundColor: 'var(--surface-1, #0f1624)', borderColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                   <div
                     style={{
@@ -787,17 +787,17 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                     {ws.icon || '🏛️'}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '14px' }}>{ws.name}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>{ws.responsibleDepartment}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', fontSize: '14px' }}>{ws.name}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{ws.responsibleDepartment}</div>
                   </div>
                 </div>
 
-                <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '0 0 12px' }}>{ws.description}</p>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', margin: '0 0 12px' }}>{ws.description}</p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px', color: '#94a3b8', borderTop: '1px solid #1e293b', paddingTop: '10px' }}>
-                  <div>Workflow: <strong style={{ color: '#cbd5e1' }}>{ws.defaultWorkflow}</strong></div>
-                  <div>Lead: <strong style={{ color: '#cbd5e1' }}>{ws.ownerName}</strong></div>
-                  <div>Visibility: <strong style={{ color: '#cbd5e1' }}>{ws.visibility}</strong></div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', borderTop: '1px solid var(--border-subtle, #1d2939)', paddingTop: '10px' }}>
+                  <div>Workflow: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{ws.defaultWorkflow}</strong></div>
+                  <div>Lead: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{ws.ownerName}</strong></div>
+                  <div>Visibility: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{ws.visibility}</strong></div>
                 </div>
 
                 <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
@@ -824,21 +824,21 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       {activeTab === 'review_queue' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               Multidisciplinary Review Rounds
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Coordinated technical review cycles with assigned discipline leads, due dates, and response trackers.
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {designs.map((d) => (
-              <Card key={d.id} style={{ padding: '16px', backgroundColor: '#0d1322', borderColor: '#1e293b' }}>
+              <Card key={d.id} style={{ padding: '16px', backgroundColor: 'var(--surface-1, #0f1624)', borderColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <div>
                     <span style={{ fontSize: '11px', color: '#38bdf8', fontFamily: 'monospace' }}>{d.id}</span>
-                    <h4 style={{ margin: '2px 0 0', fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>
+                    <h4 style={{ margin: '2px 0 0', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                       {d.title} ({d.currentRevisionCode})
                     </h4>
                   </div>
@@ -847,8 +847,8 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                   </Badge>
                 </div>
 
-                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#94a3b8', margin: '8px 0' }}>
-                  <span>Review Purpose: <strong style={{ color: '#cbd5e1' }}>Multidisciplinary Clearance</strong></span>
+                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', margin: '8px 0' }}>
+                  <span>Review Purpose: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>Multidisciplinary Clearance</strong></span>
                   <span>Due Date: <strong style={{ color: '#f59e0b' }}>In 5 Days (2026-09-24)</strong></span>
                   <span>Unresolved Pins: <strong style={{ color: '#ef4444' }}>{d.pins?.filter((p: any) => p.status !== 'resolved').length || 0}</strong></span>
                 </div>
@@ -881,8 +881,8 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                 <Card
                   key={d.id}
                   style={{
-                    backgroundColor: '#0d1322',
-                    borderColor: '#1e293b',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
+                    borderColor: 'var(--surface-2, #151e2e)',
                     padding: '16px',
                     cursor: 'pointer',
                   }}
@@ -894,14 +894,14 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                       {d.currentRevisionCode}
                     </Badge>
                   </div>
-                  <h4 style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>
+                  <h4 style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     {d.title}
                   </h4>
-                  <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#94a3b8' }}>
+                  <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     {d.description?.slice(0, 90)}...
                   </p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #1e293b', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle, #1d2939)', paddingTop: '8px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                       Client Visible Pins: {d.pins?.filter((p: any) => p.visibility !== 'internal_only').length || 0}
                     </span>
                     <Button variant="primary" size="sm">
@@ -920,18 +920,18 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       {activeTab === 'approvals' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               POL-DES-01 Production Governance & Sign-off Register
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Mandatory dual-engineering sign-offs (Structural Engineer & Civil Defence HSE) before fabrication release.
             </p>
           </div>
 
-          <div style={{ backgroundColor: '#0d1322', borderRadius: '6px', border: '1px solid #1e293b', overflowX: 'auto' }}>
+          <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ backgroundColor: '#090d16', borderBottom: '1px solid #1e293b', color: '#94a3b8' }}>
+                <tr style={{ backgroundColor: 'var(--canvas, #090d16)', borderBottom: '1px solid var(--border-subtle, #1d2939)', color: 'var(--text-muted, #94a3b8)' }}>
                   <th style={{ padding: '10px 14px' }}>Drawing ID</th>
                   <th style={{ padding: '10px 14px' }}>Revision</th>
                   <th style={{ padding: '10px 14px' }}>Approval Purpose</th>
@@ -943,10 +943,10 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               </thead>
               <tbody>
                 {designs.map((d) => (
-                  <tr key={d.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                  <tr key={d.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#38bdf8' }}>{d.id}</td>
                     <td style={{ padding: '10px 14px' }}>{d.currentRevisionCode}</td>
-                    <td style={{ padding: '10px 14px', color: '#cbd5e1' }}>{d.approvalPurpose}</td>
+                    <td style={{ padding: '10px 14px', color: 'var(--text-secondary, #cbd5e1)' }}>{d.approvalPurpose}</td>
                     <td style={{ padding: '10px 14px' }}>
                       {d.currentStatus === 'approved_for_production' ? (
                         <span style={{ color: '#10b981', fontWeight: 600 }}>✅ Certified (QCDD-STR-9921)</span>
@@ -992,10 +992,10 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       {activeTab === 'changes' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               Design Change Requests (DCR) & Commercial Impact
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Changes exceeding 25,000 QAR or 2 days schedule impact trigger mandatory Project Manager variation escalation.
             </p>
           </div>
@@ -1005,22 +1005,22 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
             EOS Variation Order linked to the project BOQ.
           </AlertBanner>
 
-          <Card style={{ padding: '16px', backgroundColor: '#0d1322', borderColor: '#1e293b' }}>
+          <Card style={{ padding: '16px', backgroundColor: 'var(--surface-1, #0f1624)', borderColor: 'var(--surface-2, #151e2e)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <div>
                 <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700 }}>DCR-001 • MAJOR SCOPE CHANGE</span>
-                <h4 style={{ margin: '2px 0 0', fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>
+                <h4 style={{ margin: '2px 0 0', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                   Increase kinetic arch dynamic torque rating to 150% (DES-QND-001)
                 </h4>
               </div>
               <Badge variant="warning" size="sm">Under PM Review</Badge>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '0 0 10px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', margin: '0 0 10px' }}>
               Client modification requested during Boulevard rehearsal simulation. Dual failsafe electromagnetic brakes required.
             </p>
 
-            <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#94a3b8' }}>
+            <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               <span>Cost Delta: <strong style={{ color: '#ef4444' }}>+45,000 QAR</strong></span>
               <span>Schedule Delta: <strong style={{ color: '#ef4444' }}>+3 Days</strong></span>
               <span>Linked Variation: <strong style={{ color: '#38bdf8' }}>VAR-QND-004</strong></span>
@@ -1035,32 +1035,32 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       {activeTab === 'releases' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               Production Releases & Workshop Adoption Tracking
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Track adoption across external fabricators, workshops, and rigging contractors. Superseded alerts prevent fabrication of obsolete revisions.
             </p>
           </div>
 
-          <Card style={{ padding: '16px', backgroundColor: '#0d1322', borderColor: '#1e293b' }}>
+          <Card style={{ padding: '16px', backgroundColor: 'var(--surface-1, #0f1624)', borderColor: 'var(--surface-2, #151e2e)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div>
                 <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>REL-QND-001 • ACTIVE PRODUCTION RELEASE</span>
-                <h4 style={{ margin: '2px 0 0', fontSize: '15px', fontWeight: 700, color: '#f8fafc' }}>
+                <h4 style={{ margin: '2px 0 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                   DES-QND-001 (Rev B) — Main Ceremony Kinetic Truss Package
                 </h4>
               </div>
               <Badge variant="success" size="sm">Active Release</Badge>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #1e293b', paddingTop: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid var(--border-subtle, #1d2939)', paddingTop: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                <span style={{ color: '#cbd5e1' }}>Al Rayyan Scenic Workshop (Main Fabrication)</span>
+                <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>Al Rayyan Scenic Workshop (Main Fabrication)</span>
                 <Badge variant="success" size="sm">Production Started (2026-09-12)</Badge>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                <span style={{ color: '#cbd5e1' }}>Gulf Rigging & Automation Services</span>
+                <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>Gulf Rigging & Automation Services</span>
                 <Badge variant="warning" size="sm">Clarification Required</Badge>
               </div>
             </div>
@@ -1075,10 +1075,10 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 Master Engineering Design Register
               </h3>
-              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+              <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 Formal project document register with revision numbers, zones, linked requirements, and commercial ties.
               </p>
             </div>
@@ -1091,10 +1091,10 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
             </Button>
           </div>
 
-          <div style={{ backgroundColor: '#0d1322', borderRadius: '6px', border: '1px solid #1e293b', overflowX: 'auto' }}>
+          <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ backgroundColor: '#090d16', borderBottom: '1px solid #1e293b', color: '#94a3b8' }}>
+                <tr style={{ backgroundColor: 'var(--canvas, #090d16)', borderBottom: '1px solid var(--border-subtle, #1d2939)', color: 'var(--text-muted, #94a3b8)' }}>
                   <th style={{ padding: '10px 12px' }}>Package ID</th>
                   <th style={{ padding: '10px 12px' }}>Drawing Title</th>
                   <th style={{ padding: '10px 12px' }}>Discipline</th>
@@ -1108,16 +1108,16 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               </thead>
               <tbody>
                 {designs.map((d) => (
-                  <tr key={d.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                  <tr key={d.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: '#38bdf8' }}>{d.id}</td>
-                    <td style={{ padding: '10px 12px', fontWeight: 600, color: '#f8fafc' }}>{d.title}</td>
-                    <td style={{ padding: '10px 12px', color: '#cbd5e1' }}>{d.discipline}</td>
-                    <td style={{ padding: '10px 12px', color: '#94a3b8' }}>{d.department}</td>
+                    <td style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{d.title}</td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary, #cbd5e1)' }}>{d.discipline}</td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-muted, #94a3b8)' }}>{d.department}</td>
                     <td style={{ padding: '10px 12px', fontWeight: 700 }}>{d.currentRevisionCode}</td>
                     <td style={{ padding: '10px 12px' }}>
                       <Badge variant="neutral" size="sm">{d.currentStatus}</Badge>
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#94a3b8' }}>{d.zones?.join(', ') || 'Site'}</td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-muted, #94a3b8)' }}>{d.zones?.join(', ') || 'Site'}</td>
                     <td style={{ padding: '10px 12px', color: '#38bdf8' }}>{d.requirementIds?.join(', ') || 'None'}</td>
                     <td style={{ padding: '10px 12px', color: '#10b981' }}>{d.boqItemIds?.join(', ') || 'None'}</td>
                   </tr>
@@ -1134,18 +1134,18 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       {activeTab === 'revision_register' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               Immutable Revision Register & Cryptographic Audit Trail
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Complete history of every drawing version uploaded, with SHA-256 content hashes, upload timestamps, and release flags.
             </p>
           </div>
 
-          <div style={{ backgroundColor: '#0d1322', borderRadius: '6px', border: '1px solid #1e293b', overflowX: 'auto' }}>
+          <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ backgroundColor: '#090d16', borderBottom: '1px solid #1e293b', color: '#94a3b8' }}>
+                <tr style={{ backgroundColor: 'var(--canvas, #090d16)', borderBottom: '1px solid var(--border-subtle, #1d2939)', color: 'var(--text-muted, #94a3b8)' }}>
                   <th style={{ padding: '10px 12px' }}>Design ID</th>
                   <th style={{ padding: '10px 12px' }}>Revision</th>
                   <th style={{ padding: '10px 12px' }}>Version</th>
@@ -1158,15 +1158,15 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               <tbody>
                 {designs.flatMap((d) =>
                   (d.revisions || []).map((r: any) => (
-                    <tr key={`${d.id}-${r.revisionCode}`} style={{ borderBottom: '1px solid #1e293b' }}>
+                    <tr key={`${d.id}-${r.revisionCode}`} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                       <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: '#38bdf8' }}>{d.id}</td>
-                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#f8fafc' }}>{r.revisionCode}</td>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{r.revisionCode}</td>
                       <td style={{ padding: '10px 12px' }}>v{r.versionNumber}</td>
-                      <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: '#94a3b8', fontSize: '11px' }}>
+                      <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>
                         {r.contentHash?.slice(0, 28)}...
                       </td>
-                      <td style={{ padding: '10px 12px', color: '#cbd5e1' }}>{r.uploadedBy}</td>
-                      <td style={{ padding: '10px 12px', color: '#94a3b8' }}>{r.uploadedAt?.slice(0, 10)}</td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary, #cbd5e1)' }}>{r.uploadedBy}</td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-muted, #94a3b8)' }}>{r.uploadedAt?.slice(0, 10)}</td>
                       <td style={{ padding: '10px 12px' }}>
                         <Badge variant="neutral" size="sm">{r.releaseStatus}</Badge>
                       </td>
@@ -1189,7 +1189,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       >
         <form onSubmit={handleCreateDesign} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Drawing Title *</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Drawing Title *</label>
             <Input
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
@@ -1200,7 +1200,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Workspace</label>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Workspace</label>
               <Select value={newWorkspaceId} onChange={(e) => setNewWorkspaceId(e.target.value)}>
                 {workspaces.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -1210,7 +1210,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               </Select>
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Discipline</label>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Discipline</label>
               <Select value={newDiscipline} onChange={(e) => setNewDiscipline(e.target.value)}>
                 <option value="staging">Scenic & Staging</option>
                 <option value="audio_visual">Audio-Visual</option>
@@ -1223,7 +1223,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Asset Type</label>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Asset Type</label>
               <Select value={newAssetType} onChange={(e) => setNewAssetType(e.target.value)}>
                 <option value="technical_drawing">2D Technical Drawing (PDF/DWG)</option>
                 <option value="3d_model">3D Spatial Mesh (GLB/GLTF/IFC)</option>
@@ -1232,7 +1232,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               </Select>
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Client Portal Visibility</label>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Client Portal Visibility</label>
               <Select
                 value={newClientVisible ? 'yes' : 'no'}
                 onChange={(e) => setNewClientVisible(e.target.value === 'yes')}
@@ -1244,7 +1244,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Description & Scope</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Description & Scope</label>
             <Textarea
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
@@ -1274,7 +1274,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       >
         <form onSubmit={handleCreateWorkspace} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Workspace Name *</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Workspace Name *</label>
             <Input
               value={newWsName}
               onChange={(e) => setNewWsName(e.target.value)}
@@ -1284,7 +1284,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Responsible Department</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Responsible Department</label>
             <Select value={newWsDept} onChange={(e) => setNewWsDept(e.target.value)}>
               <option value="Scenic & Staging">Scenic & Staging</option>
               <option value="Audio-Visual & Broadcast">Audio-Visual & Broadcast</option>
@@ -1295,7 +1295,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Scope Description</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Scope Description</label>
             <Textarea
               value={newWsDesc}
               onChange={(e) => setNewWsDesc(e.target.value)}

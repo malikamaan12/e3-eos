@@ -88,10 +88,10 @@ export const AdminUsersView: React.FC = () => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
             {currentLanguage === 'ar' ? 'إدارة المستخدمين والصلاحيات' : 'User Administration'}
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             {currentLanguage === 'ar'
               ? 'إدارة حسابات الفريق وتعيين الأدوار الصارمة ومنح صلاحيات المشاريع'
               : 'Enterprise user provisioning, RBAC role assignments, and project access delegation'}
@@ -113,7 +113,7 @@ export const AdminUsersView: React.FC = () => {
 
       <Card noPadding>
         {loading ? (
-          <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
             Querying users directly from Cloud SQL PostgreSQL...
           </div>
         ) : (
@@ -124,11 +124,11 @@ export const AdminUsersView: React.FC = () => {
                   display: 'grid',
                   gridTemplateColumns: '1.4fr 1.6fr 120px 100px 110px 120px',
                   padding: '12px 18px',
-                  backgroundColor: '#f8fafc',
-                  borderBottom: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  borderBottom: '1px solid var(--border-default, #2a374b)',
                   fontSize: '11px',
                   fontWeight: 700,
-                  color: '#64748b',
+                  color: 'var(--text-muted, #94a3b8)',
                   textTransform: 'uppercase',
                 }}
               >
@@ -153,14 +153,14 @@ export const AdminUsersView: React.FC = () => {
                       gridTemplateColumns: '1.4fr 1.6fr 120px 100px 110px 120px',
                       alignItems: 'center',
                       padding: '12px 18px',
-                      borderBottom: '1px solid #f1f5f9',
+                      borderBottom: '1px solid var(--border-subtle, #1d2939)',
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{u.name}</div>
-                      {u.isSuperAdmin && <span style={{ fontSize: '10px', color: '#7c3aed', fontWeight: 700 }}>Root Governance</span>}
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{u.name}</div>
+                      {u.isSuperAdmin && <span style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 700 }}>Root Governance</span>}
                     </div>
-                    <div style={{ fontSize: '13px', color: '#475569', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', fontFamily: 'monospace' }}>
                       {u.email}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -178,7 +178,7 @@ export const AdminUsersView: React.FC = () => {
                             border: 'none',
                             cursor: 'pointer',
                             fontSize: '13px',
-                            color: '#64748b',
+                            color: 'var(--text-muted, #94a3b8)',
                             padding: '2px',
                           }}
                         >
@@ -191,7 +191,7 @@ export const AdminUsersView: React.FC = () => {
                         {effectiveAudience}
                       </Badge>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       {u.organisationName || 'E3 Events'}
                     </div>
                     <div>
@@ -204,10 +204,10 @@ export const AdminUsersView: React.FC = () => {
                             padding: '4px 8px',
                             fontSize: '11px',
                             fontWeight: 600,
-                            backgroundColor: '#f8fafc',
-                            border: '1px solid #cbd5e1',
+                            backgroundColor: 'var(--surface-2, #151e2e)',
+                            border: '1px solid var(--border-default, #2a374b)',
                             borderRadius: '4px',
-                            color: '#475569',
+                            color: 'var(--text-secondary, #cbd5e1)',
                             cursor: 'pointer',
                           }}
                         >
@@ -228,10 +228,10 @@ export const AdminUsersView: React.FC = () => {
                             padding: '4px 8px',
                             fontSize: '11px',
                             fontWeight: 600,
-                            backgroundColor: '#f8fafc',
-                            border: '1px solid #cbd5e1',
+                            backgroundColor: 'var(--surface-2, #151e2e)',
+                            border: '1px solid var(--border-default, #2a374b)',
                             borderRadius: '4px',
-                            color: '#2563eb',
+                            color: 'var(--accent, #d97706)',
                             cursor: 'pointer',
                           }}
                         >
@@ -309,28 +309,28 @@ export const AdminUsersView: React.FC = () => {
                 style={{
                   marginTop: '12px',
                   padding: '12px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '6px',
                   fontSize: '12px',
                 }}
               >
-                <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '4px' }}>
                   {exp.title} — Scope & Boundaries
                 </div>
-                <div style={{ color: '#64748b', marginBottom: '8px' }}>{exp.description}</div>
+                <div style={{ color: 'var(--text-muted, #94a3b8)', marginBottom: '8px' }}>{exp.description}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <div style={{ padding: '8px', backgroundColor: '#f0fdf4', borderRadius: '4px', border: '1px solid #bbf7d0' }}>
-                    <div style={{ fontWeight: 700, color: '#166534', fontSize: '11px', marginBottom: '4px' }}>✓ CAN:</div>
-                    <ul style={{ margin: 0, paddingLeft: '14px', color: '#15803d', lineHeight: 1.4 }}>
+                  <div style={{ padding: '8px', backgroundColor: 'rgba(34, 197, 94, 0.12)', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                    <div style={{ fontWeight: 700, color: '#22c55e', fontSize: '11px', marginBottom: '4px' }}>✓ CAN:</div>
+                    <ul style={{ margin: 0, paddingLeft: '14px', color: '#4ade80', lineHeight: 1.4 }}>
                       {exp.can.map((c, i) => (
                         <li key={i}>{c}</li>
                       ))}
                     </ul>
                   </div>
-                  <div style={{ padding: '8px', backgroundColor: '#fff7ed', borderRadius: '4px', border: '1px solid #fed7aa' }}>
-                    <div style={{ fontWeight: 700, color: '#9a3412', fontSize: '11px', marginBottom: '4px' }}>✕ CANNOT BY DEFAULT:</div>
-                    <ul style={{ margin: 0, paddingLeft: '14px', color: '#c2410c', lineHeight: 1.4 }}>
+                  <div style={{ padding: '8px', backgroundColor: 'rgba(239, 68, 68, 0.12)', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                    <div style={{ fontWeight: 700, color: '#ef4444', fontSize: '11px', marginBottom: '4px' }}>✕ CANNOT BY DEFAULT:</div>
+                    <ul style={{ margin: 0, paddingLeft: '14px', color: '#f87171', lineHeight: 1.4 }}>
                       {exp.cannot.map((c, i) => (
                         <li key={i}>{c}</li>
                       ))}
@@ -393,35 +393,35 @@ export const AdminUsersView: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>{exp.title}</span>
-                  <code style={{ fontSize: '12px', padding: '2px 8px', backgroundColor: '#f1f5f9', borderRadius: '4px', color: '#475569' }}>{exp.role}</code>
+                  <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>{exp.title}</span>
+                  <code style={{ fontSize: '12px', padding: '2px 8px', backgroundColor: 'var(--surface-inset, #0b111d)', borderRadius: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>{exp.role}</code>
                 </div>
-                <p style={{ margin: 0, fontSize: '13px', color: '#475569' }}>{exp.description}</p>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>{exp.description}</p>
               </div>
 
-              <div style={{ padding: '12px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', marginBottom: '6px' }}>
+              <div style={{ padding: '12px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', marginBottom: '6px' }}>
                   ✓ Can (Authorized Capabilities)
                 </div>
-                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#15803d', lineHeight: 1.5 }}>
+                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#4ade80', lineHeight: 1.5 }}>
                   {exp.can.map((item, idx) => (
                     <li key={idx}>{item}</li>
                   ))}
                 </ul>
               </div>
 
-              <div style={{ padding: '12px', backgroundColor: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '6px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: '#9a3412', textTransform: 'uppercase', marginBottom: '6px' }}>
+              <div style={{ padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '6px' }}>
                   ✕ Cannot by Default (Governance Boundaries)
                 </div>
-                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#c2410c', lineHeight: 1.5 }}>
+                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#f87171', lineHeight: 1.5 }}>
                   {exp.cannot.map((item, idx) => (
                     <li key={idx}>{item}</li>
                   ))}
                 </ul>
               </div>
 
-              <div style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontStyle: 'italic' }}>
                 * Role boundaries are enforced server-side by NestJS guards and PostgreSQL Row-Level Security policies.
               </div>
             </div>

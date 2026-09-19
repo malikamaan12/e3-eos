@@ -90,10 +90,10 @@ export const SupplierPortalView: React.FC = () => {
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '8px 16px 40px 16px' }} dir={isAr ? 'rtl' : 'ltr'}>
       {/* Contributor Header */}
       <div style={{
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--surface-1, #0f1624)',
         borderRadius: '12px',
         padding: '24px',
-        border: '1px solid #e2e8f0',
+        border: '1px solid var(--border-default, #2a374b)',
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         marginBottom: '24px',
         display: 'flex',
@@ -108,12 +108,12 @@ export const SupplierPortalView: React.FC = () => {
             <Badge variant="info">Token: tok-qnd26-rfq-av01</Badge>
             <Badge variant="success">{isAr ? 'قيد المراجعة الفنية' : 'Open for Submission'}</Badge>
           </div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 6px 0', color: '#0f172a' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary, #f8fafc)' }}>
             {isAr
               ? 'طلب تقديم عروض الأسعار: حزمة تجهيزات الصوت والإضاءة والتعليق الحركي'
               : 'RFQ-2026-AV-01: Kinetic Rigging & Architectural Lighting Package'}
           </h1>
-          <div style={{ fontSize: '13px', color: '#64748b' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             {isAr
               ? `المشروع: ${currentProject?.name || 'مشروع الفعالية'} • الجهة الطالبة: ${currentOrg?.name || 'شركة E3 للفعاليات'}`
               : `Target Project: ${currentProject?.name || 'Production Project'} • Issuing Entity: ${currentOrg?.name || 'E3 Events & Special Projects LLC'}`}
@@ -121,16 +121,16 @@ export const SupplierPortalView: React.FC = () => {
         </div>
 
         <div style={{
-          backgroundColor: '#f8fafc',
+          backgroundColor: 'var(--surface-2, #151e2e)',
           padding: '12px 18px',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           textAlign: isAr ? 'left' : 'right'
         }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', fontWeight: 600 }}>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>
             {isAr ? 'الموعد النهائي لتقديم العطاء' : 'Submission Deadline'}
           </div>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#b91c1c' }}>
+          <div style={{ fontSize: '16px', fontWeight: 700, color: '#ef4444' }}>
             {isAr ? '15 أكتوبر 2026 • 18:00 بتوقيت الدوحة' : '15 Oct 2026 • 18:00 AST (UTC+3)'}
           </div>
         </div>
@@ -138,8 +138,8 @@ export const SupplierPortalView: React.FC = () => {
 
       {/* Strict Tenant / Scope Isolation Notice */}
       <div style={{
-        backgroundColor: '#f0fdf4',
-        border: '1px solid #bbf7d0',
+        backgroundColor: 'rgba(34, 197, 94, 0.12)',
+        border: '1px solid rgba(34, 197, 94, 0.3)',
         borderRadius: '8px',
         padding: '14px 18px',
         marginBottom: '24px',
@@ -148,7 +148,7 @@ export const SupplierPortalView: React.FC = () => {
         gap: '12px'
       }}>
         <div style={{ fontSize: '20px' }}>🔒</div>
-        <div style={{ fontSize: '13px', color: '#166534' }}>
+        <div style={{ fontSize: '13px', color: '#22c55e' }}>
           <strong>{isAr ? 'نطاق وصول مقيد ومشفر (عزل كامل للموردين): ' : 'Isolated Contributor Sandbox: '}</strong>
           {isAr
             ? 'هذه المساحة مقيدة حصرياً ببنود المناقصة المحددة أعلاه. بموجب معايير E3 الصارمة، لا يمكن الاطلاع على هوية المنافسين الآخرين، أو الميزانيات التقديرية الداخلية، أو هوامش الربح.'
@@ -159,10 +159,10 @@ export const SupplierPortalView: React.FC = () => {
       {submittedReceipt ? (
         /* Submission Success Confirmation */
         <div style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '12px',
           padding: '40px',
-          border: '1px solid #bbf7d0',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
           textAlign: 'center'
         }}>
@@ -170,12 +170,12 @@ export const SupplierPortalView: React.FC = () => {
           <Badge variant="success" style={{ fontSize: '14px', padding: '6px 16px' }}>
             {isAr ? 'تم استلام وتشفير العطاء بنجاح' : 'Encrypted Quotation Formally Submitted'}
           </Badge>
-          <h2 style={{ fontSize: '22px', margin: '20px 0 8px 0', color: '#0f172a' }}>
+          <h2 style={{ fontSize: '22px', margin: '20px 0 8px 0', color: 'var(--text-primary, #f8fafc)' }}>
             {isAr ? 'إيصال الاستلام المشفر الرسمي' : 'Official Cryptographic Receipt'}
           </h2>
           <div style={{
             fontFamily: 'monospace',
-            backgroundColor: '#f1f5f9',
+            backgroundColor: 'var(--surface-2, #151e2e)',
             padding: '12px 24px',
             borderRadius: '6px',
             fontSize: '18px',
@@ -183,11 +183,11 @@ export const SupplierPortalView: React.FC = () => {
             letterSpacing: '0.05em',
             display: 'inline-block',
             margin: '12px 0 20px 0',
-            color: '#1e293b'
+            color: 'var(--text-primary, #f8fafc)'
           }}>
             {submittedReceipt}
           </div>
-          <p style={{ color: '#64748b', fontSize: '14px', maxWidth: '600px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
+          <p style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '14px', maxWidth: '600px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
             {isAr
               ? `تم تسجيل العطاء بقيمة إجمالية ${totalQuotation.toLocaleString()} ${currency} مع إرفاق ${uploadedFiles.length} وثائق نظامية مفحوصة وموثقة بختم زمني مشفر.`
               : `Your quotation of ${totalQuotation.toLocaleString()} ${currency} along with ${uploadedFiles.length} verified compliance documents has been committed with tamper-evident cryptographic hash.`}
@@ -201,24 +201,24 @@ export const SupplierPortalView: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
           {/* Section 1: Itemized Pricing Table */}
           <div style={{
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--surface-1, #0f1624)',
             borderRadius: '12px',
             padding: '24px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-default, #2a374b)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 4px 0', color: '#0f172a' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 4px 0', color: 'var(--text-primary, #f8fafc)' }}>
                   {isAr ? '1. جدول تسعير بنود التوريد والخدمات' : '1. Bill of Quantities & Unit Pricing'}
                 </h2>
-                <div style={{ fontSize: '13px', color: '#64748b' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                   {isAr ? 'أدخل أسعار الوحدات ومهلة التجهيز بالأيام' : 'Enter unit costs and preparation lead times for each requested item'}
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#475569' }}>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary, #cbd5e1)' }}>
                   {isAr ? 'العملة:' : 'Currency:'}
                 </span>
                 <select
@@ -227,10 +227,10 @@ export const SupplierPortalView: React.FC = () => {
                   style={{
                     padding: '6px 12px',
                     borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
+                    border: '1px solid var(--border-default, #2a374b)',
                     fontSize: '13px',
                     fontWeight: 600,
-                    backgroundColor: '#f8fafc'
+                    backgroundColor: 'var(--surface-2, #151e2e)'
                   }}
                 >
                   <option value="QAR">QAR (Qatari Riyal)</option>
@@ -244,30 +244,30 @@ export const SupplierPortalView: React.FC = () => {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: isAr ? 'right' : 'left' }}>
-                    <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569' }}>{isAr ? 'كود البند' : 'Item Code'}</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569' }}>{isAr ? 'الوصف والمواصفات' : 'Description & Scope'}</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569' }}>{isAr ? 'الكمية' : 'Qty'}</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569' }}>{isAr ? 'الوحدة' : 'UOM'}</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', minWidth: '130px' }}>{isAr ? `سعر الوحدة (${currency})` : `Unit Rate (${currency})`}</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', minWidth: '100px' }}>{isAr ? 'مهلة التوريد (أيام)' : 'Lead Time'}</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', textAlign: isAr ? 'left' : 'right' }}>{isAr ? 'الإجمالي' : 'Total'}</th>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: isAr ? 'right' : 'left' }}>
+                    <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>{isAr ? 'كود البند' : 'Item Code'}</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>{isAr ? 'الوصف والمواصفات' : 'Description & Scope'}</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>{isAr ? 'الكمية' : 'Qty'}</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>{isAr ? 'الوحدة' : 'UOM'}</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', minWidth: '130px' }}>{isAr ? `سعر الوحدة (${currency})` : `Unit Rate (${currency})`}</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', minWidth: '100px' }}>{isAr ? 'مهلة التوريد (أيام)' : 'Lead Time'}</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', textAlign: isAr ? 'left' : 'right' }}>{isAr ? 'الإجمالي' : 'Total'}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rfqItems.map((item) => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                       <td style={{ padding: '14px', fontWeight: 600, fontFamily: 'monospace', color: '#2563eb' }}>
                         {item.code}
                       </td>
-                      <td style={{ padding: '14px', color: '#1e293b' }}>
+                      <td style={{ padding: '14px', color: 'var(--text-primary, #f8fafc)' }}>
                         <div style={{ fontWeight: 500 }}>{isAr ? item.descriptionAr : item.description}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                           {isAr ? 'مواصفة الفئة الاحترافية المعتمدة' : 'Standard compliance tier: Professional Grade 1'}
                         </div>
                       </td>
                       <td style={{ padding: '14px', fontWeight: 600 }}>{item.qty}</td>
-                      <td style={{ padding: '14px', color: '#64748b' }}>{item.uom}</td>
+                      <td style={{ padding: '14px', color: 'var(--text-muted, #94a3b8)' }}>{item.uom}</td>
                       <td style={{ padding: '14px' }}>
                         <input
                           type="number"
@@ -276,7 +276,7 @@ export const SupplierPortalView: React.FC = () => {
                           style={{
                             width: '110px',
                             padding: '6px 10px',
-                            border: '1px solid #cbd5e1',
+                            border: '1px solid var(--border-default, #2a374b)',
                             borderRadius: '6px',
                             fontSize: '13px',
                             fontWeight: 600,
@@ -292,21 +292,21 @@ export const SupplierPortalView: React.FC = () => {
                           style={{
                             width: '70px',
                             padding: '6px 10px',
-                            border: '1px solid #cbd5e1',
+                            border: '1px solid var(--border-default, #2a374b)',
                             borderRadius: '6px',
                             fontSize: '13px',
                             textAlign: 'center'
                           }}
                         />
                       </td>
-                      <td style={{ padding: '14px', fontWeight: 700, color: '#0f172a', textAlign: isAr ? 'left' : 'right' }}>
+                      <td style={{ padding: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', textAlign: isAr ? 'left' : 'right' }}>
                         {(item.qty * (item.unitPrice || 0)).toLocaleString()} {currency}
                       </td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr style={{ backgroundColor: '#f8fafc', borderTop: '2px solid #cbd5e1' }}>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderTop: '2px solid #cbd5e1' }}>
                     <td colSpan={6} style={{ padding: '16px 14px', fontWeight: 700, fontSize: '14px', textAlign: isAr ? 'left' : 'right' }}>
                       {isAr ? 'إجمالي قيمة العطاء المالي المقترح:' : 'Total Proposed Quotation:'}
                     </td>
@@ -321,16 +321,16 @@ export const SupplierPortalView: React.FC = () => {
 
           {/* Section 2: Compliance & Document Verification Upload */}
           <div style={{
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--surface-1, #0f1624)',
             borderRadius: '12px',
             padding: '24px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-default, #2a374b)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
           }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 4px 0', color: '#0f172a' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 4px 0', color: 'var(--text-primary, #f8fafc)' }}>
               {isAr ? '2. وثائق الاعتماد الفني والتراخيص النظامية' : '2. Statutory Compliance & Insurance Certifications'}
             </h2>
-            <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '18px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginBottom: '18px' }}>
               {isAr
                 ? 'وفق ضوابط الحوكمة، تخضع جميع الوثائق للفحص الفوري للكشف عن الفيروسات والتثبت من سريان الصلاحية'
                 : 'All uploaded certificates are scanned via E3 Document Quarantine Service and cryptographically hashed upon ingestion'}
@@ -341,17 +341,17 @@ export const SupplierPortalView: React.FC = () => {
                 <div key={i} style={{
                   padding: '14px',
                   borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  backgroundColor: '#f8fafc',
+                  border: '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '6px'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>📄 {f.name}</span>
+                    <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>📄 {f.name}</span>
                     <Badge variant="success">{isAr ? 'مفحوص وسليم' : 'Clean & Verified'}</Badge>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'flex', justifyContent: 'space-between' }}>
                     <span>Size: {f.size}</span>
                     <span style={{ fontFamily: 'monospace' }}>SHA-256: {f.hash.substring(0, 12)}...</span>
                   </div>
@@ -374,7 +374,7 @@ export const SupplierPortalView: React.FC = () => {
                 ]);
               }}
               style={{
-              border: '2px dashed #cbd5e1',
+              border: '2px dashed var(--border-default, #2a374b)',
               borderRadius: '8px',
               padding: '24px',
               textAlign: 'center',
@@ -383,17 +383,17 @@ export const SupplierPortalView: React.FC = () => {
               marginBottom: '20px'
             }}>
               <div style={{ fontSize: '28px', marginBottom: '6px' }}>📤</div>
-              <div style={{ fontWeight: 600, fontSize: '14px', color: '#334155' }}>
+              <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 {isAr ? 'انقر أو اسحب ملفات إضافية هنا' : 'Click or Drag Additional Certificates Here'}
               </div>
-              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                 PDF, XLSX, DOCX up to 50MB • ISO 27001 / Zero Executable Guard Active
               </div>
             </div>
 
             {/* Vendor Clarifications and Terms */}
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                 {isAr ? 'ملاحظات العطاء وشروط التوريد الإضافية:' : 'Quotation Caveats, Exclusions & Payment Terms:'}
               </label>
               <textarea
@@ -405,7 +405,7 @@ export const SupplierPortalView: React.FC = () => {
                   width: '100%',
                   padding: '10px 14px',
                   borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border-default, #2a374b)',
                   fontSize: '13px',
                   fontFamily: 'inherit',
                   boxSizing: 'border-box'
@@ -415,7 +415,7 @@ export const SupplierPortalView: React.FC = () => {
 
             {/* Submit Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-              <div style={{ fontSize: '12px', color: '#64748b' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 {isAr ? '🛡️ يتم حفظ وتشفير العطاء باستخدام مفتاح Idempotency-Key الفريد' : '🛡️ Protected by Tenant Boundary & Idempotency Lock'}
               </div>
               <Button

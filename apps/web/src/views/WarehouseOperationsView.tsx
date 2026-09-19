@@ -127,7 +127,7 @@ export const WarehouseOperationsView: React.FC = () => {
       case 'received':
         return { bg: '#e0f2fe', text: '#0369a1', label: 'Received' };
       case 'stored':
-        return { bg: '#f1f5f9', text: '#334155', label: 'Stored' };
+        return { bg: 'var(--surface-2, #151e2e)', text: 'var(--text-secondary, #cbd5e1)', label: 'Stored' };
       case 'reserved':
         return { bg: '#fef3c7', text: '#b45309', label: 'Reserved' };
       case 'picked':
@@ -145,7 +145,7 @@ export const WarehouseOperationsView: React.FC = () => {
       case 'restocked':
         return { bg: '#ccfbf1', text: '#0f766e', label: 'Restocked' };
       default:
-        return { bg: '#f1f5f9', text: '#475569', label: type };
+        return { bg: 'var(--surface-2, #151e2e)', text: 'var(--text-secondary, #cbd5e1)', label: type };
     }
   };
 
@@ -156,15 +156,15 @@ export const WarehouseOperationsView: React.FC = () => {
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span style={{ fontSize: '20px' }}>📦</span>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Warehouse Operations & 10 Zones Hub
             </h1>
           </div>
-          <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary, #94a3b8)' }}>
             Governed physical delivery lifecycle: Received ➔ Stored ➔ Reserved ➔ Picked ➔ Packed ➔ Dispatched ➔ On Site ➔ Returned ➔ Inspected ➔ Restocked
           </p>
         </div>
@@ -173,8 +173,8 @@ export const WarehouseOperationsView: React.FC = () => {
           onClick={() => setIsMoveModalOpen(true)}
           style={{
             padding: '10px 18px',
-            backgroundColor: '#0284c7',
-            color: '#fff',
+            backgroundColor: 'var(--accent, #d97706)',
+            color: 'var(--surface-1, #0f1624)',
             borderRadius: '8px',
             border: 'none',
             fontSize: '13px',
@@ -191,10 +191,10 @@ export const WarehouseOperationsView: React.FC = () => {
 
       {/* 10 Warehouse Zones Grid */}
       <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '12px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginBottom: '12px' }}>
           Doha Central Depot — 10 Operational Zones
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
           {zones.map((z) => {
             const isSelected = selectedZoneFilter.toLowerCase() === z.zone.toLowerCase();
             const isQuarantine = z.zone === 'Quarantine';
@@ -205,12 +205,12 @@ export const WarehouseOperationsView: React.FC = () => {
                 key={z.zone}
                 onClick={() => setSelectedZoneFilter(isSelected ? 'all' : z.zone)}
                 style={{
-                  backgroundColor: isQuarantine ? '#fef2f2' : isReturns ? '#fff7ed' : '#fff',
+                  backgroundColor: isQuarantine ? 'rgba(239,68,68,0.12)' : isReturns ? 'rgba(249,115,22,0.12)' : 'var(--surface-1, #0f1624)',
                   border: isSelected
-                    ? '2px solid #0284c7'
+                    ? '2px solid var(--accent, #d97706)'
                     : isQuarantine
-                    ? '1px solid #fca5a5'
-                    : '1px solid #e2e8f0',
+                    ? '1px solid rgba(239,68,68,0.3)'
+                    : '1px solid var(--border-default, #2a374b)',
                   padding: '14px',
                   borderRadius: '8px',
                   cursor: 'pointer',
@@ -218,7 +218,7 @@ export const WarehouseOperationsView: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 800, color: isQuarantine ? '#991b1b' : '#0f172a' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: isQuarantine ? '#991b1b' : 'var(--text-primary, #f8fafc)' }}>
                     {z.zone === 'AV' && '🔊 '}
                     {z.zone === 'Lighting' && '💡 '}
                     {z.zone === 'Furniture' && '🪑 '}
@@ -232,17 +232,17 @@ export const WarehouseOperationsView: React.FC = () => {
                     {z.zone}
                   </span>
                   {z.damagedCount > 0 ? (
-                    <span style={{ fontSize: '10px', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '8px', fontWeight: 700 }}>
+                    <span style={{ fontSize: '10px', backgroundColor: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', padding: '2px 6px', borderRadius: '8px', fontWeight: 700 }}>
                       {z.damagedCount} damaged
                     </span>
                   ) : (
-                    <span style={{ fontSize: '10px', backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '8px', fontWeight: 700 }}>
+                    <span style={{ fontSize: '10px', backgroundColor: '#dcfce7', color: '#4ade80', padding: '2px 6px', borderRadius: '8px', fontWeight: 700 }}>
                       Nominal
                     </span>
                   )}
                 </div>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>{z.itemCount} <span style={{ fontSize: '12px', fontWeight: 500, color: '#64748b' }}>units</span></div>
-                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>{z.itemCount} <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-muted, #94a3b8)' }}>units</span></div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                   {z.assetCount} asset classes registered
                 </div>
               </div>
@@ -254,9 +254,9 @@ export const WarehouseOperationsView: React.FC = () => {
       {/* Main Split: Filtered Stock & Custodial Movement Ledger */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         {/* Zone Stock Ledger */}
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Physical Stock by Zone {selectedZoneFilter !== 'all' && `(${selectedZoneFilter})`}
             </h3>
             {selectedZoneFilter !== 'all' && (
@@ -281,14 +281,14 @@ export const WarehouseOperationsView: React.FC = () => {
                   style={{
                     padding: '12px',
                     borderRadius: '6px',
-                    border: '1px solid #e2e8f0',
-                    backgroundColor: asset.condition === 'damaged' ? '#fff1f2' : '#f8fafc',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: asset.condition === 'damaged' ? '#fff1f2' : 'var(--surface-2, #151e2e)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>{asset.name}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>
+                      <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>{asset.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontFamily: 'monospace' }}>
                         {asset.assetTag} • Barcode: {asset.barcode}
                       </div>
                     </div>
@@ -305,7 +305,7 @@ export const WarehouseOperationsView: React.FC = () => {
                       {asset.availability}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '8px', color: '#475569' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '8px', color: 'var(--text-secondary, #cbd5e1)' }}>
                     <span>Location: <strong>{asset.zone} ({asset.location})</strong></span>
                     <span>Qty: <strong>{asset.quantity} {asset.unit}</strong></span>
                     <span>Condition: <strong>{asset.condition}</strong></span>
@@ -317,12 +317,12 @@ export const WarehouseOperationsView: React.FC = () => {
         </div>
 
         {/* 10-Stage Custodial Movement Audit Ledger */}
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+        <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Custodial Movement History (10-Stage Lifecycle)
             </h3>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>Live Physical Chain of Custody</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Live Physical Chain of Custody</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '500px', overflowY: 'auto' }}>
@@ -341,8 +341,8 @@ export const WarehouseOperationsView: React.FC = () => {
                     style={{
                       padding: '12px',
                       borderRadius: '6px',
-                      border: '1px solid #e2e8f0',
-                      backgroundColor: '#fff',
+                      border: '1px solid var(--border-default, #2a374b)',
+                      backgroundColor: 'var(--surface-1, #0f1624)',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -363,15 +363,15 @@ export const WarehouseOperationsView: React.FC = () => {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b', marginBottom: '2px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)', marginBottom: '2px' }}>
                       {assetDisplay}
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#0f172a', margin: '4px 0' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>
                       <strong>{mov.source}</strong> ➔ <strong>{mov.destination}</strong> ({mov.quantity} units)
                     </div>
 
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                       Condition: <strong>{mov.condition}</strong> {mov.notes && `• Notes: ${mov.notes}`}
                     </div>
                   </div>
@@ -397,7 +397,7 @@ export const WarehouseOperationsView: React.FC = () => {
         >
           <div
             style={{
-              backgroundColor: '#fff',
+              backgroundColor: 'var(--surface-1, #0f1624)',
               borderRadius: '12px',
               maxWidth: '550px',
               width: '90%',
@@ -406,7 +406,7 @@ export const WarehouseOperationsView: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 Execute Warehouse Movement
               </h3>
               <button
@@ -419,14 +419,14 @@ export const WarehouseOperationsView: React.FC = () => {
 
             <form onSubmit={handleExecuteMovement}>
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   Target Asset *
                 </label>
                 <select
                   id="select-move-asset"
                   value={formData.assetId}
                   onChange={(e) => setFormData({ ...formData, assetId: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                 >
                   {assets.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -438,14 +438,14 @@ export const WarehouseOperationsView: React.FC = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Movement Stage *
                   </label>
                   <select
                     id="select-move-type"
                     value={formData.movementType}
                     onChange={(e) => setFormData({ ...formData, movementType: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   >
                     {MOVEMENT_STAGES.map((s) => (
                       <option key={s} value={s}>
@@ -456,7 +456,7 @@ export const WarehouseOperationsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Quantity
                   </label>
                   <input
@@ -464,33 +464,33 @@ export const WarehouseOperationsView: React.FC = () => {
                     min="1"
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Source Location
                   </label>
                   <input
                     type="text"
                     value={formData.source}
                     onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Destination Zone
                   </label>
                   <select
                     id="select-move-destination"
                     value={formData.destination}
                     onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                   >
                     {zones.map((z) => (
                       <option key={z.zone} value={z.zone}>
@@ -502,14 +502,14 @@ export const WarehouseOperationsView: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   Item Condition & Physical Assessment *
                 </label>
                 <select
                   id="select-move-condition"
                   value={formData.condition}
                   onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                 >
                   <option value="good">Good / Serviceable (Passes Inspection)</option>
                   <option value="needs_maintenance">Needs Maintenance</option>
@@ -519,7 +519,7 @@ export const WarehouseOperationsView: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '18px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   Custodial / Inspector Notes
                 </label>
                 <textarea
@@ -527,7 +527,7 @@ export const WarehouseOperationsView: React.FC = () => {
                   placeholder="Record packaging notes, serial checks, or transit damage observations..."
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px' }}
                 />
               </div>
 
@@ -535,14 +535,14 @@ export const WarehouseOperationsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsMoveModalOpen(false)}
-                  style={{ padding: '8px 14px', backgroundColor: '#f1f5f9', color: '#475569', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                  style={{ padding: '8px 14px', backgroundColor: 'var(--surface-2, #151e2e)', color: 'var(--text-secondary, #cbd5e1)', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   id="btn-confirm-movement"
-                  style={{ padding: '8px 18px', backgroundColor: '#0284c7', color: '#fff', borderRadius: '6px', border: 'none', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ padding: '8px 18px', backgroundColor: '#0284c7', color: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: 'none', fontWeight: 700, cursor: 'pointer' }}
                 >
                   Record Movement Step
                 </button>

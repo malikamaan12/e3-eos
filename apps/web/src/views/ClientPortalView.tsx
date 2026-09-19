@@ -86,9 +86,9 @@ export const ClientPortalView: React.FC = () => {
       {/* Client Portal Header */}
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           padding: '24px',
           marginBottom: '20px',
         }}
@@ -97,18 +97,18 @@ export const ClientPortalView: React.FC = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <Badge variant="accent">{currentLanguage === 'ar' ? 'بوابة العميل المعتمدة' : 'Verified Client Portal'}</Badge>
-              <span style={{ fontSize: '13px', color: '#64748b' }}>{clientView.projectCode}</span>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>{clientView.projectCode}</span>
             </div>
-            <h1 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {clientView.title}
             </h1>
-            <div style={{ fontSize: '14px', color: '#475569' }}>
+            <div style={{ fontSize: '14px', color: 'var(--text-secondary, #cbd5e1)' }}>
               {currentLanguage === 'ar' ? 'العميل:' : 'Client:'} <strong>{clientView.clientName}</strong>
             </div>
           </div>
 
           <div style={{ textAlign: currentLanguage === 'ar' ? 'left' : 'right' }}>
-            <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', fontWeight: 600 }}>
               {currentLanguage === 'ar' ? 'قيمة العقد المعتمدة' : 'Contracted Amount'}
             </div>
             <div style={{ fontSize: '22px', fontWeight: 800, color: '#059669' }}>
@@ -134,9 +134,9 @@ export const ClientPortalView: React.FC = () => {
             {project.pendingDecisions.length > 0 && (
               <div
                 style={{
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                   borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--border-default, #2a374b)',
                   padding: '20px',
                 }}
               >
@@ -166,7 +166,7 @@ export const ClientPortalView: React.FC = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                           <div style={{ maxWidth: '80%' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                              <span style={{ fontWeight: 800, fontSize: '16px', color: '#0f172a' }}>
+                              <span style={{ fontWeight: 800, fontSize: '16px', color: 'var(--text-primary, #f8fafc)' }}>
                                 {dec.title}
                               </span>
                               <Badge variant={isApproved ? 'success' : 'warning'}>
@@ -174,20 +174,20 @@ export const ClientPortalView: React.FC = () => {
                               </Badge>
                               <Badge variant="neutral">AT-040 VARIATION WORKBENCH</Badge>
                             </div>
-                            <div style={{ fontSize: '13px', color: '#475569', lineHeight: 1.5, marginBottom: '8px' }}>
+                            <div style={{ fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5, marginBottom: '8px' }}>
                               {dec.description}
                             </div>
-                            <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: '#334155' }}>
+                            <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>
                               <div>
-                                <span style={{ color: '#64748b' }}>Schedule Impact: </span>
+                                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Schedule Impact: </span>
                                 <strong>+0 Days (Parallel Execution)</strong>
                               </div>
                               <div>
-                                <span style={{ color: '#64748b' }}>Technical Authority: </span>
+                                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Technical Authority: </span>
                                 <strong>Karim Haddad (Tech Director)</strong>
                               </div>
                               <div>
-                                <span style={{ color: '#64748b' }}>Client Net Price: </span>
+                                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Client Net Price: </span>
                                 <strong style={{ color: '#059669', fontSize: '14px' }}>
                                   +{formatCurrencyInLocale('QAR', dec.financialExposure || '15000', currentLanguage)}
                                 </strong>
@@ -201,7 +201,7 @@ export const ClientPortalView: React.FC = () => {
                                 <Badge variant="success">
                                   {currentLanguage === 'ar' ? '✓ تم الاعتماد والتوقيع الرقمي' : '✓ Dual-Signed & Legally Bound'}
                                 </Badge>
-                                <span style={{ fontSize: '11px', color: '#64748b' }}>SHA-256: 8f4a...92b1</span>
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>SHA-256: 8f4a...92b1</span>
                               </div>
                             ) : (
                               <Button
@@ -217,13 +217,13 @@ export const ClientPortalView: React.FC = () => {
                         </div>
 
                         {/* Redaction Guarantee Pill */}
-                        <div style={{ padding: '8px 12px', backgroundColor: '#f8fafc', borderRadius: '6px', fontSize: '11px', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ padding: '8px 12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span>🛡️ <strong>Zero-Leak Invariant (AT-077):</strong> Internal cost structures, vendor buy rates, and gross margins are cryptographically redacted from client view.</span>
                           <span style={{ color: '#059669', fontWeight: 600 }}>Governed by ISO 20121 & FIDIC Client Terms</span>
                         </div>
 
                         {isApproved && (
-                          <div style={{ padding: '12px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '12px', color: '#166534' }}>
+                          <div style={{ padding: '12px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px', fontSize: '12px', color: '#22c55e' }}>
                             ✓ <strong>Client Acceptance Recorded:</strong> Signed by {currentProject?.clientName ? `Authorized Representative (${currentProject.clientName})` : 'Dr. Hessa Al-Thani (Director of Events, Qatar Tourism)'} on {new Date().toLocaleDateString()}. Baseline updated from 160,000 QAR to 175,000 QAR.
                           </div>
                         )}
@@ -237,9 +237,9 @@ export const ClientPortalView: React.FC = () => {
             {/* Published Deliverables & Visual Evidence */}
             <div
               style={{
-                backgroundColor: '#ffffff',
+                backgroundColor: 'var(--surface-1, #0f1624)',
                 borderRadius: '8px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid var(--border-default, #2a374b)',
                 padding: '20px',
               }}
             >
@@ -252,7 +252,7 @@ export const ClientPortalView: React.FC = () => {
                   <div
                     key={idx}
                     style={{
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid var(--border-default, #2a374b)',
                       borderRadius: '6px',
                       padding: '16px',
                     }}
@@ -263,11 +263,11 @@ export const ClientPortalView: React.FC = () => {
                     </div>
                     <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '10px' }}>{deliv.name}</div>
                     <div style={{ marginBottom: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginBottom: '4px' }}>
                         <span>Progress</span>
                         <span>{deliv.completionPercentage}%</span>
                       </div>
-                      <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '6px', backgroundColor: 'var(--border-default, #2a374b)', borderRadius: '3px', overflow: 'hidden' }}>
                         <div
                           style={{
                             height: '100%',
@@ -277,7 +277,7 @@ export const ClientPortalView: React.FC = () => {
                         />
                       </div>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       📷 {deliv.evidencePhotos.length} verified inspection photos attached
                     </div>
                   </div>

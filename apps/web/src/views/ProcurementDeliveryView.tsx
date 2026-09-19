@@ -88,7 +88,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
   };
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Loading physical procurement intelligence...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>Loading physical procurement intelligence...</div>;
   }
 
   return (
@@ -96,8 +96,8 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
       {/* Committed Expenditure KPI Header */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
         <Card style={{ borderLeft: '4px solid #2563eb' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>COMMITTED EXPENDITURE (POs)</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>COMMITTED EXPENDITURE (POs)</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>
             {Number(purchaseOrdersData.committedCostTotal).toLocaleString()} QAR
           </div>
           <div style={{ fontSize: '12px', color: '#059669', marginTop: '4px' }}>
@@ -106,18 +106,18 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
         </Card>
 
         <Card style={{ borderLeft: '4px solid #8b5cf6' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>SOURCING REQUIREMENTS</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>SOURCING REQUIREMENTS</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>
             {requirements.length} Packages
           </div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
             Derived from Scope & BOQ line items
           </div>
         </Card>
 
         <Card style={{ borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>QUALIFIED VENDORS</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>QUALIFIED VENDORS</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>
             {vendors.filter((v) => v.qualificationStatus === 'approved').length} / {vendors.length} Active
           </div>
           <div style={{ fontSize: '12px', color: '#059669', marginTop: '4px' }}>
@@ -130,10 +130,10 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               🎯 Procurement Requirements & Source Decision Engine
             </h3>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
               Every item has an explicit sourcing route: Buy, Rent, Use E3 Asset, Client Supplied, Vendor Package, or Subcontract.
             </p>
           </div>
@@ -142,7 +142,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: 'left' }}>
                 <th style={{ padding: '10px 12px' }}>Code / Description</th>
                 <th style={{ padding: '10px 12px' }}>Category</th>
                 <th style={{ padding: '10px 12px' }}>Required Qty</th>
@@ -155,10 +155,10 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
             </thead>
             <tbody>
               {requirements.map((req) => (
-                <tr key={req.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                   <td style={{ padding: '12px' }}>
-                    <div style={{ fontWeight: 700, color: '#1e293b' }}>{req.description}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>Source: {req.source} {req.boqLineId ? `(${req.boqLineId})` : ''}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{req.description}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Source: {req.source} {req.boqLineId ? `(${req.boqLineId})` : ''}</div>
                   </td>
                   <td style={{ padding: '12px' }}>
                     <Badge variant="secondary">{req.category}</Badge>
@@ -207,9 +207,9 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
               ))}
               {requirements.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>📦</div>
-                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Procurement Requirements Generated</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Procurement Requirements Generated</div>
                     <div style={{ fontSize: '12px', marginTop: '4px' }}>Procurement items will appear once BOQ lines or design deliverables are released.</div>
                   </td>
                 </tr>
@@ -224,26 +224,26 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                 📊 RFQ Tender & Side-by-Side Bid Evaluation Matrix
               </h3>
               <Badge variant="accent">AT-047 SEALED-BID PROTOCOL</Badge>
               <Badge variant="secondary">AT-048 MULTI-CRITERIA SCORING</Badge>
             </div>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
               Objective multi-criteria evaluation (Technical 40%, Commercial 40%, Risk 20%) with sealed-bid integrity lock and outlier detection.
             </p>
           </div>
 
           {/* Sealed Bid Status Box */}
-          <div style={{ padding: '8px 14px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', fontSize: '12px', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ padding: '8px 14px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px', fontSize: '12px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>🔒 <strong>Sealed-Bid Integrity:</strong> {isDemo ? 'Unsealed post-deadline (2026-09-10 12:00 UTC)' : 'Automated deadline audit lock active'}</span>
             <Badge variant={isDemo ? 'success' : 'neutral'}>{isDemo ? 'Unsealing Authorized' : 'Protocol Enforced'}</Badge>
           </div>
         </div>
 
         {/* Anti-Collusion & Outlier Variance Banner */}
-        <div style={{ padding: '12px 16px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', marginBottom: '16px', fontSize: '12px', color: '#1e40af', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '12px 16px', backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', marginBottom: '16px', fontSize: '12px', color: '#60a5fa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>🛡️ <strong>Anti-Collusion Governance:</strong> Sealed bids unlocked simultaneously with public SHA-256 tender hashes. Bids evaluated against parametric baseline.</span>
           <span style={{ fontWeight: 600 }}>{isDemo ? 'Tender Officer: H. Al-Kuwari' : 'Tender Evaluation Board'}</span>
         </div>
@@ -265,9 +265,9 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
 
         {selectedRfq && (
           <div>
-            <div style={{ padding: '12px 16px', backgroundColor: '#f8fafc', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>{selectedRfq.technicalSpecification}</div>
-              <div style={{ color: '#64748b', marginTop: '4px' }}>
+            <div style={{ padding: '12px 16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{selectedRfq.technicalSpecification}</div>
+              <div style={{ color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                 Delivery: <strong>{selectedRfq.deliveryRequirement}</strong> | Terms: <strong>{selectedRfq.commercialTerms}</strong>
               </div>
             </div>
@@ -275,7 +275,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left' }}>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: 'left' }}>
                     <th style={{ padding: '10px 12px' }}>Vendor Bidder</th>
                     <th style={{ padding: '10px 12px' }}>Unit Rate</th>
                     <th style={{ padding: '10px 12px' }}>Total Price</th>
@@ -292,20 +292,20 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
                     <tr
                       key={q.id}
                       style={{
-                        borderBottom: '1px solid #e2e8f0',
+                        borderBottom: '1px solid var(--border-default, #2a374b)',
                         backgroundColor: q.isRecommended ? '#f0fdf4' : 'transparent',
                       }}
                     >
                       <td style={{ padding: '12px' }}>
-                        <div style={{ fontWeight: 700, color: '#1e293b' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                           {q.vendorName || (vendors.find((v) => v.id === q.vendorId)?.name) || q.vendorId}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>Ref: {q.quoteReference}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Ref: {q.quoteReference}</div>
                       </td>
                       <td style={{ padding: '12px', fontWeight: 700 }}>
                         {Number(q.unitRate?.amount || q.unitRate || 0).toLocaleString()} QAR
                       </td>
-                      <td style={{ padding: '12px', fontWeight: 800, color: '#0f172a' }}>
+                      <td style={{ padding: '12px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                         {Number(q.totalPrice?.amount || q.totalPrice || 0).toLocaleString()} QAR
                       </td>
                       <td style={{ padding: '12px' }}>{q.deliveryTimeDays} Days</td>
@@ -319,7 +319,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
                         <Badge variant="secondary">{q.riskScore || 85} / 100</Badge>
                       </td>
                       <td style={{ padding: '12px' }}>
-                        <strong style={{ fontSize: '14px', color: q.isRecommended ? '#15803d' : '#334155' }}>
+                        <strong style={{ fontSize: '14px', color: q.isRecommended ? '#15803d' : 'var(--text-secondary, #cbd5e1)' }}>
                           {q.totalScore || 90}/100
                         </strong>
                       </td>
@@ -334,9 +334,9 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
                   ))}
                   {quotes.length === 0 && (
                     <tr>
-                      <td colSpan={9} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={9} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                         <div style={{ fontSize: '24px', marginBottom: '8px' }}>📑</div>
-                        <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Bids Received Yet</div>
+                        <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Bids Received Yet</div>
                         <div style={{ fontSize: '12px', marginTop: '4px' }}>Awaiting vendor tender submission and sealed-bid deadline expiration.</div>
                       </td>
                     </tr>
@@ -347,7 +347,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
           </div>
         )}
         {rfqs.length === 0 && (
-          <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+          <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
             <div style={{ fontWeight: 600, fontSize: '13px' }}>No Active RFQ Tenders</div>
             <div style={{ fontSize: '12px', marginTop: '2px' }}>Create an RFQ package from procurement requirements to solicit vendor bids.</div>
           </div>
@@ -358,10 +358,10 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               📜 Purchase Orders & Cost Commitment Control
             </h3>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
               Approved purchase orders commit project funds and increment remaining commitments without double-counting invoices.
             </p>
           </div>
@@ -370,7 +370,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: 'left' }}>
                 <th style={{ padding: '10px 12px' }}>PO Number</th>
                 <th style={{ padding: '10px 12px' }}>Vendor</th>
                 <th style={{ padding: '10px 12px' }}>Description</th>
@@ -382,7 +382,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
             </thead>
             <tbody>
               {purchaseOrdersData.purchaseOrders?.map((po: any) => (
-                <tr key={po.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr key={po.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                   <td style={{ padding: '12px', fontWeight: 800, color: '#2563eb' }}>{po.poNumber}</td>
                   <td style={{ padding: '12px' }}>{po.vendorName || (isDemo ? 'ABC Joinery & Fabrication' : 'Vendor')}</td>
                   <td style={{ padding: '12px' }}>{po.lines?.[0]?.description || (isDemo ? 'Fabrication package' : 'Procurement package')}</td>
@@ -404,9 +404,9 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
               ))}
               {(!purchaseOrdersData.purchaseOrders || purchaseOrdersData.purchaseOrders.length === 0) && (
                 <tr>
-                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>📜</div>
-                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Purchase Orders Issued</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Purchase Orders Issued</div>
                     <div style={{ fontSize: '12px', marginTop: '4px' }}>Purchase orders committed to vendors will appear here.</div>
                   </td>
                 </tr>
@@ -425,7 +425,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
         >
           <form onSubmit={handleSaveDecision} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Select Sourcing Route</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Select Sourcing Route</label>
               <Select
                 value={selectedDecision}
                 onChange={(e) => setSelectedDecision(e.target.value)}
@@ -442,7 +442,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Internal E3 Asset Qty</label>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Internal E3 Asset Qty</label>
                 <Input
                   type="number"
                   value={internalQty}
@@ -455,7 +455,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
                 />
               </div>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>External Sourcing Qty</label>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>External Sourcing Qty</label>
                 <Input
                   type="number"
                   value={externalQty}
@@ -465,7 +465,7 @@ export const ProcurementDeliveryView: React.FC<ProcurementDeliveryViewProps> = (
               </div>
             </div>
 
-            <div style={{ padding: '10px 14px', backgroundColor: '#eff6ff', borderRadius: '6px', fontSize: '12px', color: '#1e40af' }}>
+            <div style={{ padding: '10px 14px', backgroundColor: 'rgba(59, 130, 246, 0.12)', borderRadius: '6px', fontSize: '12px', color: '#60a5fa' }}>
               ℹ Total required: <strong>{decisionReq.quantity} units</strong>. Sourcing will allocate <strong>{internalQty} units</strong> from internal E3 warehouse stock and initiate an RFQ/PO for <strong>{externalQty} units</strong>.
             </div>
 

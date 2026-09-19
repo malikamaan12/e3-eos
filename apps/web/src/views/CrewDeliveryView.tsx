@@ -100,7 +100,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
         Loading crew & labor intelligence...
       </div>
     );
@@ -113,14 +113,14 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
         <div
           id="crew-conflict-alert"
           style={{
-            backgroundColor: '#fee2e2',
-            border: '1px solid #f87171',
+            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
             borderRadius: '8px',
             padding: '16px',
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            color: '#991b1b',
+            color: '#f87171',
             fontSize: '13px',
             fontWeight: 600,
           }}
@@ -136,60 +136,60 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
       )}
 
       {/* Qatar Ministry of Labour Ministerial Decision No. 17 of 2021 — Heat-Stress & Outdoor Curfew Monitor */}
-      <Card style={{ border: '2px solid #f97316', backgroundColor: '#fff7ed' }}>
+      <Card style={{ border: '2px solid #f97316', backgroundColor: 'rgba(245, 158, 11, 0.12)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#9a3412' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#f59e0b' }}>
                 ☀️ Qatar Ministry of Labour Heat-Stress & Summer Curfew Monitor (Decision No. 17/2021)
               </h3>
               <Badge variant="danger">STATUTORY OUTDOOR CURFEW ACTIVE</Badge>
             </div>
-            <p style={{ fontSize: '13px', color: '#c2410c', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: '#fbbf24', margin: '4px 0 0 0' }}>
               Statutory prohibition of outdoor work between 10:00 AM and 3:30 PM (June 1 – September 15). All outdoor rigging, trussing, and staging shifts strictly suspended during curfew.
             </p>
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '11px', color: '#9a3412', fontWeight: 700 }}>WBGT INDEX TELEMETRY:</span>
+            <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700 }}>WBGT INDEX TELEMETRY:</span>
             <div style={{ fontSize: '20px', fontWeight: 900, color: '#dc2626' }}>
               32.8°C WBGT
             </div>
-            <span style={{ fontSize: '10px', color: '#b91c1c', fontWeight: 600 }}>Threshold: 32.1°C Exceeded</span>
+            <span style={{ fontSize: '10px', color: '#ef4444', fontWeight: 600 }}>Threshold: 32.1°C Exceeded</span>
           </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginTop: '16px' }}>
-          <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #fed7aa' }}>
-            <div style={{ fontSize: '11px', color: '#9a3412', fontWeight: 600 }}>CURFEW TIME WINDOW</div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#c2410c', marginTop: '2px' }}>
+          <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+            <div style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 600 }}>CURFEW TIME WINDOW</div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#fbbf24', marginTop: '2px' }}>
               10:00 AM – 03:30 PM
             </div>
-            <div style={{ fontSize: '10px', color: '#64748b' }}>Statutory outdoor work lockdown</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>Statutory outdoor work lockdown</div>
           </div>
 
-          <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #fed7aa' }}>
-            <div style={{ fontSize: '11px', color: '#9a3412', fontWeight: 600 }}>WBGT WORK-REST REGIME</div>
+          <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+            <div style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 600 }}>WBGT WORK-REST REGIME</div>
             <div style={{ fontSize: '14px', fontWeight: 800, color: '#dc2626', marginTop: '2px' }}>
               45m Work / 15m Shaded Rest
             </div>
             <div style={{ fontSize: '10px', color: '#059669' }}>Mandatory cold electrolytes</div>
           </div>
 
-          <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #fed7aa' }}>
-            <div style={{ fontSize: '11px', color: '#9a3412', fontWeight: 600 }}>ACCREDITATION & QID GATE</div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+          <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+            <div style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 600 }}>ACCREDITATION & QID GATE</div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
               100% Verified (IPAF/PASMA)
             </div>
             <div style={{ fontSize: '10px', color: '#059669' }}>Zero unbadged site entry</div>
           </div>
 
-          <div style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #fed7aa' }}>
-            <div style={{ fontSize: '11px', color: '#9a3412', fontWeight: 600 }}>AUTOMATED SHIFT REJECTION</div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#15803d', marginTop: '2px' }}>
+          <div style={{ padding: '10px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+            <div style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 600 }}>AUTOMATED SHIFT REJECTION</div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#4ade80', marginTop: '2px' }}>
               Active in Roster Engine
             </div>
-            <div style={{ fontSize: '10px', color: '#64748b' }}>Blocks illegal outdoor shifts</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>Blocks illegal outdoor shifts</div>
           </div>
         </div>
       </Card>
@@ -200,29 +200,29 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{ fontSize: '18px' }}>⚖️</span>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               Qatar Labour Law Statutory Baseline (Law No. 14 of 2004)
             </h3>
           </div>
-          <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', margin: '0 0 12px 0' }}>
             Mandatory national statutory limits enforced across all entities operating in the State of Qatar.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
-            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b' }}>Ordinary Daily Hours:</span>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>8h / day (48h / week)</div>
+            <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Ordinary Daily Hours:</span>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>8h / day (48h / week)</div>
             </div>
-            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b' }}>Holy Month of Ramadan:</span>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>6h / day (36h / week)</div>
+            <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Holy Month of Ramadan:</span>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>6h / day (36h / week)</div>
             </div>
-            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b' }}>Maximum With Overtime:</span>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>10h / day strictly capped</div>
+            <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Maximum With Overtime:</span>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>10h / day strictly capped</div>
             </div>
-            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b' }}>Breaks & Weekly Rest:</span>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>1-3h (max 5h continuous) • 24h rest</div>
+            <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Breaks & Weekly Rest:</span>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>1-3h (max 5h continuous) • 24h rest</div>
             </div>
           </div>
         </Card>
@@ -232,7 +232,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '18px' }}>🛡️</span>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                 {activePolicy.name} ({activePolicy.policyCode})
               </h3>
             </div>
@@ -247,9 +247,9 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                   fontWeight: 700,
                   padding: '4px 8px',
                   borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#f8fafc',
-                  color: '#0f172a',
+                  border: '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  color: 'var(--text-primary, #f8fafc)',
                   cursor: 'pointer',
                 }}
               >
@@ -261,38 +261,38 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
               </select>
             </div>
           </div>
-          <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', margin: '0 0 12px 0' }}>
             <strong>Authority Source:</strong> {activePolicy.approvedSource || 'Approved Policy Specification'}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
-            <div style={{ backgroundColor: '#f0fdf4', padding: '8px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
-              <span style={{ color: '#166534' }}>Inter-Shift Rest Interval:</span>
-              <div style={{ fontWeight: 800, color: '#15803d' }}>{minRestHours} Hours Mandatory Rest</div>
+            <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '8px', borderRadius: '6px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+              <span style={{ color: '#22c55e' }}>Inter-Shift Rest Interval:</span>
+              <div style={{ fontWeight: 800, color: '#4ade80' }}>{minRestHours} Hours Mandatory Rest</div>
             </div>
-            <div style={{ backgroundColor: '#f0fdf4', padding: '8px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
-              <span style={{ color: '#166534' }}>Daily Work Limit:</span>
-              <div style={{ fontWeight: 700, color: '#15803d' }}>{activePolicy.maxDailyHours || 10}h Max Daily Shift</div>
+            <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '8px', borderRadius: '6px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+              <span style={{ color: '#22c55e' }}>Daily Work Limit:</span>
+              <div style={{ fontWeight: 700, color: '#4ade80' }}>{activePolicy.maxDailyHours || 10}h Max Daily Shift</div>
             </div>
-            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b' }}>Exception Governance:</span>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>Dual HSE & Director Signoff</div>
+            <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Exception Governance:</span>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>Dual HSE & Director Signoff</div>
             </div>
-            <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b' }}>Policy Scope:</span>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>Qatar Operations (Version {activePolicy.policyVersion || '1.0.0'})</div>
+            <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Policy Scope:</span>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>Qatar Operations (Version {activePolicy.policyVersion || '1.0.0'})</div>
             </div>
           </div>
         </Card>
       </div>
 
       {/* Capability 36: Work-Rest Heat Stress & GCC Overtime Fatigue Compliance Engine (P04-ST05 / AT-063) */}
-      <Card style={{ border: '2px solid #ea580c', backgroundColor: '#fff7ed' }}>
+      <Card style={{ border: '2px solid #ea580c', backgroundColor: 'rgba(245, 158, 11, 0.12)' }}>
         <div id="heat-stress-fatigue-compliance-workbench">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '20px' }}>☀️</span>
-                <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#9a3412' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#f59e0b' }}>
                   Work-Rest Heat Stress & GCC Fatigue Compliance Engine (P04-ST05 / AT-063)
                 </h3>
                 <Badge variant={fatigueSimRestHours < minRestHours ? 'danger' : 'success'}>
@@ -300,7 +300,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                 </Badge>
                 <Badge variant="info">INVARIANT AT-063 ENFORCED</Badge>
               </div>
-              <p style={{ fontSize: '13px', color: '#c2410c', margin: '4px 0 0 0' }}>
+              <p style={{ fontSize: '13px', color: '#fbbf24', margin: '4px 0 0 0' }}>
                 Invariant AT-063 enforces jurisdiction-specific labor and fatigue rules under {activePolicy.name}. Shifts violating the mandatory {minRestHours}-hour inter-shift rest gap or midday outdoor summer bans are rejected with hard roster locks.
               </p>
             </div>
@@ -324,32 +324,32 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '14px' }}>
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fed7aa' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#9a3412' }}>TARGET CREW MEMBER</div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b' }}>TARGET CREW MEMBER</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                 Kamal Hassan (Rigging Lead)
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Prior Shift Ended: 03:00 AM (Lusail Night Rig)</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Prior Shift Ended: 03:00 AM (Lusail Night Rig)</div>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fed7aa' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#9a3412' }}>INTER-SHIFT REST INTERVAL</div>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b' }}>INTER-SHIFT REST INTERVAL</div>
               <div style={{ fontSize: '14px', fontWeight: 800, color: fatigueSimRestHours < minRestHours ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
                 {fatigueSimRestHours}.0 Hours Rest ({fatigueSimRestHours < minRestHours ? `Deficit: ${(minRestHours - fatigueSimRestHours).toFixed(1)}h` : 'Compliant'})
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Active Rule: Minimum {minRestHours}.0h ({activePolicy.policyCode})</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Active Rule: Minimum {minRestHours}.0h ({activePolicy.policyCode})</div>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fed7aa' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#9a3412' }}>WBGT HEAT INDEX TELEMETRY</div>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b' }}>WBGT HEAT INDEX TELEMETRY</div>
               <div style={{ fontSize: '14px', fontWeight: 800, color: '#dc2626', marginTop: '2px' }}>
                 33.8°C WBGT (Extreme Zone)
               </div>
               <div style={{ fontSize: '11px', color: '#dc2626' }}>Outdoor work prohibited 10:00-15:30</div>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fed7aa' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#9a3412' }}>ROSTER GATE DECISION</div>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b' }}>ROSTER GATE DECISION</div>
               <div style={{ fontSize: '14px', fontWeight: 800, color: fatigueSimRestHours < minRestHours ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
                 {fatigueSimRestHours < minRestHours ? 'HARD ROSTER LOCK' : 'ASSIGNMENT APPROVED'}
               </div>
@@ -383,7 +383,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
 
       {/* Action Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '13px', color: '#64748b' }}>
+        <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
           Cross-project conflict detection active. Roster verified against statutory hours and 11-hour fatigue rest.
         </div>
         <Button
@@ -400,7 +400,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
       {/* Crew Roster Grid */}
       <Card>
         <div style={{ marginBottom: '16px' }}>
-          <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+          <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
             Confirmed Personnel & Shift Windows ({crewAssignments.length})
           </h4>
         </div>
@@ -408,7 +408,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                 <th style={{ padding: '12px' }}>Name & Accreditation</th>
                 <th style={{ padding: '12px' }}>Role & Department</th>
                 <th style={{ padding: '12px' }}>Personnel Type</th>
@@ -425,27 +425,27 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                   <tr
                     key={crew.id}
                     style={{
-                      borderBottom: '1px solid #f1f5f9',
+                      borderBottom: '1px solid var(--border-subtle, #1d2939)',
                       backgroundColor: isConflict ? '#fff1f2' : 'transparent',
                     }}
                   >
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{crew.personName}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>Badge: {crew.accreditation || 'Standard Venue Pass'}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{crew.personName}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Badge: {crew.accreditation || 'Standard Venue Pass'}</div>
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 600, color: '#334155' }}>{crew.role}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>{crew.department}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>{crew.role}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{crew.department}</div>
                     </td>
                     <td style={{ padding: '12px' }}>
                       <Badge variant="info">
                         {(crew.personnelType || 'e3_employee').replace(/_/g, ' ')}
                       </Badge>
                     </td>
-                    <td style={{ padding: '12px', color: '#475569', fontWeight: 600 }}>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary, #cbd5e1)', fontWeight: 600 }}>
                       {crew.employer || 'E3 Live'}
                     </td>
-                    <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       {crew.window?.start && crew.window?.end ? (() => {
                         const start = new Date(crew.window.start);
                         const end = new Date(crew.window.end);
@@ -453,11 +453,11 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                         const isMultiDay = totalHours > 10;
                         return (
                           <div>
-                            <div style={{ fontWeight: 600, color: '#1e293b' }}>
+                            <div style={{ fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                               {isMultiDay ? 'Assignment Window' : 'Daily Shift'}:
                             </div>
                             <div>{start.toLocaleDateString()} {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – {end.toLocaleDateString()} {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                               {isMultiDay ? (
                                 <span>Total: {Math.round(totalHours)}h ({Math.ceil(totalHours / 24)} days) • Daily: 08:00–18:00 (10h max)</span>
                               ) : (
@@ -492,7 +492,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
                               >
                                 ✓ {minRestHours}h Rest Rule
                               </span>
-                              <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                              <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                                 {activePolicy.name}: ≤10h/day
                               </div>
                             </div>
@@ -548,9 +548,9 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
               })}
               {crewAssignments.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>👥</div>
-                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Crew Members Assigned</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Crew Members Assigned</div>
                     <div style={{ fontSize: '12px', marginTop: '4px' }}>Assign field personnel, supervisors, and technicians to monitor work-rest and fatigue compliance.</div>
                   </td>
                 </tr>
@@ -641,7 +641,7 @@ export const CrewDeliveryView: React.FC<CrewDeliveryViewProps> = ({ projectId })
               />
             </div>
             {new Date(shiftEnd).getTime() - new Date(shiftStart).getTime() > 10 * 3600000 && (
-              <div style={{ padding: '10px 12px', borderRadius: '6px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', fontSize: '12px', color: '#1e40af', marginTop: '4px' }}>
+              <div style={{ padding: '10px 12px', borderRadius: '6px', backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', fontSize: '12px', color: '#60a5fa', marginTop: '4px' }}>
                 ℹ️ <strong>Multi-Day Deployment Window:</strong> Total duration is {((new Date(shiftEnd).getTime() - new Date(shiftStart).getTime()) / 3600000).toFixed(1)} hours. Under {activePolicy.name}, daily operational shifts are capped at 10h. This deployment is automatically managed as daily work shifts (08:00–18:00) with mandatory {minRestHours}-hour inter-shift rest intervals.
               </div>
             )}

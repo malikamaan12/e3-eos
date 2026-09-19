@@ -73,7 +73,7 @@ export const ForgotPasswordView: React.FC = () => {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: '#0f172a',
+        backgroundColor: 'var(--text-primary, #f8fafc)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -83,19 +83,19 @@ export const ForgotPasswordView: React.FC = () => {
     >
       <div style={{ width: '100%', maxWidth: '440px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ color: '#f8fafc', margin: '0 0 6px', fontSize: '20px', fontWeight: 700 }}>
+          <h2 style={{ color: 'var(--text-primary, #f8fafc)', margin: '0 0 6px', fontSize: '20px', fontWeight: 700 }}>
             {currentLanguage === 'ar' ? 'استعادة كلمة المرور' : 'Password Recovery'}
           </h2>
-          <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>
+          <p style={{ color: 'var(--text-muted, #94a3b8)', margin: 0, fontSize: '13px' }}>
             {resetToken ? 'Enter and confirm your new secure password.' : 'Enter your registered work email to receive password reset instructions.'}
           </p>
         </div>
 
         <div
           style={{
-            backgroundColor: '#1e293b',
+            backgroundColor: 'var(--surface-2, #151e2e)',
             borderRadius: '10px',
-            border: '1px solid #334155',
+            border: '1px solid var(--border-default, #2a374b)',
             padding: '28px',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
           }}
@@ -126,13 +126,13 @@ export const ForgotPasswordView: React.FC = () => {
           ) : resetToken ? (
             /* Step 2: Set New Password */
             <form onSubmit={handleResetPassword}>
-              <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: '#0f172a', borderRadius: '6px', border: '1px solid #334155' }}>
-                <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block' }}>Verified Reset Token:</span>
+              <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: 'var(--text-primary, #f8fafc)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Verified Reset Token:</span>
                 <code style={{ fontSize: '11px', color: '#38bdf8' }}>{resetToken.slice(0, 16)}...</code>
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   New Password (min. 8 characters)
                 </label>
                 <input
@@ -147,9 +147,9 @@ export const ForgotPasswordView: React.FC = () => {
                     padding: '10px 14px',
                     fontSize: '14px',
                     borderRadius: '6px',
-                    border: '1px solid #475569',
-                    backgroundColor: '#0f172a',
-                    color: '#f8fafc',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--text-primary, #f8fafc)',
+                    color: 'var(--text-primary, #f8fafc)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
@@ -157,7 +157,7 @@ export const ForgotPasswordView: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   Confirm New Password
                 </label>
                 <input
@@ -172,9 +172,9 @@ export const ForgotPasswordView: React.FC = () => {
                     padding: '10px 14px',
                     fontSize: '14px',
                     borderRadius: '6px',
-                    border: '1px solid #475569',
-                    backgroundColor: '#0f172a',
-                    color: '#f8fafc',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--text-primary, #f8fafc)',
+                    color: 'var(--text-primary, #f8fafc)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
@@ -196,7 +196,7 @@ export const ForgotPasswordView: React.FC = () => {
             /* Step 1: Request Reset Link */
             <form onSubmit={handleRequestLink}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   Corporate Work Email
                 </label>
                 <input
@@ -211,9 +211,9 @@ export const ForgotPasswordView: React.FC = () => {
                     padding: '10px 14px',
                     fontSize: '14px',
                     borderRadius: '6px',
-                    border: '1px solid #475569',
-                    backgroundColor: '#0f172a',
-                    color: '#f8fafc',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--text-primary, #f8fafc)',
+                    color: 'var(--text-primary, #f8fafc)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}

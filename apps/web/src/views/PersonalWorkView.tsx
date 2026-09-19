@@ -85,10 +85,10 @@ export const PersonalWorkView: React.FC = () => {
   return (
     <div data-testid="personal-workspace">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+        <h1 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
           {currentLanguage === 'ar' ? 'مساحة العمل الشخصية والموافقات' : 'Personal Work & Governance Approvals'}
         </h1>
-        <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+        <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted, #94a3b8)' }}>
           {currentLanguage === 'ar'
             ? `مرحباً ${currentUser?.name || ''}. مراجعة المستندات الدقيقة، أوامر الشراء، والتوقيعات المزدوجة.`
             : `Welcome, ${currentUser?.name || 'User'}. Review exact versioned drawings, purchase orders, and signoffs.`}
@@ -107,16 +107,16 @@ export const PersonalWorkView: React.FC = () => {
                     style={{
                       padding: '40px',
                       textAlign: 'center',
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'var(--surface-1, #0f1624)',
                       borderRadius: '8px',
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid var(--border-default, #2a374b)',
                     }}
                   >
                     <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎉</div>
                     <h3 style={{ margin: '0 0 4px 0' }}>
                       {currentLanguage === 'ar' ? 'تم توقيع كافة الموافقات المعلقة بنجاح' : 'All pending approvals signed!'}
                     </h3>
-                    <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+                    <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted, #94a3b8)' }}>
                       {currentLanguage === 'ar'
                         ? 'تم تسجيل المعاملات في سجل التدقيق غير القابل للتلاعب مع التجزئة الرقمية.'
                         : 'Audit logs immutably updated with cryptographic signatures.'}
@@ -129,9 +129,9 @@ export const PersonalWorkView: React.FC = () => {
                       <div
                         key={item.id}
                         style={{
-                          backgroundColor: '#ffffff',
+                          backgroundColor: 'var(--surface-1, #0f1624)',
                           borderRadius: '8px',
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid var(--border-default, #2a374b)',
                           padding: '20px',
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -148,10 +148,10 @@ export const PersonalWorkView: React.FC = () => {
                             </span>
                           </div>
                           <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700 }}>{item.title}</h3>
-                          <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginBottom: '4px' }}>
                             {currentLanguage === 'ar' ? 'المقدم:' : 'Requested by:'} {item.requestedBy}
                           </div>
-                          <div style={{ fontSize: '12px', color: '#475569' }}>{item.notes}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>{item.notes}</div>
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
                           <Button size="sm" variant="outline" onClick={() => setInspectingItem(item)}>
@@ -168,22 +168,22 @@ export const PersonalWorkView: React.FC = () => {
             )}
 
             {activeTab === 'tasks' && (
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '20px', border: '1px solid #e2e8f0' }}>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '20px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>
                   {currentLanguage === 'ar' ? 'مهام التسليم المعينة لك' : 'Your Assigned Deliverables'}
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ padding: '12px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontWeight: 600 }}>Verify Qatar Civil Defense Temporary Permit (Stage 10)</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>Due: 11 Oct 2026 | Critical Safety Checkpoint</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Due: 11 Oct 2026 | Critical Safety Checkpoint</div>
                     </div>
                     <Badge variant="warning">Critical Gate</Badge>
                   </div>
-                  <div style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ padding: '12px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontWeight: 600 }}>Review Subcontractor Acoustic Fabrication Mockup</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>Due: 14 Oct 2026 | Workshop Acceptance</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Due: 14 Oct 2026 | Workshop Acceptance</div>
                     </div>
                     <Badge variant="info">In Progress</Badge>
                   </div>
@@ -192,7 +192,7 @@ export const PersonalWorkView: React.FC = () => {
             )}
 
             {activeTab === 'notifications' && (
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '20px', border: '1px solid #e2e8f0' }}>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '20px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <AlertBanner type="info" title="System Notice">
                   Doha central depot inventory audit completed. All serialized assets verified.
                 </AlertBanner>
@@ -227,10 +227,10 @@ export const PersonalWorkView: React.FC = () => {
         >
           {inspectingItem.type === 'Drawings Release' ? (
             <div>
-              <div style={{ marginBottom: '12px', fontSize: '13px', color: '#475569' }}>
-                Target Entity: <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>CAD_RIGGING_V2.4</code> | Target Hash: <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>9f86d08188...</code>
+              <div style={{ marginBottom: '12px', fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>
+                Target Entity: <code style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '2px 6px', borderRadius: '4px' }}>CAD_RIGGING_V2.4</code> | Target Hash: <code style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '2px 6px', borderRadius: '4px' }}>9f86d08188...</code>
               </div>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', fontFamily: 'monospace', fontSize: '12px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontFamily: 'monospace', fontSize: '12px' }}>
                 <div style={{ color: '#dc2626' }}>- v2.3: Point loads 4.2 kN per hoist node (Rigging Truss West)</div>
                 <div style={{ color: '#16a34a' }}>+ v2.4: Point loads recalculated to 3.8 kN with safety factor 2.5 (LEEIS Certified)</div>
                 <div style={{ color: '#16a34a' }}>+ v2.4: Motor pick point moved 450mm south to avoid existing HVAC ducting</div>
@@ -238,10 +238,10 @@ export const PersonalWorkView: React.FC = () => {
             </div>
           ) : (
             <div>
-              <div style={{ marginBottom: '12px', fontSize: '13px', color: '#475569' }}>
+              <div style={{ marginBottom: '12px', fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Contract Framework Ceiling: <strong>100,000 QAR</strong> | Committed Prior: <strong>55,000 QAR</strong>
               </div>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', fontFamily: 'monospace', fontSize: '12px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontFamily: 'monospace', fontSize: '12px' }}>
                 <div>Parent Framework ID: FRM-2026-AV-LED-01</div>
                 <div>Proposed Call-Off Amount: +30,000 QAR</div>
                 <div style={{ color: '#16a34a' }}>Post-Commitment Total: 85,000 QAR / 100,000 QAR (Passes Ceiling Invariant AT-044)</div>

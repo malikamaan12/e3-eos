@@ -113,13 +113,13 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
   };
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Loading asset warehouse inventory intelligence...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>Loading asset warehouse inventory intelligence...</div>;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Interactive Internal vs External Sourcing Calculator Card */}
-      <Card style={{ border: '2px solid #3b82f6', backgroundColor: '#eff6ff' }}>
+      <Card style={{ border: '2px solid #3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.12)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#1e3a8a' }}>
@@ -133,7 +133,7 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginTop: '16px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#1e40af' }}>Project Demand</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#60a5fa' }}>Project Demand</label>
             <Input
               type="number"
               value={calcRequired}
@@ -143,7 +143,7 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#1e40af' }}>Available E3 Stock</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#60a5fa' }}>Available E3 Stock</label>
             <Input
               type="number"
               value={calcAvailable}
@@ -152,8 +152,8 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
             />
           </div>
 
-          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>INTERNAL E3 ALLOCATION</div>
+          <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>INTERNAL E3 ALLOCATION</div>
             <div style={{ fontSize: '20px', fontWeight: 800, color: '#2563eb' }}>
               {calcResult.allocatedInternally} Units
             </div>
@@ -162,8 +162,8 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
             </div>
           </div>
 
-          <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fed7aa' }}>
-            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>EXTERNAL SOURCING NEED</div>
+          <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>EXTERNAL SOURCING NEED</div>
             <div style={{ fontSize: '20px', fontWeight: 800, color: '#ea580c' }}>
               {calcResult.externalProcurementRequired} Units
             </div>
@@ -178,10 +178,10 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               📦 Confirmed Project Asset Allocations
             </h3>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
               Assets confirmed exclusively to this project with collision prevention across concurrent events.
             </p>
           </div>
@@ -190,7 +190,7 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: 'left' }}>
                 <th style={{ padding: '10px 12px' }}>Asset Tag</th>
                 <th style={{ padding: '10px 12px' }}>Asset Name</th>
                 <th style={{ padding: '10px 12px' }}>Allocated Quantity</th>
@@ -201,11 +201,11 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
             </thead>
             <tbody>
               {allocations.map((alloc) => (
-                <tr key={alloc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr key={alloc.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                   <td style={{ padding: '12px', fontWeight: 800, color: '#2563eb' }}>{alloc.assetTag}</td>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>{alloc.assetName}</td>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{alloc.assetName}</td>
                   <td style={{ padding: '12px', fontWeight: 800 }}>{alloc.allocatedQuantity} Units</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     {new Date(alloc.window.start).toLocaleDateString()} → {new Date(alloc.window.end).toLocaleDateString()}
                   </td>
                   <td style={{ padding: '12px' }}>
@@ -220,9 +220,9 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
               ))}
               {allocations.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={6} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>📦</div>
-                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Confirmed Asset Allocations</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Confirmed Asset Allocations</div>
                     <div style={{ fontSize: '12px', marginTop: '4px' }}>Internal warehouse assets will appear here once reserved for this project.</div>
                   </td>
                 </tr>
@@ -233,7 +233,7 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
       </Card>
 
       {/* Authoritative Double-Booking Collision Sandbox (AT-051 / P03-ST07) */}
-      <Card style={{ border: '2px solid #8b5cf6', backgroundColor: '#faf5ff' }}>
+      <Card style={{ border: '2px solid #8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.12)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -242,7 +242,7 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
               </h3>
               <Badge variant="info">EXCLUSIVE CONSTRAINT ACTIVE</Badge>
             </div>
-            <p style={{ fontSize: '13px', color: '#6b21a8', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: '#a78bfa', margin: '4px 0 0 0' }}>
               Tests cross-project reservation exclusivity. Overlapping requests on serialized gear trigger automatic collision rejection and subrental requisitions.
             </p>
           </div>
@@ -296,16 +296,16 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
         </div>
 
         {sandboxCollisionResult && (
-          <div style={{ marginTop: '16px', padding: '14px', borderRadius: '8px', border: '1px solid #f87171', backgroundColor: '#fef2f2' }}>
+          <div style={{ marginTop: '16px', padding: '14px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.4)', backgroundColor: 'rgba(239, 68, 68, 0.12)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '16px' }}>🚨</span>
-                  <span style={{ fontWeight: 800, color: '#991b1b', fontSize: '14px' }}>
+                  <span style={{ fontWeight: 800, color: '#f87171', fontSize: '14px' }}>
                     COLLISION DETECTED: DOUBLE-BOOKING REJECTED (AT-051)
                   </span>
                 </div>
-                <p style={{ fontSize: '12px', color: '#b91c1c', margin: '6px 0 0 0' }}>
+                <p style={{ fontSize: '12px', color: '#ef4444', margin: '6px 0 0 0' }}>
                   {sandboxCollisionResult.reason}
                 </p>
                 <div style={{ fontSize: '11px', color: '#7f1d1d', marginTop: '6px' }}>
@@ -357,31 +357,31 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '16px' }}>
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #bae6fd' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1' }}>EQUIPMENT POOL POOL TARGET</div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                 Cummins 500kVA Quiet Power Generators
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Internal Depot Inventory: 4 Units Available</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Internal Depot Inventory: 4 Units Available</div>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #bae6fd' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1' }}>CONCURRENT EVENT DEMAND</div>
               <div style={{ fontSize: '14px', fontWeight: 800, color: '#dc2626', marginTop: '2px' }}>
                 12 Units Required (Peak Week)
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Concurrent Project Demand (Peak Operational Schedule)</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Concurrent Project Demand (Peak Operational Schedule)</div>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #bae6fd' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1' }}>DETECTED SHORTAGE DEFICIT</div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#b91c1c', marginTop: '2px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#ef4444', marginTop: '2px' }}>
                 8 Units Shortage (66.7% Deficit)
               </div>
               <div style={{ fontSize: '11px', color: '#059669' }}>Zero internal phantom oversell</div>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #bae6fd' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1' }}>UNCOMMITTED FINANCIAL EXPOSURE</div>
               <div style={{ fontSize: '14px', fontWeight: 800, color: '#0369a1', marginTop: '2px' }}>
                 +64,000 QAR Subrental Exposure
@@ -425,10 +425,10 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               🏢 Central Warehouse Inventory Register
             </h3>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
               Physical equipment inventory across Doha Central Logistics Depot and field staging bays.
             </p>
           </div>
@@ -437,7 +437,7 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: 'left' }}>
                 <th style={{ padding: '10px 12px' }}>Tag / Barcode</th>
                 <th style={{ padding: '10px 12px' }}>Description</th>
                 <th style={{ padding: '10px 12px' }}>Category</th>
@@ -450,17 +450,17 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
             </thead>
             <tbody>
               {assets.map((asset) => (
-                <tr key={asset.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr key={asset.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                   <td style={{ padding: '12px' }}>
                     <div style={{ fontWeight: 800, color: '#2563eb' }}>{asset.assetTag}</div>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>{asset.barcode}</div>
                   </td>
-                  <td style={{ padding: '12px', fontWeight: 700, color: '#0f172a' }}>{asset.name}</td>
+                  <td style={{ padding: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{asset.name}</td>
                   <td style={{ padding: '12px' }}>
                     <Badge variant="secondary">{asset.category}</Badge>
                   </td>
                   <td style={{ padding: '12px', fontWeight: 800 }}>{asset.quantity} {asset.unit}</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     {asset.warehouseName} ({asset.zone} - {asset.location})
                   </td>
                   <td style={{ padding: '12px' }}>
@@ -482,9 +482,9 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
               ))}
               {assets.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>🏢</div>
-                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Assets in Warehouse Inventory</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Assets in Warehouse Inventory</div>
                     <div style={{ fontSize: '12px', marginTop: '4px' }}>Registered serialized assets and staging equipment will appear here.</div>
                   </td>
                 </tr>
@@ -501,15 +501,15 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
         title={`Digital Asset Passport — ${selectedPassportAsset?.assetTag || 'AST-LUS-HOIST-01'}`}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <div style={{ width: '80px', height: '80px', backgroundColor: '#0f172a', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '10px', textAlign: 'center', padding: '6px', fontFamily: 'monospace' }}>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', backgroundColor: 'var(--surface-2, #151e2e)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+            <div style={{ width: '80px', height: '80px', backgroundColor: 'var(--text-primary, #f8fafc)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--surface-1, #0f1624)', fontSize: '10px', textAlign: 'center', padding: '6px', fontFamily: 'monospace' }}>
               [QR: {selectedPassportAsset?.barcode || 'BAR-99281'}]
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 {selectedPassportAsset?.name || '2T Stagemaker Electric Chain Hoist'}
               </div>
-              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                 Serial: SN-VER-2024-9982 • Category: {selectedPassportAsset?.category || 'Rigging'}
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
@@ -522,14 +522,14 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px' }}>
-            <div style={{ padding: '10px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
-              <div style={{ color: '#64748b', fontWeight: 600 }}>Warehouse Bay Location</div>
-              <div style={{ fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+            <div style={{ padding: '10px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
+              <div style={{ color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Warehouse Bay Location</div>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                 Bay 03-A (Heavy Rigging Staging, Doha Central)
               </div>
             </div>
-            <div style={{ padding: '10px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>
-              <div style={{ color: '#64748b', fontWeight: 600 }}>Annual Load Calibration</div>
+            <div style={{ padding: '10px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
+              <div style={{ color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Annual Load Calibration</div>
               <div style={{ fontWeight: 700, color: '#059669', marginTop: '2px' }}>
                 Valid through 2027-02-28 (ISO 17025 Certified)
               </div>
@@ -537,12 +537,12 @@ export const AssetsDeliveryView: React.FC<AssetsDeliveryViewProps> = ({ projectI
           </div>
 
           {selectedPassportAsset?.status === 'quarantined' ? (
-            <div style={{ padding: '12px', backgroundColor: '#fef2f2', border: '1px solid #f87171', borderRadius: '8px', fontSize: '12px', color: '#991b1b' }}>
+            <div style={{ padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '8px', fontSize: '12px', color: '#f87171' }}>
               <strong>Quarantine Incident Lock:</strong> {quarantineReason}. This equipment is strictly excluded from usable availability and dispatch manifests until inspected and signed off by QA.
             </div>
           ) : (
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                 Quarantine / Maintenance Incident Notice
               </label>
               <Textarea

@@ -540,7 +540,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             padding: '12px 20px',
             borderRadius: '6px',
             backgroundColor: notification.type === 'success' ? '#065f46' : notification.type === 'error' ? '#991b1b' : '#1e40af',
-            color: '#ffffff',
+            color: 'var(--surface-1, #0f1624)',
             fontWeight: 600,
             fontSize: '13px',
             display: 'flex',
@@ -552,7 +552,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           <span>{notification.message}</span>
           <button
             onClick={() => setNotification(null)}
-            style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 700 }}
+            style={{ background: 'none', border: 'none', color: 'var(--surface-1, #0f1624)', cursor: 'pointer', fontWeight: 700 }}
           >
             ✕
           </button>
@@ -562,52 +562,52 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
       {/* Main Workspace Header & Tab Selector */}
       <div
         style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
+          color: 'var(--text-primary, #f8fafc)',
           borderRadius: '8px',
           padding: '24px',
-          border: '1px solid #1e293b',
+          border: '1px solid var(--border-default, #2a374b)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--accent, #d97706)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Controlled Documents & Submission Hub
               </span>
               <Badge variant="success">ISO 19650 Compliant</Badge>
               <Badge variant="info">Zero Margin Leakage</Badge>
             </div>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#f8fafc' }}>
+            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? 'إدارة الوثائق المعتمدة وخزينة الأدلة وحزم التقديم' : 'Controlled Documents, Company Vault & Submission Packs'}
             </h1>
-            <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#94a3b8' }}>
+            <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
               Distinct separation between enterprise evidence masters, project working derivatives, and immutable sealed submission packs.
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             {activeTab === 'vault' && (
-              <Button variant="primary" onClick={() => setIsIntakeModalOpen(true)} style={{ backgroundColor: '#2563eb' }}>
+              <Button variant="primary" onClick={() => setIsIntakeModalOpen(true)}>
                 + Intake Evidence Master
               </Button>
             )}
             {activeTab === 'project' && (
               <>
-                <Button variant="primary" onClick={() => setIsSlotModalOpen(true)} style={{ backgroundColor: '#2563eb' }}>
+                <Button variant="primary" onClick={() => setIsSlotModalOpen(true)}>
                   + Add Required Slot
                 </Button>
-                <Button variant="secondary" onClick={() => setIsWorkingModalOpen(true)} style={{ backgroundColor: '#334155', color: '#fff' }}>
+                <Button variant="secondary" onClick={() => setIsWorkingModalOpen(true)}>
                   + New Working Document
                 </Button>
               </>
             )}
             {activeTab === 'pack' && (
               <>
-                <Button variant="primary" onClick={() => setIsNewPackModalOpen(true)} style={{ backgroundColor: '#2563eb' }}>
+                <Button variant="primary" onClick={() => setIsNewPackModalOpen(true)}>
                   + Initialize Submission Pack
                 </Button>
-                <Button variant="secondary" onClick={() => setIsShareModalOpen(true)} style={{ backgroundColor: '#334155', color: '#fff' }}>
+                <Button variant="secondary" onClick={() => setIsShareModalOpen(true)}>
                   🔗 Client Review Share
                 </Button>
               </>
@@ -616,15 +616,15 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
         </div>
 
         {/* 3 Workstation Tabs */}
-        <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid #334155' }}>
+        <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid var(--border-default, #2a374b)', flexWrap: 'wrap' }}>
           <button
             onClick={() => setActiveTab('vault')}
             style={{
               padding: '12px 20px',
-              backgroundColor: activeTab === 'vault' ? '#1e293b' : 'transparent',
-              color: activeTab === 'vault' ? '#38bdf8' : '#94a3b8',
+              backgroundColor: activeTab === 'vault' ? 'var(--accent-soft, rgba(217,119,6,0.14))' : 'transparent',
+              color: activeTab === 'vault' ? 'var(--text-primary, #f8fafc)' : 'var(--text-muted, #94a3b8)',
               border: 'none',
-              borderBottom: activeTab === 'vault' ? '2px solid #38bdf8' : '2px solid transparent',
+              borderBottom: activeTab === 'vault' ? '2px solid var(--accent, #d97706)' : '2px solid transparent',
               fontWeight: 700,
               fontSize: '13px',
               cursor: 'pointer',
@@ -634,7 +634,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             }}
           >
             🏛️ Company Evidence Vault
-            <span style={{ backgroundColor: '#334155', color: '#f8fafc', padding: '2px 6px', borderRadius: '10px', fontSize: '11px' }}>
+            <span style={{ backgroundColor: activeTab === 'vault' ? 'rgba(217,119,6,0.25)' : 'var(--surface-3, #1b2638)', color: activeTab === 'vault' ? 'var(--accent-hover, #f59e0b)' : 'var(--text-muted, #94a3b8)', padding: '2px 6px', borderRadius: '10px', fontSize: '11px' }}>
               {vaultItems.length}
             </span>
           </button>
@@ -643,10 +643,10 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             onClick={() => setActiveTab('project')}
             style={{
               padding: '12px 20px',
-              backgroundColor: activeTab === 'project' ? '#1e293b' : 'transparent',
-              color: activeTab === 'project' ? '#38bdf8' : '#94a3b8',
+              backgroundColor: activeTab === 'project' ? 'var(--accent-soft, rgba(217,119,6,0.14))' : 'transparent',
+              color: activeTab === 'project' ? 'var(--text-primary, #f8fafc)' : 'var(--text-muted, #94a3b8)',
               border: 'none',
-              borderBottom: activeTab === 'project' ? '2px solid #38bdf8' : '2px solid transparent',
+              borderBottom: activeTab === 'project' ? '2px solid var(--accent, #d97706)' : '2px solid transparent',
               fontWeight: 700,
               fontSize: '13px',
               cursor: 'pointer',
@@ -656,7 +656,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             }}
           >
             📋 Project Document Workspace
-            <span style={{ backgroundColor: '#334155', color: '#f8fafc', padding: '2px 6px', borderRadius: '10px', fontSize: '11px' }}>
+            <span style={{ backgroundColor: activeTab === 'project' ? 'rgba(217,119,6,0.25)' : 'var(--surface-3, #1b2638)', color: activeTab === 'project' ? 'var(--accent-hover, #f59e0b)' : 'var(--text-muted, #94a3b8)', padding: '2px 6px', borderRadius: '10px', fontSize: '11px' }}>
               {slots.length} Slots
             </span>
           </button>
@@ -665,10 +665,10 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             onClick={() => setActiveTab('pack')}
             style={{
               padding: '12px 20px',
-              backgroundColor: activeTab === 'pack' ? '#1e293b' : 'transparent',
-              color: activeTab === 'pack' ? '#38bdf8' : '#94a3b8',
+              backgroundColor: activeTab === 'pack' ? 'var(--accent-soft, rgba(217,119,6,0.14))' : 'transparent',
+              color: activeTab === 'pack' ? 'var(--text-primary, #f8fafc)' : 'var(--text-muted, #94a3b8)',
               border: 'none',
-              borderBottom: activeTab === 'pack' ? '2px solid #38bdf8' : '2px solid transparent',
+              borderBottom: activeTab === 'pack' ? '2px solid var(--accent, #d97706)' : '2px solid transparent',
               fontWeight: 700,
               fontSize: '13px',
               cursor: 'pointer',
@@ -677,12 +677,10 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               gap: '8px',
             }}
           >
-            📦 Submission Pack Builder
-            {activePack && (
-              <span style={{ backgroundColor: '#0284c7', color: '#fff', padding: '2px 6px', borderRadius: '10px', fontSize: '11px' }}>
-                {activePack.currentRevisionCode}
-              </span>
-            )}
+            📦 Submission Pack Factory
+            <span style={{ backgroundColor: activeTab === 'pack' ? 'rgba(217,119,6,0.25)' : 'var(--surface-3, #1b2638)', color: activeTab === 'pack' ? 'var(--accent-hover, #f59e0b)' : 'var(--text-muted, #94a3b8)', padding: '2px 6px', borderRadius: '10px', fontSize: '11px' }}>
+              {activePack ? 'Active' : 'Unsealed'}
+            </span>
           </button>
         </div>
       </div>
@@ -696,7 +694,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           {renewals.length > 0 && (
             <div
               style={{
-                backgroundColor: '#fffbeb',
+                backgroundColor: 'rgba(245, 158, 11, 0.12)',
                 border: '1px solid #fef3c7',
                 borderRadius: '6px',
                 padding: '12px 16px',
@@ -706,7 +704,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               }}
             >
               <span style={{ fontSize: '18px' }}>⚠️</span>
-              <div style={{ fontSize: '12px', color: '#92400e' }}>
+              <div style={{ fontSize: '12px', color: '#f59e0b' }}>
                 <strong>Renewal Watchlist:</strong> {renewals.length} company evidence item(s) are expiring soon or currently under renewal.
               </div>
             </div>
@@ -716,7 +714,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           <Card style={{ padding: '16px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Search Evidence</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Search Evidence</label>
                 <Input
                   value={searchVault}
                   onChange={(e) => setSearchVault(e.target.value)}
@@ -725,7 +723,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Category</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Category</label>
                 <Select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
                   <option value="all">All Categories</option>
                   <option value="CORP">Corporate & Legal (CORP)</option>
@@ -739,7 +737,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Legal Entity</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Legal Entity</label>
                 <Select value={filterEntity} onChange={(e) => setFilterEntity(e.target.value)}>
                   <option value="all">All Legal Entities</option>
                   <option value="E3 Event Operations W.L.L.">E3 Event Operations W.L.L. (Qatar)</option>
@@ -749,7 +747,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Verification</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Verification</label>
                 <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                   <option value="all">All Verification Statuses</option>
                   <option value="approved">Approved</option>
@@ -763,12 +761,12 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
 
           {/* Evidence Masters Table */}
           <Card style={{ padding: '0px', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default, #2a374b)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                   Enterprise Evidence Register
                 </h3>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                   Immutable company masters with SHA-256 integrity checks and renewal tracking.
                 </span>
               </div>
@@ -778,7 +776,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                     <th style={{ padding: '10px 14px', fontWeight: 700 }}>Code</th>
                     <th style={{ padding: '10px 14px', fontWeight: 700 }}>Document Title & Issuer</th>
                     <th style={{ padding: '10px 14px', fontWeight: 700 }}>Legal Entity</th>
@@ -791,17 +789,17 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                 </thead>
                 <tbody>
                   {filteredVaultItems.map((item) => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                       <td style={{ padding: '12px 14px', fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
                         {item.evidenceCode}
                       </td>
                       <td style={{ padding: '12px 14px' }}>
-                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.title}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{item.title}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                           Issuer: {item.issuer || 'Official Authority'} • {item.documentClass?.replace('_', ' ')}
                         </div>
                       </td>
-                      <td style={{ padding: '12px 14px', color: '#334155' }}>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-secondary, #cbd5e1)' }}>
                         {item.legalEntity}
                       </td>
                       <td style={{ padding: '12px 14px' }}>
@@ -810,7 +808,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                       <td style={{ padding: '12px 14px' }}>
                         {item.expiryDate ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ fontSize: '11px', color: '#0f172a' }}>{item.expiryDate}</span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-primary, #f8fafc)' }}>{item.expiryDate}</span>
                             {item.expiryState === 'expired' && <Badge variant="danger" size="sm">EXPIRED</Badge>}
                             {item.expiryState === 'renewal_in_progress' && <Badge variant="warning" size="sm">RENEWING</Badge>}
                           </div>
@@ -858,7 +856,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                   ))}
                   {filteredVaultItems.length === 0 && (
                     <tr>
-                      <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                         No evidence masters found matching the current search or filters.
                       </td>
                     </tr>
@@ -894,12 +892,12 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           {/* Subtab 1: Required Document Slots */}
           {projectSubTab === 'slots' && (
             <Card style={{ padding: '0px', overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default, #2a374b)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     Tender Requirement Slots
                   </h3>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     Identified document requirements for Project {projectId}. Link verified vault evidence to satisfy.
                   </span>
                 </div>
@@ -909,7 +907,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                    <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Requirement Title</th>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Envelope</th>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Mandatory</th>
@@ -921,8 +919,8 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                   </thead>
                   <tbody>
                     {slots.map((slot) => (
-                      <tr key={slot.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a' }}>
+                      <tr key={slot.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                           {slot.title}
                           {slot.requestedYears && (
                             <div style={{ fontSize: '11px', color: '#0284c7' }}>
@@ -934,9 +932,9 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                           <Badge variant="secondary" size="sm">{slot.envelope?.replace('_', ' ')}</Badge>
                         </td>
                         <td style={{ padding: '12px 14px' }}>
-                          {slot.mandatory ? <Badge variant="danger" size="sm">MANDATORY</Badge> : <span style={{ color: '#64748b' }}>Optional</span>}
+                          {slot.mandatory ? <Badge variant="danger" size="sm">MANDATORY</Badge> : <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Optional</span>}
                         </td>
-                        <td style={{ padding: '12px 14px', color: '#334155' }}>
+                        <td style={{ padding: '12px 14px', color: 'var(--text-secondary, #cbd5e1)' }}>
                           {slot.requestedEntity || 'Any'}
                         </td>
                         <td style={{ padding: '12px 14px' }}>
@@ -973,12 +971,12 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           {/* Subtab 2: Project Working Copies */}
           {projectSubTab === 'working' && (
             <Card style={{ padding: '0px', overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default, #2a374b)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     Project Working Copies & Derivatives
                   </h3>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     Project-specific working documents with optimistic locking and comment threads.
                   </span>
                 </div>
@@ -988,7 +986,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                    <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Doc Number</th>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Title</th>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Envelope</th>
@@ -999,11 +997,11 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                   </thead>
                   <tbody>
                     {workingCopies.map((wc) => (
-                      <tr key={wc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <tr key={wc.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                         <td style={{ padding: '12px 14px', fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
                           {wc.documentNumber}
                         </td>
-                        <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                           {wc.title}
                         </td>
                         <td style={{ padding: '12px 14px' }}>
@@ -1059,7 +1057,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Active Submission Pack</label>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Active Submission Pack</label>
                   <Select
                     value={selectedPackId}
                     onChange={(e) => {
@@ -1140,7 +1138,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               </div>
 
               {packReadiness.blockers?.length > 0 && (
-                <ul style={{ margin: '4px 0 0', paddingLeft: '24px', fontSize: '12px', color: '#b91c1c' }}>
+                <ul style={{ margin: '4px 0 0', paddingLeft: '24px', fontSize: '12px', color: '#ef4444' }}>
                   {packReadiness.blockers.map((b: string, idx: number) => (
                     <li key={idx}>{b}</li>
                   ))}
@@ -1152,12 +1150,12 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           {/* Drag & Drop Sequence Table */}
           {activePack && (
             <Card style={{ padding: '0px', overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default, #2a374b)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     Pack Structure & Sequential Order
                   </h3>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     Section dividers, inclusion toggles, and pure-JS page sequence.
                   </span>
                 </div>
@@ -1167,7 +1165,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                    <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                       <th style={{ padding: '10px 14px', fontWeight: 700, width: '40px' }}>Inc</th>
                       <th style={{ padding: '10px 14px', fontWeight: 700, width: '50px' }}>Seq</th>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Section</th>
@@ -1179,7 +1177,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                   </thead>
                   <tbody>
                     {activePack.items?.map((item: any, idx: number) => (
-                      <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', opacity: item.isIncluded ? 1 : 0.5 }}>
+                      <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', opacity: item.isIncluded ? 1 : 0.5 }}>
                         <td style={{ padding: '12px 14px' }}>
                           <input
                             type="checkbox"
@@ -1187,20 +1185,20 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                             onChange={() => handleToggleItemIncluded(item)}
                           />
                         </td>
-                        <td style={{ padding: '12px 14px', fontWeight: 800, color: '#64748b' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 800, color: 'var(--text-muted, #94a3b8)' }}>
                           #{item.sequenceIndex || idx + 1}
                         </td>
-                        <td style={{ padding: '12px 14px', fontWeight: 600, color: '#334155' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>
                           {item.sectionName}
                         </td>
-                        <td style={{ padding: '12px 14px', fontWeight: 700, color: '#0f172a' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                           {item.submissionTitle}
                           {item.stampRequired && <Badge variant="warning" size="sm" style={{ marginLeft: '6px' }}>STAMP REQ</Badge>}
                         </td>
                         <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#2563eb' }}>
                           {item.sourceEntityId} ({item.sourceRevisionId})
                         </td>
-                        <td style={{ padding: '12px 14px', color: '#64748b' }}>
+                        <td style={{ padding: '12px 14px', color: 'var(--text-muted, #94a3b8)' }}>
                           {item.selectedPageRange || 'All Pages'}
                         </td>
                         <td style={{ padding: '12px 14px', textAlign: 'right' }}>
@@ -1236,10 +1234,10 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             <Card style={{ padding: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     Candidate PDF Assembly Stream & Page Map
                   </h3>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     Generated in-engine via pure JS. Continuous running headers, Bates pagination, and SHA-256 integrity hash.
                   </span>
                 </div>
@@ -1249,8 +1247,8 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                 </div>
               </div>
 
-              <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
-                <div style={{ fontSize: '12px', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', marginBottom: '16px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <strong>Artifact SHA-256:</strong>
                   <code style={{ fontFamily: 'monospace', color: '#0284c7' }}>{pdfPreview.sha256}</code>
                 </div>
@@ -1262,20 +1260,20 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
                   <div
                     key={page.outputPage}
                     style={{
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid var(--border-default, #2a374b)',
                       borderRadius: '6px',
                       padding: '10px',
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'var(--surface-1, #0f1624)',
                       textAlign: 'center',
                     }}
                   >
                     <div style={{ fontSize: '11px', fontWeight: 800, color: '#2563eb' }}>
                       Page {page.outputPage}
                     </div>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#0f172a', margin: '4px 0' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>
                       {page.sectionName}
                     </div>
-                    <div style={{ fontSize: '10px', color: '#64748b', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                       {page.sourceDocId}
                     </div>
                   </div>
@@ -1299,7 +1297,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
       >
         <form onSubmit={handleIntakeEvidence} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Document Title *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Document Title *</label>
             <Input
               value={intakeTitle}
               onChange={(e) => setIntakeTitle(e.target.value)}
@@ -1310,7 +1308,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Category</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Category</label>
               <Select value={intakeCategory} onChange={(e) => setIntakeCategory(e.target.value)}>
                 <option value="CORP">CORP (Corporate / Legal)</option>
                 <option value="LIC">LIC (Trade / Baladiya)</option>
@@ -1322,7 +1320,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Document Class</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Document Class</label>
               <Select value={intakeClass} onChange={(e) => setIntakeClass(e.target.value)}>
                 <option value="certified_copy">Certified Copy</option>
                 <option value="original_record">Original Record</option>
@@ -1333,7 +1331,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Legal Entity</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Legal Entity</label>
             <Select value={intakeLegalEntity} onChange={(e) => setIntakeLegalEntity(e.target.value)}>
               <option value="E3 Event Operations W.L.L.">E3 Event Operations W.L.L.</option>
               <option value="E3 Creative Qatar W.L.L.">E3 Creative Qatar W.L.L.</option>
@@ -1343,7 +1341,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Issuing Authority</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Issuing Authority</label>
               <Input
                 value={intakeIssuer}
                 onChange={(e) => setIntakeIssuer(e.target.value)}
@@ -1352,7 +1350,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Expiry Date</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Expiry Date</label>
               <Input
                 type="date"
                 value={intakeExpiry}
@@ -1361,14 +1359,14 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
             <input
               type="checkbox"
               id="chk-retention"
               checked={intakeRetention}
               onChange={(e) => setIntakeRetention(e.target.checked)}
             />
-            <label htmlFor="chk-retention" style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+            <label htmlFor="chk-retention" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>
               Apply Legal Retention Hold (Prevents accidental or unauthorized deletion)
             </label>
           </div>
@@ -1391,7 +1389,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Verification Decision</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Verification Decision</label>
             <Select value={verifyStatus} onChange={(e) => setVerifyStatus(e.target.value)}>
               <option value="approved">Approve Revision</option>
               <option value="rejected">Reject (Deficient / Expired)</option>
@@ -1400,7 +1398,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Audit Verification Notes</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Audit Verification Notes</label>
             <Textarea
               value={verifyNotes}
               onChange={(e) => setVerifyNotes(e.target.value)}
@@ -1426,7 +1424,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
       >
         <form onSubmit={handleCreateSlot} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Requirement Name *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Requirement Name *</label>
             <Input
               value={slotTitle}
               onChange={(e) => setSlotTitle(e.target.value)}
@@ -1437,7 +1435,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Submission Envelope</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Submission Envelope</label>
               <Select value={slotEnvelope} onChange={(e) => setSlotEnvelope(e.target.value)}>
                 <option value="technical">Technical</option>
                 <option value="commercial">Commercial</option>
@@ -1446,7 +1444,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Required Legal Entity</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Required Legal Entity</label>
               <Select value={slotEntity} onChange={(e) => setSlotEntity(e.target.value)}>
                 <option value="E3 Event Operations W.L.L.">E3 Event Operations W.L.L.</option>
                 <option value="E3 Creative Qatar W.L.L.">E3 Creative Qatar W.L.L.</option>
@@ -1462,7 +1460,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
               checked={slotMandatory}
               onChange={(e) => setSlotMandatory(e.target.checked)}
             />
-            <label htmlFor="chk-slot-mandatory" style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+            <label htmlFor="chk-slot-mandatory" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>
               Mandatory Tender Requirement (Blocks pack finalization if unfulfilled)
             </label>
           </div>
@@ -1485,7 +1483,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Select Matching Vault Evidence</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Select Matching Vault Evidence</label>
             <Select
               value={selectedEvidenceIdToLink}
               onChange={(e) => setSelectedEvidenceIdToLink(e.target.value)}
@@ -1517,7 +1515,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
       >
         <form onSubmit={handleCreateWorkingCopy} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Document Title *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Document Title *</label>
             <Input
               value={wcTitle}
               onChange={(e) => setWcTitle(e.target.value)}
@@ -1528,7 +1526,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Discipline</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Discipline</label>
               <Select value={wcDiscipline} onChange={(e) => setWcDiscipline(e.target.value)}>
                 <option value="general">General</option>
                 <option value="technical">Technical</option>
@@ -1538,7 +1536,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Submission Envelope</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Submission Envelope</label>
               <Select value={wcEnvelope} onChange={(e) => setWcEnvelope(e.target.value)}>
                 <option value="technical">Technical</option>
                 <option value="commercial">Commercial</option>
@@ -1548,7 +1546,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Initial Document Text</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Initial Document Text</label>
             <Textarea
               value={wcContent}
               onChange={(e) => setWcContent(e.target.value)}
@@ -1574,12 +1572,12 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           size="md"
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ padding: '10px', backgroundColor: '#f8fafc', borderRadius: '6px', fontSize: '12px', color: '#475569' }}>
+            <div style={{ padding: '10px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
               <strong>Status:</strong> {selectedWcForComments.isFrozen ? '❄️ Frozen' : '✏️ Active Working'} • Version: {selectedWcForComments.recordVersion}
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Add Review Comment</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Add Review Comment</label>
               <Textarea
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
@@ -1625,7 +1623,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
       >
         <form onSubmit={handleCreatePack} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Pack Title *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Pack Title *</label>
             <Input
               value={newPackTitle}
               onChange={(e) => setNewPackTitle(e.target.value)}
@@ -1636,7 +1634,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Envelope Type</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Envelope Type</label>
               <Select value={newPackEnvelope} onChange={(e) => setNewPackEnvelope(e.target.value)}>
                 <option value="technical">Technical Envelope</option>
                 <option value="commercial">Commercial Envelope</option>
@@ -1645,7 +1643,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Tender Reference</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Tender Reference</label>
               <Input
                 value={newPackTenderRef}
                 onChange={(e) => setNewPackTenderRef(e.target.value)}
@@ -1671,12 +1669,12 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
         size="md"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ padding: '10px', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '12px', color: '#92400e' }}>
+          <div style={{ padding: '10px', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '12px', color: '#f59e0b' }}>
             ⚠️ <strong>Synthetic Mark Policy:</strong> In-engine marks apply clearly synthetic test stamps (`TEST_STAMP_AUTHORIZED`). No real executive signatures are ever generated without live key authorization.
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Select Authorized Asset</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Select Authorized Asset</label>
             <Select value={selectedMarkAsset} onChange={(e) => setSelectedMarkAsset(e.target.value)}>
               <option value="TEST_STAMP_AUTHORIZED">TEST_STAMP_AUTHORIZED (E3 Operations Seal)</option>
               <option value="TEST_SIGNATURE_MOCK">TEST_SIGNATURE_MOCK (Authorized Signatory Mock)</option>
@@ -1685,18 +1683,18 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Signatory Name</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Signatory Name</label>
               <Input value={signatoryName} onChange={(e) => setSignatoryName(e.target.value)} />
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Authority Role</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Authority Role</label>
               <Input value={signatoryAuthority} onChange={(e) => setSignatoryAuthority(e.target.value)} />
             </div>
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Apply to Output Page</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Apply to Output Page</label>
             <Input
               type="number"
               min={1}
@@ -1723,7 +1721,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
       >
         <form onSubmit={handleIssuePack} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Recipient Organisation *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Recipient Organisation *</label>
             <Input
               value={issueRecipientOrg}
               onChange={(e) => setIssueRecipientOrg(e.target.value)}
@@ -1733,18 +1731,18 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Recipient Name</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Recipient Name</label>
               <Input value={issueRecipientName} onChange={(e) => setIssueRecipientName(e.target.value)} />
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Recipient Email</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Recipient Email</label>
               <Input type="email" value={issueRecipientEmail} onChange={(e) => setIssueRecipientEmail(e.target.value)} />
             </div>
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Delivery Channel</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Delivery Channel</label>
             <Select value={issueChannel} onChange={(e) => setIssueChannel(e.target.value)}>
               <option value="formal_portal_upload">Formal Client Portal Upload</option>
               <option value="secure_email">Encrypted Email Transmittal</option>
@@ -1770,7 +1768,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
       >
         <form onSubmit={handleRecordReceipt} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Receipt / Acknowledgement Reference *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Receipt / Acknowledgement Reference *</label>
             <Input
               value={receiptRef}
               onChange={(e) => setReceiptRef(e.target.value)}
@@ -1779,7 +1777,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Acknowledging Officer / Committee</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Acknowledging Officer / Committee</label>
             <Input
               value={receiptOfficer}
               onChange={(e) => setReceiptOfficer(e.target.value)}
@@ -1787,7 +1785,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Official Receipt Notes</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Official Receipt Notes</label>
             <Textarea
               value={receiptNotes}
               onChange={(e) => setReceiptNotes(e.target.value)}
@@ -1815,12 +1813,12 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
         size="md"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ padding: '12px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '12px', color: '#166534' }}>
+          <div style={{ padding: '12px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px', fontSize: '12px', color: '#22c55e' }}>
             🛡️ <strong>Zero Margin Leakage Guaranteed:</strong> All internal buy-rates, unit costs, profit margins, and internal comments are permanently redacted from client-shared snapshots.
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Recipient Client Email</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Recipient Client Email</label>
             <Input
               type="email"
               value={shareEmail}
@@ -1829,7 +1827,7 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Watermark Text</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Watermark Text</label>
             <Input
               value={shareWatermark}
               onChange={(e) => setShareWatermark(e.target.value)}
@@ -1837,11 +1835,11 @@ export const ControlledDocumentsWorkspaceView: React.FC<Props> = ({
           </div>
 
           {generatedShareLink ? (
-            <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#0284c7', marginBottom: '4px' }}>
                 Secure Review Link (Expires in 72h):
               </div>
-              <code style={{ fontSize: '12px', wordBreak: 'break-all', color: '#0f172a' }}>
+              <code style={{ fontSize: '12px', wordBreak: 'break-all', color: 'var(--text-primary, #f8fafc)' }}>
                 {window.location.origin}{generatedShareLink}
               </code>
             </div>

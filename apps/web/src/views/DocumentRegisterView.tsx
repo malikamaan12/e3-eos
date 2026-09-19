@@ -113,11 +113,11 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
       {/* Zero Profit Margin Invariant Banner */}
       <div
         style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'var(--text-primary, #f8fafc)',
+          color: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
           padding: '20px 24px',
-          border: '1px solid #1e293b',
+          border: '1px solid var(--border-subtle, #1d2939)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -132,7 +132,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
             </span>
             <Badge variant="success">Zero Margin Leakage</Badge>
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--surface-2, #151e2e)' }}>
             Standard Numbering: E3-[PROJ]-[DISC]-[TYPE]-[SEQ]
           </div>
           <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
@@ -153,7 +153,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
             id="btn-issue-transmittal"
             variant="secondary"
             onClick={() => setIsTransmittalModalOpen(true)}
-            style={{ backgroundColor: '#334155', color: '#ffffff', borderColor: '#475569' }}
+            style={{ backgroundColor: 'var(--text-secondary, #cbd5e1)', color: 'var(--surface-1, #0f1624)', borderColor: 'var(--text-secondary, #cbd5e1)' }}
           >
             📦 Issue Transmittal Pack
           </Button>
@@ -164,10 +164,10 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
       <Card style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Master Technical Document Register
             </h3>
-            <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               All architectural CAD drawings, structural calculations, and QCDD safety specs with immutable SHA-256 hashes.
             </p>
           </div>
@@ -177,7 +177,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Document Number</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Title & Description</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Discipline</th>
@@ -191,20 +191,20 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
             </thead>
             <tbody>
               {documents.map((doc: any) => (
-                <tr key={doc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr key={doc.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#2563eb' }}>
                     {doc.documentNumber}
                   </td>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                     {doc.title}
                   </td>
                   <td style={{ padding: '12px' }}>
-                    <span style={{ textTransform: 'capitalize', color: '#475569' }}>
+                    <span style={{ textTransform: 'capitalize', color: 'var(--text-secondary, #cbd5e1)' }}>
                       {doc.discipline?.replace('_', ' ')}
                     </span>
                   </td>
                   <td style={{ padding: '12px' }}>
-                    <span style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: 700, color: '#64748b' }}>
+                    <span style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)' }}>
                       {doc.documentType}
                     </span>
                   </td>
@@ -213,7 +213,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
                       {doc.currentRevisionCode}
                     </Badge>
                   </td>
-                  <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                  <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                     {doc.contentHash ? `${doc.contentHash.slice(0, 12)}...${doc.contentHash.slice(-6)}` : 'sha256-verified'}
                   </td>
                   <td style={{ padding: '12px', textAlign: 'center' }}>
@@ -229,16 +229,16 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
                       {doc.confidentialityLevel?.replace('_', ' ').toUpperCase()}
                     </Badge>
                   </td>
-                  <td style={{ padding: '12px', color: '#64748b' }}>
+                  <td style={{ padding: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     {doc.createdBy}
                   </td>
                 </tr>
               ))}
               {documents.length === 0 && (
                 <tr>
-                  <td colSpan={9} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={9} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>📄</div>
-                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No controlled documents registered</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No controlled documents registered</div>
                     <div style={{ fontSize: '12px', marginTop: '4px' }}>Register a new controlled drawing, calculation sheet, or specification.</div>
                   </td>
                 </tr>
@@ -252,10 +252,10 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
       <Card style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Controlled Transmittal Log (Outbound Distribution)
             </h3>
-            <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Formal legal record of document packages transmitted to clients, contractors, or government authorities.
             </p>
           </div>
@@ -267,10 +267,10 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
             <div
               key={tr.id}
               style={{
-                border: '1px solid #e2e8f0',
+                border: '1px solid var(--border-default, #2a374b)',
                 borderRadius: '6px',
                 padding: '14px 16px',
-                backgroundColor: '#ffffff',
+                backgroundColor: 'var(--surface-1, #0f1624)',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
@@ -285,8 +285,8 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
                     <span
                       style={{
                         backgroundColor: '#dcfce7',
-                        color: '#15803d',
-                        border: '1px solid #bbf7d0',
+                        color: '#4ade80',
+                        border: '1px solid rgba(34, 197, 94, 0.3)',
                         fontSize: '10px',
                         fontWeight: 700,
                         padding: '2px 6px',
@@ -297,24 +297,24 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
                     </span>
                   )}
                 </div>
-                <span style={{ fontSize: '11px', color: '#64748b' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                   Issued by {tr.issuedBy} on {new Date(tr.issuedAt).toLocaleDateString()}
                 </span>
               </div>
 
-              <div style={{ fontSize: '13px', color: '#1e293b', marginBottom: '6px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)', marginBottom: '6px' }}>
                 <strong>Recipient:</strong> {tr.recipientName} ({tr.recipientOrganisation}) — <em>{tr.recipientEmail}</em>
               </div>
 
-              <div style={{ fontSize: '11px', color: '#475569', backgroundColor: '#f8fafc', padding: '6px 10px', borderRadius: '4px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)', padding: '6px 10px', borderRadius: '4px' }}>
                 <strong>Contained Items:</strong> {tr.items?.length || 1} Document(s) • Purpose: {tr.purpose?.replace('_', ' ').toUpperCase()}
               </div>
             </div>
           ))}
           {transmittals.length === 0 && (
-            <div style={{ padding: '24px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
+            <div style={{ padding: '24px', textAlign: 'center', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', border: '1px dashed var(--border-default, #2a374b)', color: 'var(--text-muted, #94a3b8)' }}>
               <div style={{ fontSize: '20px', marginBottom: '4px' }}>📦</div>
-              <div style={{ fontWeight: 700, color: '#334155', fontSize: '13px' }}>No transmittals issued yet</div>
+              <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '13px' }}>No transmittals issued yet</div>
               <div style={{ fontSize: '11px', marginTop: '2px' }}>Issue a transmittal pack to distribute controlled documents with strict profit margin redaction.</div>
             </div>
           )}
@@ -330,7 +330,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
       >
         <form onSubmit={handleCreateDocument} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Document Title *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Document Title *</label>
             <Input
               value={docTitle}
               onChange={(e) => setDocTitle(e.target.value)}
@@ -341,7 +341,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Engineering Discipline</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Engineering Discipline</label>
               <Select value={docDiscipline} onChange={(e) => setDocDiscipline(e.target.value)}>
                 <option value="audio_visual">Audio Visual (AV)</option>
                 <option value="staging">Staging & Rigging (STG)</option>
@@ -353,7 +353,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Document Type</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Document Type</label>
               <Select value={docType} onChange={(e) => setDocType(e.target.value)}>
                 <option value="drawing">Drawing (DWG)</option>
                 <option value="specification">Specification (SPC)</option>
@@ -365,7 +365,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Numbering Profile (5 Profiles)</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Numbering Profile (5 Profiles)</label>
             <Select value={docProfile} onChange={(e) => setDocProfile(e.target.value)}>
               <option value="e3_standard">E3 Standard (E3-[PROJ]-[DISC]-[TYPE]-[SEQ])</option>
               <option value="iso_19650">ISO 19650 ([PROJ]-[ORIG]-[VOL]-[LVL]-[TYPE]-[ROLE]-[NUM])</option>
@@ -376,7 +376,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Confidentiality Classification</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Confidentiality Classification</label>
             <Select value={docConfidentiality} onChange={(e) => setDocConfidentiality(e.target.value)}>
               <option value="internal">Internal Only</option>
               <option value="client_confidential">Client Confidential</option>
@@ -404,7 +404,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
       >
         <form onSubmit={handleIssueTransmittal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Recipient Organisation *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Recipient Organisation *</label>
             <Input
               value={recipientOrg}
               onChange={(e) => setRecipientOrg(e.target.value)}
@@ -415,7 +415,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Recipient Name *</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Recipient Name *</label>
               <Input
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
@@ -425,7 +425,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Recipient Email *</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Recipient Email *</label>
               <Input
                 type="email"
                 value={recipientEmail}
@@ -437,7 +437,7 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Transmittal Purpose</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Transmittal Purpose</label>
             <Select value={transmittalPurpose} onChange={(e) => setTransmittalPurpose(e.target.value)}>
               <option value="for_client_approval">For Client Approval</option>
               <option value="for_information">For Information Only</option>
@@ -446,14 +446,14 @@ export const DocumentRegisterView: React.FC<DocumentRegisterViewProps> = ({ proj
             </Select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: 'rgba(34, 197, 94, 0.12)', borderRadius: '6px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
             <input
               type="checkbox"
               id="chk-client-facing"
               checked={isClientFacing}
               onChange={(e) => setIsClientFacing(e.target.checked)}
             />
-            <label htmlFor="chk-client-facing" style={{ fontSize: '12px', fontWeight: 600, color: '#166534', cursor: 'pointer' }}>
+            <label htmlFor="chk-client-facing" style={{ fontSize: '12px', fontWeight: 600, color: '#22c55e', cursor: 'pointer' }}>
               Enforce Client Profit Margin Redaction (Strips buy-rates and internal markups)
             </label>
           </div>

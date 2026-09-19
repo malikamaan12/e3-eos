@@ -401,7 +401,7 @@ export const LiveCommandCentreView: React.FC = () => {
             top: '20px',
             right: '20px',
             zIndex: 9999,
-            backgroundColor: '#0f172a',
+            backgroundColor: 'var(--text-primary, #f8fafc)',
             color: '#10b981',
             border: '1px solid #10b981',
             padding: '12px 20px',
@@ -422,17 +422,17 @@ export const LiveCommandCentreView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               🔴 {isRtl ? 'مركز القيادة والعمليات الميدانية الحية' : 'Live Operations Command Centre'}
             </h1>
             <Badge variant="danger">{isRtl ? 'تغذية تدقيق مباشرة' : 'LIVE AUDIT FEED'}</Badge>
             <Badge variant="neutral">ISO 20121 ACTIVE</Badge>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748b', padding: '2px 8px', backgroundColor: '#f1f5f9', borderRadius: '4px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />
-              <span>{isRtl ? 'آخر نبض للاتصال:' : 'Telemetry Heartbeat:'} <strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{lastUpdated} AST</strong></span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', padding: '2px 8px', backgroundColor: 'var(--surface-inset, #0b111d)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '4px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block', boxShadow: '0 0 6px #22c55e' }} />
+              <span>{isRtl ? 'آخر نبض للاتصال:' : 'Telemetry Heartbeat:'} <strong style={{ color: 'var(--text-primary, #f8fafc)', fontFamily: 'monospace' }}>{lastUpdated} AST</strong></span>
             </div>
           </div>
-          <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary, #94a3b8)', fontSize: '13px' }}>
             {isRtl ? `${projectName} — القياس الفوري، تدابير الحماية الوقائية، وذكاء إدارة الفعاليات.` : `${projectName} — Real-time telemetry, protective controls, and event intelligence.`}
           </p>
         </div>
@@ -481,8 +481,8 @@ export const LiveCommandCentreView: React.FC = () => {
       {/* 🔴 REAL-TIME WEBSOCKET / SSE LIVE TICKER STRIP */}
       <div
         style={{
-          backgroundColor: '#090d16',
-          border: '1px solid #1e293b',
+          backgroundColor: 'var(--canvas, #090d16)',
+          border: '1px solid var(--border-subtle, #1d2939)',
           borderRadius: '8px',
           padding: '10px 16px',
           display: 'flex',
@@ -497,7 +497,7 @@ export const LiveCommandCentreView: React.FC = () => {
             <span style={{ fontSize: '11px', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
               📡 SSE LIVE FEED TICKER
             </span>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>| Active Telemetry & Field Broadcast</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>| Active Telemetry & Field Broadcast</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -511,9 +511,9 @@ export const LiveCommandCentreView: React.FC = () => {
                   setTickerIndex(0);
                 }}
                 style={{
-                  backgroundColor: feedFilter === cat ? '#1e293b' : 'transparent',
-                  color: feedFilter === cat ? '#f8fafc' : '#94a3b8',
-                  border: `1px solid ${feedFilter === cat ? '#38bdf8' : '#334155'}`,
+                  backgroundColor: feedFilter === cat ? 'var(--surface-2, #151e2e)' : 'transparent',
+                  color: feedFilter === cat ? 'var(--text-primary, #f8fafc)' : 'var(--text-muted, #94a3b8)',
+                  border: `1px solid ${feedFilter === cat ? '#38bdf8' : 'var(--text-secondary, #cbd5e1)'}`,
                   borderRadius: '4px',
                   padding: '2px 8px',
                   fontSize: '10px',
@@ -534,9 +534,9 @@ export const LiveCommandCentreView: React.FC = () => {
               type="button"
               onClick={() => setIsTickerPaused(!isTickerPaused)}
               style={{
-                backgroundColor: '#1e293b',
+                backgroundColor: 'var(--surface-2, #151e2e)',
                 color: isTickerPaused ? '#f59e0b' : '#94a3b8',
-                border: '1px solid #334155',
+                border: '1px solid var(--border-default, #2a374b)',
                 borderRadius: '4px',
                 padding: '2px 8px',
                 fontSize: '10px',
@@ -552,7 +552,7 @@ export const LiveCommandCentreView: React.FC = () => {
               onClick={() => setIsSimulateModalOpen(true)}
               style={{
                 backgroundColor: '#0284c7',
-                color: '#ffffff',
+                color: 'var(--surface-1, #0f1624)',
                 border: 'none',
                 borderRadius: '4px',
                 padding: '2px 8px',
@@ -573,7 +573,7 @@ export const LiveCommandCentreView: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              backgroundColor: '#0f172a',
+              backgroundColor: 'var(--text-primary, #f8fafc)',
               borderLeft: `4px solid ${activeTickerEvent.severity === 'critical' ? '#ef4444' : activeTickerEvent.severity === 'warning' ? '#f59e0b' : activeTickerEvent.category === 'vip' ? '#a855f7' : '#10b981'}`,
               padding: '8px 12px',
               borderRadius: '4px',
@@ -585,16 +585,16 @@ export const LiveCommandCentreView: React.FC = () => {
               <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#94a3b8' }}>
                 [{activeTickerEvent.timestamp}]
               </span>
-              <strong style={{ fontSize: '12px', color: '#f8fafc' }}>
+              <strong style={{ fontSize: '12px', color: 'var(--surface-2, #151e2e)' }}>
                 {activeTickerEvent.title}
               </strong>
-              <span style={{ fontSize: '11px', color: '#cbd5e1' }}>
+              <span style={{ fontSize: '11px', color: 'var(--border-default, #2a374b)' }}>
                 — {activeTickerEvent.detail}
               </span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '10px', color: '#64748b' }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>
                 Item {tickerIndex + 1} of {filteredEvents.length}
               </span>
               <button
@@ -614,7 +614,7 @@ export const LiveCommandCentreView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div style={{ padding: '8px 12px', fontSize: '11px', color: '#64748b', backgroundColor: '#0f172a', borderRadius: '4px' }}>
+          <div style={{ padding: '8px 12px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', backgroundColor: 'var(--text-primary, #f8fafc)', borderRadius: '4px' }}>
             {isRtl ? 'لا توجد تنبيهات ميدانية حالياً — بانتظار أحداث البث المباشر' : 'No active field alerts in queue — Telemetry listener standing by'}
           </div>
         )}
@@ -623,11 +623,11 @@ export const LiveCommandCentreView: React.FC = () => {
       {/* ⏱️ RUN-SHEET MINUTE-BY-MINUTE COUNTDOWN & CUE CONTROLLER BANNER */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
+          background: 'linear-gradient(135deg, rgba(30, 27, 75, 0.6) 0%, var(--canvas, #090d16) 100%)',
           border: '1px solid #312e81',
           borderRadius: '8px',
           padding: '16px 20px',
-          color: '#ffffff',
+          color: 'var(--surface-1, #0f1624)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -654,13 +654,13 @@ export const LiveCommandCentreView: React.FC = () => {
               >
                 T-{formatCountdown(countdownSeconds)}
               </span>
-              <span style={{ fontSize: '12px', color: '#cbd5e1' }}>
-                to <strong style={{ color: '#ffffff' }}>{nextArmedCue?.code || 'CUE-00'}</strong>: {nextArmedCue?.title || (isRtl ? 'بانتظار بدء العرض' : 'Standby for Show Start')}
+              <span style={{ fontSize: '12px', color: 'var(--border-default, #2a374b)' }}>
+                to <strong style={{ color: 'var(--surface-1, #0f1624)' }}>{nextArmedCue?.code || 'CUE-00'}</strong>: {nextArmedCue?.title || (isRtl ? 'بانتظار بدء العرض' : 'Standby for Show Start')}
               </span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderLeft: '1px solid #334155', paddingLeft: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderLeft: '1px solid var(--border-subtle, #1d2939)', paddingLeft: '16px' }}>
             <span style={{ fontSize: '11px', color: '#94a3b8' }}>Cumulative Show Variance:</span>
             <span
               style={{
@@ -685,7 +685,7 @@ export const LiveCommandCentreView: React.FC = () => {
             <button
               type="button"
               onClick={() => handleAdjustCueDelay(1)}
-              style={{ background: 'none', border: '1px solid #334155', color: '#f8fafc', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+              style={{ background: 'none', border: '1px solid var(--border-default, #2a374b)', color: 'var(--surface-2, #151e2e)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
               title="Add 1 minute delay"
             >
               +1m
@@ -693,7 +693,7 @@ export const LiveCommandCentreView: React.FC = () => {
             <button
               type="button"
               onClick={() => handleAdjustCueDelay(5)}
-              style={{ background: 'none', border: '1px solid #334155', color: '#f8fafc', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+              style={{ background: 'none', border: '1px solid var(--border-default, #2a374b)', color: 'var(--surface-2, #151e2e)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
               title="Add 5 minutes delay"
             >
               +5m
@@ -701,7 +701,7 @@ export const LiveCommandCentreView: React.FC = () => {
             <button
               type="button"
               onClick={() => handleAdjustCueDelay(-1)}
-              style={{ background: 'none', border: '1px solid #334155', color: '#f8fafc', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+              style={{ background: 'none', border: '1px solid var(--border-default, #2a374b)', color: 'var(--surface-2, #151e2e)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
               title="Reduce 1 minute delay"
             >
               -1m
@@ -723,7 +723,7 @@ export const LiveCommandCentreView: React.FC = () => {
             size="sm"
             onClick={() => nextArmedCue && handleExecuteCue(nextArmedCue.id)}
             disabled={!nextArmedCue}
-            style={{ backgroundColor: '#10b981', color: '#ffffff', fontWeight: 800 }}
+            style={{ backgroundColor: '#10b981', color: 'var(--surface-1, #0f1624)', fontWeight: 800 }}
             id="btn-trigger-next-cue"
           >
             ⚡ GO / EXECUTE {nextArmedCue?.code || ''}
@@ -781,7 +781,7 @@ export const LiveCommandCentreView: React.FC = () => {
           <Card title="1. Live Incident Log & Safety Escalations">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', color: '#64748b' }}>Open Incidents: <strong>{panels?.incidentLog?.openIncidentsCount || 1}</strong></span>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>Open Incidents: <strong>{panels?.incidentLog?.openIncidentsCount || 1}</strong></span>
                 <Badge variant={panels?.incidentLog?.criticalIncidentsCount ? 'danger' : 'success'}>
                   {panels?.incidentLog?.criticalIncidentsCount ? 'CRITICAL ALERT' : 'Normal Operations'}
                 </Badge>
@@ -830,7 +830,7 @@ export const LiveCommandCentreView: React.FC = () => {
                 <span>Mandatory Rest Interval:</span>
                 <span>Configurable (10h Qatar Baseline)</span>
               </div>
-              <div style={{ backgroundColor: '#f0fdf4', padding: '8px', borderRadius: '4px', border: '1px solid #bbf7d0', color: '#166534', fontSize: '11px' }}>
+              <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '8px', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#22c55e', fontSize: '11px' }}>
                 ✓ No active fatigue limit breaches recorded on site.
               </div>
             </div>
@@ -851,7 +851,7 @@ export const LiveCommandCentreView: React.FC = () => {
                 <span>Venue Security Access NOC:</span>
                 <Badge variant="success">QT-VEN-2026-8801 Active</Badge>
               </div>
-              <div style={{ backgroundColor: '#f8fafc', padding: '8px', borderRadius: '4px', fontSize: '11px', color: '#64748b' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '8px', borderRadius: '4px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                 Fail-Closed Engine Status: <strong>RELEASE ELIGIBLE</strong> (0 Blockers)
               </div>
             </div>
@@ -860,15 +860,15 @@ export const LiveCommandCentreView: React.FC = () => {
           {/* Panel 4: Critical Path Run Sheet */}
           <Card title="4. Critical Path Show Run Sheet">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', backgroundColor: '#f1f5f9', borderRadius: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '4px' }}>
                 <span>CUE-01.00 Doors Open</span>
                 <Badge variant="success">Completed</Badge>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', backgroundColor: '#fef3c7', borderRadius: '4px', border: '1px solid #fde68a' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', backgroundColor: '#fef3c7', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
                 <span><strong>CUE-02.00 VIP Majlis Arrival</strong></span>
                 <Badge variant="warning">In Progress (+10m)</Badge>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', backgroundColor: '#f8fafc', borderRadius: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '4px' }}>
                 <span>CUE-03.00 National Anthem Reveal</span>
                 <Badge variant="neutral">Pending (+10m shifted)</Badge>
               </div>
@@ -878,21 +878,21 @@ export const LiveCommandCentreView: React.FC = () => {
           {/* Panel 5: Zone Readiness Heatmap */}
           <Card title="5. Zone Readiness Heatmap">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <div style={{ padding: '10px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px' }}>
+              <div style={{ padding: '10px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px' }}>
                 <div style={{ fontWeight: 700, fontSize: '13px' }}>MAIN_STAGE</div>
-                <div style={{ fontSize: '11px', color: '#166534' }}>Ready (4/4 Gates)</div>
+                <div style={{ fontSize: '11px', color: '#22c55e' }}>Ready (4/4 Gates)</div>
               </div>
-              <div style={{ padding: '10px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px' }}>
+              <div style={{ padding: '10px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px' }}>
                 <div style={{ fontWeight: 700, fontSize: '13px' }}>VIP_MAJLIS</div>
-                <div style={{ fontSize: '11px', color: '#166534' }}>Ready (Protocol Signed)</div>
+                <div style={{ fontSize: '11px', color: '#22c55e' }}>Ready (Protocol Signed)</div>
               </div>
-              <div style={{ padding: '10px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px' }}>
+              <div style={{ padding: '10px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px' }}>
                 <div style={{ fontWeight: 700, fontSize: '13px' }}>BACKSTAGE</div>
-                <div style={{ fontSize: '11px', color: '#166534' }}>Ready (Security Cleared)</div>
+                <div style={{ fontSize: '11px', color: '#22c55e' }}>Ready (Security Cleared)</div>
               </div>
-              <div style={{ padding: '10px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px' }}>
+              <div style={{ padding: '10px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px' }}>
                 <div style={{ fontWeight: 700, fontSize: '13px' }}>PUBLIC_CONCOURSE</div>
-                <div style={{ fontSize: '11px', color: '#166534' }}>Ready (Egress Clear)</div>
+                <div style={{ fontSize: '11px', color: '#22c55e' }}>Ready (Egress Clear)</div>
               </div>
             </div>
           </Card>
@@ -904,7 +904,7 @@ export const LiveCommandCentreView: React.FC = () => {
                 <span>FLT-2026-081 Winch 12 Optical Encoder</span>
                 <Badge variant="success">Resolved</Badge>
               </div>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '11px' }}>
+              <p style={{ margin: 0, color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>
                 Repaired by Klaus Mueller. Shielded CAN connector replaced. Recalibration verified.
               </p>
             </div>
@@ -917,7 +917,7 @@ export const LiveCommandCentreView: React.FC = () => {
                 <strong>CLR-2026-014: Diwan Audio Split</strong>
                 <Badge variant="success">Approved (3,500 QAR)</Badge>
               </div>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '11px' }}>
+              <p style={{ margin: 0, color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>
                 Requested by Mr. Hamad Al-Thani. Shure Axient split configured to OB Van.
               </p>
             </div>
@@ -934,7 +934,7 @@ export const LiveCommandCentreView: React.FC = () => {
                 <span>Mutual Sign-off:</span>
                 <Badge variant="success">Acknowledged</Badge>
               </div>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '11px' }}>
+              <p style={{ margin: 0, color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>
                 Safety brief completed: all 8 egress routes clear, QCDD marshals on posts.
               </p>
             </div>
@@ -947,17 +947,17 @@ export const LiveCommandCentreView: React.FC = () => {
         <Card title="VIP Cue Trigger Matrix & Show Caller Sequence (Minute-by-Minute Run Sheet)">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-              <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                 Operational cue execution with Web Audio chime feedback, multi-department telemetry integration, and dynamic show clock variance adjustment.
               </p>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>Total Sequence: <strong>{showCues.length} Governed Cues</strong></span>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Total Sequence: <strong>{showCues.length} Governed Cues</strong></span>
                 <Badge variant="info">Amiri Protocol Signed</Badge>
               </div>
             </div>
 
             {showCues.length === 0 ? (
-              <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                 {isRtl ? 'لا توجد إشارات مسجلة لهذا العرض' : 'No cues registered in the run sheet for this project.'}
               </div>
             ) : (
@@ -972,8 +972,8 @@ export const LiveCommandCentreView: React.FC = () => {
                     <div
                       key={cue.id}
                       style={{
-                        backgroundColor: isLive ? '#faf5ff' : isCurrentArmed ? '#f0fdf4' : isHold ? '#fffbeb' : '#ffffff',
-                        border: `2px solid ${isLive ? '#a855f7' : isCurrentArmed ? '#22c55e' : isHold ? '#f59e0b' : '#e2e8f0'}`,
+                        backgroundColor: isLive ? '#faf5ff' : isCurrentArmed ? '#f0fdf4' : isHold ? '#fffbeb' : 'var(--surface-1, #0f1624)',
+                        border: `2px solid ${isLive ? '#a855f7' : isCurrentArmed ? '#22c55e' : isHold ? '#f59e0b' : 'var(--border-default, #2a374b)'}`,
                         borderRadius: '8px',
                         padding: '16px',
                         display: 'flex',
@@ -985,7 +985,7 @@ export const LiveCommandCentreView: React.FC = () => {
                     >
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: '#0f172a' }}>
+                          <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: 'var(--text-primary, #f8fafc)' }}>
                             {cue.code}
                           </span>
                           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -1000,23 +1000,23 @@ export const LiveCommandCentreView: React.FC = () => {
                           </div>
                         </div>
 
-                        <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                           {cue.title}
                         </h4>
 
-                        <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#475569' }}>
+                        <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                           {cue.notes}
                         </p>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', color: '#64748b' }}>
-                          <div>Dept: <strong style={{ color: '#334155' }}>{cue.department}</strong></div>
-                          <div>Target: <strong style={{ color: '#334155' }}>{cue.scheduledTime} AST</strong></div>
-                          <div>Duration: <strong style={{ color: '#334155' }}>{cue.durationMinutes} mins</strong></div>
-                          <div>Seq Index: <strong style={{ color: '#334155' }}>#{index + 1}</strong></div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
+                          <div>Dept: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{cue.department}</strong></div>
+                          <div>Target: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{cue.scheduledTime} AST</strong></div>
+                          <div>Duration: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{cue.durationMinutes} mins</strong></div>
+                          <div>Seq Index: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>#{index + 1}</strong></div>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '12px', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--border-default, #2a374b)', paddingTop: '12px', marginTop: '4px' }}>
                         {!isCompleted && (
                           <Button
                             variant={isCurrentArmed ? 'primary' : 'outline'}
@@ -1060,16 +1060,16 @@ export const LiveCommandCentreView: React.FC = () => {
       {activeTab === 'audience' && (
         <Card title="Audience Density & Ingress Projection Engine">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-            <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0f172a' }}>Capacity Utilization</h4>
+            <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>Capacity Utilization</h4>
               <div style={{ fontSize: '32px', fontWeight: 800, color: '#0284c7' }}>{audience?.occupancyPercentage ?? (isDemo ? 72 : 0)}%</div>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 Current Inside: <strong>{(audience?.currentInside ?? (isDemo ? 10850 : 0)).toLocaleString()}</strong> / Venue Max: <strong>{(audience?.venueCapacity ?? (isDemo ? 15000 : 0)).toLocaleString()}</strong>
               </p>
             </div>
 
-            <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0f172a' }}>Flow Rate Telemetry</h4>
+            <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>Flow Rate Telemetry</h4>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', margin: '8px 0' }}>
                 <span>Ingress Gates:</span>
                 <strong>+{(audience?.ingressRatePerHour ?? (isDemo ? 1400 : 0))} pax/hr</strong>
@@ -1080,9 +1080,9 @@ export const LiveCommandCentreView: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0f172a' }}>Peak Forecast & Metering</h4>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>Peak Forecast & Metering</h4>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 {(audience?.peakProjectedHeadcount ?? (isDemo ? 12950 : 0)).toLocaleString()} pax peak
               </div>
               <div style={{ marginTop: '8px' }}>
@@ -1113,23 +1113,23 @@ export const LiveCommandCentreView: React.FC = () => {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-              <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
+              <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <Badge variant="neutral">LEVEL 1: ROUTINE</Badge>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>SLA: 60 Minutes</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>SLA: 60 Minutes</span>
                 </div>
-                <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: '#0f172a' }}>Minor Field Snags</h4>
-                <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
+                <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>Minor Field Snags</h4>
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.5 }}>
                   Scuffed fascia paint, cable ramp adjustments, minor decorative fabric fixes. Handled by roaming civil site crew.
                 </p>
               </div>
 
-              <div style={{ border: '1px solid #fde68a', borderRadius: '8px', padding: '16px', backgroundColor: '#fffbeb' }}>
+              <div style={{ border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '16px', backgroundColor: 'rgba(245, 158, 11, 0.12)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <Badge variant="warning">LEVEL 2: OPERATIONAL</Badge>
                   <span style={{ fontSize: '11px', color: '#b45309' }}>SLA: 15 Minutes</span>
                 </div>
-                <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: '#92400e' }}>Show Flow Impact</h4>
+                <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: '#f59e0b' }}>Show Flow Impact</h4>
                 <p style={{ margin: 0, fontSize: '12px', color: '#78350f', lineHeight: 1.5 }}>
                   Video processor heat throttle, line-array amplifier failover, stage turntable latency. Handled by senior department leads.
                 </p>
@@ -1147,14 +1147,14 @@ export const LiveCommandCentreView: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-              <div style={{ padding: '12px 16px', backgroundColor: '#0f172a', color: '#ffffff', fontWeight: 700, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ padding: '12px 16px', backgroundColor: 'var(--text-primary, #f8fafc)', color: 'var(--surface-1, #0f1624)', fontWeight: 700, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>Active Incident Dispatch Register & Cryptographic Hash Chain</span>
                 <span style={{ fontSize: '11px', color: '#94a3b8' }}>Live Telemetry Sync</span>
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
                     <th style={{ padding: '12px 16px' }}>Incident Code</th>
                     <th style={{ padding: '12px 16px' }}>Tier</th>
                     <th style={{ padding: '12px 16px' }}>Issue Description</th>
@@ -1168,12 +1168,12 @@ export const LiveCommandCentreView: React.FC = () => {
                 <tbody>
                   {emergencyIncidents.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={8} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                         {isRtl ? 'لا توجد حوادث طوارئ مفتوحة — كافة الأنظمة آمنة' : 'No active emergency incidents recorded — All systems normal'}
                       </td>
                     </tr>
                   ) : emergencyIncidents.map((inc) => (
-                    <tr key={inc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <tr key={inc.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                       <td style={{ padding: '12px 16px', fontWeight: 700, fontFamily: 'monospace' }}>{inc.id}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <Badge variant={inc.tier.startsWith('L3') ? 'danger' : inc.tier.startsWith('L2') ? 'warning' : 'neutral'}>
@@ -1185,8 +1185,8 @@ export const LiveCommandCentreView: React.FC = () => {
                       <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: inc.tier.startsWith('L3') ? '#dc2626' : '#b45309', fontWeight: 700 }}>
                         {inc.slaMinutes}m SLA ({inc.status.toUpperCase()})
                       </td>
-                      <td style={{ padding: '12px 16px', color: '#334155' }}>{inc.dispatchedMarshal}</td>
-                      <td style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                      <td style={{ padding: '12px 16px', color: 'var(--text-secondary, #cbd5e1)' }}>{inc.dispatchedMarshal}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                         {inc.auditHash}
                       </td>
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>

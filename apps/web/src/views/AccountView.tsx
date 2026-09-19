@@ -62,10 +62,10 @@ export const AccountView: React.FC = () => {
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 0', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
+          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
             {currentLanguage === 'ar' ? 'الملف الشخصي والحساب' : 'User Account & Security'}
           </h2>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             {currentLanguage === 'ar' ? 'إدارة بيانات المصادقة والجلسة النشطة وصلاحيات النظام' : 'Manage your enterprise credentials, active session context, and RBAC profile'}
           </p>
         </div>
@@ -85,28 +85,28 @@ export const AccountView: React.FC = () => {
       <Card title="Identity & Membership" subtitle="Server-authenticated tenant credentials">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           <div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Full Name</div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a' }}>{currentUser?.name || 'User'}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginBottom: '4px' }}>Full Name</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{currentUser?.name || 'User'}</div>
           </div>
           <div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Work Email</div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a' }}>{currentUser?.email || ''}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginBottom: '4px' }}>Work Email</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{currentUser?.email || ''}</div>
           </div>
           <div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Active Role</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginBottom: '4px' }}>Active Role</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Badge variant={currentUser?.isSuperAdmin ? 'purple' : 'info'}>
                 {currentUser?.role || 'Super Admin'}
               </Badge>
               {currentUser?.isSuperAdmin && (
-                <span style={{ fontSize: '11px', color: '#7c3aed', fontWeight: 600 }}>Root Governance</span>
+                <span style={{ fontSize: '11px', color: '#a78bfa', fontWeight: 600 }}>Root Governance</span>
               )}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Organization Context</div>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{currentOrg.name}</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'monospace' }}>{currentOrg.id}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginBottom: '4px' }}>Organization Context</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{currentOrg.name}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontFamily: 'monospace' }}>{currentOrg.id}</div>
           </div>
         </div>
       </Card>
@@ -116,8 +116,8 @@ export const AccountView: React.FC = () => {
       <Card title="Multi-Factor Authentication (RFC 6238 TOTP)" subtitle="Hardware authenticator and Google Authenticator protection">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>Two-Factor Security</div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>Two-Factor Security</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               {mfaEnabled ? 'Account protected by time-based one-time password verification.' : 'Enhance account protection with standard 2FA (Google Authenticator, 1Password, etc.)'}
             </div>
           </div>
@@ -140,17 +140,17 @@ export const AccountView: React.FC = () => {
         </div>
 
         {mfaSetupData && (
-          <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '12px' }}>
-            <h4 style={{ margin: '0 0 8px', fontSize: '13px', color: '#0f172a' }}>Step 1: Scan QR or Enter Key</h4>
-            <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px' }}>
+          <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)', marginTop: '12px' }}>
+            <h4 style={{ margin: '0 0 8px', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>Step 1: Scan QR or Enter Key</h4>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', margin: '0 0 12px' }}>
               Add this security key to Google Authenticator or your preferred password manager:
             </p>
-            <div style={{ padding: '8px 12px', backgroundColor: '#0f172a', color: '#38bdf8', fontFamily: 'monospace', borderRadius: '4px', fontSize: '13px', display: 'inline-block', marginBottom: '16px' }}>
+            <div style={{ padding: '8px 12px', backgroundColor: 'var(--text-primary, #f8fafc)', color: '#38bdf8', fontFamily: 'monospace', borderRadius: '4px', fontSize: '13px', display: 'inline-block', marginBottom: '16px' }}>
               {mfaSetupData.secret}
             </div>
 
             <form onSubmit={verifyAndEnableMfa}>
-              <h4 style={{ margin: '0 0 6px', fontSize: '13px', color: '#0f172a' }}>Step 2: Enter 6-Digit Code to Confirm</h4>
+              <h4 style={{ margin: '0 0 6px', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>Step 2: Enter 6-Digit Code to Confirm</h4>
               <div style={{ display: 'flex', gap: '8px', maxWidth: '300px' }}>
                 <input
                   id="mfa-verify-input"
@@ -168,7 +168,7 @@ export const AccountView: React.FC = () => {
                     letterSpacing: '4px',
                     fontFamily: 'monospace',
                     borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
+                    border: '1px solid var(--border-default, #2a374b)',
                   }}
                 />
                 <Button id="mfa-confirm-btn" type="submit" variant="primary" size="md" isLoading={loading}>
@@ -180,14 +180,14 @@ export const AccountView: React.FC = () => {
         )}
 
         {recoveryCodes.length > 0 && (
-          <div style={{ padding: '16px', backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe', marginTop: '16px' }}>
+          <div style={{ padding: '16px', backgroundColor: 'rgba(59, 130, 246, 0.12)', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.3)', marginTop: '16px' }}>
             <h4 style={{ margin: '0 0 6px', fontSize: '13px', color: '#1e3a8a' }}>🔒 Backup Recovery Codes</h4>
             <p style={{ fontSize: '12px', color: '#3b82f6', margin: '0 0 10px' }}>
               Store these single-use recovery codes in a secure location. They allow access if you lose your phone:
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
               {recoveryCodes.map((code, idx) => (
-                <code key={idx} style={{ padding: '4px 8px', backgroundColor: '#fff', border: '1px solid #93c5fd', borderRadius: '4px', fontSize: '12px', textAlign: 'center', fontWeight: 600 }}>
+                <code key={idx} style={{ padding: '4px 8px', backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid #93c5fd', borderRadius: '4px', fontSize: '12px', textAlign: 'center', fontWeight: 600 }}>
                   {code}
                 </code>
               ))}
@@ -201,8 +201,8 @@ export const AccountView: React.FC = () => {
       <Card title="Localization & Environment Preferences" subtitle="Interface language and bidirectional layout">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontWeight: 600, fontSize: '14px', color: '#0f172a' }}>Language Preference</div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>
+            <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>Language Preference</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Currently set to: <strong>{currentLanguage === 'ar' ? 'Arabic (RTL)' : 'English (LTR)'}</strong>
             </div>
           </div>

@@ -121,27 +121,27 @@ export const HistoricalEstimatorView: React.FC = () => {
   }, [capacity, durationDays, fxRate, currency]);
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', color: '#0f172a' }}>
+    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', color: 'var(--text-primary, #f8fafc)' }}>
       {/* Header */}
       <div style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
             📊 Historical Estimating & Dynamic Rate Corridors
           </h1>
           <Badge variant="info">P06-ST03 Governed</Badge>
           <Badge variant="success">Empirical Benchmark</Badge>
         </div>
-        <p style={{ color: '#64748b', marginTop: '6px', fontSize: '13px' }}>
+        <p style={{ color: 'var(--text-muted, #94a3b8)', marginTop: '6px', fontSize: '13px' }}>
           Empirical unit rate corridors, parametric cost forecasting, evidence disclosures, and supplier lead-time intelligence.
         </p>
       </div>
 
       {/* Mandatory Evidence Age & Disclosure Ribbon */}
-      <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px 18px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+      <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', padding: '12px 18px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '20px' }}>ℹ️</span>
           <div>
-            <strong style={{ fontSize: '13px', color: '#1e40af' }}>Evidence Disclosure Standard (AT-080):</strong>
+            <strong style={{ fontSize: '13px', color: '#60a5fa' }}>Evidence Disclosure Standard (AT-080):</strong>
             <div style={{ fontSize: '12px', color: '#3b82f6', marginTop: '2px' }}>
               Corridor data derived from <strong>14 delivered Doha mega-events</strong>. Average evidence age: <strong>42 days</strong>. Outputs reflect empirical benchmarks, not binding quotations.
             </div>
@@ -154,11 +154,11 @@ export const HistoricalEstimatorView: React.FC = () => {
       <Card title="Tender Feasibility & Parametric Forecasting Parameters">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Event Type</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Event Type</label>
             <select
               value={eventType}
               onChange={(e) => setEventType(e.target.value)}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', fontSize: '13px' }}
             >
               <option value="summit">Summit / Conference</option>
               <option value="festival">Festival / Cultural Event</option>
@@ -169,11 +169,11 @@ export const HistoricalEstimatorView: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Venue Type</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Venue Type</label>
             <select
               value={venueType}
               onChange={(e) => setVenueType(e.target.value)}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', fontSize: '13px' }}
             >
               <option value="convention_centre">Convention Centre</option>
               <option value="indoor_arena">Indoor Arena</option>
@@ -183,31 +183,31 @@ export const HistoricalEstimatorView: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Target Capacity</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Target Capacity</label>
             <input
               type="number"
               value={capacity}
               onChange={(e) => setCapacity(Number(e.target.value))}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', fontSize: '13px' }}
             />
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Duration (Days)</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Duration (Days)</label>
             <input
               type="number"
               value={durationDays}
               onChange={(e) => setDurationDays(Number(e.target.value))}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', fontSize: '13px' }}
             />
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>Currency</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Currency</label>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', fontSize: '13px' }}
             >
               <option value="QAR">QAR (Qatari Riyal)</option>
               <option value="USD">USD (US Dollar)</option>
@@ -232,7 +232,7 @@ export const HistoricalEstimatorView: React.FC = () => {
         <Card title="Discipline Empirical Rate Corridors (P25 / P50 / P75)" noPadding>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
                 <th style={{ padding: '12px 16px' }}>Discipline & Category</th>
                 <th style={{ padding: '12px 16px' }}>Unit Basis</th>
                 <th style={{ padding: '12px 16px', textAlign: 'right' }}>P25 Low ({currency})</th>
@@ -244,13 +244,13 @@ export const HistoricalEstimatorView: React.FC = () => {
             </thead>
             <tbody>
               {rateCorridors.map((rc, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                   <td style={{ padding: '12px 16px', fontWeight: 600 }}>{rc.discipline}</td>
-                  <td style={{ padding: '12px 16px', color: '#64748b' }}>{rc.unit}</td>
+                  <td style={{ padding: '12px 16px', color: 'var(--text-muted, #94a3b8)' }}>{rc.unit}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', color: '#059669', fontWeight: 700 }}>
                     {rc.p25.toLocaleString()}
                   </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 800, color: '#0f172a' }}>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                     {rc.p50.toLocaleString()}
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', color: '#d97706', fontWeight: 700 }}>
@@ -277,10 +277,10 @@ export const HistoricalEstimatorView: React.FC = () => {
             {categorySpend.map((c, idx) => (
               <div key={idx}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                  <span style={{ fontWeight: 600, color: '#334155' }}>{c.category}</span>
-                  <span style={{ color: '#64748b' }}>{c.amount} ({c.pct}%)</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>{c.category}</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{c.amount} ({c.pct}%)</span>
                 </div>
-                <div style={{ backgroundColor: '#f1f5f9', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{ backgroundColor: '#0284c7', width: `${c.pct * 2.5}%`, height: '100%' }} />
                 </div>
               </div>
@@ -292,7 +292,7 @@ export const HistoricalEstimatorView: React.FC = () => {
         <Card title="Comparable Delivered Projects (Evidence Base)" noPadding>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>
                 <th style={{ padding: '12px 16px' }}>Project</th>
                 <th style={{ padding: '12px 16px' }}>Actual Cost</th>
                 <th style={{ padding: '12px 16px' }}>Margin</th>
@@ -301,10 +301,10 @@ export const HistoricalEstimatorView: React.FC = () => {
             </thead>
             <tbody>
               {similarProjects.map((p, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                   <td style={{ padding: '12px 16px' }}>
-                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{p.name}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>{p.code} ({p.capacity} pax, {p.days}d)</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{p.name}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{p.code} ({p.capacity} pax, {p.days}d)</div>
                   </td>
                   <td style={{ padding: '12px 16px', fontWeight: 600 }}>{p.cost}</td>
                   <td style={{ padding: '12px 16px', color: '#059669', fontWeight: 700 }}>{p.margin}</td>

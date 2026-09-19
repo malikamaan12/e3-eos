@@ -338,12 +338,12 @@ export const AdminStudioView: React.FC = () => {
     <div data-testid="admin-workspace">
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-          <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+          <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
             {currentLanguage === 'ar' ? 'استوديو الإدارة والحوكمة المركزية' : 'Admin & Governance Configuration Studio'}
           </h1>
           <Badge variant="danger">Restricted Authority</Badge>
         </div>
-        <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+        <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted, #94a3b8)' }}>
           {currentLanguage === 'ar'
             ? 'تكوين مصفوفة السياسات، قوالب المراحل، ومراقبة سجلات التدقيق غير القابلة للتغيير.'
             : 'Configure stage graphs, policy matrices, and inspect immutable audit manifests.'}
@@ -358,16 +358,16 @@ export const AdminStudioView: React.FC = () => {
             {activeTab === 'audit' && (
               <div
                 style={{
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                   borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--border-default, #2a374b)',
                   overflow: 'hidden',
                 }}
               >
                 <div
                   style={{
                     padding: '16px 20px',
-                    borderBottom: '1px solid #e2e8f0',
+                    borderBottom: '1px solid var(--border-default, #2a374b)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -381,7 +381,7 @@ export const AdminStudioView: React.FC = () => {
 
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '12px', color: '#64748b' }}>
+                    <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       <th style={{ padding: '12px 20px' }}>Event Action</th>
                       <th style={{ padding: '12px 20px' }}>Target Entity</th>
                       <th style={{ padding: '12px 20px' }}>Actor</th>
@@ -392,16 +392,16 @@ export const AdminStudioView: React.FC = () => {
                   </thead>
                   <tbody>
                     {auditEvents.map((evt) => (
-                      <tr key={evt.id} style={{ borderBottom: '1px solid #f1f5f9', fontSize: '13px' }}>
+                      <tr key={evt.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', fontSize: '13px' }}>
                         <td style={{ padding: '12px 20px', fontWeight: 600 }}>{evt.action}</td>
                         <td style={{ padding: '12px 20px' }}>
                           <Badge variant="neutral">{evt.entity}</Badge>
                         </td>
                         <td style={{ padding: '12px 20px' }}>{evt.actor}</td>
-                        <td style={{ padding: '12px 20px', color: '#64748b', fontSize: '12px' }}>
+                        <td style={{ padding: '12px 20px', color: 'var(--text-muted, #94a3b8)', fontSize: '12px' }}>
                           {new Date(evt.timestamp).toLocaleString()}
                         </td>
-                        <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontSize: '11px', color: '#475569' }}>
+                        <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>
                           {evt.sha256.substring(0, 16)}...
                         </td>
                         <td style={{ padding: '12px 20px' }}>
@@ -415,13 +415,13 @@ export const AdminStudioView: React.FC = () => {
             )}
 
             {activeTab === 'policies' && (
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
                       {currentLanguage === 'ar' ? 'مصفوفة السياسات وقواعد الأعمال المحكمة' : 'Policy Matrix & Authority Limits Studio'}
                     </h3>
-                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                       {currentLanguage === 'ar'
                         ? 'سياسات إصدارية محددة غير قابلة للتجاوز من طرف واحد دون استثناء معتمد'
                         : 'Typed, versioned business policies enforced deterministically across all runtime transactions'}
@@ -432,45 +432,45 @@ export const AdminStudioView: React.FC = () => {
 
                 {/* Policy Cards Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
+                  <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>POL-FIN-01: Margin Floor (35%)</span>
+                      <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>POL-FIN-01: Margin Floor (35%)</span>
                       <Badge variant="success">Enforced</Badge>
                     </div>
-                    <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginBottom: '10px' }}>
                       Minimum 35% gross contribution margin required for all commercial contract submissions.
                     </div>
                     <div style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600 }}>Authority: Commercial Director Sign-off</div>
                   </div>
 
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
+                  <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>POL-SAFE-01: Critical Readiness Gate</span>
+                      <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>POL-SAFE-01: Critical Readiness Gate</span>
                       <Badge variant="success">Enforced</Badge>
                     </div>
-                    <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginBottom: '10px' }}>
                       Stage 11 doors open strictly prohibited if civil defense or structural inspection is missing or failed.
                     </div>
                     <div style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600 }}>Authority: Qatar Civil Defense + E3 HSE Lead</div>
                   </div>
 
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
+                  <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>POL-PROC-01: Dual-Signature POs</span>
+                      <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>POL-PROC-01: Dual-Signature POs</span>
                       <Badge variant="success">Enforced</Badge>
                     </div>
-                    <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginBottom: '10px' }}>
                       Any purchase order or subcontract commitment &gt; 50,000 QAR requires independent dual signatures.
                     </div>
                     <div style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600 }}>Authority: PM + Financial Controller</div>
                   </div>
 
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
+                  <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>POL-AUD-01: Cryptographic Manifests</span>
+                      <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>POL-AUD-01: Cryptographic Manifests</span>
                       <Badge variant="success">Enforced</Badge>
                     </div>
-                    <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginBottom: '10px' }}>
                       All state changes, drawing freezes, and closeouts must write SHA-256 digests to the immutable log.
                     </div>
                     <div style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600 }}>Authority: Automated System Guard</div>
@@ -478,7 +478,7 @@ export const AdminStudioView: React.FC = () => {
                 </div>
 
                 {/* Interactive Policy Simulator */}
-                <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '20px', backgroundColor: '#ffffff' }}>
+                <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '20px', backgroundColor: 'var(--surface-1, #0f1624)' }}>
                   <h4 style={{ margin: '0 0 12px 0', fontSize: '15px' }}>
                     {currentLanguage === 'ar' ? 'محاكي تقييم القواعد المباشر (Policy Dry-Run)' : 'Live Policy Dry-Run Evaluation Simulator'}
                   </h4>
@@ -487,21 +487,21 @@ export const AdminStudioView: React.FC = () => {
                       <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Simulate POL-FIN-01 Margin:</div>
                       <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                         <div>
-                          <label style={{ fontSize: '11px', color: '#64748b' }}>Revenue (QAR)</label>
+                          <label style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Revenue (QAR)</label>
                           <input
                             type="number"
                             value={simRevenue}
                             onChange={(e) => setSimRevenue(Number(e.target.value))}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
                           />
                         </div>
                         <div>
-                          <label style={{ fontSize: '11px', color: '#64748b' }}>Cost EAC (QAR)</label>
+                          <label style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Cost EAC (QAR)</label>
                           <input
                             type="number"
                             value={simCost}
                             onChange={(e) => setSimCost(Number(e.target.value))}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
                           />
                         </div>
                       </div>
@@ -542,13 +542,13 @@ export const AdminStudioView: React.FC = () => {
             )}
 
             {activeTab === 'templates' && (
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
                       {currentLanguage === 'ar' ? 'استوديو قوالب دورات الحياة المعيارية' : 'Lifecycle Stage Graph Template Studio'}
                     </h3>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                       {currentLanguage === 'ar'
                         ? 'مخططات موجهة لاحلقية (DAG) تدعم المسارات المتوازية واستنساخ الكيانات الإقليمية'
                         : 'Acyclic Directed Graphs (DAG) preventing circular dependencies and supporting regional overlays'}
@@ -564,8 +564,8 @@ export const AdminStudioView: React.FC = () => {
                         fontWeight: 600,
                         fontSize: '12px',
                         cursor: 'pointer',
-                        backgroundColor: selectedTemplateId === 'tmpl-standard-13-stage' ? '#2563eb' : '#f1f5f9',
-                        color: selectedTemplateId === 'tmpl-standard-13-stage' ? '#ffffff' : '#475569',
+                        backgroundColor: selectedTemplateId === 'tmpl-standard-13-stage' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+                        color: selectedTemplateId === 'tmpl-standard-13-stage' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                       }}
                     >
                       13-Stage Standard (312 Activities)
@@ -579,8 +579,8 @@ export const AdminStudioView: React.FC = () => {
                         fontWeight: 600,
                         fontSize: '12px',
                         cursor: 'pointer',
-                        backgroundColor: selectedTemplateId === 'tmpl-compressed-5-stage' ? '#2563eb' : '#f1f5f9',
-                        color: selectedTemplateId === 'tmpl-compressed-5-stage' ? '#ffffff' : '#475569',
+                        backgroundColor: selectedTemplateId === 'tmpl-compressed-5-stage' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+                        color: selectedTemplateId === 'tmpl-compressed-5-stage' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                       }}
                     >
                       5-Stage Compressed Fast-Track
@@ -604,10 +604,10 @@ export const AdminStudioView: React.FC = () => {
 
                   return (
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', marginBottom: '16px' }}>
                         <div>
-                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{tmpl.name}</div>
-                          <div style={{ fontSize: '13px', color: '#64748b' }}>{tmpl.description}</div>
+                          <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{tmpl.name}</div>
+                          <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>{tmpl.description}</div>
                         </div>
                         <Button
                           size="sm"
@@ -620,13 +620,13 @@ export const AdminStudioView: React.FC = () => {
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
                         {tmpl.stages.map((stage) => (
-                          <div key={stage.templateStageId} style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '14px', backgroundColor: '#ffffff' }}>
+                          <div key={stage.templateStageId} style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '14px', backgroundColor: 'var(--surface-1, #0f1624)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                               <span style={{ fontSize: '12px', fontWeight: 800, color: '#2563eb' }}>{stage.templateStageId}</span>
                               <Badge variant="neutral">Order {stage.defaultOrder}</Badge>
                             </div>
                             <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>{stage.name}</div>
-                            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>{stage.description}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginBottom: '8px' }}>{stage.description}</div>
                             {selectedTemplateId === 'tmpl-standard-13-stage' && (
                               <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>
                                 📋 24 Normative Activities Preconfigured
@@ -650,8 +650,8 @@ export const AdminStudioView: React.FC = () => {
 
                 {/* Separation of Duties Notice */}
                 <div style={{
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #cbd5e1',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '8px',
                   padding: '16px',
                   display: 'flex',
@@ -660,10 +660,10 @@ export const AdminStudioView: React.FC = () => {
                 }}>
                   <div style={{ fontSize: '24px' }}>⚖️</div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                    <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                       {currentLanguage === 'ar' ? 'ضوابط الفصل بين المهام (S21 / S22 / Invariant AT-011)' : 'Separation of Duties & Break-Glass Governance (S21 / S22 / Invariant AT-011)'}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                       {currentLanguage === 'ar'
                         ? 'تخضع جميع الموافقات والاستثناءات للربط المشفر بالنسخة المعتمدة (SHA-256). يُحظر ذاتياً اعتماد المعاملة من قبل منشئها.'
                         : 'Approval decisions are cryptographically pinned to the exact SHA-256 target version hash. Self-approval by transaction originators is blocked.'}
@@ -672,13 +672,13 @@ export const AdminStudioView: React.FC = () => {
                 </div>
 
                 {/* Section 1: Approval Requests Queue */}
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '20px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '20px', border: '1px solid var(--border-default, #2a374b)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <div>
                       <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
                         {currentLanguage === 'ar' ? 'طابور طلبات الاعتماد والموافقة الفورية (M06)' : 'Dual-Signoff Approval Requests Queue (M06)'}
                       </h3>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         {currentLanguage === 'ar' ? 'طلبات بانتظار توقيع أصحاب الصلاحية المعينين' : 'Pending authorizations awaiting designated commercial & technical authority signoff'}
                       </div>
                     </div>
@@ -688,7 +688,7 @@ export const AdminStudioView: React.FC = () => {
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
+                        <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
                           <th style={{ padding: '10px 12px', fontWeight: 600 }}>ID</th>
                           <th style={{ padding: '10px 12px', fontWeight: 600 }}>Target Type</th>
                           <th style={{ padding: '10px 12px', fontWeight: 600 }}>SHA-256 Target Hash</th>
@@ -699,12 +699,12 @@ export const AdminStudioView: React.FC = () => {
                       </thead>
                       <tbody>
                         {approvalRequests.map((req) => (
-                          <tr key={req.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                             <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{req.id}</td>
                             <td style={{ padding: '12px' }}>
                               <Badge variant="purple">{req.targetType.toUpperCase()}</Badge>
                             </td>
-                            <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#475569' }}>
+                            <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>
                               {req.targetHash ? req.targetHash.substring(0, 16) + '...' : 'N/A'}
                             </td>
                             <td style={{ padding: '12px', fontWeight: 500 }}>{req.requiredRole}</td>
@@ -736,13 +736,13 @@ export const AdminStudioView: React.FC = () => {
                 </div>
 
                 {/* Section 2: Active Exceptions Register */}
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '20px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '20px', border: '1px solid var(--border-default, #2a374b)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <div>
                       <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
                         {currentLanguage === 'ar' ? 'سجل الاستثناءات المعتمدة ومتابعة الإغلاق (M06)' : 'Active Exceptions Register & Review Closure (M06)'}
                       </h3>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         {currentLanguage === 'ar' ? 'استثناءات أحادية الاستخدام مع التزام إغلاق المراجعة اللاحقة' : 'Single-use bounded exceptions with mandatory post-event audit review (Invariant AT-014)'}
                       </div>
                     </div>
@@ -752,7 +752,7 @@ export const AdminStudioView: React.FC = () => {
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
+                        <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
                           <th style={{ padding: '10px 12px', fontWeight: 600 }}>Exception ID</th>
                           <th style={{ padding: '10px 12px', fontWeight: 600 }}>Rule Bypass Scope</th>
                           <th style={{ padding: '10px 12px', fontWeight: 600 }}>Justification Reason</th>
@@ -763,12 +763,12 @@ export const AdminStudioView: React.FC = () => {
                       </thead>
                       <tbody>
                         {exceptionsList.map((exc) => (
-                          <tr key={exc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <tr key={exc.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                             <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{exc.id}</td>
                             <td style={{ padding: '12px' }}>
                               <Badge variant="info">{exc.scope?.ruleIds ? exc.scope.ruleIds[0] : (exc.ruleId || 'Rule')}</Badge>
                             </td>
-                            <td style={{ padding: '12px', color: '#334155', maxWidth: '280px' }}>{exc.reason}</td>
+                            <td style={{ padding: '12px', color: 'var(--text-secondary, #cbd5e1)', maxWidth: '280px' }}>{exc.reason}</td>
                             <td style={{ padding: '12px', fontWeight: 700 }}>{exc.remainingUses} / {exc.maxUses}</td>
                             <td style={{ padding: '12px' }}>
                               <Badge variant={exc.status === 'closed' ? 'success' : 'purple'}>
@@ -803,10 +803,10 @@ export const AdminStudioView: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Header Banner */}
                 <div style={{
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                   borderRadius: '8px',
                   padding: '20px 24px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--border-default, #2a374b)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -815,12 +815,12 @@ export const AdminStudioView: React.FC = () => {
                 }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                         {currentLanguage === 'ar' ? 'بوابة القبول النهائي للإنتاج والتمارين التشغيلية (P07)' : 'Production Release Gate & Operational Drills (P07)'}
                       </h3>
                       <Badge variant="purple">Formal Acceptance Gate</Badge>
                     </div>
-                    <div style={{ fontSize: '13px', color: '#64748b' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                       {currentLanguage === 'ar'
                         ? 'التحقق الصارم من جاهزية الإطلاق، حظر نقاط النهاية الوهمية، واختبارات التعافي دون مساس بالسجلات'
                         : 'Rigorous go-live gate checks, mock endpoint blockers (AT-089), non-destructive rollback (AT-088), and disaster recovery drills (AT-087)'}
@@ -844,19 +844,19 @@ export const AdminStudioView: React.FC = () => {
                   </div>
                 )}
                 {rollbackResult && (
-                  <div style={{ padding: '12px 16px', borderRadius: '6px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', fontSize: '13px', color: '#1e40af', fontWeight: 600 }}>
+                  <div style={{ padding: '12px 16px', borderRadius: '6px', backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', fontSize: '13px', color: '#60a5fa', fontWeight: 600 }}>
                     {rollbackResult}
                   </div>
                 )}
 
                 {/* Section 1: Pre-Flight Production Gate Verifier (AT-089) */}
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
                         {currentLanguage === 'ar' ? '1. فاحص بوابة الإطلاق للإنتاج وحظر الروابط التجريبية (AT-089)' : '1. Pre-Flight Production Gate & Mock Endpoint Blocker (AT-089)'}
                       </h4>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         {currentLanguage === 'ar'
                           ? 'في بيئة الإنتاج، يُحظر تماماً الإطلاق بوجود أي موصل تجريبي أو خادم محلي وهمي'
                           : 'In production, mock endpoints or unverified provider credentials strictly block release'}
@@ -869,7 +869,7 @@ export const AdminStudioView: React.FC = () => {
                         <select
                           value={gateEnvironment}
                           onChange={(e) => setGateEnvironment(e.target.value as any)}
-                          style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
+                          style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', fontSize: '12px', fontWeight: 600 }}
                         >
                           <option value="production">Production (Doha GCP)</option>
                           <option value="development">Development / Staging</option>
@@ -895,7 +895,7 @@ export const AdminStudioView: React.FC = () => {
                   <div style={{ overflowX: 'auto', marginBottom: '16px' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
+                        <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
                           <th style={{ padding: '8px 10px', fontWeight: 600 }}>Connector ID</th>
                           <th style={{ padding: '8px 10px', fontWeight: 600 }}>Target Service</th>
                           <th style={{ padding: '8px 10px', fontWeight: 600 }}>Endpoint URL</th>
@@ -904,21 +904,21 @@ export const AdminStudioView: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                           <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 600 }}>conn-erp-odoo</td>
                           <td style={{ padding: '8px 10px' }}>E3 ERP Billing & Ledger Mirror</td>
                           <td style={{ padding: '8px 10px', fontFamily: 'monospace', color: '#059669' }}>https://doha-erp.e3events.qa/api/v1</td>
                           <td style={{ padding: '8px 10px' }}><Badge variant="success">PRODUCTION</Badge></td>
                           <td style={{ padding: '8px 10px', color: '#059669', fontWeight: 600 }}>✓ Verified GCP Secret</td>
                         </tr>
-                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                           <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 600 }}>conn-banking-qnb</td>
                           <td style={{ padding: '8px 10px' }}>Qatar National Bank Corporate API</td>
                           <td style={{ padding: '8px 10px', fontFamily: 'monospace', color: '#059669' }}>https://corporate.qnb.com.qa/api/v2</td>
                           <td style={{ padding: '8px 10px' }}><Badge variant="success">PRODUCTION</Badge></td>
                           <td style={{ padding: '8px 10px', color: '#059669', fontWeight: 600 }}>✓ Mutually Authenticated TLS</td>
                         </tr>
-                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                           <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 600 }}>conn-qcdd-civil-defense</td>
                           <td style={{ padding: '8px 10px' }}>Ministry of Interior / QCDD Permits</td>
                           <td style={{ padding: '8px 10px', fontFamily: 'monospace', color: '#059669' }}>https://services.moi.gov.qa/qcdd</td>
@@ -926,9 +926,9 @@ export const AdminStudioView: React.FC = () => {
                           <td style={{ padding: '8px 10px', color: '#059669', fontWeight: 600 }}>✓ API Key & Client Cert</td>
                         </tr>
                         {includeMockConnector && (
-                          <tr style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#fef2f2' }}>
-                            <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 600, color: '#b91c1c' }}>conn-mock-logistics</td>
-                            <td style={{ padding: '8px 10px', color: '#991b1b' }}>Local Fleet GPS Simulator</td>
+                          <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', backgroundColor: 'rgba(239, 68, 68, 0.12)' }}>
+                            <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 600, color: '#ef4444' }}>conn-mock-logistics</td>
+                            <td style={{ padding: '8px 10px', color: '#f87171' }}>Local Fleet GPS Simulator</td>
                             <td style={{ padding: '8px 10px', fontFamily: 'monospace', color: '#dc2626' }}>http://localhost:9999/mock-tracking</td>
                             <td style={{ padding: '8px 10px' }}><Badge variant="danger">MOCK / STUB</Badge></td>
                             <td style={{ padding: '8px 10px', color: '#dc2626', fontWeight: 600 }}>❌ Unverified Mock Key</td>
@@ -957,7 +957,7 @@ export const AdminStudioView: React.FC = () => {
 
                       {gateEvaluationResult.blockers?.length > 0 && (
                         <div style={{ marginTop: '8px' }}>
-                          <div style={{ fontSize: '12px', fontWeight: 700, color: '#991b1b', marginBottom: '4px' }}>Active Blocker(s):</div>
+                          <div style={{ fontSize: '12px', fontWeight: 700, color: '#f87171', marginBottom: '4px' }}>Active Blocker(s):</div>
                           {gateEvaluationResult.blockers.map((b: string, idx: number) => (
                             <div key={idx} style={{ fontSize: '12px', color: '#7f1d1d', marginLeft: '12px', marginBottom: '2px' }}>
                               • {b}
@@ -968,7 +968,7 @@ export const AdminStudioView: React.FC = () => {
 
                       {gateEvaluationResult.warnings?.length > 0 && (
                         <div style={{ marginTop: '8px' }}>
-                          <div style={{ fontSize: '12px', fontWeight: 700, color: '#92400e', marginBottom: '4px' }}>Non-Production Warnings:</div>
+                          <div style={{ fontSize: '12px', fontWeight: 700, color: '#f59e0b', marginBottom: '4px' }}>Non-Production Warnings:</div>
                           {gateEvaluationResult.warnings.map((w: string, idx: number) => (
                             <div key={idx} style={{ fontSize: '12px', color: '#78350f', marginLeft: '12px' }}>
                               • {w}
@@ -981,13 +981,13 @@ export const AdminStudioView: React.FC = () => {
                 </div>
 
                 {/* Section 2: Independent Security & Compliance Attestation (AT-091) */}
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
                         {currentLanguage === 'ar' ? '2. مصفوفة التحقق الأمني والفصل التام بين الكيانات (AT-091)' : '2. Independent Security Assessment & Tenant Boundary Defense (AT-091)'}
                       </h4>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         {currentLanguage === 'ar' ? 'نتائج التدقيق المستقل على مستوى طبقات البيانات والتطبيق' : 'Verified against OWASP ASVS 4.0 and E3 Master Developer Handover security invariants'}
                       </div>
                     </div>
@@ -995,42 +995,42 @@ export const AdminStudioView: React.FC = () => {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-                    <div style={{ padding: '14px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+                    <div style={{ padding: '14px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontWeight: 700, fontSize: '13px' }}>Multi-Tenant RLS</span>
                         <Badge variant="success">ENFORCED</Badge>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         All 53 queries filtered by organisationId. Zero data leakage across tenant boundaries.
                       </div>
                     </div>
 
-                    <div style={{ padding: '14px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+                    <div style={{ padding: '14px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontWeight: 700, fontSize: '13px' }}>Document Quarantine</span>
                         <Badge variant="success">ACTIVE</Badge>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         ClamAV sandbox defense with MIME type strict whitelist and 50MB size ceilings.
                       </div>
                     </div>
 
-                    <div style={{ padding: '14px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+                    <div style={{ padding: '14px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontWeight: 700, fontSize: '13px' }}>RFC 7807 Idempotency</span>
                         <Badge variant="success">ACTIVE</Badge>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         Guarantees exactly-once execution on financial and reservation commands.
                       </div>
                     </div>
 
-                    <div style={{ padding: '14px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+                    <div style={{ padding: '14px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontWeight: 700, fontSize: '13px' }}>SHA-256 Audit Chain</span>
                         <Badge variant="success">VALID</Badge>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         Every policy snapshot, commercial proposal, and decision pinned to cryptographic digests.
                       </div>
                     </div>
@@ -1038,13 +1038,13 @@ export const AdminStudioView: React.FC = () => {
                 </div>
 
                 {/* Section 3: Operational Support Runbook Simulator (AT-092 / RB01-RB12) */}
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
                         {currentLanguage === 'ar' ? '3. محاكي أدلة التشغيل وحل الأعطال التشغيلية (AT-092 / RB01-RB12)' : '3. Operational Support Runbook Simulator (AT-092 / RB01-RB12)'}
                       </h4>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         {currentLanguage === 'ar'
                           ? 'اختبار استجابة المشغلين المعتمدين لجميع حالات الطوارئ والتعافي دون مساس بالسجلات التاريخية'
                           : 'Demonstrates named owner incident response, immediate containment, and recovery without mutating audit history'}
@@ -1057,7 +1057,7 @@ export const AdminStudioView: React.FC = () => {
                     {/* Left: Controls */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#334155' }}>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--text-secondary, #cbd5e1)' }}>
                           Select Operational Incident Scenario:
                         </label>
                         <select
@@ -1067,10 +1067,10 @@ export const AdminStudioView: React.FC = () => {
                             width: '100%',
                             padding: '8px 12px',
                             borderRadius: '6px',
-                            border: '1px solid #cbd5e1',
+                            border: '1px solid var(--border-default, #2a374b)',
                             fontSize: '13px',
                             fontWeight: 600,
-                            backgroundColor: '#ffffff'
+                            backgroundColor: 'var(--surface-1, #0f1624)'
                           }}
                         >
                           {RUNBOOKS_CATALOG.map((rb) => (
@@ -1082,7 +1082,7 @@ export const AdminStudioView: React.FC = () => {
                       </div>
 
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#334155' }}>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--text-secondary, #cbd5e1)' }}>
                           Incident Observation & Telemetry Details:
                         </label>
                         <textarea
@@ -1093,7 +1093,7 @@ export const AdminStudioView: React.FC = () => {
                             width: '100%',
                             padding: '8px 12px',
                             borderRadius: '6px',
-                            border: '1px solid #cbd5e1',
+                            border: '1px solid var(--border-default, #2a374b)',
                             fontSize: '12px',
                             fontFamily: 'monospace',
                             boxSizing: 'border-box'
@@ -1117,8 +1117,8 @@ export const AdminStudioView: React.FC = () => {
                     <div>
                       {supportDrillResult ? (
                         <div style={{
-                          backgroundColor: '#f8fafc',
-                          border: '1px solid #cbd5e1',
+                          backgroundColor: 'var(--surface-2, #151e2e)',
+                          border: '1px solid var(--border-default, #2a374b)',
                           borderRadius: '8px',
                           padding: '16px',
                           display: 'flex',
@@ -1128,7 +1128,7 @@ export const AdminStudioView: React.FC = () => {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <Badge variant="purple">{supportDrillResult.runbookId || selectedRunbook}</Badge>
-                              <span style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>
+                              <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
                                 Drill Resolution Status
                               </span>
                             </div>
@@ -1136,10 +1136,10 @@ export const AdminStudioView: React.FC = () => {
                           </div>
 
                           <div style={{ borderLeft: '3px solid #3b82f6', paddingLeft: '10px' }}>
-                            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#1d4ed8' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#60a5fa' }}>
                               Immediate Containment Action
                             </div>
-                            <div style={{ fontSize: '12px', color: '#1e293b', marginTop: '2px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                               {supportDrillResult.immediateAction || supportDrillResult.runbookActionTaken}
                             </div>
                           </div>
@@ -1148,7 +1148,7 @@ export const AdminStudioView: React.FC = () => {
                             <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#047857' }}>
                               Recovery & Evidence Procedure
                             </div>
-                            <div style={{ fontSize: '12px', color: '#1e293b', marginTop: '2px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                               {supportDrillResult.recoveryAndEvidence || 'Preserved forensic audit trail with verified cryptographic signature.'}
                             </div>
                           </div>
@@ -1158,25 +1158,25 @@ export const AdminStudioView: React.FC = () => {
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             paddingTop: '8px',
-                            borderTop: '1px solid #e2e8f0',
+                            borderTop: '1px solid var(--border-default, #2a374b)',
                             fontSize: '11px'
                           }}>
                             <span style={{ color: '#059669', fontWeight: 600 }}>
                               ✓ Invariant AT-092: Historical Audit Trail Immutability Preserved
                             </span>
-                            <span style={{ color: '#64748b', fontFamily: 'monospace' }}>
+                            <span style={{ color: 'var(--text-muted, #94a3b8)', fontFamily: 'monospace' }}>
                               Incident: {supportDrillResult.incidentType}
                             </span>
                           </div>
                         </div>
                       ) : (
                         <div style={{
-                          backgroundColor: '#f8fafc',
-                          border: '1px dashed #cbd5e1',
+                          backgroundColor: 'var(--surface-2, #151e2e)',
+                          border: '1px dashed var(--border-default, #2a374b)',
                           borderRadius: '8px',
                           padding: '24px',
                           textAlign: 'center',
-                          color: '#64748b',
+                          color: 'var(--text-muted, #94a3b8)',
                           fontSize: '13px'
                         }}>
                           Select a runbook from the left and click <strong>Execute Runbook Incident Drill</strong> to simulate operator triage and recovery under Invariant AT-092.
@@ -1189,45 +1189,45 @@ export const AdminStudioView: React.FC = () => {
             )}
             {activeTab === 'rls-isolation' && (
               <div id="rls-isolation-workbench" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                           🛡️ Multi-Tenant RLS Data Isolation & Connection Pool Sanitization (P00-ST01 / AT-001, AT-007)
                         </h3>
                         <Badge variant="success">RLS ENFORCED</Badge>
                         <Badge variant="info">ZERO EXISTENCE LEAKAGE</Badge>
                       </div>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                      <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                         Verifies cryptographic multi-tenant boundaries. Requests outside tenant scope return 404 with zero metadata leakage (AT-001). Database connection pooling executes mandatory transaction-local session resets (AT-007).
                       </p>
                     </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                    <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>Active Primary Tenant</div>
-                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>org-e3-qatar</div>
+                    <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)' }}>Active Primary Tenant</div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>org-e3-qatar</div>
                       <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>State of Qatar Operational Boundary</div>
                     </div>
-                    <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>Cross-Scope Deny Rate</div>
+                    <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)' }}>Cross-Scope Deny Rate</div>
                       <div style={{ fontSize: '16px', fontWeight: 800, color: '#059669', marginTop: '4px' }}>100.0% Rejected</div>
-                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>AT-001 Invariant Verified</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>AT-001 Invariant Verified</div>
                     </div>
-                    <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>Pool Connection Hygiene</div>
+                    <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)' }}>Pool Connection Hygiene</div>
                       <div style={{ fontSize: '16px', fontWeight: 800, color: '#2563eb', marginTop: '4px' }}>SET LOCAL Reset: OK</div>
-                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>AT-007 Zero Session Bleed</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>AT-007 Zero Session Bleed</div>
                     </div>
                   </div>
 
                   {/* Cross-Scope Attack Simulator */}
-                  <div style={{ backgroundColor: '#fef2f2', border: '1px solid #f87171', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
+                  <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                       <span style={{ fontSize: '18px' }}>⚔️</span>
-                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#991b1b' }}>
+                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#f87171' }}>
                         Cross-Scope Penetration Probe Simulator (AT-001)
                       </h4>
                     </div>
@@ -1243,7 +1243,7 @@ export const AdminStudioView: React.FC = () => {
                         <select
                           value={rlsAttackerTenant}
                           onChange={(e) => setRlsAttackerTenant(e.target.value as any)}
-                          style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #fca5a5', fontSize: '13px', backgroundColor: '#fff' }}
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '13px', backgroundColor: 'var(--surface-1, #0f1624)' }}
                         >
                           <option value="org-vip-dubai">org-vip-dubai (External Subsidiary)</option>
                           <option value="org-adversary-sim">org-adversary-sim (Unauthorized External Actor)</option>
@@ -1257,7 +1257,7 @@ export const AdminStudioView: React.FC = () => {
                         <select
                           value={rlsTargetResource}
                           onChange={(e) => setRlsTargetResource(e.target.value as any)}
-                          style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #fca5a5', fontSize: '13px', backgroundColor: '#fff' }}
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '13px', backgroundColor: 'var(--surface-1, #0f1624)' }}
                         >
                           <option value="PRJ-QND26-BUDGET">PRJ-QND26 Commercial Budget (160,000 QAR)</option>
                           <option value="ATTACHMENT-PAYROLL-2026">CONFIDENTIAL Crew Payroll & QID Register</option>
@@ -1295,12 +1295,12 @@ export const AdminStudioView: React.FC = () => {
                     </div>
 
                     {rlsProbeResult && (
-                      <div style={{ backgroundColor: '#0f172a', color: '#f8fafc', padding: '16px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '12px', lineHeight: 1.6 }}>
+                      <div style={{ backgroundColor: 'var(--text-primary, #f8fafc)', color: 'var(--surface-2, #151e2e)', padding: '16px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '12px', lineHeight: 1.6 }}>
                         <div style={{ color: '#f87171', fontWeight: 800, marginBottom: '6px' }}>
                           [PROBE INTERCEPTED] AT-001 Invariant Enforced:
                         </div>
                         <div>HTTP Response: <span style={{ color: '#38bdf8' }}>{rlsProbeResult.httpStatus} Not Found</span></div>
-                        <div>Payload: <span style={{ color: '#cbd5e1' }}>"{rlsProbeResult.message}"</span></div>
+                        <div>Payload: <span style={{ color: 'var(--border-default, #2a374b)' }}>"{rlsProbeResult.message}"</span></div>
                         <div>Existence Leakage: <span style={{ color: '#4ade80', fontWeight: 700 }}>FALSE (Zero Metadata Leak)</span></div>
                         <div>Sensitive Buying Rates Leaked: <span style={{ color: '#4ade80', fontWeight: 700 }}>0 QAR (0 bytes)</span></div>
                         <div>Audit Proof: <span style={{ color: '#94a3b8' }}>{rlsProbeResult.sha256Proof}</span></div>
@@ -1309,11 +1309,11 @@ export const AdminStudioView: React.FC = () => {
                   </div>
 
                   {/* Connection Pool Hygiene Gate */}
-                  <div style={{ backgroundColor: '#eff6ff', border: '1px solid #93c5fd', borderRadius: '8px', padding: '20px' }}>
+                  <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid #93c5fd', borderRadius: '8px', padding: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '18px' }}>🏊</span>
-                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e40af' }}>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#60a5fa' }}>
                           Connection Pool Session Sanitization Gate (AT-007)
                         </h4>
                       </div>
@@ -1339,22 +1339,22 @@ export const AdminStudioView: React.FC = () => {
                     </p>
 
                     {poolSanitizationStatus ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', backgroundColor: '#ffffff', padding: '14px', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', backgroundColor: 'var(--surface-1, #0f1624)', padding: '14px', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
                         <div>
-                          <div style={{ fontSize: '11px', color: '#64748b' }}>Connections Checked</div>
-                          <div style={{ fontSize: '16px', fontWeight: 800, color: '#1e40af' }}>{poolSanitizationStatus.poolSize} Active/Idle</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Connections Checked</div>
+                          <div style={{ fontSize: '16px', fontWeight: 800, color: '#60a5fa' }}>{poolSanitizationStatus.poolSize} Active/Idle</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: '11px', color: '#64748b' }}>RESET Commands Run</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>RESET Commands Run</div>
                           <div style={{ fontSize: '16px', fontWeight: 800, color: '#059669' }}>{poolSanitizationStatus.resetsExecuted} Passed</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: '11px', color: '#64748b' }}>Tenant Context Bleed</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Tenant Context Bleed</div>
                           <div style={{ fontSize: '16px', fontWeight: 800, color: '#059669' }}>0.00% (Zero Bleed)</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: '11px', color: '#64748b' }}>Last Verified</div>
-                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>{poolSanitizationStatus.verifiedAt}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Last Verified</div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{poolSanitizationStatus.verifiedAt}</div>
                         </div>
                       </div>
                     ) : (
@@ -1367,13 +1367,13 @@ export const AdminStudioView: React.FC = () => {
               </div>
             )}
             {activeTab === 'health' && (
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', padding: '24px', border: '1px solid var(--border-default, #2a374b)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
                       {currentLanguage === 'ar' ? 'لوحة القياس الحية والقياس عن بُعد للبنية التحتية' : 'Live System Health & Infrastructure Telemetry'}
                     </h3>
-                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                       Real-time health probes from NestJS Backend Core (Port 4000)
                     </div>
                   </div>
@@ -1390,45 +1390,45 @@ export const AdminStudioView: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                      <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
+                      <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                         <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '10px' }}>Security & Governance Runtime</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: '#64748b' }}>Multi-Tenant Isolation:</span>
+                            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Multi-Tenant Isolation:</span>
                             <span style={{ fontWeight: 600, color: '#059669' }}>✓ Enforced (TenantIsolationGuard)</span>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: '#64748b' }}>Idempotency Engine:</span>
+                            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Idempotency Engine:</span>
                             <span style={{ fontWeight: 600, color: '#059669' }}>✓ Active (RFC 7807 IdempotencyGuard)</span>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: '#64748b' }}>Document Quarantine:</span>
+                            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Document Quarantine:</span>
                             <span style={{ fontWeight: 600, color: '#059669' }}>✓ Active (ClamAV MIME Defense)</span>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: '#64748b' }}>Cryptographic Auditing:</span>
+                            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Cryptographic Auditing:</span>
                             <span style={{ fontWeight: 600, color: '#059669' }}>✓ SHA-256 Digest Chain</span>
                           </div>
                         </div>
                       </div>
 
-                      <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
+                      <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                         <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '10px' }}>Modules & Architecture Scope</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: '#64748b' }}>Core Handover Modules:</span>
+                            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Core Handover Modules:</span>
                             <span style={{ fontWeight: 600 }}>18 / 18 Active (M01 - M18)</span>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: '#64748b' }}>Connected Workspaces:</span>
+                            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Connected Workspaces:</span>
                             <span style={{ fontWeight: 600 }}>7 Workspaces (RTL/LTR)</span>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: '#64748b' }}>Vite Dev Server Proxy:</span>
+                            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Vite Dev Server Proxy:</span>
                             <span style={{ fontWeight: 600, color: '#059669' }}>Port 3001 ➔ Port 4000</span>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: '#64748b' }}>Timestamp (UTC):</span>
+                            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Timestamp (UTC):</span>
                             <span style={{ fontWeight: 500, fontFamily: 'monospace', fontSize: '11px' }}>{telemetry.timestamp}</span>
                           </div>
                         </div>

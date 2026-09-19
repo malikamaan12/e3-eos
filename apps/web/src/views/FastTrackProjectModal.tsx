@@ -193,22 +193,22 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
     >
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '12px',
           width: '100%',
           maxWidth: '620px',
           maxHeight: '90vh',
           overflowY: 'auto',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
         }}
       >
         {/* Modal Header with Bronze/Gold Trim */}
         <div
           style={{
             padding: '18px 24px',
-            backgroundColor: '#0f172a',
-            color: '#ffffff',
+            backgroundColor: 'var(--text-primary, #f8fafc)',
+            color: 'var(--surface-1, #0f1624)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -220,7 +220,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               <span
                 style={{
                   backgroundColor: '#d97706',
-                  color: '#ffffff',
+                  color: 'var(--surface-1, #0f1624)',
                   fontSize: '10px',
                   fontWeight: 800,
                   padding: '2px 7px',
@@ -231,13 +231,13 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               >
                 Fast-Track Intake
               </span>
-              <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 {step === 'post_create'
                   ? (isAr ? 'تهيئة نطاق العمل' : 'Scope Initialization')
                   : (isAr ? `الخطوة ${step} من 2` : `Step ${step} of 2`)} • {isAr ? 'التقاط سريع وإكمال لاحق' : 'Capture Now, Complete Later'}
               </span>
             </div>
-            <h2 style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
+            <h2 style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {step === 'post_create'
                 ? (isAr ? 'خيارات تهيئة نطاق العمل' : 'Scope Management Options')
                 : step === 1
@@ -252,7 +252,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
             style={{
               backgroundColor: 'transparent',
               border: 'none',
-              color: '#94a3b8',
+              color: 'var(--text-muted, #94a3b8)',
               fontSize: '20px',
               cursor: 'pointer',
               padding: '4px',
@@ -267,13 +267,13 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
           <div style={{ padding: '24px' }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
               <div style={{ fontSize: '40px', marginBottom: '8px' }}>🎉</div>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '0 0 6px' }}>
                 {isAr ? 'تم إنشاء المشروع بنجاح!' : 'Project Initialized Successfully!'}
               </h3>
-              <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: 0 }}>
                 <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{createdProjectCode}</span> • {createdProjectTitle}
               </p>
-              <div style={{ marginTop: '12px', fontSize: '13px', color: '#334155', fontWeight: 600 }}>
+              <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', fontWeight: 600 }}>
                 {isAr ? 'كيف ترغب في بدء إدارة نطاق العمل والمتطلبات؟' : 'Choose how you want to configure project scope & requirements:'}
               </div>
             </div>
@@ -288,11 +288,11 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   navigate(`/projects/${id}?tab=requirements`);
                 }}
                 style={{
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '8px',
                   padding: '16px',
                   cursor: 'pointer',
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
                   transition: 'all 0.15s ease',
                   display: 'flex',
                   flexDirection: 'column',
@@ -303,17 +303,17 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   e.currentTarget.style.backgroundColor = '#eff6ff';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
-                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                  e.currentTarget.style.borderColor = 'var(--border-default, #2a374b)';
+                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '20px' }}>📝</span>
-                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>
+                  <strong style={{ fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
                     {isAr ? 'إدخال المتطلبات يدوياً' : 'Add Scope Manually'}
                   </strong>
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
                   {isAr ? 'تسجيل عناصر النطاق عنصراً بعنصر في مصفوفة التتبع سباعية النقاط.' : 'Register deliverables item-by-item in the 7-Point Traceability Register.'}
                 </div>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', marginTop: 'auto' }}>
@@ -330,11 +330,11 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   navigate(`/projects/${id}?tab=requirements&action=bulk`);
                 }}
                 style={{
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '8px',
                   padding: '16px',
                   cursor: 'pointer',
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
                   transition: 'all 0.15s ease',
                   display: 'flex',
                   flexDirection: 'column',
@@ -345,17 +345,17 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   e.currentTarget.style.backgroundColor = '#eff6ff';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
-                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                  e.currentTarget.style.borderColor = 'var(--border-default, #2a374b)';
+                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '20px' }}>📋</span>
-                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>
+                  <strong style={{ fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
                     {isAr ? 'لصق مجمع من إكسل' : 'Paste Scope in Bulk'}
                   </strong>
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
                   {isAr ? 'نسخ ولصق صفوف المتطلبات وجدول الكميات من جداول Excel و TSV.' : 'Copy & paste rows directly from Excel or BOQ schedules with auto-validation.'}
                 </div>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', marginTop: 'auto' }}>
@@ -372,11 +372,11 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   navigate(`/projects/${id}?tab=requirements&action=parse`);
                 }}
                 style={{
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '8px',
                   padding: '16px',
                   cursor: 'pointer',
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
                   transition: 'all 0.15s ease',
                   display: 'flex',
                   flexDirection: 'column',
@@ -387,17 +387,17 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   e.currentTarget.style.backgroundColor = '#eef2ff';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
-                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                  e.currentTarget.style.borderColor = 'var(--border-default, #2a374b)';
+                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '20px' }}>📄</span>
-                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>
+                  <strong style={{ fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
                     {isAr ? 'استخراج وتحليل كراسة الشروط' : 'Upload & Parse RFP'}
                   </strong>
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
                   {isAr ? 'لصق نص كراسة المناقصة لاستخراج المتطلبات مع حفظ الاقتباسات الدقيقة.' : 'Parse tender text to extract candidate scope items with exact citations preserved.'}
                 </div>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#6366f1', marginTop: 'auto' }}>
@@ -414,35 +414,35 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   navigate(`/projects/${id}`);
                 }}
                 style={{
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '8px',
                   padding: '16px',
                   cursor: 'pointer',
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
                   transition: 'all 0.15s ease',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#64748b';
-                  e.currentTarget.style.backgroundColor = '#f1f5f9';
+                  e.currentTarget.style.borderColor = 'var(--border-strong, #475467)';
+                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
-                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                  e.currentTarget.style.borderColor = 'var(--border-default, #2a374b)';
+                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '20px' }}>🚀</span>
-                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>
+                  <strong style={{ fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
                     {isAr ? 'تخطي والإكمال لاحقاً' : 'Skip and Complete Later'}
                   </strong>
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
                   {isAr ? 'الانتقال مباشرة إلى قمرة قيادة المشروع ومتابعة بوابات الحوكمة.' : 'Proceed directly to Project Cockpit overview and configure scope later.'}
                 </div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', marginTop: 'auto' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', marginTop: 'auto' }}>
                   {isAr ? 'إلى قمرة القيادة ←' : 'To Cockpit →'}
                 </div>
               </div>
@@ -468,10 +468,10 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
             <div
               style={{
                 padding: '10px 14px',
-                backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca',
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
                 borderRadius: '6px',
-                color: '#991b1b',
+                color: '#f87171',
                 fontSize: '13px',
                 marginBottom: '18px',
               }}
@@ -484,9 +484,9 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
             /* STEP 1: Basic Info */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Route A: Quick Auto-fill from RFP */}
-              <div style={{ padding: '10px 14px', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px' }}>
+              <div style={{ padding: '10px 14px', backgroundColor: 'var(--surface-2, #151e2e)', border: '1px dashed var(--border-default, #2a374b)', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>📄</span> {isAr ? 'المسار أ: استخراج البيانات من وثائق المناقصة (Route A)' : 'Route A: Auto-Extract Project from Tender Document'}
                   </span>
                   <button
@@ -511,7 +511,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   {isAr ? 'اسم المشروع أو الفعالية *' : 'Project Title / RFP Name *'}
                 </label>
                 <input
@@ -521,20 +521,20 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Global Tech Expo & Summit 2026"
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     {isAr ? 'مسار الورود (Origin Route)' : 'Origin Route'}
                   </label>
                   <select
                     id="ft-origin-select"
                     value={originRoute}
                     onChange={(e) => setOriginRoute(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                   >
                     <option value="TENDER">Public RFP Tender</option>
                     <option value="DIRECT_AWARD">Direct Commercial Award</option>
@@ -544,14 +544,14 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     {isAr ? 'نوع وشكل الفعالية (Format)' : 'Event Format'}
                   </label>
                   <select
                     id="ft-format-select"
                     value={format}
                     onChange={(e) => setFormat(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                   >
                     <option value="State Ceremony & Protocol">State Ceremony & Protocol</option>
                     <option value="Exhibition & Conference">Exhibition & Conference</option>
@@ -565,10 +565,10 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               {/* Client Name with TBC */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                     {isAr ? 'الجهة المالكة / العميل' : 'Client / Contracting Entity'}
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', cursor: 'pointer' }}>
                     <input
                       id="ft-client-tbc-checkbox"
                       type="checkbox"
@@ -590,18 +590,18 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
+                    border: '1px solid var(--border-default, #2a374b)',
                     fontSize: '13px',
                     boxSizing: 'border-box',
-                    backgroundColor: clientTbc ? '#f1f5f9' : '#ffffff',
-                    color: clientTbc ? '#94a3b8' : '#0f172a',
+                    backgroundColor: clientTbc ? '#f1f5f9' : 'var(--surface-1, #0f1624)',
+                    color: clientTbc ? '#94a3b8' : 'var(--text-primary, #f8fafc)',
                   }}
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   {isAr ? 'نطاق العمل وموجز الفرصة' : 'Scope Brief & Initial Notes'}
                 </label>
                 <textarea
@@ -610,21 +610,21 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Outline key deliverables, technical requirements, or client preferences..."
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                 />
               </div>
 
               {/* Country & Deadline */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     {isAr ? 'الدولة' : 'Country'}
                   </label>
                   <select
                     id="ft-country-select"
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                   >
                     <option value="Qatar">Qatar (Doha)</option>
                     <option value="UAE">United Arab Emirates</option>
@@ -634,7 +634,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     {isAr ? 'موعد تقديم العرض / المناقصة' : 'Proposal Submission Deadline'}
                   </label>
                   <input
@@ -642,7 +642,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                     type="date"
                     value={submissionDeadline}
                     onChange={(e) => setSubmissionDeadline(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
@@ -651,10 +651,10 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                       {isAr ? 'تاريخ الفعالية' : 'Event Date'}
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748b', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', cursor: 'pointer' }}>
                       <input
                         id="ft-date-tbc-checkbox"
                         type="checkbox"
@@ -675,20 +675,20 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                       width: '100%',
                       padding: '9px 12px',
                       borderRadius: '6px',
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid var(--border-default, #2a374b)',
                       fontSize: '13px',
                       boxSizing: 'border-box',
-                      backgroundColor: eventDateTbc ? '#f1f5f9' : '#ffffff',
+                      backgroundColor: eventDateTbc ? '#f1f5f9' : 'var(--surface-1, #0f1624)',
                     }}
                   />
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                       {isAr ? 'الموقع / الصالة' : 'Venue'}
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748b', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', cursor: 'pointer' }}>
                       <input
                         id="ft-venue-tbc-checkbox"
                         type="checkbox"
@@ -710,11 +710,11 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                       width: '100%',
                       padding: '9px 12px',
                       borderRadius: '6px',
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid var(--border-default, #2a374b)',
                       fontSize: '13px',
                       boxSizing: 'border-box',
-                      backgroundColor: venueTbc ? '#f1f5f9' : '#ffffff',
-                      color: venueTbc ? '#94a3b8' : '#0f172a',
+                      backgroundColor: venueTbc ? '#f1f5f9' : 'var(--surface-1, #0f1624)',
+                      color: venueTbc ? '#94a3b8' : 'var(--text-primary, #f8fafc)',
                     }}
                   />
                 </div>
@@ -723,7 +723,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
           ) : (
             /* STEP 2: Commercials & Ownership */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ padding: '12px 14px', backgroundColor: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '8px', fontSize: '12px', color: '#92400e' }}>
+              <div style={{ padding: '12px 14px', backgroundColor: 'rgba(245, 158, 11, 0.12)', border: '1px solid #fef3c7', borderRadius: '8px', fontSize: '12px', color: '#f59e0b' }}>
                 💡 <strong>{isAr ? 'إشعار الاكتمال المرحلي:' : 'Capture Now, Complete Later Policy:'}</strong>{' '}
                 {isAr
                   ? 'سيتم إنشاء المشروع فوراً بعلامة "ONBOARDING INCOMPLETE (38%)" ويمكن لفريق المشروع استكمال بقية الخطوات التسع في أي وقت.'
@@ -732,7 +732,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     {isAr ? 'القيمة المتوقعة للمشروع (QAR) *' : 'Expected Contract Value (QAR) *'}
                   </label>
                   <input
@@ -742,12 +742,12 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                     value={expectedValue}
                     onChange={(e) => setExpectedValue(e.target.value)}
                     placeholder="e.g. 1,500,000"
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     {isAr ? 'التكلفة المقدرة (QAR) [اختياري]' : 'Expected Cost (QAR) [Optional]'}
                   </label>
                   <input
@@ -756,21 +756,21 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                     value={expectedCost}
                     onChange={(e) => setExpectedCost(e.target.value)}
                     placeholder="e.g. 950,000"
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     {isAr ? 'تصنيف درجة التأكد المالي' : 'Value Classification Tag'}
                   </label>
                   <select
                     id="ft-classification-select"
                     value={valueClassification}
                     onChange={(e) => setValueClassification(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                   >
                     <option value="Assumption">Assumption (Early stage)</option>
                     <option value="Estimate">Internal Estimate</option>
@@ -781,14 +781,14 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     {isAr ? 'الأولوية الاستراتيجية' : 'Opportunity Priority'}
                   </label>
                   <select
                     id="ft-priority-select"
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as any)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                   >
                     <option value="Critical">🔴 Critical (Immediate Attention)</option>
                     <option value="High">🟠 High Priority</option>
@@ -799,14 +799,14 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   {isAr ? 'مدير المشروع المسؤول (Lead PM) *' : 'Assigned Lead PM *'}
                 </label>
                 <select
                   id="ft-pm-select"
                   value={leadPm}
                   onChange={(e) => setLeadPm(e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '13px', boxSizing: 'border-box' }}
                 >
                   {currentUser?.name && (
                     <option value={currentUser.name}>{currentUser.name} (Current User)</option>
@@ -822,14 +822,14 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               <div
                 id="ft-onboarding-completeness-card"
                 style={{
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
                   borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--border-default, #2a374b)',
                   padding: '14px',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     {isAr
                       ? `اكتمال متطلبات الإعداد (${completeness.completionPct}% مكتمل):`
                       : `Onboarding Completeness (${completeness.completionPct}% Complete):`}
@@ -838,20 +838,20 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
                     {completeness.completedApplicableRequirements} / {completeness.totalApplicableRequirements} Requirements ({completeness.completionPct}%)
                   </Badge>
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '8px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginBottom: '8px' }}>
                   Route: <strong>{completeness.businessRoute.toUpperCase()}</strong> • Formula: <code>{completeness.completedApplicableRequirements} completed / {completeness.totalApplicableRequirements} applicable</code>
                 </div>
                 {completeness.missingSections.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {completeness.missingSections.map((sec, idx) => (
-                      <div key={idx} style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div key={idx} style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ color: '#d97706' }}>⚠️</span>
                         <span>{sec} (Required for {completeness.businessRoute.replace('_', ' ')})</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ fontSize: '11px', color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontSize: '11px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>✅</span>
                     <span>All applicable route requirements satisfied.</span>
                   </div>
@@ -868,7 +868,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               alignItems: 'center',
               marginTop: '24px',
               paddingTop: '16px',
-              borderTop: '1px solid #e2e8f0',
+              borderTop: '1px solid var(--border-default, #2a374b)',
             }}
           >
             {step === 2 ? (

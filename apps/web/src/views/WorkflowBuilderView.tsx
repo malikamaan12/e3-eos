@@ -91,14 +91,14 @@ export const WorkflowBuilderView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               🛠️ {isRtl ? 'مصمم تدفق العمل وسياسات بوابات المراحل' : 'Visual Workflow & Declarative Policy Builder'}
             </h1>
             <Badge variant="success">v2.4.0 Canonical</Badge>
             <Badge variant="warning">{isRtl ? 'منطق تشغيل خالي من البرمجة' : 'No-Code Operating Logic'}</Badge>
             <Badge variant="info">13-Role RBAC Aligned</Badge>
           </div>
-          <p style={{ color: '#64748b', marginTop: '6px', fontSize: '13px' }}>
+          <p style={{ color: 'var(--text-muted, #94a3b8)', marginTop: '6px', fontSize: '13px' }}>
             <em>"{isRtl ? 'الكود يحدد ما يستطيع نظام EOS فعله، والتهيئة تحدد كيف تختار شركة E3 إدارة عملياتها.' : 'Code defines what EOS is capable of. Configuration defines how E3 chooses to operate.'}"</em>
           </p>
         </div>
@@ -110,12 +110,12 @@ export const WorkflowBuilderView: React.FC = () => {
             onChange={(e) => setSelectedWorkflow(e.target.value)}
             style={{
               padding: '8px 14px',
-              border: '1px solid #cbd5e1',
+              border: '1px solid var(--border-default, #2a374b)',
               borderRadius: '6px',
               fontSize: '13px',
               fontWeight: 600,
-              backgroundColor: '#ffffff',
-              color: '#0f172a',
+              backgroundColor: 'var(--surface-1, #0f1624)',
+              color: 'var(--text-primary, #f8fafc)',
             }}
           >
             <option value="WF-CANONICAL-13-STAGE">{isRtl ? 'دورة حياة الفعاليات المؤسسية الكاملة (١٣ مرحلة)' : 'Canonical Enterprise Lifecycle (13 Stages)'}</option>
@@ -124,15 +124,15 @@ export const WorkflowBuilderView: React.FC = () => {
           </select>
 
           {/* Layout View Toggle */}
-          <div style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
+          <div style={{ display: 'flex', backgroundColor: 'var(--surface-2, #151e2e)', padding: '3px', borderRadius: '6px' }}>
             <button
               onClick={() => setLayoutMode('pipeline')}
               style={{
                 padding: '6px 12px',
                 fontSize: '12px',
                 fontWeight: layoutMode === 'pipeline' ? 700 : 500,
-                backgroundColor: layoutMode === 'pipeline' ? '#ffffff' : 'transparent',
-                color: layoutMode === 'pipeline' ? '#0f172a' : '#64748b',
+                backgroundColor: layoutMode === 'pipeline' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: layoutMode === 'pipeline' ? '#0f172a' : 'var(--text-muted, #94a3b8)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -146,8 +146,8 @@ export const WorkflowBuilderView: React.FC = () => {
                 padding: '6px 12px',
                 fontSize: '12px',
                 fontWeight: layoutMode === 'linear' ? 700 : 500,
-                backgroundColor: layoutMode === 'linear' ? '#ffffff' : 'transparent',
-                color: layoutMode === 'linear' ? '#0f172a' : '#64748b',
+                backgroundColor: layoutMode === 'linear' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: layoutMode === 'linear' ? '#0f172a' : 'var(--text-muted, #94a3b8)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -180,10 +180,10 @@ export const WorkflowBuilderView: React.FC = () => {
                 <div
                   key={idx}
                   style={{
-                    border: `1.5px solid ${isCurrent ? '#3b82f6' : isTarget ? '#d97706' : st.isGate ? '#f59e0b' : '#e2e8f0'}`,
+                    border: `1.5px solid ${isCurrent ? '#3b82f6' : isTarget ? '#d97706' : st.isGate ? '#f59e0b' : 'var(--border-default, #2a374b)'}`,
                     borderRadius: '8px',
                     padding: '14px',
-                    backgroundColor: isCurrent ? '#eff6ff' : isTarget ? '#fffbeb' : '#f8fafc',
+                    backgroundColor: isCurrent ? '#eff6ff' : isTarget ? '#fffbeb' : 'var(--surface-2, #151e2e)',
                     boxShadow: isCurrent ? '0 0 0 2px rgba(59, 130, 246, 0.2)' : 'none',
                     display: 'flex',
                     flexDirection: 'column',
@@ -192,7 +192,7 @@ export const WorkflowBuilderView: React.FC = () => {
                 >
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '4px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: isCurrent ? '#2563eb' : '#64748b' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: isCurrent ? '#2563eb' : 'var(--text-muted, #94a3b8)' }}>
                         {isRtl ? `المرحلة ${(st.num || idx + 1).toString().padStart(2, '0')}` : `STAGE ${(st.num || idx + 1).toString().padStart(2, '0')}`}
                       </span>
                       <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
@@ -202,29 +202,29 @@ export const WorkflowBuilderView: React.FC = () => {
                       </div>
                     </div>
                     {st.phase && (
-                      <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
                         {st.phase}
                       </div>
                     )}
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '8px' }}>
                       {st.name}
                     </div>
 
-                    <div style={{ fontSize: '11px', color: '#475569', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                       <strong>{isRtl ? 'الأنشطة الإلزامية:' : 'Activities:'}</strong> ({st.activities.length})
                       <ul style={{ margin: '4px 0 6px 14px', padding: 0 }}>
                         {st.activities.map((a: string, i: number) => (
-                          <li key={i} style={{ color: '#334155' }}>{a}</li>
+                          <li key={i} style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{a}</li>
                         ))}
                       </ul>
                     </div>
                   </div>
 
-                  <div style={{ fontSize: '11px', color: '#475569', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '6px', marginTop: '6px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '6px', marginTop: '6px' }}>
                     <strong>{isRtl ? 'بوابات الاعتماد:' : 'Approval Gates:'}</strong> ({st.approvals.length})
                     <ul style={{ margin: '4px 0 0 14px', padding: 0 }}>
                       {st.approvals.map((appr: string, i: number) => (
-                        <li key={i} style={{ color: '#0f172a', fontWeight: 600 }}>{appr}</li>
+                        <li key={i} style={{ color: 'var(--text-primary, #f8fafc)', fontWeight: 600 }}>{appr}</li>
                       ))}
                     </ul>
                   </div>
@@ -235,7 +235,7 @@ export const WorkflowBuilderView: React.FC = () => {
         ) : (
           /* Linear Flow Strip with Scroll chevrons and counter */
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '12px', color: '#64748b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               <span>{isRtl ? `عرض ${currentWf.stages.length} مراحل تسلسلياً` : `Displaying ${currentWf.stages.length} sequential stages`}</span>
               <div style={{ display: 'flex', gap: '4px' }}>
                 <button
@@ -243,7 +243,7 @@ export const WorkflowBuilderView: React.FC = () => {
                     const el = document.getElementById('workflow-stages-strip');
                     if (el) el.scrollBy({ left: isRtl ? 240 : -240, behavior: 'smooth' });
                   }}
-                  style={{ padding: '2px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer' }}
+                  style={{ padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', background: 'var(--surface-2, #151e2e)', cursor: 'pointer' }}
                 >
                   ‹
                 </button>
@@ -252,7 +252,7 @@ export const WorkflowBuilderView: React.FC = () => {
                     const el = document.getElementById('workflow-stages-strip');
                     if (el) el.scrollBy({ left: isRtl ? -240 : 240, behavior: 'smooth' });
                   }}
-                  style={{ padding: '2px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer' }}
+                  style={{ padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', background: 'var(--surface-2, #151e2e)', cursor: 'pointer' }}
                 >
                   ›
                 </button>
@@ -267,25 +267,25 @@ export const WorkflowBuilderView: React.FC = () => {
                   key={idx}
                   style={{
                     minWidth: '220px',
-                    border: '1px solid #cbd5e1',
+                    border: '1px solid var(--border-default, #2a374b)',
                     borderRadius: '8px',
                     padding: '14px',
-                    backgroundColor: st.code === testCurrentStage ? '#eff6ff' : '#f8fafc',
-                    borderColor: st.code === testCurrentStage ? '#3b82f6' : '#e2e8f0',
+                    backgroundColor: st.code === testCurrentStage ? '#eff6ff' : 'var(--surface-2, #151e2e)',
+                    borderColor: st.code === testCurrentStage ? '#3b82f6' : 'var(--border-default, #2a374b)',
                     flexShrink: 0,
                   }}
                 >
-                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted, #94a3b8)' }}>
                     {isRtl ? `المرحلة ${(idx + 1).toString().padStart(2, '0')}` : `STAGE ${(idx + 1).toString().padStart(2, '0')}`}
                   </div>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '4px 0 10px 0' }}>{st.name}</div>
-                  <div style={{ fontSize: '11px', color: '#475569', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', margin: '4px 0 10px 0' }}>{st.name}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     <strong>{isRtl ? 'الأنشطة:' : 'Activities:'}</strong> ({st.activities.length})
                     <ul style={{ margin: '4px 0 8px 16px', padding: 0 }}>
                       {st.activities.map((a: string, i: number) => <li key={i}>{a}</li>)}
                     </ul>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#475569' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>
                     <strong>{isRtl ? 'بوابات الاعتماد:' : 'Gates:'}</strong> ({st.approvals.length})
                     <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
                       {st.approvals.map((appr: string, i: number) => <li key={i}>{appr}</li>)}
@@ -305,25 +305,25 @@ export const WorkflowBuilderView: React.FC = () => {
       >
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '16px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
               {isRtl ? 'المرحلة الحالية' : 'Current Stage'}
             </label>
             <input
               type="text"
               value={testCurrentStage}
               disabled
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', backgroundColor: '#f1f5f9', fontFamily: 'monospace' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', backgroundColor: 'var(--surface-2, #151e2e)', fontFamily: 'monospace' }}
             />
           </div>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>
               {isRtl ? 'المرحلة التالية المستهدفة' : 'Target Next Stage'}
             </label>
             <input
               type="text"
               value={testTargetStage}
               disabled
-              style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', backgroundColor: '#f1f5f9', fontFamily: 'monospace' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', backgroundColor: 'var(--surface-2, #151e2e)', fontFamily: 'monospace' }}
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>

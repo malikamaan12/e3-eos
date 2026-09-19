@@ -35,9 +35,9 @@ export const HomeView: React.FC = () => {
       {/* Welcome Banner */}
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           padding: '20px 24px',
           marginBottom: '20px',
           display: 'flex',
@@ -45,12 +45,12 @@ export const HomeView: React.FC = () => {
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
         }}
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? (
                 <>مرحباً، <span dir="ltr" style={{ unicodeBidi: 'isolate' }}>{currentUser?.name || ''}</span></>
               ) : (
@@ -59,7 +59,7 @@ export const HomeView: React.FC = () => {
             </h1>
             <Badge variant="accent">{currentUser?.role || 'Super Admin'}</Badge>
           </div>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
             {isRtl
               ? 'إليك ملخص العمليات الحرجة والموافقات المطلوبة اليوم عبر محفظة فعاليات E3.'
               : 'Here is your operational situational awareness and urgent items across the E3 event portfolio today.'}
@@ -158,7 +158,7 @@ export const HomeView: React.FC = () => {
               ))}
             </div>
           ) : projects.length === 0 ? (
-            <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+            <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl ? 'لا توجد مشاريع حالياً. انقر على "+ مشروع جديد" لإضافة أول فعالية.' : 'No projects found. Click "+ New Project" to onboard your first event.'}
             </div>
           ) : (
@@ -172,23 +172,23 @@ export const HomeView: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '14px 20px',
-                    borderBottom: '1px solid #f1f5f9',
+                    borderBottom: '1px solid var(--border-subtle, #1e293b)',
                     cursor: 'pointer',
                     transition: 'background-color 0.15s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#2563eb', fontWeight: 700 }}>
+                      <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--accent, #d97706)', fontWeight: 700 }}>
                         {p.projectCode || p.code}
                       </span>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                         {p.title}
                       </span>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                       {p.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')} • {isRtl ? 'المصدر:' : 'Origin:'} {p.originCode || 'Tender'}
                     </div>
                   </div>
@@ -196,7 +196,7 @@ export const HomeView: React.FC = () => {
                     <Badge variant={p.maturity === 'delivery' ? 'success' : 'info'}>
                       {p.maturity || 'Onboarding'}
                     </Badge>
-                    <span style={{ color: '#94a3b8', fontSize: '14px' }}>{isRtl ? '←' : '→'}</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '14px' }}>{isRtl ? '←' : '→'}</span>
                   </div>
                 </div>
               ))}
@@ -215,24 +215,24 @@ export const HomeView: React.FC = () => {
                 style={{
                   padding: '14px',
                   borderRadius: '6px',
-                  border: '1px solid #fde68a',
-                  backgroundColor: '#fffbeb',
+                  border: '1px solid var(--accent, #d97706)',
+                  backgroundColor: 'var(--accent-soft, rgba(217,119,6,0.14))',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#92400e' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-hover, #f59e0b)' }}>
                     {isRtl ? 'بوابة الموافقة الثنائية' : 'Dual Sign-Off Gate'}
                   </span>
                   <Badge variant="warning" size="sm">
                     {isRtl ? 'موافقة تنفيذية' : 'Executive'}
                   </Badge>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '4px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>
                   {projects[0]
                     ? (isRtl ? `اعتماد حزمة التقديم لمشروع: ${projects[0].title}` : `Approval of Submission Package: ${projects[0].title}`)
                     : (isRtl ? 'لا توجد موافقات معلقة' : 'No pending approval packages')}
                 </div>
-                <div style={{ fontSize: '12px', color: '#78350f', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
                   {projects[0]
                     ? (isRtl
                       ? `مدير المشروع: ${projects[0].pmName || 'المعين'} • القيمة التقديرية: ${formatCurrency(projects[0].contractValue || projects[0].estimatedCost || 0, 'QAR')}`
@@ -250,19 +250,19 @@ export const HomeView: React.FC = () => {
                 style={{
                   padding: '14px',
                   borderRadius: '6px',
-                  border: '1px solid #e2e8f0',
-                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                     {isRtl ? 'معلم تسليم قادم' : 'Upcoming Milestone'}
                   </span>
                   <Badge variant="neutral" size="sm">
                     {isRtl ? 'خلال ٣ أيام' : 'In 3 Days'}
                   </Badge>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '4px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>
                   {projects[0]?.venue
                     ? (isRtl
                       ? `الجولة الفنية الميدانية وتصريح تعليق الهياكل في ${projects[0].venue}`
@@ -271,7 +271,7 @@ export const HomeView: React.FC = () => {
                       ? 'الجولة الفنية الميدانية وتصريح تعليق الهياكل للموقع'
                       : 'Venue Technical Walkthrough & Rigging Access Check')}
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                   {projects[0]?.pmName
                     ? (isRtl
                       ? `مُسندة إلى: ${projects[0].pmName}`

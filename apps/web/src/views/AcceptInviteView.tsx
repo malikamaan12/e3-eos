@@ -55,7 +55,7 @@ export const AcceptInviteView: React.FC = () => {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: '#0f172a',
+        backgroundColor: 'var(--text-primary, #f8fafc)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -66,24 +66,24 @@ export const AcceptInviteView: React.FC = () => {
       <div style={{ width: '100%', maxWidth: '440px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <span style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 900, fontSize: '16px', padding: '4px 10px', borderRadius: '4px' }}>
+            <span style={{ backgroundColor: '#2563eb', color: 'var(--surface-1, #0f1624)', fontWeight: 900, fontSize: '16px', padding: '4px 10px', borderRadius: '4px' }}>
               E3
             </span>
-            <span style={{ color: '#fff', fontWeight: 800, fontSize: '20px' }}>EOS</span>
+            <span style={{ color: 'var(--surface-1, #0f1624)', fontWeight: 800, fontSize: '20px' }}>EOS</span>
           </div>
-          <h2 style={{ color: '#f8fafc', margin: '0 0 6px', fontSize: '20px', fontWeight: 700 }}>
+          <h2 style={{ color: 'var(--text-primary, #f8fafc)', margin: '0 0 6px', fontSize: '20px', fontWeight: 700 }}>
             Activate Your E3 Account
           </h2>
-          <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>
+          <p style={{ color: 'var(--text-muted, #94a3b8)', margin: 0, fontSize: '13px' }}>
             You have been invited to collaborate on the E3 Event Operations Platform.
           </p>
         </div>
 
         <div
           style={{
-            backgroundColor: '#1e293b',
+            backgroundColor: 'var(--surface-2, #151e2e)',
             borderRadius: '10px',
-            border: '1px solid #334155',
+            border: '1px solid var(--border-default, #2a374b)',
             padding: '28px',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
           }}
@@ -114,7 +114,7 @@ export const AcceptInviteView: React.FC = () => {
           ) : (
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   Invitation Token
                 </label>
                 <input
@@ -130,9 +130,9 @@ export const AcceptInviteView: React.FC = () => {
                     fontSize: '13px',
                     fontFamily: 'monospace',
                     borderRadius: '6px',
-                    border: '1px solid #475569',
-                    backgroundColor: '#0f172a',
-                    color: '#f8fafc',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--text-primary, #f8fafc)',
+                    color: 'var(--text-primary, #f8fafc)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
@@ -140,7 +140,7 @@ export const AcceptInviteView: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   Your Full Name
                 </label>
                 <input
@@ -154,9 +154,9 @@ export const AcceptInviteView: React.FC = () => {
                     padding: '10px 14px',
                     fontSize: '14px',
                     borderRadius: '6px',
-                    border: '1px solid #475569',
-                    backgroundColor: '#0f172a',
-                    color: '#f8fafc',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--text-primary, #f8fafc)',
+                    color: 'var(--text-primary, #f8fafc)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
@@ -164,7 +164,7 @@ export const AcceptInviteView: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   Create Password (min. 8 characters)
                 </label>
                 <div style={{ position: 'relative' }}>
@@ -180,9 +180,9 @@ export const AcceptInviteView: React.FC = () => {
                       padding: '10px 42px 10px 14px',
                       fontSize: '14px',
                       borderRadius: '6px',
-                      border: '1px solid #475569',
-                      backgroundColor: '#0f172a',
-                      color: '#f8fafc',
+                      border: '1px solid var(--border-default, #2a374b)',
+                      backgroundColor: 'var(--text-primary, #f8fafc)',
+                      color: 'var(--text-primary, #f8fafc)',
                       outline: 'none',
                       boxSizing: 'border-box',
                     }}
@@ -197,7 +197,7 @@ export const AcceptInviteView: React.FC = () => {
                       transform: 'translateY(-50%)',
                       background: 'none',
                       border: 'none',
-                      color: '#94a3b8',
+                      color: 'var(--text-muted, #94a3b8)',
                       cursor: 'pointer',
                       fontSize: '13px',
                       padding: '4px',
@@ -209,7 +209,7 @@ export const AcceptInviteView: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                   Confirm Password
                 </label>
                 <input
@@ -224,9 +224,9 @@ export const AcceptInviteView: React.FC = () => {
                     padding: '10px 14px',
                     fontSize: '14px',
                     borderRadius: '6px',
-                    border: '1px solid #475569',
-                    backgroundColor: '#0f172a',
-                    color: '#f8fafc',
+                    border: '1px solid var(--border-default, #2a374b)',
+                    backgroundColor: 'var(--text-primary, #f8fafc)',
+                    color: 'var(--text-primary, #f8fafc)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}

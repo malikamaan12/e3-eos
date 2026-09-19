@@ -421,7 +421,7 @@ export const NewProjectWizardView: React.FC = () => {
             </span>
             <Badge variant="info">Step {currentStep} of 9</Badge>
           </div>
-          <h1 style={{ margin: '4px 0 0', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+          <h1 style={{ margin: '4px 0 0', fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
             {currentLanguage === 'ar' ? 'تهيئة مشروع فعالية جديد' : 'New Project Onboarding'}
           </h1>
         </div>
@@ -446,8 +446,8 @@ export const NewProjectWizardView: React.FC = () => {
       {/* Fast-Track Intake Choice Callout */}
       <div
         style={{
-          backgroundColor: '#fffbeb',
-          border: '1px solid #fde68a',
+          backgroundColor: 'rgba(245, 158, 11, 0.12)',
+          border: '1px solid rgba(245, 158, 11, 0.3)',
           borderRadius: '8px',
           padding: '14px 18px',
           marginBottom: '20px',
@@ -461,7 +461,7 @@ export const NewProjectWizardView: React.FC = () => {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#92400e' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#f59e0b' }}>
               ⚡ {currentLanguage === 'ar' ? 'هل تحتاج إلى تسجيل فرصة سريعة؟' : 'In a rush? Fast-Track Opportunity Intake Available'}
             </span>
             <Badge variant="warning" size="sm">Capture Now, Complete Later</Badge>
@@ -482,7 +482,7 @@ export const NewProjectWizardView: React.FC = () => {
             alignItems: 'center',
             gap: '6px',
             backgroundColor: '#d97706',
-            color: '#ffffff',
+            color: 'var(--surface-1, #0f1624)',
             border: 'none',
             borderRadius: '6px',
             padding: '8px 14px',
@@ -505,16 +505,16 @@ export const NewProjectWizardView: React.FC = () => {
       {isMobile ? (
         <div
           style={{
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--surface-1, #0f1624)',
             borderRadius: '8px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-default, #2a374b)',
             padding: '12px 16px',
             marginBottom: '20px',
             boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? `الخطوة ${currentStep} من 9: ` : `Step ${currentStep} of 9: `}
               <span style={{ color: '#2563eb' }}>{steps[currentStep - 1].title}</span>
             </span>
@@ -522,7 +522,7 @@ export const NewProjectWizardView: React.FC = () => {
               {Math.round((currentStep / 9) * 100)}%
             </span>
           </div>
-          <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+          <div style={{ height: '6px', backgroundColor: 'var(--border-default, #2a374b)', borderRadius: '3px', overflow: 'hidden' }}>
             <div
               style={{
                 width: `${(currentStep / 9) * 100}%`,
@@ -541,10 +541,10 @@ export const NewProjectWizardView: React.FC = () => {
             gridTemplateColumns: 'repeat(9, 1fr)',
             gap: '6px',
             marginBottom: '24px',
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--surface-1, #0f1624)',
             padding: '10px 12px',
             borderRadius: '8px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-default, #2a374b)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
           }}
         >
@@ -558,8 +558,8 @@ export const NewProjectWizardView: React.FC = () => {
                 style={{
                   padding: '8px 4px',
                   borderRadius: '6px',
-                  border: isCurrent ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
-                  backgroundColor: isCurrent ? '#eff6ff' : isDone ? '#f0fdf4' : '#f8fafc',
+                  border: isCurrent ? '1.5px solid #2563eb' : '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: isCurrent ? '#eff6ff' : isDone ? '#f0fdf4' : 'var(--surface-2, #151e2e)',
                   cursor: 'pointer',
                   textAlign: 'center',
                   display: 'flex',
@@ -584,7 +584,7 @@ export const NewProjectWizardView: React.FC = () => {
                   style={{
                     fontSize: '11px',
                     fontWeight: isCurrent ? 700 : 500,
-                    color: isCurrent ? '#1e40af' : isDone ? '#15803d' : '#475569',
+                    color: isCurrent ? '#1e40af' : isDone ? '#15803d' : 'var(--text-secondary, #cbd5e1)',
                     whiteSpace: 'normal',
                     lineHeight: 1.25,
                     wordBreak: 'normal',
@@ -612,10 +612,10 @@ export const NewProjectWizardView: React.FC = () => {
         {/* Step 1: Origin Route */}
         {currentStep === 1 && (
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? 'الخطوة 1: تحديد مسار المصدر' : 'Step 1: Origin Route Selection'}
             </h3>
-            <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 18px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl ? 'كيف بدأت فرصة هذا المشروع؟ يحدد هذا بوابات الحوكمة والمتطلبات التجارية مسبقاً.' : 'How did this project opportunity originate? This preconfigures the governance gates and commercial requirements.'}
             </p>
 
@@ -661,40 +661,40 @@ export const NewProjectWizardView: React.FC = () => {
                     style={{
                       padding: '16px',
                       borderRadius: '8px',
-                      border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                      backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                      border: isSelected ? '2px solid #2563eb' : '1px solid var(--border-default, #2a374b)',
+                      backgroundColor: isSelected ? '#eff6ff' : 'var(--surface-1, #0f1624)',
                       cursor: 'pointer',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '14px', color: isSelected ? '#1e40af' : '#0f172a' }}>
+                      <span style={{ fontWeight: 700, fontSize: '14px', color: isSelected ? '#1e40af' : 'var(--text-primary, #f8fafc)' }}>
                         {route.title}
                       </span>
                       {isSelected && <Badge variant="info">{isRtl ? 'محدد' : 'Selected'}</Badge>}
                     </div>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>{route.desc}</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>{route.desc}</p>
                   </div>
                 );
               })}
             </div>
 
             {/* Conditional Route-Specific Fields */}
-            <div style={{ padding: '14px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
+            <div style={{ padding: '14px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '8px' }}>
                 {isRtl ? `متطلبات المسار المختار (${originRoute})` : `Origin-Specific Requirements (${originRoute})`}
               </div>
 
               {originRoute === 'TENDER' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                       RFP Clarification Cutoff Date
                     </label>
                     <input
                       type="date"
                       value={rfpDeadline}
                       onChange={(e) => setRfpDeadline(e.target.value)}
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }}
                     />
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '20px' }}>
@@ -705,7 +705,7 @@ export const NewProjectWizardView: React.FC = () => {
                       onChange={(e) => setTenderBondRequired(e.target.checked)}
                       style={{ accentColor: '#2563eb', width: '16px', height: '16px' }}
                     />
-                    <label htmlFor="tender-bond-checkbox" style={{ fontSize: '12px', color: '#334155', fontWeight: 600 }}>
+                    <label htmlFor="tender-bond-checkbox" style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', fontWeight: 600 }}>
                       Bank Tender Guarantee Bond Required
                     </label>
                   </div>
@@ -714,14 +714,14 @@ export const NewProjectWizardView: React.FC = () => {
 
               {originRoute === 'DIRECT_AWARD' && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Sole-Source Justification Note
                   </label>
                   <input
                     type="text"
                     value={soleSourceJustification}
                     onChange={(e) => setSoleSourceJustification(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                    style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }}
                   />
                 </div>
               )}
@@ -729,25 +729,25 @@ export const NewProjectWizardView: React.FC = () => {
               {originRoute === 'FRAMEWORK' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                       Master Framework Contract ID
                     </label>
                     <input
                       type="text"
                       value={frameworkContractId}
                       onChange={(e) => setFrameworkContractId(e.target.value)}
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                       Framework Call-off Ceiling
                     </label>
                     <input
                       type="text"
                       value={frameworkCeilingValue}
                       onChange={(e) => setFrameworkCeilingValue(e.target.value)}
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }}
                     />
                   </div>
                 </div>
@@ -755,20 +755,20 @@ export const NewProjectWizardView: React.FC = () => {
 
               {originRoute === 'RECURRING' && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                     Prior Edition Project Code to Clone
                   </label>
                   <input
                     type="text"
                     value={priorEditionCode}
                     onChange={(e) => setPriorEditionCode(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                    style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }}
                   />
                 </div>
               )}
 
               {(originRoute === 'CLIENT_ENQUIRY' || originRoute === 'E3_INITIATED') && (
-                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                   Standard discovery and feasibility workflow will be automatically applied.
                 </p>
               )}
@@ -779,16 +779,16 @@ export const NewProjectWizardView: React.FC = () => {
         {/* Step 2: Project Identity */}
         {currentStep === 2 && (
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? 'الخطوة 2: هوية المشروع وتصنيفه' : 'Step 2: Project Information & Identity'}
             </h3>
-            <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 18px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl ? 'تقديم رمز المشروع، العنوان، والتصنيف الأساسي للفعالية.' : 'Provide foundational naming, classification, and event format descriptions.'}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '14px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'رمز المشروع *' : 'Project Code *'}
                 </label>
                 <input
@@ -796,11 +796,11 @@ export const NewProjectWizardView: React.FC = () => {
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'عنوان / اسم المشروع *' : 'Project Title *'}
                 </label>
                 <input
@@ -809,13 +809,13 @@ export const NewProjectWizardView: React.FC = () => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={isRtl ? 'مثال: قمة ومعرض الابتكار العالمي 2026' : 'e.g. Global Innovation Summit & Exhibition 2026'}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
             </div>
 
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                 {isRtl ? 'الملخص التنفيذي / الوصف' : 'Executive Summary / Description'}
               </label>
               <textarea
@@ -823,13 +823,13 @@ export const NewProjectWizardView: React.FC = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 placeholder={isRtl ? 'وصف موجز لنطاق وأهداف الفعالية...' : 'Brief summary of event scope and objectives...'}
-                style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box', fontFamily: 'inherit' }}
               />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'نوع وتنسيق الفعالية' : 'Event Format'}
                 </label>
                 <input
@@ -837,17 +837,17 @@ export const NewProjectWizardView: React.FC = () => {
                   value={format}
                   onChange={(e) => setFormat(e.target.value)}
                   placeholder={isRtl ? 'مثال: مؤتمر ومعرض هجين' : 'e.g. Hybrid Conference & Exhibition'}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'العملة التجارية' : 'Commercial Currency'}
                 </label>
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 >
                   <option value="QAR">{isRtl ? 'ريال قطري (QAR) - افتراضي' : 'QAR - Qatari Riyal (Default)'}</option>
                   <option value="USD">{isRtl ? 'دولار أمريكي (USD)' : 'USD - US Dollar'}</option>
@@ -862,10 +862,10 @@ export const NewProjectWizardView: React.FC = () => {
         {currentStep === 3 && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 {isRtl ? 'الخطوة 3: العميل والمعنيون الخارجيون' : 'Step 3: Client & External Stakeholders'}
               </h3>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={clientTbc}
@@ -875,14 +875,14 @@ export const NewProjectWizardView: React.FC = () => {
                 <span>{isRtl ? 'قيد التأكيد (TBC)' : 'To Be Confirmed (TBC)'}</span>
               </label>
             </div>
-            <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 18px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl
                 ? 'تحديد جهة العميل. تضمن العزلة متعددة المستأجرين عدم وصول أصحاب المصلحة من العملاء إلى هوامش E3 الداخلية.'
                 : 'Designate the client entity. Multi-tenant isolation guarantees client stakeholders cannot access internal E3 margins.'}
             </p>
 
             <div style={{ marginBottom: '14px', opacity: clientTbc ? 0.5 : 1 }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                 {isRtl ? 'اسم جهة العميل *' : 'Client Organization Name *'}
               </label>
               <input
@@ -892,13 +892,13 @@ export const NewProjectWizardView: React.FC = () => {
                 value={clientTbc ? (isRtl ? 'قيد التأكيد' : 'To Be Confirmed') : clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 placeholder={isRtl ? 'مثال: شركة أكمي العالمية / وزارة الثقافة' : 'e.g. Acme Global Corporation / Ministry of Culture'}
-                style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
               />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', opacity: clientTbc ? 0.5 : 1 }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'ممثل العميل الرئيسي' : 'Primary Client Contact'}
                 </label>
                 <input
@@ -906,11 +906,11 @@ export const NewProjectWizardView: React.FC = () => {
                   disabled={clientTbc}
                   value={clientTbc ? 'TBC' : clientContact}
                   onChange={(e) => setClientContact(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'البريد الإلكتروني للتواصل' : 'Contact Email'}
                 </label>
                 <input
@@ -918,7 +918,7 @@ export const NewProjectWizardView: React.FC = () => {
                   disabled={clientTbc}
                   value={clientTbc ? '' : clientEmail}
                   onChange={(e) => setClientEmail(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
             </div>
@@ -929,10 +929,10 @@ export const NewProjectWizardView: React.FC = () => {
         {currentStep === 4 && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 {isRtl ? 'الخطوة 4: المواعيد الرئيسية لدورة حياة الفعالية' : 'Step 4: Key Event Lifecycle Dates'}
               </h3>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={datesTbc}
@@ -942,7 +942,7 @@ export const NewProjectWizardView: React.FC = () => {
                 <span>{isRtl ? 'قيد التأكيد (TBC)' : 'To Be Confirmed (TBC)'}</span>
               </label>
             </div>
-            <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 18px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl
                 ? 'تحديد المواعيد الحاسمة: تقديم العطاء، استلام الموقع، أيام الفعالية المباشرة، والتفكيك.'
                 : 'Configure critical deadlines: Tender submission, site move-in (bump-in), live event dates, and bump-out.'}
@@ -950,7 +950,7 @@ export const NewProjectWizardView: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '14px', opacity: datesTbc ? 0.5 : 1 }}>
               <div>
-                <label htmlFor="submission-deadline-input" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label htmlFor="submission-deadline-input" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'الموعد النهائي لتقديم العطاء' : 'Tender Submission Deadline'}
                   {originRoute === 'TENDER' && <span style={{ color: '#ef4444' }}> *</span>}
                 </label>
@@ -961,7 +961,7 @@ export const NewProjectWizardView: React.FC = () => {
                     disabled={datesTbc}
                     value={submissionDeadline}
                     onChange={(e) => setSubmissionDeadline(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                   />
                   <input
                     id="submission-deadline-time-input"
@@ -969,14 +969,14 @@ export const NewProjectWizardView: React.FC = () => {
                     disabled={datesTbc}
                     value={submissionDeadlineTime}
                     onChange={(e) => setSubmissionDeadlineTime(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                   />
                   <select
                     id="submission-deadline-timezone-select"
                     disabled={datesTbc}
                     value={submissionDeadlineTimezone}
                     onChange={(e) => setSubmissionDeadlineTimezone(e.target.value)}
-                    style={{ width: '100%', padding: '8px 6px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '6px', backgroundColor: '#fff', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '8px 6px', fontSize: '12px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', backgroundColor: 'var(--surface-1, #0f1624)', boxSizing: 'border-box' }}
                   >
                     <option value="Asia/Qatar">Asia/Qatar (AST +03:00)</option>
                     <option value="Asia/Dubai">Asia/Dubai (GST +04:00)</option>
@@ -984,12 +984,12 @@ export const NewProjectWizardView: React.FC = () => {
                     <option value="UTC">UTC (UTC+00:00)</option>
                   </select>
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '3px' }}>
                   {isRtl ? 'الوقت والنطاق الزمني الإلزامي للمناقصات الحكومية في قطر' : 'Mandatory cutoff time & IANA timezone for Qatar tenders'}
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'اليوم الأول للفعالية المباشرة' : 'Live Event Day 1'}
                 </label>
                 <input
@@ -997,14 +997,14 @@ export const NewProjectWizardView: React.FC = () => {
                   disabled={datesTbc}
                   value={eventDate}
                   onChange={(e) => setEventDate(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', opacity: datesTbc ? 0.5 : 1 }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'بدء التجهيز والتركيب (استلام الموقع)' : 'Bump-In Start (Site Handover)'}
                 </label>
                 <input
@@ -1012,11 +1012,11 @@ export const NewProjectWizardView: React.FC = () => {
                   disabled={datesTbc}
                   value={bumpInDate}
                   onChange={(e) => setBumpInDate(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'اكتمال التفكيك والتسليم النهائي' : 'Bump-Out Final Handover'}
                 </label>
                 <input
@@ -1024,7 +1024,7 @@ export const NewProjectWizardView: React.FC = () => {
                   disabled={datesTbc}
                   value={bumpOutDate}
                   onChange={(e) => setBumpOutDate(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
             </div>
@@ -1035,10 +1035,10 @@ export const NewProjectWizardView: React.FC = () => {
         {currentStep === 5 && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 {isRtl ? 'الخطوة 5: سياق الموقع والهيكل الإنشائي' : 'Step 5: Venue & Structural Context'}
               </h3>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={venueTbc}
@@ -1048,14 +1048,14 @@ export const NewProjectWizardView: React.FC = () => {
                 <span>{isRtl ? 'قيد التأكيد (TBC)' : 'To Be Confirmed (TBC)'}</span>
               </label>
             </div>
-            <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 18px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl
                 ? 'معايير الموقع للتعليق الإنشائي وأرصفة التحميل وتراخيص الدفاع المدني.'
                 : 'Location parameters for rigging, loading docks, and Civil Defence permits.'}
             </p>
 
             <div style={{ marginBottom: '14px', opacity: venueTbc ? 0.5 : 1 }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                 {isRtl ? 'اسم الموقع *' : 'Venue Name *'}
               </label>
               <input
@@ -1065,13 +1065,13 @@ export const NewProjectWizardView: React.FC = () => {
                 value={venueTbc ? (isRtl ? 'قيد التأكيد' : 'To Be Confirmed') : venueName}
                 onChange={(e) => setVenueName(e.target.value)}
                 placeholder={isRtl ? 'مثال: مركز المؤتمرات الوطني / قاعة المعارض' : 'e.g. National Convention Center / Exhibition Hall'}
-                style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
               />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', opacity: venueTbc ? 0.5 : 1 }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'تحديد القاعة / المنطقة' : 'Hall / Zone Specification'}
                 </label>
                 <input
@@ -1079,18 +1079,18 @@ export const NewProjectWizardView: React.FC = () => {
                   disabled={venueTbc}
                   value={venueTbc ? 'TBC' : hallZone}
                   onChange={(e) => setHallZone(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'حالة تأكيد الموقع' : 'Venue Confirmation Status'}
                 </label>
                 <select
                   disabled={venueTbc}
                   value={venueStatus}
                   onChange={(e) => setVenueStatus(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 >
                   <option value="confirmed">{isRtl ? 'مؤكد / محجوز' : 'Confirmed / Booked'}</option>
                   <option value="proposed">{isRtl ? 'مقترح / قيد الخيار' : 'Proposed / Under Option'}</option>
@@ -1105,10 +1105,10 @@ export const NewProjectWizardView: React.FC = () => {
         {currentStep === 6 && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 {isRtl ? 'الخطوة 6: نقطة البداية التجارية' : 'Step 6: Commercial Starting Point'}
               </h3>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={commercialTbc}
@@ -1118,7 +1118,7 @@ export const NewProjectWizardView: React.FC = () => {
                 <span>{isRtl ? 'قيد التأكيد (TBC)' : 'To Be Confirmed (TBC)'}</span>
               </label>
             </div>
-            <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 18px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl
                 ? 'أهداف الإيرادات والهامش الأولية مصنفة حسب درجة التأكد.'
                 : 'Preliminary revenue and margin targets. Values are tagged by certainty classification.'}
@@ -1126,7 +1126,7 @@ export const NewProjectWizardView: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '14px', opacity: commercialTbc ? 0.5 : 1 }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? `القيمة التعاقدية التقديرية (${currency})` : `Estimated Contract Value (${currency})`}
                 </label>
                 <input
@@ -1136,18 +1136,18 @@ export const NewProjectWizardView: React.FC = () => {
                   value={commercialTbc ? (isRtl ? 'قيد التأكيد' : 'To Be Confirmed') : estimatedValue}
                   onChange={(e) => setEstimatedValue(e.target.value)}
                   placeholder="e.g. 1,500,000"
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                   {isRtl ? 'مستوى دقة التقدير' : 'Certainty Tag'}
                 </label>
                 <select
                   disabled={commercialTbc}
                   value={commercialTag}
                   onChange={(e) => setCommercialTag(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
                 >
                   <option value="Quoted">{isRtl ? 'مقدم للعميل (Quoted)' : 'Quoted to Client'}</option>
                   <option value="Estimate">{isRtl ? 'تقدير داخلي (Estimate)' : 'Internal Estimate'}</option>
@@ -1158,7 +1158,7 @@ export const NewProjectWizardView: React.FC = () => {
             </div>
 
             <div style={{ opacity: commercialTbc ? 0.5 : 1 }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                 {isRtl ? 'نسبة الهامش الإجمالي المستهدف %' : 'Target Gross Margin %'}
               </label>
               <input
@@ -1166,7 +1166,7 @@ export const NewProjectWizardView: React.FC = () => {
                 disabled={commercialTbc}
                 value={commercialTbc ? 'TBC' : targetMargin}
                 onChange={(e) => setTargetMargin(e.target.value)}
-                style={{ width: '200px', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                style={{ width: '200px', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
               />
             </div>
           </div>
@@ -1175,15 +1175,15 @@ export const NewProjectWizardView: React.FC = () => {
         {/* Step 7: Team Assignment */}
         {currentStep === 7 && (
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? 'الخطوة 7: تعيين الكوادر والمسؤولين' : 'Step 7: Key Personnel Assignment'}
             </h3>
-            <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 18px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl ? 'تحديد المسؤوليات عبر دورة حياة المراحل الـ 13 المعتمدة.' : 'Assign accountability across the canonical 13-stage lifecycle.'}
             </p>
 
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>
                 {isRtl ? 'مدير المشروع الرئيسي (PM) *' : 'Lead Event Project Manager (PM) *'}
               </label>
               <input
@@ -1191,19 +1191,19 @@ export const NewProjectWizardView: React.FC = () => {
                 type="text"
                 value={pmName}
                 onChange={(e) => setPmName(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 12px', fontSize: '13px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', boxSizing: 'border-box' }}
               />
-              <span style={{ fontSize: '11px', color: '#64748b' }}>{isRtl ? 'مدير التنفيذ المعين' : 'Assigned delivery manager'}</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'مدير التنفيذ المعين' : 'Assigned delivery manager'}</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>{isRtl ? 'الشريك التنفيذي' : 'Executive Partner'}</div>
-                <div style={{ fontSize: '13px', color: '#0f172a' }}>Nasser Al-Attiyah (executive@e3.qa)</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>{isRtl ? 'الشريك التنفيذي' : 'Executive Partner'}</div>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>Nasser Al-Attiyah (executive@e3.qa)</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>{isRtl ? 'المدير الفني / مدير التعليق الإنشائي' : 'Technical / Rigging Director'}</div>
-                <div style={{ fontSize: '13px', color: '#0f172a' }}>Karim Haddad (designer@e3.qa)</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>{isRtl ? 'المدير الفني / مدير التعليق الإنشائي' : 'Technical / Rigging Director'}</div>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>Karim Haddad (designer@e3.qa)</div>
               </div>
             </div>
           </div>
@@ -1214,10 +1214,10 @@ export const NewProjectWizardView: React.FC = () => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                   Step 8: Visual Lifecycle Configuration Editor
                 </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748b' }}>
+                <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                   Add, edit, or customize project stages. Note: <strong>Mandatory Governance Gates</strong> (Executive Gate, Civil Defence HSE, Readiness Gate, Closeout) are enforced by system policy and cannot be bypassed.
                 </p>
               </div>
@@ -1255,14 +1255,14 @@ export const NewProjectWizardView: React.FC = () => {
               </div>
             )}
 
-            <div style={{ maxHeight: '380px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+            <div style={{ maxHeight: '380px', overflowY: 'auto', border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px' }}>
               {stages.map((stage, idx) => (
                 <div
                   key={stage.id}
                   id={`stage-item-${stage.id}`}
                   style={{
-                    borderBottom: '1px solid #f1f5f9',
-                    backgroundColor: stage.isMandatoryGate ? '#fffbeb' : stage.isOptional ? '#f8fafc' : '#ffffff',
+                    borderBottom: '1px solid var(--border-subtle, #1d2939)',
+                    backgroundColor: stage.isMandatoryGate ? '#fffbeb' : stage.isOptional ? '#f8fafc' : 'var(--surface-1, #0f1624)',
                   }}
                 >
                   <div
@@ -1282,7 +1282,7 @@ export const NewProjectWizardView: React.FC = () => {
                           type="button"
                           onClick={() => handleStageMove(idx, 'up')}
                           disabled={idx === 0}
-                          style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', fontSize: '9px', color: '#94a3b8' }}
+                          style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', fontSize: '9px', color: 'var(--text-muted, #94a3b8)' }}
                           title="Move stage up"
                         >
                           ▲
@@ -1291,17 +1291,17 @@ export const NewProjectWizardView: React.FC = () => {
                           type="button"
                           onClick={() => handleStageMove(idx, 'down')}
                           disabled={idx === stages.length - 1}
-                          style={{ border: 'none', background: 'none', cursor: idx === stages.length - 1 ? 'default' : 'pointer', fontSize: '9px', color: '#94a3b8' }}
+                          style={{ border: 'none', background: 'none', cursor: idx === stages.length - 1 ? 'default' : 'pointer', fontSize: '9px', color: 'var(--text-muted, #94a3b8)' }}
                           title="Move stage down"
                         >
                           ▼
                         </button>
                       </div>
                       <div>
-                        <span style={{ fontWeight: 600, color: stage.isOptional ? '#94a3b8' : '#1e293b' }}>
+                        <span style={{ fontWeight: 600, color: stage.isOptional ? '#94a3b8' : 'var(--surface-2, #151e2e)' }}>
                           {stage.name}
                         </span>
-                        <span style={{ marginInlineStart: '8px', fontSize: '11px', color: '#64748b', backgroundColor: '#f1f5f9', padding: '1px 6px', borderRadius: '4px' }}>
+                        <span style={{ marginInlineStart: '8px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)', backgroundColor: 'var(--surface-2, #151e2e)', padding: '1px 6px', borderRadius: '4px' }}>
                           Role: {stage.ownerRole}
                         </span>
                       </div>
@@ -1329,7 +1329,7 @@ export const NewProjectWizardView: React.FC = () => {
                           onClick={() => handleToggleStageOptional(idx)}
                           style={{
                             background: 'none',
-                            border: '1px solid #cbd5e1',
+                            border: '1px solid var(--border-default, #2a374b)',
                             borderRadius: '4px',
                             padding: '2px 8px',
                             fontSize: '11px',
@@ -1357,8 +1357,8 @@ export const NewProjectWizardView: React.FC = () => {
                           disabled
                           title="Protected governance gate cannot be deleted"
                           style={{
-                            border: '1px solid #fde68a',
-                            backgroundColor: '#fffbeb',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                            backgroundColor: 'rgba(245, 158, 11, 0.12)',
                             color: '#d97706',
                             borderRadius: '4px',
                             padding: '2px 8px',
@@ -1392,7 +1392,7 @@ export const NewProjectWizardView: React.FC = () => {
                         backgroundColor: '#fef3c7',
                         borderTop: '1px dashed #f59e0b',
                         fontSize: '11px',
-                        color: '#92400e',
+                        color: '#f59e0b',
                       }}
                     >
                       <div style={{ fontWeight: 700, marginBottom: '3px', display: 'flex', justifyContent: 'space-between' }}>
@@ -1413,40 +1413,40 @@ export const NewProjectWizardView: React.FC = () => {
         {/* Step 9: Review & Create */}
         {currentStep === 9 && (
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? 'الخطوة 9: المراجعة النهائية والإطلاق' : 'Step 9: Pre-Flight Review & Launch'}
             </h3>
-            <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 18px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl
                 ? 'راجع معايير المشروع قبل الحفظ المباشر في قاعدة بيانات PostgreSQL في الدوحة (me-central1).'
                 : 'Review the project parameters before persisting directly to PostgreSQL Cloud SQL in Doha (me-central1).'}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{isRtl ? 'رمز وعنوان المشروع' : 'Project Code & Title'}</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>{code}</div>
-                <div style={{ fontSize: '13px', color: '#334155' }}>{title}</div>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>{isRtl ? 'رمز وعنوان المشروع' : 'Project Code & Title'}</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{code}</div>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>{title}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{isRtl ? 'جهة العميل' : 'Client Organization'}</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>{clientTbc ? (isRtl ? 'قيد التأكيد' : 'To Be Confirmed') : clientName}</div>
-                <div style={{ fontSize: '12px', color: '#64748b' }}>{clientTbc ? (isRtl ? 'بانتظار توقيع العميل' : 'Pending Client Sign-off') : clientContact}</div>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>{isRtl ? 'جهة العميل' : 'Client Organization'}</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{clientTbc ? (isRtl ? 'قيد التأكيد' : 'To Be Confirmed') : clientName}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>{clientTbc ? (isRtl ? 'بانتظار توقيع العميل' : 'Pending Client Sign-off') : clientContact}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{isRtl ? 'نقطة الانطلاق التجارية' : 'Commercial Starting Point'}</div>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>{isRtl ? 'نقطة الانطلاق التجارية' : 'Commercial Starting Point'}</div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#059669' }}>
                   {commercialTbc ? (isRtl ? 'قيد التأكيد' : 'To Be Confirmed') : `${estimatedValue} ${currency}`}
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b' }}>{isRtl ? `الهامش المستهدف: ${commercialTbc ? 'TBC' : targetMargin} (${commercialTag})` : `Target Margin: ${commercialTbc ? 'TBC' : targetMargin} (${commercialTag})`}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? `الهامش المستهدف: ${commercialTbc ? 'TBC' : targetMargin} (${commercialTag})` : `Target Margin: ${commercialTbc ? 'TBC' : targetMargin} (${commercialTag})`}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{isRtl ? 'الموقع والمواعيد الرئيسية' : 'Venue & Key Dates'}</div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{venueTbc ? (isRtl ? 'قيد التأكيد' : 'To Be Confirmed') : venueName}</div>
-                <div style={{ fontSize: '12px', color: '#64748b' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>{isRtl ? 'الموقع والمواعيد الرئيسية' : 'Venue & Key Dates'}</div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{venueTbc ? (isRtl ? 'قيد التأكيد' : 'To Be Confirmed') : venueName}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                   {datesTbc
                     ? (isRtl ? 'المواعيد قيد التأكيد' : 'Dates Pending Confirmation')
                     : (isRtl
@@ -1455,14 +1455,14 @@ export const NewProjectWizardView: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', gridColumn: 'span 2' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{isRtl ? 'مراحل دورة الحياة المهيأة' : 'Configured Lifecycle Stages'}</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', gridColumn: 'span 2' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>{isRtl ? 'مراحل دورة الحياة المهيأة' : 'Configured Lifecycle Stages'}</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                   {isRtl
                     ? `${stages.length} مرحلة مفعلة (${stages.filter(s => s.isMandatoryGate).length} بوابة إلزامية، ${stages.filter(s => s.isOptional).length} اختيارية)`
                     : `${stages.length} Stages Active (${stages.filter(s => s.isMandatoryGate).length} Mandatory Gates, ${stages.filter(s => s.isOptional).length} Optional)`}
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                   {isRtl ? 'تم تأكيد تسلسل المراحل مع سلامة أقفال الحوكمة الصارمة.' : 'Visual lifecycle sequence confirmed with strict governance lock integrity.'}
                 </div>
               </div>
@@ -1506,7 +1506,7 @@ export const NewProjectWizardView: React.FC = () => {
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Badge variant="success">{isRtl ? 'تم فحص جميع القيود والثوابت' : 'All Invariants Checked'}</Badge>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                   {isRtl ? 'جاهز للتفعيل في بيئة PostgreSQL بالدوحة.' : 'Ready to instantiate in Doha staging PostgreSQL.'}
                 </span>
               </div>
@@ -1519,7 +1519,7 @@ export const NewProjectWizardView: React.FC = () => {
           style={{
             marginTop: '24px',
             paddingTop: '16px',
-            borderTop: '1px solid #e2e8f0',
+            borderTop: '1px solid var(--border-default, #2a374b)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -1613,7 +1613,7 @@ export const NewProjectWizardView: React.FC = () => {
             onChange={(e) => setNewStageOwnerRole(e.target.value)}
             options={STAGE_ROLES}
           />
-          <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', margin: '8px 0 0' }}>
             ℹ️ Custom stages will be instantiated into the project's CPM delivery schedule with associated activity packages.
           </p>
         </form>
@@ -1659,10 +1659,10 @@ export const NewProjectWizardView: React.FC = () => {
             <div
               style={{
                 padding: '10px 12px',
-                backgroundColor: '#fffbeb',
-                border: '1px solid #fde68a',
+                backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
                 borderRadius: '6px',
-                color: '#92400e',
+                color: '#f59e0b',
                 fontSize: '12px',
                 marginTop: '8px',
               }}

@@ -62,14 +62,14 @@ export const CountryPacksView: React.FC = () => {
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#0f172a' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
             🌍 Multi-Country Packs & Statutory Governance
           </h1>
-          <span style={{ backgroundColor: '#dbeafe', color: '#1e40af', padding: '4px 10px', borderRadius: '16px', fontSize: '12px', fontWeight: '600' }}>
+          <span style={{ backgroundColor: '#dbeafe', color: '#60a5fa', padding: '4px 10px', borderRadius: '16px', fontSize: '12px', fontWeight: '600' }}>
             Regional Regulatory Engines
           </span>
         </div>
-        <p style={{ color: '#64748b', marginTop: '6px', fontSize: '14px' }}>
+        <p style={{ color: 'var(--text-muted, #94a3b8)', marginTop: '6px', fontSize: '14px' }}>
           Localized statutory work hour limits, summer outdoor work restrictions, tax/VAT regimes, and e-invoicing standards (Qatar, KSA, UAE).
         </p>
       </div>
@@ -87,13 +87,13 @@ export const CountryPacksView: React.FC = () => {
             style={{
               padding: '12px 20px',
               border: '1px solid',
-              borderColor: selectedCountry === c.code ? '#0284c7' : '#cbd5e1',
-              backgroundColor: selectedCountry === c.code ? '#eff6ff' : '#ffffff',
+              borderColor: selectedCountry === c.code ? '#0284c7' : 'var(--border-default, #2a374b)',
+              backgroundColor: selectedCountry === c.code ? '#eff6ff' : 'var(--surface-1, #0f1624)',
               borderRadius: '8px',
               fontWeight: '600',
               fontSize: '14px',
               cursor: 'pointer',
-              color: selectedCountry === c.code ? '#0284c7' : '#334155',
+              color: selectedCountry === c.code ? '#0284c7' : 'var(--text-secondary, #cbd5e1)',
             }}
           >
             {c.flag} {c.name}
@@ -102,57 +102,57 @@ export const CountryPacksView: React.FC = () => {
       </div>
 
       {/* Selected Country Profile */}
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#0f172a' }}>
+      <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: 'var(--text-primary, #f8fafc)' }}>
           Active Statutory Profile: {cur.name}
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-          <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>PRIMARY CURRENCY</span>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a' }}>{cur.currency}</div>
+          <div style={{ padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: '600' }}>PRIMARY CURRENCY</span>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary, #f8fafc)' }}>{cur.currency}</div>
           </div>
-          <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>STATUTORY VAT RATE</span>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a' }}>{cur.vat}</div>
+          <div style={{ padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: '600' }}>STATUTORY VAT RATE</span>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary, #f8fafc)' }}>{cur.vat}</div>
           </div>
-          <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>MAX DAILY CREW SHIFT</span>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a' }}>{cur.labourLimit}</div>
+          <div style={{ padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: '600' }}>MAX DAILY CREW SHIFT</span>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary, #f8fafc)' }}>{cur.labourLimit}</div>
           </div>
-          <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>SUMMER WORK RESTRICTION</span>
+          <div style={{ padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: '600' }}>SUMMER WORK RESTRICTION</span>
             <div style={{ fontSize: '14px', fontWeight: '600', color: '#dc2626', marginTop: '2px' }}>{cur.summerBan}</div>
           </div>
-          <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', gridColumn: 'span 2' }}>
-            <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>E-INVOICING / TAX STANDARD</span>
+          <div style={{ padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', gridColumn: 'span 2' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: '600' }}>E-INVOICING / TAX STANDARD</span>
             <div style={{ fontSize: '14px', fontWeight: '600', color: '#0284c7', marginTop: '2px' }}>{cur.einvoicing}</div>
           </div>
         </div>
       </div>
 
       {/* Compliance Validator Tool */}
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '14px', color: '#0f172a' }}>
+      <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '12px', padding: '20px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '14px', color: 'var(--text-primary, #f8fafc)' }}>
           Statutory Compliance Test Bench
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>Shift Duration (Hours)</label>
-            <input type="number" value={shiftHours} onChange={(e) => setShiftHours(Number(e.target.value))} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
+            <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Shift Duration (Hours)</label>
+            <input type="number" value={shiftHours} onChange={(e) => setShiftHours(Number(e.target.value))} style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }} />
           </div>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>Outdoor Work Time</label>
-            <input type="text" value={workTime} onChange={(e) => setWorkTime(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
+            <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Outdoor Work Time</label>
+            <input type="text" value={workTime} onChange={(e) => setWorkTime(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }} />
           </div>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '6px' }}>Invoice Total</label>
-            <input type="number" value={invoiceTotal} onChange={(e) => setInvoiceTotal(Number(e.target.value))} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
+            <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '6px' }}>Invoice Total</label>
+            <input type="number" value={invoiceTotal} onChange={(e) => setInvoiceTotal(Number(e.target.value))} style={{ width: '100%', padding: '8px', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <button
               id="btn-validate-compliance"
               onClick={handleTestCompliance}
-              style={{ width: '100%', backgroundColor: '#0284c7', color: '#ffffff', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}
+              style={{ width: '100%', backgroundColor: '#0284c7', color: 'var(--surface-1, #0f1624)', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}
             >
               Run Compliance Check
             </button>
@@ -173,10 +173,10 @@ export const CountryPacksView: React.FC = () => {
               {testResult.isCompliant ? '✅ STATUTORY COMPLIANCE CONFIRMED' : '⚠️ STATUTORY VIOLATIONS DETECTED'}
             </div>
             {testResult.violations.map((v: string, i: number) => (
-              <div key={i} style={{ fontSize: '13px', color: '#991b1b', marginTop: '2px' }}>• {v}</div>
+              <div key={i} style={{ fontSize: '13px', color: '#f87171', marginTop: '2px' }}>• {v}</div>
             ))}
             {testResult.zatcaQr && (
-              <div style={{ marginTop: '8px', fontSize: '12px', color: '#1e40af' }}>
+              <div style={{ marginTop: '8px', fontSize: '12px', color: '#60a5fa' }}>
                 <strong>ZATCA Phase 2 Cryptographic QR Base64:</strong> {testResult.zatcaQr}
               </div>
             )}
@@ -185,60 +185,60 @@ export const CountryPacksView: React.FC = () => {
       </div>
 
       {/* Item 5: Regional Cell Isolation & Cross-Border Allocation Gate (P06-ST07 / AT-086) */}
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginTop: '24px' }}>
+      <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '12px', padding: '20px', marginTop: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: '#0f172a' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               🌐 Regional Sovereign Cell Boundaries & Cross-Border Transfer Gate (AT-086)
             </h2>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Enforces cell boundary isolation. Prohibits implicit global data replication or asset transfers without bilateral compliance review.
             </p>
           </div>
-          <span style={{ backgroundColor: '#eff6ff', color: '#1e40af', padding: '4px 10px', borderRadius: '16px', fontSize: '11px', fontWeight: '700' }}>
+          <span style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', padding: '4px 10px', borderRadius: '16px', fontSize: '11px', fontWeight: '700' }}>
             Data Residency: me-central1-doha
           </span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
-          <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '14px', backgroundColor: '#f8fafc' }}>
+          <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <strong style={{ fontSize: '13px', color: '#0f172a' }}>CELL-QA (Doha Hub)</strong>
+              <strong style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>CELL-QA (Doha Hub)</strong>
               <span style={{ fontSize: '11px', color: '#059669', fontWeight: '700' }}>● PRIMARY CELL</span>
             </div>
-            <div style={{ fontSize: '12px', color: '#475569' }}>Region: <code>me-central1-doha</code></div>
-            <div style={{ fontSize: '12px', color: '#475569' }}>Tax Authority: 0% VAT / QCB Cleared</div>
-            <div style={{ fontSize: '12px', color: '#475569' }}>Active Assets: 142 Stage Equipment</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>Region: <code>me-central1-doha</code></div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>Tax Authority: 0% VAT / QCB Cleared</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>Active Assets: 142 Stage Equipment</div>
           </div>
 
-          <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '14px', backgroundColor: '#f8fafc' }}>
+          <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <strong style={{ fontSize: '13px', color: '#0f172a' }}>CELL-SA (Riyadh Hub)</strong>
+              <strong style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>CELL-SA (Riyadh Hub)</strong>
               <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: '700' }}>● SATELLITE CELL</span>
             </div>
-            <div style={{ fontSize: '12px', color: '#475569' }}>Region: <code>me-central2-riyadh</code></div>
-            <div style={{ fontSize: '12px', color: '#475569' }}>Tax Authority: 15% ZATCA Phase 2</div>
-            <div style={{ fontSize: '12px', color: '#475569' }}>Active Assets: 86 Stage Equipment</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>Region: <code>me-central2-riyadh</code></div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>Tax Authority: 15% ZATCA Phase 2</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>Active Assets: 86 Stage Equipment</div>
           </div>
 
-          <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '14px', backgroundColor: '#f8fafc' }}>
+          <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '8px', padding: '14px', backgroundColor: 'var(--surface-2, #151e2e)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <strong style={{ fontSize: '13px', color: '#0f172a' }}>CELL-AE (Dubai Hub)</strong>
+              <strong style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>CELL-AE (Dubai Hub)</strong>
               <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: '700' }}>● SATELLITE CELL</span>
             </div>
-            <div style={{ fontSize: '12px', color: '#475569' }}>Region: <code>me-west1-dubai</code></div>
-            <div style={{ fontSize: '12px', color: '#475569' }}>Tax Authority: 5% UAE FTA Standard</div>
-            <div style={{ fontSize: '12px', color: '#475569' }}>Active Assets: 64 Stage Equipment</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>Region: <code>me-west1-dubai</code></div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>Tax Authority: 5% UAE FTA Standard</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>Active Assets: 64 Stage Equipment</div>
           </div>
         </div>
 
-        <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '12px', color: '#92400e' }}>
+        <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '12px', color: '#f59e0b' }}>
             <strong>Cross-Cell Transfer Protocol:</strong> Moving equipment from CELL-QA to CELL-SA requires dual customs transit ATA Carnet validation and bilateral VAT withholding clearance.
           </div>
           <button
             onClick={() => alert('Bilateral Cross-Cell Protocol Checked (AT-086): Bilateral customs authorization certificate active. Asset movement permitted between CELL-QA and CELL-SA under reviewed regional data treaty.')}
-            style={{ backgroundColor: '#0284c7', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            style={{ backgroundColor: '#0284c7', color: 'var(--surface-1, #0f1624)', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
             Verify Cross-Cell Clearance
           </button>

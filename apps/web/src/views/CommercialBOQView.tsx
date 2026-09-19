@@ -200,7 +200,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
   };
 
   if (loading && estimates.length === 0) {
-    return <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading commercial estimates & BOQ ledger...</div>;
+    return <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>Loading commercial estimates & BOQ ledger...</div>;
   }
 
   const activeEstimate = estimates.find((e) => e.id === selectedEstimateId) || estimates[0];
@@ -210,11 +210,11 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
       {/* Commercial Baseline Top Banner */}
       <div
         style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
+          color: 'var(--text-primary, #f8fafc)',
           borderRadius: '8px',
           padding: '20px 24px',
-          border: '1px solid #1e293b',
+          border: '1px solid var(--border-default, #2a374b)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -224,23 +224,23 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--accent, #d97706)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Commercial & BOQ Traceability Engine
             </span>
             <Badge variant="success">EAC Variance Control</Badge>
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
             Every Priced Item Strictly Links to a Scope Requirement
           </div>
-          <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
             Zero orphan costing: Contractor buy-rate, target internal margin, and client sell-rate reconciled continuously.
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {/* Dynamic Currency Converter Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '3px' }}>
-            <span style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', padding: '0 8px', textTransform: 'uppercase' }}>
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--surface-inset, #0b111d)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '3px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-muted, #94a3b8)', padding: '0 8px', textTransform: 'uppercase' }}>
               💱 Currency:
             </span>
             {CURRENCIES.map((c) => (
@@ -249,8 +249,8 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                 type="button"
                 onClick={() => setSelectedCurrency(c.code)}
                 style={{
-                  backgroundColor: selectedCurrency === c.code ? '#2563eb' : 'transparent',
-                  color: selectedCurrency === c.code ? '#ffffff' : '#cbd5e1',
+                  backgroundColor: selectedCurrency === c.code ? 'var(--accent, #d97706)' : 'transparent',
+                  color: selectedCurrency === c.code ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                   border: 'none',
                   borderRadius: '4px',
                   padding: '4px 8px',
@@ -269,7 +269,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
           <Button
             variant="outline"
             onClick={handleExportBOQCsv}
-            style={{ color: '#38bdf8', borderColor: '#0284c7' }}
+            style={{ color: 'var(--accent-hover, #f59e0b)', borderColor: 'var(--border-default, #2a374b)' }}
             title="Download Master BOQ Ledger with multi-currency rates in Excel CSV format"
           >
             📥 Export to Excel (CSV)
@@ -278,7 +278,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
           <Button
             variant="outline"
             onClick={handlePrintBOQ}
-            style={{ color: '#cbd5e1', borderColor: '#475569' }}
+            style={{ color: 'var(--text-secondary, #cbd5e1)', borderColor: 'var(--border-default, #2a374b)' }}
             title="Print or export formatted PDF"
           >
             🖨️ Print / PDF
@@ -288,7 +288,6 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
             id="btn-add-boq-line"
             variant="primary"
             onClick={() => setIsAddLineModalOpen(true)}
-            style={{ backgroundColor: '#2563eb' }}
           >
             + Add Priced BOQ Line
           </Button>
@@ -304,18 +303,18 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         }}
       >
         <Card style={{ padding: '14px', borderLeft: '4px solid #3b82f6' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Baseline Budget</div>
-          <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Baseline Budget</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>
             {formatWithCurrency(financials?.baselineBudget || activeEstimate?.totalCost || (isDemo ? 985000 : 0))}
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
             {selectedCurrency !== 'QAR' && (financials?.baselineBudget || activeEstimate?.totalCost || isDemo) && `Base: ${Number(financials?.baselineBudget || activeEstimate?.totalCost || (isDemo ? 985000 : 0)).toLocaleString()} QAR | `}
             Original authorised baseline
           </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #6366f1' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Approved Changes</div>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Approved Changes</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#4338ca', margin: '4px 0' }}>
             {formatWithCurrency(financials?.approvedChanges || 0)}
           </div>
@@ -326,18 +325,18 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #2563eb' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Current Budget</div>
-          <div style={{ fontSize: '20px', fontWeight: 800, color: '#1d4ed8', margin: '4px 0' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Current Budget</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#60a5fa', margin: '4px 0' }}>
             {formatWithCurrency(financials?.currentBudget || financials?.approvedCostBudget || (isDemo ? 985000 : 0))}
           </div>
-          <div style={{ fontSize: '11px', color: '#1e40af' }}>
+          <div style={{ fontSize: '11px', color: '#60a5fa' }}>
             {selectedCurrency !== 'QAR' && (financials?.currentBudget || financials?.approvedCostBudget || isDemo) && `Base: ${Number(financials?.currentBudget || financials?.approvedCostBudget || (isDemo ? 985000 : 0)).toLocaleString()} QAR | `}
             Baseline + Approved Changes
           </div>
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #0891b2' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Committed Cost</div>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Committed Cost</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#0e7490', margin: '4px 0' }}>
             {formatWithCurrency(financials?.committedCost || 0)}
           </div>
@@ -348,7 +347,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #0d9488' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Actual Cost</div>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Actual Cost</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f766e', margin: '4px 0' }}>
             {formatWithCurrency(financials?.actualCost || 0)}
           </div>
@@ -359,7 +358,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #d97706' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Forecast to Complete (ETC)</div>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Forecast to Complete (ETC)</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#b45309', margin: '4px 0' }}>
             {formatWithCurrency(financials?.forecastToComplete ?? financials?.currentBudget ?? 0)}
           </div>
@@ -370,7 +369,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>EAC (Estimate at Completion)</div>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>EAC (Estimate at Completion)</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#b45309', margin: '4px 0' }}>
             {formatWithCurrency(financials?.estimateAtCompletion ?? financials?.currentBudget ?? 0)}
           </div>
@@ -381,7 +380,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>VAC (Variance at Completion)</div>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>VAC (Variance at Completion)</div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: Number(financials?.varianceAtCompletion || 0) >= 0 ? '#047857' : '#b91c1c', margin: '4px 0' }}>
             {formatWithCurrency(financials?.varianceAtCompletion || 0)}
           </div>
@@ -392,11 +391,11 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         </Card>
 
         <Card style={{ padding: '14px', borderLeft: '4px solid #ef4444', backgroundColor: '#fff5f5' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#b91c1c', textTransform: 'uppercase' }}>Pending Exposure (Isolated)</div>
-          <div style={{ fontSize: '20px', fontWeight: 800, color: '#b91c1c', margin: '4px 0' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>Pending Exposure (Isolated)</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#ef4444', margin: '4px 0' }}>
             {formatWithCurrency(financials?.pendingExposureCost || 0)}
           </div>
-          <div style={{ fontSize: '11px', color: '#991b1b' }}>⚠️ Strictly isolated risk</div>
+          <div style={{ fontSize: '11px', color: '#f87171' }}>⚠️ Strictly isolated risk</div>
         </Card>
       </div>
 
@@ -404,10 +403,10 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
       <Card style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Master Bill of Quantities (BOQ Lines)
             </h3>
-            <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Internal costing view showing linked scope requirements and contractor buy-rates vs client sell-rates.
             </p>
           </div>
@@ -417,7 +416,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Line Code</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Hierarchy (Section &gt; Discipline)</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Description</th>
@@ -439,16 +438,16 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                 const margin = sell > 0 ? (((sell - cost) / sell) * 100).toFixed(1) : '0.0';
 
                 return (
-                  <tr key={l.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr key={l.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#2563eb' }}>
                       {l.lineCode}
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <span style={{ fontSize: '11px', color: '#475569', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                         {l.section || (isDemo ? 'Main Stage' : 'General')} &gt; {l.discipline || (isDemo ? 'AV & Staging' : 'General')}
                       </span>
                     </td>
-                    <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>
+                    <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                       {l.description}
                     </td>
                     <td style={{ padding: '12px' }}>
@@ -466,8 +465,8 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
                       </span>
                     </td>
                     <td style={{ padding: '12px' }}>{l.quantity}</td>
-                    <td style={{ padding: '12px', textTransform: 'uppercase', color: '#64748b' }}>{l.uom}</td>
-                    <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', color: '#64748b' }}>
+                    <td style={{ padding: '12px', textTransform: 'uppercase', color: 'var(--text-muted, #94a3b8)' }}>{l.uom}</td>
+                    <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', color: 'var(--text-muted, #94a3b8)' }}>
                       {convCost.toLocaleString()}
                       {selectedCurrency !== 'QAR' && (
                         <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8' }}>
@@ -493,9 +492,9 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
               })}
               {lines.length === 0 && (
                 <tr>
-                  <td colSpan={10} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={10} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>📊</div>
-                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No BOQ lines found for this estimate</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No BOQ lines found for this estimate</div>
                     <div style={{ fontSize: '12px', marginTop: '4px' }}>Click "+ Add Priced BOQ Line" to add line items connected to scope requirements.</div>
                   </td>
                 </tr>
@@ -514,7 +513,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
       >
         <form onSubmit={handleAddLine} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Line Code</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Line Code</label>
             <Input
               value={lineCode}
               onChange={(e) => setLineCode(e.target.value)}
@@ -523,7 +522,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Linked Scope Requirement Code *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Linked Scope Requirement Code *</label>
             <Input
               value={linkedReqCode}
               onChange={(e) => setLinkedReqCode(e.target.value)}
@@ -533,7 +532,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Line Description *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Line Description *</label>
             <Input
               value={lineDesc}
               onChange={(e) => setLineDesc(e.target.value)}
@@ -544,7 +543,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Quantity</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Quantity</label>
               <Input
                 value={lineQuantity}
                 onChange={(e) => setLineQuantity(e.target.value)}
@@ -552,7 +551,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Unit of Measure (UOM)</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Unit of Measure (UOM)</label>
               <Input
                 value={lineUom}
                 onChange={(e) => setLineUom(e.target.value)}
@@ -563,7 +562,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Contractor Buy Cost (QAR)</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Contractor Buy Cost (QAR)</label>
               <Input
                 type="number"
                 value={lineCost}
@@ -573,7 +572,7 @@ export const CommercialBOQView: React.FC<CommercialBOQViewProps> = ({ projectId 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Client Sell Price (QAR)</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Client Sell Price (QAR)</label>
               <Input
                 type="number"
                 value={lineSell}

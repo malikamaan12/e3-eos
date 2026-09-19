@@ -83,12 +83,12 @@ export const LiveRunSheetView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               ⏱️ {currentLanguage === 'ar' ? 'جدول تسلسل الفقرات الحي وموجة التأخيرات' : 'Live Master Run Sheet & Delay Propagation'}
             </h1>
             <Badge variant="warning">CRITICAL PATH SYNCHRONIZED</Badge>
           </div>
-          <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted, #94a3b8)', fontSize: '13px' }}>
             Real-time stage management and cue execution with automated downstream delay propagation (AT-062).
           </p>
         </div>
@@ -133,7 +133,7 @@ export const LiveRunSheetView: React.FC = () => {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', backgroundColor: '#f8fafc' }}>
+              <tr style={{ borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <th style={{ padding: '12px' }}>Cue #</th>
                 <th style={{ padding: '12px' }}>Title & Description</th>
                 <th style={{ padding: '12px' }}>Department</th>
@@ -152,8 +152,8 @@ export const LiveRunSheetView: React.FC = () => {
                   <tr
                     key={cue.cueNumber}
                     style={{
-                      borderBottom: '1px solid #f1f5f9',
-                      backgroundColor: isDelayed ? '#fffbeb' : '#ffffff',
+                      borderBottom: '1px solid var(--border-subtle, #1d2939)',
+                      backgroundColor: isDelayed ? '#fffbeb' : 'var(--surface-1, #0f1624)',
                     }}
                   >
                     <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 700 }}>
@@ -163,9 +163,9 @@ export const LiveRunSheetView: React.FC = () => {
                       )}
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{cue.title}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{cue.title}</div>
                       {cue.dependentOnCues?.length > 0 && (
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                           Depends on: <strong>{cue.dependentOnCues.join(', ')}</strong>
                         </div>
                       )}
@@ -175,8 +175,8 @@ export const LiveRunSheetView: React.FC = () => {
                         </div>
                       )}
                     </td>
-                    <td style={{ padding: '12px', color: '#475569' }}>{cue.department}</td>
-                    <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>{cue.department}</td>
+                    <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       {new Date(cue.plannedStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{' '}
                       {new Date(cue.plannedEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
@@ -186,7 +186,7 @@ export const LiveRunSheetView: React.FC = () => {
                           {new Date(cue.actualStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       ) : (
-                        <span style={{ color: '#64748b' }}>--</span>
+                        <span style={{ color: 'var(--text-muted, #94a3b8)' }}>--</span>
                       )}
                     </td>
                     <td style={{ padding: '12px' }}>
@@ -211,7 +211,7 @@ export const LiveRunSheetView: React.FC = () => {
                         {cue.status.toUpperCase()}
                       </Badge>
                     </td>
-                    <td style={{ padding: '12px', fontSize: '12px', color: '#334155' }}>
+                    <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                       {cue.responsiblePerson}
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
@@ -244,7 +244,7 @@ export const LiveRunSheetView: React.FC = () => {
               })}
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={9} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={9} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     No run sheet cues scheduled for this project.
                   </td>
                 </tr>
@@ -262,7 +262,7 @@ export const LiveRunSheetView: React.FC = () => {
           title={`Propagate Schedule Delay: ${selectedCue?.cueNumber}`}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '12px', borderRadius: '6px', fontSize: '12px', color: '#92400e' }}>
+            <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '12px', borderRadius: '6px', fontSize: '12px', color: '#f59e0b' }}>
               <strong>INVARIANT AT-062:</strong> When an upstream cue on the critical path is delayed,
               all dependent cues are automatically re-calculated and shifted downstream with notifications.
             </div>

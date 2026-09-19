@@ -130,12 +130,12 @@ export const BumpOutCloseoutView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               🏁 {currentLanguage === 'ar' ? 'إجراءات التفكيك، تسليم الموقع والإغلاق التشغيلي' : 'Bump-Out, Returns, Venue Handover & Operational Closeout'}
             </h1>
             <Badge variant="neutral">DECOUPLED CLOSURE MODEL</Badge>
           </div>
-          <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted, #94a3b8)', fontSize: '13px' }}>
             Multi-dimensional closeout: Event delivery, de-rig, asset reconciliation, and venue handover decoupled from financial retention (AT-064, AT-065).
           </p>
         </div>
@@ -184,8 +184,8 @@ export const BumpOutCloseoutView: React.FC = () => {
         style={{
           padding: '14px 18px',
           borderRadius: '8px',
-          backgroundColor: '#eff6ff',
-          border: '1px solid #bfdbfe',
+          backgroundColor: 'rgba(59, 130, 246, 0.12)',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
@@ -193,7 +193,7 @@ export const BumpOutCloseoutView: React.FC = () => {
         id="banner-decoupled-closure"
       >
         <span style={{ fontSize: '24px' }}>ℹ️</span>
-        <div style={{ fontSize: '12px', color: '#1e40af' }}>
+        <div style={{ fontSize: '12px', color: '#60a5fa' }}>
           <strong>INVARIANT AT-065 (DECOUPLED CLOSEOUT):</strong> Operational closure confirms that physical event delivery,
           dismantling, venue handover, and asset returns are complete. Commercial retention and client receivables remain
           tracked separately in the commercial ledger until financial settlement.
@@ -206,7 +206,7 @@ export const BumpOutCloseoutView: React.FC = () => {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', backgroundColor: '#f8fafc' }}>
+                <tr style={{ borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                   <th style={{ padding: '12px' }}>Zone</th>
                   <th style={{ padding: '12px' }}>Activity & Work Package</th>
                   <th style={{ padding: '12px' }}>Planned Completion</th>
@@ -216,10 +216,10 @@ export const BumpOutCloseoutView: React.FC = () => {
               </thead>
               <tbody>
                 {bumpOutActivities.map((b: any) => (
-                  <tr key={b.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr key={b.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px', fontWeight: 600 }}>{b.zoneName}</td>
                     <td style={{ padding: '12px' }}>{b.activityType}</td>
-                    <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       {new Date(b.plannedCompletion).toLocaleString()}
                     </td>
                     <td style={{ padding: '12px', fontSize: '12px', color: '#b45309' }}>
@@ -230,7 +230,7 @@ export const BumpOutCloseoutView: React.FC = () => {
                 ))}
                 {bumpOutActivities.length === 0 && (
                   <tr>
-                    <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                    <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                       No bump-out activities scheduled for this project.
                     </td>
                   </tr>
@@ -252,7 +252,7 @@ export const BumpOutCloseoutView: React.FC = () => {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', backgroundColor: '#f8fafc' }}>
+                <tr style={{ borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                   <th style={{ padding: '12px' }}>Asset ID & Description</th>
                   <th style={{ padding: '12px' }}>Manifest Reference</th>
                   <th style={{ padding: '12px' }}>Condition Received</th>
@@ -263,10 +263,10 @@ export const BumpOutCloseoutView: React.FC = () => {
               </thead>
               <tbody>
                 {assetReturns.map((a: any) => (
-                  <tr key={a.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr key={a.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px' }}>
                       <div style={{ fontWeight: 600 }}>{a.assetName || a.assetId}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>Tag: {a.assetId}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Tag: {a.assetId}</div>
                     </td>
                     <td style={{ padding: '12px', fontFamily: 'monospace' }}>{a.manifestId}</td>
                     <td style={{ padding: '12px' }}>
@@ -286,14 +286,14 @@ export const BumpOutCloseoutView: React.FC = () => {
                     <td style={{ padding: '12px' }}>
                       <Badge variant="neutral">{a.responsibility || 'Venue'}</Badge>
                     </td>
-                    <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       {a.inspectedBy || a.inspector} ({new Date(a.inspectedAt || Date.now()).toLocaleDateString()})
                     </td>
                   </tr>
                 ))}
                 {assetReturns.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                    <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                       No asset return inspections recorded for this project.
                     </td>
                   </tr>
@@ -310,7 +310,7 @@ export const BumpOutCloseoutView: React.FC = () => {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', backgroundColor: '#f8fafc' }}>
+                <tr style={{ borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                   <th style={{ padding: '12px' }}>Claim Type</th>
                   <th style={{ padding: '12px' }}>Description & Scope</th>
                   <th style={{ padding: '12px' }}>Claimed Amount</th>
@@ -321,7 +321,7 @@ export const BumpOutCloseoutView: React.FC = () => {
               </thead>
               <tbody>
                 {claims.map((c: any) => (
-                  <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr key={c.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px', fontWeight: 600 }}>{c.claimType}</td>
                     <td style={{ padding: '12px' }}>{c.description}</td>
                     <td style={{ padding: '12px', fontWeight: 600 }}>{c.claimedAmount.toLocaleString()} QAR</td>
@@ -329,12 +329,12 @@ export const BumpOutCloseoutView: React.FC = () => {
                       {c.assessedExposure.toLocaleString()} QAR
                     </td>
                     <td style={{ padding: '12px' }}><Badge variant="warning">{c.status.toUpperCase()}</Badge></td>
-                    <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>{c.settlementNotes}</td>
+                    <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>{c.settlementNotes}</td>
                   </tr>
                 ))}
                 {claims.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                    <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                       No claims or loss exposures registered for this project.
                     </td>
                   </tr>
@@ -349,7 +349,7 @@ export const BumpOutCloseoutView: React.FC = () => {
       {activeTab === 'venue' && (
         <Card title="Venue Reinstatement & Handover Sign-Off">
           {!venueHandover && !isDemo ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
               Venue reinstatement inspection has not been recorded yet for this project.
             </div>
           ) : (
@@ -363,7 +363,7 @@ export const BumpOutCloseoutView: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div>Venue Rep: <strong>{venueHandover?.clientRepresentativeName || (isDemo ? 'Jassim Al-Sulaiti (Venue Authority)' : '—')}</strong></div>
                 <div>Sign-off Authority: <strong>{venueHandover?.signoffBy || (isDemo ? 'Operations Director E3' : '—')}</strong></div>
-                <div>Cryptographic Seal: <code style={{ fontSize: '11px', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{venueHandover?.auditHash || (isDemo ? 'audit-seal-vh-99824' : '—')}</code></div>
+                <div>Cryptographic Seal: <code style={{ fontSize: '11px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '2px 6px', borderRadius: '4px' }}>{venueHandover?.auditHash || (isDemo ? 'audit-seal-vh-99824' : '—')}</code></div>
               </div>
             </div>
           )}
@@ -391,9 +391,9 @@ export const BumpOutCloseoutView: React.FC = () => {
                     alignItems: 'center',
                     gap: '10px',
                     padding: '12px',
-                    backgroundColor: '#f8fafc',
+                    backgroundColor: 'var(--surface-2, #151e2e)',
                     borderRadius: '6px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--border-default, #2a374b)',
                     cursor: 'pointer',
                   }}
                 >
@@ -421,12 +421,12 @@ export const BumpOutCloseoutView: React.FC = () => {
             </div>
 
             {operationalClosure && (
-              <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac', padding: '14px', borderRadius: '6px' }}>
-                <h4 style={{ margin: '0 0 6px 0', color: '#166534' }}>✓ Operational Closure Executed & Sealed</h4>
-                <div style={{ fontSize: '12px', color: '#15803d' }}>
+              <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '14px', borderRadius: '6px' }}>
+                <h4 style={{ margin: '0 0 6px 0', color: '#22c55e' }}>✓ Operational Closure Executed & Sealed</h4>
+                <div style={{ fontSize: '12px', color: '#4ade80' }}>
                   Decision: <strong>{operationalClosure.decision.toUpperCase()}</strong> | Signoff: <strong>{operationalClosure.signoffBy}</strong>
                 </div>
-                <div style={{ fontSize: '11px', color: '#166534', marginTop: '4px' }}>
+                <div style={{ fontSize: '11px', color: '#22c55e', marginTop: '4px' }}>
                   Audit Seal: <code>{operationalClosure.auditHash}</code>
                 </div>
               </div>

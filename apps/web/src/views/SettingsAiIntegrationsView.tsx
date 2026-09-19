@@ -420,9 +420,9 @@ export const SettingsAiIntegrationsView: React.FC = () => {
 
                     {/* Enterprise Authority Notice & Capabilities */}
                     {(conn.provider === 'e3_rentals' || conn.provider === 'e3_purchasetracker') && (
-                      <div style={{ marginTop: '8px', padding: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+                      <div style={{ marginTop: '8px', padding: '10px', background: 'var(--surface-2, #151e2e)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary, #cbd5e1)' }}>
                             {conn.provider === 'e3_rentals' ? 'Inventory & Assets Authority' : 'Procurement & Vendors Authority'}
                           </span>
                           <span style={{
@@ -436,7 +436,7 @@ export const SettingsAiIntegrationsView: React.FC = () => {
                             {conn.mode === 'disabled' ? 'DISCONNECTED / AWAITING LIVE' : 'SANDBOX VERIFIED'}
                           </span>
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '6px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginBottom: '6px' }}>
                           {conn.provider === 'e3_rentals'
                             ? 'Rentals is authoritative for stock balances, availability, and custody. EOS maintains demand & allocations.'
                             : 'PurchaseTracker is authoritative for vendor onboarding, compliance, and PO issuance. EOS maintains project PRs.'}
@@ -449,10 +449,10 @@ export const SettingsAiIntegrationsView: React.FC = () => {
                             <span key={cap} style={{
                               fontSize: '10px',
                               padding: '2px 5px',
-                              background: cap.includes('deferred') ? '#fee2e2' : '#f1f5f9',
-                              color: cap.includes('deferred') ? '#991b1b' : '#334155',
+                              background: cap.includes('deferred') ? '#fee2e2' : 'var(--surface-2, #151e2e)',
+                              color: cap.includes('deferred') ? '#991b1b' : 'var(--text-secondary, #cbd5e1)',
                               borderRadius: '3px',
-                              border: `1px solid ${cap.includes('deferred') ? '#fecaca' : '#cbd5e1'}`,
+                              border: `1px solid ${cap.includes('deferred') ? '#fecaca' : 'var(--border-default, #2a374b)'}`,
                             }}>
                               {cap}
                             </span>
@@ -638,7 +638,7 @@ export const SettingsAiIntegrationsView: React.FC = () => {
                   type="text"
                   disabled
                   value={draftConfig.mediaAdapters.pdfEngine}
-                  style={{ width: '100%', padding: '8px', fontSize: '12px', background: '#f8fafc', border: `1px solid ${E3_THEME.surface.cardBorder}`, borderRadius: '4px' }}
+                  style={{ width: '100%', padding: '8px', fontSize: '12px', background: 'var(--surface-2, #151e2e)', border: `1px solid ${E3_THEME.surface.cardBorder}`, borderRadius: '4px' }}
                 />
                 <span style={{ fontSize: '11px', color: '#059669' }}>Zero-dependency pure-JS canvas & PDF byte assembler</span>
               </div>
@@ -648,7 +648,7 @@ export const SettingsAiIntegrationsView: React.FC = () => {
                   type="text"
                   disabled
                   value={draftConfig.mediaAdapters.ocrEngine}
-                  style={{ width: '100%', padding: '8px', fontSize: '12px', background: '#f8fafc', border: `1px solid ${E3_THEME.surface.cardBorder}`, borderRadius: '4px' }}
+                  style={{ width: '100%', padding: '8px', fontSize: '12px', background: 'var(--surface-2, #151e2e)', border: `1px solid ${E3_THEME.surface.cardBorder}`, borderRadius: '4px' }}
                 />
                 <span style={{ fontSize: '11px', color: E3_THEME.text.secondary }}>Pasted text uses native text spans; scanned pages use client-side WASM</span>
               </div>
@@ -658,7 +658,7 @@ export const SettingsAiIntegrationsView: React.FC = () => {
                   type="text"
                   disabled
                   value={draftConfig.mediaAdapters.cadViewerEngine}
-                  style={{ width: '100%', padding: '8px', fontSize: '12px', background: '#f8fafc', border: `1px solid ${E3_THEME.surface.cardBorder}`, borderRadius: '4px' }}
+                  style={{ width: '100%', padding: '8px', fontSize: '12px', background: 'var(--surface-2, #151e2e)', border: `1px solid ${E3_THEME.surface.cardBorder}`, borderRadius: '4px' }}
                 />
                 <span style={{ fontSize: '11px', color: '#059669' }}>Interactive WebGL/Canvas viewport with front/top-down/isometric orbit</span>
               </div>
@@ -668,7 +668,7 @@ export const SettingsAiIntegrationsView: React.FC = () => {
                   type="text"
                   disabled
                   value={draftConfig.mediaAdapters.videoPlayerEngine}
-                  style={{ width: '100%', padding: '8px', fontSize: '12px', background: '#f8fafc', border: `1px solid ${E3_THEME.surface.cardBorder}`, borderRadius: '4px' }}
+                  style={{ width: '100%', padding: '8px', fontSize: '12px', background: 'var(--surface-2, #151e2e)', border: `1px solid ${E3_THEME.surface.cardBorder}`, borderRadius: '4px' }}
                 />
                 <span style={{ fontSize: '11px', color: '#059669' }}>Native HTML5 video element with time-anchored pin playback</span>
               </div>
@@ -691,7 +691,7 @@ export const SettingsAiIntegrationsView: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '8px 12px',
-                    background: '#f8fafc',
+                    background: 'var(--surface-2, #151e2e)',
                     borderRadius: '4px',
                     fontSize: '12px',
                     fontFamily: 'monospace',
@@ -797,7 +797,7 @@ export const SettingsAiIntegrationsView: React.FC = () => {
                       style={{
                         padding: '4px 8px',
                         background: '#eff6ff',
-                        color: '#1e40af',
+                        color: '#60a5fa',
                         borderRadius: '4px',
                         fontSize: '12px',
                         fontFamily: 'monospace',
@@ -879,10 +879,10 @@ export const SettingsAiIntegrationsView: React.FC = () => {
               style={{
                 padding: '12px',
                 background: '#fffbeb',
-                border: '1px solid #fde68a',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
                 borderRadius: '6px',
                 fontSize: '12px',
-                color: '#92400e',
+                color: '#f59e0b',
               }}
             >
               <strong>Governance Requirement:</strong> A descriptive change summary is mandatory for regulatory compliance.

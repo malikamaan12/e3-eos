@@ -257,11 +257,11 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
       {/* Workspace Header */}
       <div
         style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'var(--text-primary, #f8fafc)',
+          color: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
           padding: '20px 24px',
-          border: '1px solid #1e293b',
+          border: '1px solid var(--border-subtle, #1d2939)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -276,7 +276,7 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
             </span>
             <Badge variant="info">Stage 04: Clarification & Design Development</Badge>
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--surface-2, #151e2e)' }}>
             Formal Inquiry, Tender Addenda & Cross-Module Impact Matrix
           </div>
           <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
@@ -303,25 +303,25 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
         }}
       >
         <Card style={{ padding: '16px', borderLeft: '4px solid #38bdf8' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total RFIs Logged</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>{totalCount}</div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Formal queries across all disciplines</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Total RFIs Logged</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>{totalCount}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Formal queries across all disciplines</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Active / Pending Action</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Active / Pending Action</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>{openCount}</div>
           <div style={{ fontSize: '11px', color: '#b45309' }}>Draft, Internal Review & Awaiting Response</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #ef4444' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Urgent (&lt; 72h Deadline)</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Urgent (&lt; 72h Deadline)</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#ef4444', margin: '4px 0' }}>{urgentCount}</div>
-          <div style={{ fontSize: '11px', color: '#b91c1c' }}>Countdown expiring imminently</div>
+          <div style={{ fontSize: '11px', color: '#ef4444' }}>Countdown expiring imminently</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Answered / Closed</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Answered / Closed</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#10b981', margin: '4px 0' }}>{answeredCount}</div>
           <div style={{ fontSize: '11px', color: '#047857' }}>Resolved and formally archived</div>
         </Card>
@@ -351,9 +351,9 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
                   borderRadius: '6px',
                   fontSize: '12px',
                   fontWeight: 700,
-                  border: selectedStatusFilter === tab.key ? '1px solid #2563eb' : '1px solid #cbd5e1',
-                  backgroundColor: selectedStatusFilter === tab.key ? '#eff6ff' : '#ffffff',
-                  color: selectedStatusFilter === tab.key ? '#1d4ed8' : '#475569',
+                  border: selectedStatusFilter === tab.key ? '1px solid #2563eb' : '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: selectedStatusFilter === tab.key ? '#eff6ff' : 'var(--surface-1, #0f1624)',
+                  color: selectedStatusFilter === tab.key ? '#1d4ed8' : 'var(--text-secondary, #cbd5e1)',
                   cursor: 'pointer',
                 }}
               >
@@ -364,16 +364,16 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
 
           {/* Category Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Category:</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Category:</span>
             <select
               value={selectedCategoryFilter}
               onChange={(e) => setSelectedCategoryFilter(e.target.value)}
               style={{
                 padding: '6px 12px',
                 borderRadius: '6px',
-                border: '1px solid #cbd5e1',
+                border: '1px solid var(--border-default, #2a374b)',
                 fontSize: '12px',
-                backgroundColor: '#ffffff',
+                backgroundColor: 'var(--surface-1, #0f1624)',
               }}
             >
               <option value="all">All Categories</option>
@@ -394,7 +394,7 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+              <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>RFI Code</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Title & Discipline</th>
                 <th style={{ padding: '10px 12px', fontWeight: 700 }}>Status</th>
@@ -422,8 +422,8 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
                   <tr
                     key={item.id}
                     style={{
-                      borderBottom: '1px solid #e2e8f0',
-                      backgroundColor: countdown.isUrgent ? '#fffbeb' : '#ffffff',
+                      borderBottom: '1px solid var(--border-default, #2a374b)',
+                      backgroundColor: countdown.isUrgent ? '#fffbeb' : 'var(--surface-1, #0f1624)',
                     }}
                   >
                     {/* Code */}
@@ -433,14 +433,14 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
 
                     {/* Title & Discipline */}
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '3px' }}>{item.title}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '3px' }}>{item.title}</div>
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <Badge variant="neutral" size="sm">
                           {item.discipline?.toUpperCase()}
                         </Badge>
-                        <span style={{ fontSize: '11px', color: '#64748b' }}>{item.category}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{item.category}</span>
                         {item.hasCommercialImpact && (
-                          <span style={{ fontSize: '10px', color: '#b91c1c', backgroundColor: '#fee2e2', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                          <span style={{ fontSize: '10px', color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.12)', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
                             💰 Cost Impact
                           </span>
                         )}
@@ -461,25 +461,25 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
 
                     {/* Author / Responder */}
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontSize: '11px', color: '#0f172a', fontWeight: 600 }}>{item.author}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>Resp: {item.assignedResponder}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-primary, #f8fafc)', fontWeight: 600 }}>{item.author}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Resp: {item.assignedResponder}</div>
                     </td>
 
                     {/* Target Response & Countdown */}
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontSize: '11px', color: '#475569' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>
                         {new Date(item.targetResponseDate || item.dueAt).toLocaleDateString()}
                       </div>
                       {countdown.isUrgent ? (
-                        <div style={{ display: 'inline-block', backgroundColor: '#ef4444', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, marginTop: '2px' }}>
+                        <div style={{ display: 'inline-block', backgroundColor: '#ef4444', color: 'var(--surface-1, #0f1624)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, marginTop: '2px' }}>
                           ⚠️ {countdown.hoursRemaining}h remaining!
                         </div>
                       ) : countdown.isOverdue ? (
-                        <div style={{ display: 'inline-block', backgroundColor: '#b91c1c', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, marginTop: '2px' }}>
+                        <div style={{ display: 'inline-block', backgroundColor: '#b91c1c', color: 'var(--surface-1, #0f1624)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, marginTop: '2px' }}>
                           🔴 Overdue ({Math.abs(countdown.hoursRemaining)}h)
                         </div>
                       ) : (
-                        <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                           ⏳ {countdown.hoursRemaining > 0 ? `${countdown.hoursRemaining}h remaining` : 'Resolved'}
                         </div>
                       )}
@@ -489,7 +489,7 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
                     <td style={{ padding: '12px' }}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {(item.linkedRequirementIds || []).map((r) => (
-                          <span key={r} style={{ fontSize: '10px', backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '1px 5px', borderRadius: '3px' }}>
+                          <span key={r} style={{ fontSize: '10px', backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', padding: '1px 5px', borderRadius: '3px' }}>
                             Req: {r}
                           </span>
                         ))}
@@ -504,12 +504,12 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
                           </span>
                         ))}
                         {(item.linkedScheduleTaskIds || []).map((t) => (
-                          <span key={t} style={{ fontSize: '10px', backgroundColor: '#fff7ed', color: '#ea580c', padding: '1px 5px', borderRadius: '3px' }}>
+                          <span key={t} style={{ fontSize: '10px', backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#ea580c', padding: '1px 5px', borderRadius: '3px' }}>
                             Task: {t}
                           </span>
                         ))}
                         {(item.linkedDocumentNumbers || []).map((doc) => (
-                          <span key={doc} style={{ fontSize: '10px', backgroundColor: '#f1f5f9', color: '#475569', padding: '1px 5px', borderRadius: '3px' }}>
+                          <span key={doc} style={{ fontSize: '10px', backgroundColor: 'var(--surface-2, #151e2e)', color: 'var(--text-secondary, #cbd5e1)', padding: '1px 5px', borderRadius: '3px' }}>
                             Doc: {doc}
                           </span>
                         ))}
@@ -551,9 +551,9 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
               })}
               {filteredItems.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
-                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No clarifications found matching active filter</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No clarifications found matching active filter</div>
                     <div style={{ fontSize: '12px', marginTop: '4px' }}>Try switching the status or category filter, or raise a new clarification.</div>
                   </td>
                 </tr>
@@ -574,8 +574,8 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
             {/* Approved Baseline Protection Banner */}
             <div
               style={{
-                backgroundColor: '#f0fdf4',
-                border: '1px solid #bbf7d0',
+                backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
                 borderRadius: '6px',
                 padding: '12px 16px',
                 display: 'flex',
@@ -585,10 +585,10 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
             >
               <span style={{ fontSize: '20px' }}>🛡️</span>
               <div>
-                <div style={{ fontWeight: 800, fontSize: '12px', color: '#166534' }}>
+                <div style={{ fontWeight: 800, fontSize: '12px', color: '#22c55e' }}>
                   Approved Commercial & Schedule Baseline Protected
                 </div>
-                <div style={{ fontSize: '11px', color: '#15803d' }}>
+                <div style={{ fontSize: '11px', color: '#4ade80' }}>
                   Impact analysis indicates potential downstream variations, but approved contract baseline ({baselineState.approvedBudgetQar.toLocaleString()} QAR) remains strictly unchanged until a formal Variation Order is authorized.
                 </div>
               </div>
@@ -596,7 +596,7 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
 
             {/* Impact Details */}
             <div>
-              <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
+              <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 Affected Functional Modules
               </h4>
               {(() => {
@@ -607,21 +607,21 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
                       <div
                         key={idx}
                         style={{
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid var(--border-default, #2a374b)',
                           borderRadius: '6px',
                           padding: '10px 12px',
-                          backgroundColor: '#f8fafc',
+                          backgroundColor: 'var(--surface-2, #151e2e)',
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                           <span style={{ fontWeight: 700, fontSize: '12px', color: '#2563eb' }}>
                             {detail.module}
                           </span>
-                          <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#64748b' }}>
+                          <span style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-muted, #94a3b8)' }}>
                             {detail.reference}
                           </span>
                         </div>
-                        <div style={{ fontSize: '12px', color: '#334155' }}>{detail.summary}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>{detail.summary}</div>
                       </div>
                     ))}
                   </div>
@@ -710,8 +710,8 @@ export const ClarificationsView: React.FC<ClarificationsViewProps> = ({ projectI
             </div>
 
             {/* Link Picker Section */}
-            <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>
+            <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '8px' }}>
                 🔗 Cross-Module Link Picker (5-Way Traceability)
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>

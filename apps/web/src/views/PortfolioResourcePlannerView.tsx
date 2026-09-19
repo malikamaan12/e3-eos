@@ -245,7 +245,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
       <div
         style={{
           background: '#fffbeb',
-          border: '1px solid #fde68a',
+          border: '1px solid rgba(245, 158, 11, 0.3)',
           borderRadius: '8px',
           padding: '16px 20px',
           marginBottom: '24px',
@@ -257,7 +257,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ fontSize: '24px' }}>🛡️</span>
           <div>
-            <div style={{ fontWeight: '600', fontSize: '14px', color: '#92400e', marginBottom: '2px' }}>
+            <div style={{ fontWeight: '600', fontSize: '14px', color: '#f59e0b', marginBottom: '2px' }}>
               {isAr ? 'ضوابط السلطة المؤسسية وحدود الأنظمة الخارجية' : 'Enterprise Source Authority & Disconnected Operating Controls'}
             </div>
             <div style={{ fontSize: '13px', color: '#78350f' }}>
@@ -364,7 +364,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
                   borderRadius: '6px',
                   border: `1px solid ${E3_THEME.surface.cardBorder}`,
                   fontSize: '13px',
-                  background: '#ffffff',
+                  background: 'var(--surface-1, #0f1624)',
                 }}
               >
                 <option value="all">{isAr ? 'جميع الفئات' : 'All Resource Classes'}</option>
@@ -382,7 +382,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
                 style={{
                   padding: '6px 14px',
                   border: 'none',
-                  background: viewMode === 'table' ? E3_THEME.surface.pageBg : '#ffffff',
+                  background: viewMode === 'table' ? E3_THEME.surface.pageBg : 'var(--surface-1, #0f1624)',
                   fontWeight: viewMode === 'table' ? '600' : '400',
                   fontSize: '13px',
                   cursor: 'pointer',
@@ -395,7 +395,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
                 style={{
                   padding: '6px 14px',
                   border: 'none',
-                  background: viewMode === 'timeline' ? E3_THEME.surface.pageBg : '#ffffff',
+                  background: viewMode === 'timeline' ? E3_THEME.surface.pageBg : 'var(--surface-1, #0f1624)',
                   fontWeight: viewMode === 'timeline' ? '600' : '400',
                   fontSize: '13px',
                   cursor: 'pointer',
@@ -460,7 +460,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         {item.projectConfirmedCoverage > 0 ? (
-                          <span style={{ color: '#15803d', fontWeight: '600' }}>{item.projectConfirmedCoverage} {item.unit}</span>
+                          <span style={{ color: '#4ade80', fontWeight: '600' }}>{item.projectConfirmedCoverage} {item.unit}</span>
                         ) : (
                           <span style={{ color: E3_THEME.text.muted }}>0 {item.unit}</span>
                         )}
@@ -513,7 +513,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
                     </div>
 
                     {/* Graphic bar representing occupancy */}
-                    <div style={{ height: '24px', background: '#f1f5f9', borderRadius: '4px', position: 'relative', overflow: 'hidden', display: 'flex' }}>
+                    <div style={{ height: '24px', background: 'var(--surface-2, #151e2e)', borderRadius: '4px', position: 'relative', overflow: 'hidden', display: 'flex' }}>
                       {/* Project B Hold (4 units) */}
                       {res.occupiedByOthers > 0 && (
                         <div
@@ -590,7 +590,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
                   </div>
 
                   <div style={{ textAlign: direction === 'rtl' ? 'left' : 'right' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#b91c1c' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#ef4444' }}>
                       {conf.shortfall} {conf.unit} shortfall
                     </div>
                     <div style={{ fontSize: '11px', color: E3_THEME.text.muted }}>
@@ -663,7 +663,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
 
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
-                  <span style={{ fontWeight: '600', color: '#15803d' }}>
+                  <span style={{ fontWeight: '600', color: '#4ade80' }}>
                     1. {isAr ? 'المخزون الداخلي المتاح (E3 Rentals)' : 'Internal Stock (E3 Rentals)'}
                   </span>
                   <span style={{ color: E3_THEME.text.muted }}>Available: 8 | Cost: 0 QAR</span>
@@ -696,7 +696,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
 
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
-                  <span style={{ fontWeight: '600', color: '#6b21a8' }}>
+                  <span style={{ fontWeight: '600', color: '#a78bfa' }}>
                     3. {isAr ? 'تصنيع ورشة الإنتاج (E3 Workshop)' : 'Workshop Fabrication (E3 Workshop)'}
                   </span>
                   <span style={{ color: E3_THEME.text.muted }}>Rate: 1,200 QAR / unit</span>
@@ -822,7 +822,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
               <div style={{ background: E3_THEME.surface.pageBg, padding: '12px', borderRadius: '6px', fontSize: '12px', fontFamily: 'monospace' }}>
                 <div>vnd-pt-001: Gulf Rigging (Compliant / Approved)</div>
                 <div>vnd-pt-002: Qatar Custom Fab (Compliant / Approved)</div>
-                <div style={{ color: '#b91c1c' }}>vnd-pt-003: Al-Rayyan Event Hire (Suspended / Blocked)</div>
+                <div style={{ color: '#ef4444' }}>vnd-pt-003: Al-Rayyan Event Hire (Suspended / Blocked)</div>
                 <div style={{ marginTop: '6px', color: E3_THEME.text.muted }}>Direct PO Creation: Disabled (PO_CREATION_DEFERRED)</div>
               </div>
             </Card>
@@ -850,7 +850,7 @@ export const PortfolioResourcePlannerView: React.FC = () => {
               <div>Authoritative Source: {selectedResource.sourceSystem}</div>
             </div>
 
-            <div style={{ background: '#fffbeb', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', color: '#92400e', marginBottom: '16px' }}>
+            <div style={{ background: '#fffbeb', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', color: '#f59e0b', marginBottom: '16px' }}>
               Notice: Direct reservations require live connection activation. In this phase, allocations are recorded locally as EOS planning drafts.
             </div>
 

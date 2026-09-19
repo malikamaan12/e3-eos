@@ -143,10 +143,10 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
     return (
       <Card style={{ padding: '48px 24px', textAlign: 'center' }}>
         <div style={{ fontSize: '40px', marginBottom: '16px' }}>📐</div>
-        <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: '#1e293b' }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
           No Design Package Registered Yet
         </h3>
-        <p style={{ margin: '0 0 24px', color: '#64748b', fontSize: '14px', maxWidth: '520px', marginInline: 'auto' }}>
+        <p style={{ margin: '0 0 24px', color: 'var(--text-muted, #94a3b8)', fontSize: '14px', maxWidth: '520px', marginInline: 'auto' }}>
           Upload architectural drawings, structural layouts, or 3D visual renders for this project to start coordinate review pins and POL-DES-01 production release gates.
         </p>
         <Button
@@ -310,11 +310,11 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
       {/* Top Banner */}
       <div
         style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'var(--text-primary, #f8fafc)',
+          color: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
           padding: '20px 24px',
-          border: '1px solid #1e293b',
+          border: '1px solid var(--border-subtle, #1d2939)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -329,7 +329,7 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
             </span>
             <Badge variant="info">Stage 04: Clarification and Design Development</Badge>
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--surface-2, #151e2e)' }}>
             {designPackage.title}
           </div>
           <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
@@ -398,9 +398,9 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
                   borderRadius: '6px',
                   fontSize: '12px',
                   fontWeight: 700,
-                  border: packageType === pkg.key ? '1px solid #2563eb' : '1px solid #cbd5e1',
-                  backgroundColor: packageType === pkg.key ? '#eff6ff' : '#ffffff',
-                  color: packageType === pkg.key ? '#1d4ed8' : '#475569',
+                  border: packageType === pkg.key ? '1px solid #2563eb' : '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: packageType === pkg.key ? '#eff6ff' : 'var(--surface-1, #0f1624)',
+                  color: packageType === pkg.key ? '#1d4ed8' : 'var(--text-secondary, #cbd5e1)',
                   cursor: 'pointer',
                 }}
               >
@@ -411,8 +411,8 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
 
           {/* Revision & Comparison Controls */}
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Active Revision:</span>
-            <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Active Revision:</span>
+            <div style={{ display: 'flex', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', overflow: 'hidden' }}>
               <button
                 id="btn-select-rev-a"
                 onClick={() => setSelectedRevisionCode('Rev A')}
@@ -421,8 +421,8 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
                   fontSize: '12px',
                   fontWeight: 700,
                   border: 'none',
-                  backgroundColor: selectedRevisionCode === 'Rev A' ? '#2563eb' : '#ffffff',
-                  color: selectedRevisionCode === 'Rev A' ? '#ffffff' : '#475569',
+                  backgroundColor: selectedRevisionCode === 'Rev A' ? '#2563eb' : 'var(--surface-1, #0f1624)',
+                  color: selectedRevisionCode === 'Rev A' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                   cursor: 'pointer',
                 }}
               >
@@ -436,8 +436,8 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
                   fontSize: '12px',
                   fontWeight: 700,
                   border: 'none',
-                  backgroundColor: selectedRevisionCode === 'Rev B' ? '#2563eb' : '#ffffff',
-                  color: selectedRevisionCode === 'Rev B' ? '#ffffff' : '#475569',
+                  backgroundColor: selectedRevisionCode === 'Rev B' ? '#2563eb' : 'var(--surface-1, #0f1624)',
+                  color: selectedRevisionCode === 'Rev B' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
                   cursor: 'pointer',
                 }}
               >
@@ -463,10 +463,10 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
         <Card style={{ padding: '16px', position: 'relative' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div>
-              <span style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a' }}>
+              <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
                 Elevation View — {selectedRevisionCode} {isCompareMode && '(Comparison Overlay Active)'}
               </span>
-              <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '8px' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginLeft: '8px' }}>
                 Click anywhere on canvas to drop a review pin
               </span>
             </div>
@@ -481,11 +481,11 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
               position: 'relative',
               width: '100%',
               height: '460px',
-              backgroundColor: '#0f172a',
+              backgroundColor: 'var(--text-primary, #f8fafc)',
               borderRadius: '6px',
               overflow: 'hidden',
               cursor: 'crosshair',
-              border: '2px solid #334155',
+              border: '2px solid var(--border-default, #2a374b)',
               boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)',
             }}
           >
@@ -525,8 +525,8 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
               {/* Foundation Deadweight Ballasts (Rev B Difference!) */}
               <rect x="80" y="380" width="80" height="20" fill="#0284c7" opacity="0.8" />
               <rect x="640" y="380" width="80" height="20" fill="#0284c7" opacity="0.8" />
-              <text x="85" y="395" fill="#ffffff" fontSize="9" fontWeight="bold">2T BALLAST</text>
-              <text x="645" y="395" fill="#ffffff" fontSize="9" fontWeight="bold">2T BALLAST</text>
+              <text x="85" y="395" fill= 'var(--surface-1, #0f1624)' fontSize="9" fontWeight="bold">2T BALLAST</text>
+              <text x="645" y="395" fill= 'var(--surface-1, #0f1624)' fontSize="9" fontWeight="bold">2T BALLAST</text>
 
               {/* Dimension Callouts */}
               <line x1="120" y1="70" x2="680" y2="70" stroke="#f59e0b" strokeWidth="1" />
@@ -561,14 +561,14 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
                     height: isSelected ? '32px' : '26px',
                     borderRadius: '50%',
                     backgroundColor: pinColor,
-                    color: '#ffffff',
+                    color: 'var(--surface-1, #0f1624)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 800,
                     fontSize: '12px',
-                    boxShadow: isSelected ? '0 0 12px #ffffff' : '0 2px 6px rgba(0,0,0,0.4)',
-                    border: '2px solid #ffffff',
+                    boxShadow: isSelected ? '0 0 12px var(--accent, #d97706)' : '0 2px 6px rgba(0,0,0,0.4)',
+                    border: '2px solid var(--accent, #d97706)',
                     cursor: 'pointer',
                     zIndex: isSelected ? 10 : 5,
                     transition: 'all 0.15s ease',
@@ -592,16 +592,16 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
 
         {/* Pin Discussion & Comments Panel */}
         <Card style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '510px' }}>
-          <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '12px' }}>
+          <div style={{ borderBottom: '1px solid var(--border-default, #2a374b)', paddingBottom: '12px', marginBottom: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a' }}>
+              <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
                 Pin #{activePin?.pinNumber}: {activePin?.title}
               </span>
               <Badge variant={activePin?.status === 'resolved' ? 'success' : 'warning'} size="sm">
                 {activePin?.status?.toUpperCase()}
               </Badge>
             </div>
-            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'flex', gap: '8px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px', display: 'flex', gap: '8px' }}>
               <span>Discipline: <strong>{activePin?.discipline}</strong></span>
               <span>Priority: <strong style={{ color: activePin?.priority === 'urgent' ? '#ef4444' : '#f59e0b' }}>{activePin?.priority?.toUpperCase()}</strong></span>
             </div>
@@ -613,35 +613,35 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
               <div
                 key={c.id}
                 style={{
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '6px',
                   padding: '10px 12px',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontWeight: 700, fontSize: '11px', color: '#0f172a' }}>{c.authorName}</span>
+                  <span style={{ fontWeight: 700, fontSize: '11px', color: 'var(--text-primary, #f8fafc)' }}>{c.authorName}</span>
                   <span style={{ fontSize: '10px', color: '#94a3b8' }}>{new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
-                <div style={{ fontSize: '12px', color: '#334155' }}>{c.message}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>{c.message}</div>
               </div>
             ))}
           </div>
 
           {/* Add Reply / Status Actions */}
-          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px', marginTop: '12px' }}>
+          <div style={{ borderTop: '1px solid var(--border-default, #2a374b)', paddingTop: '12px', marginTop: '12px' }}>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>Pin Status:</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700 }}>Pin Status:</span>
               <select
                 value={activePin?.status || 'open'}
                 onChange={(e) => handleTogglePinStatus(activePin.id, e.target.value as any)}
                 style={{
                   padding: '4px 8px',
                   borderRadius: '4px',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border-default, #2a374b)',
                   fontSize: '11px',
                   fontWeight: 600,
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                 }}
               >
                 <option value="open">Open</option>
@@ -671,7 +671,7 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
                   flex: 1,
                   padding: '6px 10px',
                   borderRadius: '4px',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border-default, #2a374b)',
                   fontSize: '12px',
                 }}
               />
@@ -692,7 +692,7 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Policy Explanation */}
-            <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '12px 14px', fontSize: '12px', color: '#1e40af' }}>
+            <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '6px', padding: '12px 14px', fontSize: '12px', color: '#60a5fa' }}>
               <strong>Governance Policy POL-DES-01:</strong> Concept drawings and aesthetic approvals do NOT authorize fabrication. Production release strictly requires formal sign-off from a certified Structural Engineer and the Lead HSE Inspector.
             </div>
 
@@ -725,7 +725,7 @@ export const DesignReviewView: React.FC<DesignReviewViewProps> = ({ projectId })
 
             {/* Gate Evaluation Result */}
             {structuralCertified && hseCertified ? (
-              <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '12px', color: '#166534', fontSize: '12px' }}>
+              <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px', padding: '12px', color: '#22c55e', fontSize: '12px' }}>
                 ✅ <strong>POL-DES-01 SATISFIED:</strong> All mandatory structural and HSE sign-offs are attached. Fabrication authorization can proceed.
               </div>
             ) : (

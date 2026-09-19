@@ -76,7 +76,7 @@ export const ComplianceRegisterView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               🛡️ {currentLanguage === 'ar' ? 'سجل الالتزام التنظيمي وتصاريح الجهات الحكومية' : 'Regulatory Compliance & Statutory Obligations Register'}
             </h1>
             <Badge variant="neutral">ISO 20121 AUDITED</Badge>
@@ -84,7 +84,7 @@ export const ComplianceRegisterView: React.FC = () => {
               {canOpen ? 'FAIL-CLOSED: GATE PERMITTED' : 'FAIL-CLOSED: GATE BLOCKED'}
             </Badge>
           </div>
-          <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted, #94a3b8)', fontSize: '13px' }}>
             Authoritative permits from Qatar Civil Defence, Doha Municipality, and Venue Authorities with strict fail-closed enforcement (AT-060, AT-061).
           </p>
         </div>
@@ -164,7 +164,7 @@ export const ComplianceRegisterView: React.FC = () => {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', backgroundColor: '#f8fafc' }}>
+              <tr style={{ borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                 <th style={{ padding: '12px' }}>Authority & Category</th>
                 <th style={{ padding: '12px' }}>Obligation Title & Scope</th>
                 <th style={{ padding: '12px' }}>Permit Reference</th>
@@ -177,9 +177,9 @@ export const ComplianceRegisterView: React.FC = () => {
             </thead>
             <tbody>
               {obligations.map((obl: any) => (
-                <tr key={obl.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr key={obl.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                   <td style={{ padding: '12px' }}>
-                    <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                       {obl.authorityType === 'civil_defense'
                         ? 'Qatar Civil Defence (QCDD)'
                         : obl.authorityType === 'municipality'
@@ -195,8 +195,8 @@ export const ComplianceRegisterView: React.FC = () => {
                     )}
                   </td>
                   <td style={{ padding: '12px' }}>
-                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{obl.title}</div>
-                    {obl.notes && <div style={{ fontSize: '11px', color: '#64748b' }}>{obl.notes}</div>}
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{obl.title}</div>
+                    {obl.notes && <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{obl.notes}</div>}
                   </td>
                   <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600 }}>
                     {obl.permitReference}
@@ -204,7 +204,7 @@ export const ComplianceRegisterView: React.FC = () => {
                   <td style={{ padding: '12px' }}>
                     <Badge variant="neutral">{obl.applicableZone}</Badge>
                   </td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                  <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     {new Date(obl.validFrom).toLocaleDateString()} -{' '}
                     {new Date(obl.validUntil).toLocaleDateString()}
                   </td>
@@ -269,7 +269,7 @@ export const ComplianceRegisterView: React.FC = () => {
           title="Alternative Physical Verification (AT-060)"
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px', borderRadius: '6px', fontSize: '12px', color: '#166534' }}>
+            <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '12px', borderRadius: '6px', fontSize: '12px', color: '#22c55e' }}>
               <strong>INVARIANT AT-060:</strong> Missing digital upload does NOT constitute an absent approval
               if an authorized physical verification exists. An inspector can verify a physical permit on-site.
             </div>
@@ -355,14 +355,14 @@ export const ComplianceRegisterView: React.FC = () => {
           title={`Permit Audit Record: ${selectedObligation?.permitReference}`}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
-            <div style={{ padding: '14px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+            <div style={{ padding: '14px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h4 style={{ margin: 0, fontSize: '15px', color: '#0f172a' }}>{selectedObligation?.title}</h4>
+                <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-primary, #f8fafc)' }}>{selectedObligation?.title}</h4>
                 <Badge variant={selectedObligation?.status === 'active' || selectedObligation?.status === 'approved' ? 'success' : 'warning'}>
                   {selectedObligation?.status?.toUpperCase()}
                 </Badge>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', color: '#334155' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 <div>Authority: <strong>{selectedObligation?.authorityType}</strong></div>
                 <div>Permit Reference: <strong>{selectedObligation?.permitReference}</strong></div>
                 <div>Zone / Jurisdiction: <strong>{selectedObligation?.applicableZone}</strong></div>
@@ -371,31 +371,31 @@ export const ComplianceRegisterView: React.FC = () => {
             </div>
 
             {/* Controlled Provenance & Document Verification Metadata */}
-            <div style={{ padding: '14px', backgroundColor: '#eff6ff', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
-              <h5 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ padding: '14px', backgroundColor: 'rgba(59, 130, 246, 0.12)', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+              <h5 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>📜</span> Controlled Document Verification & Provenance
               </h5>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
                 <div>
-                  <span style={{ color: '#64748b' }}>Controlled Document ID:</span>
-                  <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Controlled Document ID:</span>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     {selectedObligation?.controlledDocumentId || `DOC-PERMIT-${selectedObligation?.permitReference || 'QCDD-2026-01'} Rev C`}
                   </div>
                 </div>
                 <div>
-                  <span style={{ color: '#64748b' }}>Authorized Verifier:</span>
-                  <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Authorized Verifier:</span>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     {selectedObligation?.physicalVerification?.inspectorName || 'Eng. Tareq Mansoor (MMUP Senior Inspector)'}
                   </div>
                 </div>
                 <div>
-                  <span style={{ color: '#64748b' }}>Verification Timestamp:</span>
-                  <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Verification Timestamp:</span>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     {selectedObligation?.physicalVerification?.verifiedAt ? new Date(selectedObligation.physicalVerification.verifiedAt).toLocaleString() : '16 Sept 2026, 09:30 AST'}
                   </div>
                 </div>
                 <div>
-                  <span style={{ color: '#64748b' }}>Cryptographic Hash:</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Cryptographic Hash:</span>
                   <div style={{ fontWeight: 700, color: '#0369a1', fontFamily: 'monospace', fontSize: '11px' }}>
                     {selectedObligation?.auditHash || '0x4e9af382b6d17208c1a...'}
                   </div>
@@ -404,9 +404,9 @@ export const ComplianceRegisterView: React.FC = () => {
 
               {selectedObligation?.physicalVerification && (
                 <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #dbeafe', fontSize: '12px' }}>
-                  <span style={{ color: '#64748b' }}>Site Office Reference: </span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Site Office Reference: </span>
                   <strong>{selectedObligation.physicalVerification.siteOfficeReference}</strong> • 
-                  <span style={{ color: '#64748b' }}> Badge ID: </span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}> Badge ID: </span>
                   <strong>{selectedObligation.physicalVerification.badgeOrId}</strong> • 
                   <span style={{ color: '#16a34a', fontWeight: 700 }}> Wet Stamp Sighted</span>
                 </div>
@@ -414,14 +414,14 @@ export const ComplianceRegisterView: React.FC = () => {
             </div>
 
             {/* Controlled Document Attachment Action */}
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px', backgroundColor: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', padding: '12px', backgroundColor: 'var(--surface-2, #151e2e)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '20px' }}>📎</span>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '12px', color: '#0f172a' }}>
+                  <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-primary, #f8fafc)' }}>
                     {selectedObligation?.permitReference || 'QCDD-PERMIT'}_Certified_Approval.pdf
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b' }}>Civil Defense & Municipal Official Stamped Filing (1.8 MB)</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Civil Defense & Municipal Official Stamped Filing (1.8 MB)</div>
                 </div>
               </div>
               <Button

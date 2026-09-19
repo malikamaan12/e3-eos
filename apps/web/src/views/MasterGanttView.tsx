@@ -264,7 +264,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
   }, [apiClient, projectId, refreshTrigger]);
 
   if (loading && !ganttData) {
-    return <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Calculating Critical Path Method (CPM) timeline...</div>;
+    return <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>Calculating Critical Path Method (CPM) timeline...</div>;
   }
 
   const baselineDuration = 72;
@@ -329,7 +329,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             </div>
           }
         >
-          <div style={{ fontSize: '13px', color: '#1e293b', lineHeight: 1.6 }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)', lineHeight: 1.6 }}>
             <div style={{ backgroundColor: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '6px', padding: '12px', marginBottom: '14px', color: '#9f1239' }}>
               <strong>GOVERNANCE BLOCK:</strong> {dependencyViolationModal.message}
             </div>
@@ -347,11 +347,11 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
       {/* CPM Engine Top Banner */}
       <div
         style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'var(--text-primary, #f8fafc)',
+          color: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
           padding: '20px 24px',
-          border: '1px solid #1e293b',
+          border: '1px solid var(--border-subtle, #1d2939)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -367,7 +367,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             <Badge variant="danger">{criticalCount} Critical Path Activities</Badge>
             <Badge variant="info">13 Canonical Stages Active</Badge>
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--surface-2, #151e2e)' }}>
             Critical Path Method: Zero Total Float Defines Venue Delivery Horizon
           </div>
           <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
@@ -389,8 +389,8 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
       {hasSlippage && (
         <div
           style={{
-            backgroundColor: '#fffbeb',
-            border: '1px solid #fde68a',
+            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.3)',
             borderRadius: '8px',
             padding: '14px 18px',
             display: 'flex',
@@ -403,7 +403,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '22px' }}>⚠️</span>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 800, color: '#92400e' }}>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#f59e0b' }}>
                 MILESTONE SLIPPAGE ALERT: +{scheduleVariance} Hours Past 72h Baseline SLA ({slippagePercent}% Schedule Erosion)
               </div>
               <div style={{ fontSize: '12px', color: '#b45309', marginTop: '2px' }}>
@@ -426,11 +426,11 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
       {recoveryToast && (
         <div
           style={{
-            backgroundColor: '#f0fdf4',
-            border: '1px solid #86efac',
+            backgroundColor: 'rgba(34, 197, 94, 0.12)',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
             borderRadius: '6px',
             padding: '10px 14px',
-            color: '#166534',
+            color: '#22c55e',
             fontSize: '12px',
             fontWeight: 700,
           }}
@@ -448,23 +448,23 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         }}
       >
         <Card style={{ padding: '16px', borderLeft: '4px solid #ef4444' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Critical Path Tasks</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Critical Path Tasks</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#ef4444', margin: '4px 0' }}>
             {criticalCount}
           </div>
-          <div style={{ fontSize: '11px', color: '#b91c1c' }}>Zero float: Any delay moves show date</div>
+          <div style={{ fontSize: '11px', color: '#ef4444' }}>Zero float: Any delay moves show date</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #2563eb' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total Tasks Scheduled</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Total Tasks Scheduled</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#2563eb', margin: '4px 0' }}>
             {activeTasks.length}
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Acyclic DAG across 13 stages</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Acyclic DAG across 13 stages</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Schedule Variance (SV)</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Schedule Variance (SV)</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: scheduleVariance <= 0 ? '#10b981' : '#f59e0b', margin: '4px 0' }}>
             {scheduleVariance > 0 ? `+${scheduleVariance}h` : `${scheduleVariance}h`}
           </div>
@@ -474,7 +474,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Noise Curfew Window</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Noise Curfew Window</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>
             22:00 - 04:00
           </div>
@@ -486,10 +486,10 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
       <Card style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Interactive Operational Schedule & Critical Path
             </h3>
-            <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Drag and drop activities across the 13 canonical stages or timeline slots. Strict predecessor dependencies enforced in real-time.
             </p>
           </div>
@@ -503,9 +503,9 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                 gap: '6px',
                 fontSize: '11px',
                 fontWeight: 700,
-                color: enforceDependencies ? '#0284c7' : '#64748b',
-                backgroundColor: enforceDependencies ? '#f0f9ff' : '#f8fafc',
-                border: `1px solid ${enforceDependencies ? '#bae6fd' : '#e2e8f0'}`,
+                color: enforceDependencies ? '#0284c7' : 'var(--text-muted, #94a3b8)',
+                backgroundColor: enforceDependencies ? '#f0f9ff' : 'var(--surface-2, #151e2e)',
+                border: `1px solid ${enforceDependencies ? '#bae6fd' : 'var(--border-default, #2a374b)'}`,
                 padding: '6px 10px',
                 borderRadius: '6px',
                 cursor: 'pointer',
@@ -521,7 +521,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             </label>
 
             {/* View Mode Switcher */}
-            <div style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
+            <div style={{ display: 'flex', backgroundColor: 'var(--surface-2, #151e2e)', padding: '3px', borderRadius: '6px' }}>
               <button
                 type="button"
                 onClick={() => setViewMode('stages')}
@@ -531,8 +531,8 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                   fontSize: '11px',
                   fontWeight: 700,
                   border: 'none',
-                  backgroundColor: viewMode === 'stages' ? '#0f172a' : 'transparent',
-                  color: viewMode === 'stages' ? '#ffffff' : '#64748b',
+                  backgroundColor: viewMode === 'stages' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                  color: viewMode === 'stages' ? '#ffffff' : 'var(--text-muted, #94a3b8)',
                   cursor: 'pointer',
                 }}
               >
@@ -547,8 +547,8 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                   fontSize: '11px',
                   fontWeight: 700,
                   border: 'none',
-                  backgroundColor: viewMode === 'timeline' ? '#0f172a' : 'transparent',
-                  color: viewMode === 'timeline' ? '#ffffff' : '#64748b',
+                  backgroundColor: viewMode === 'timeline' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                  color: viewMode === 'timeline' ? '#ffffff' : 'var(--text-muted, #94a3b8)',
                   cursor: 'pointer',
                 }}
               >
@@ -561,7 +561,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         {/* 1. VIEW MODE: 13-STAGE CANONICAL DRAG-AND-DROP BOARD */}
         {viewMode === 'stages' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginBottom: '4px' }}>
               💡 <em>Drag any task card to advance or reschedule it into another stage lane. Stages with incomplete predecessors will trigger dependency safeguards.</em>
             </div>
 
@@ -591,8 +591,8 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                     onDragOver={handleDragOver}
                     onDrop={() => handleDropTaskOnStage(stage.stageNumber)}
                     style={{
-                      backgroundColor: isBlocked ? '#fff8f8' : '#f8fafc',
-                      border: `1px solid ${isBlocked ? '#fecdd3' : '#e2e8f0'}`,
+                      backgroundColor: isBlocked ? '#fff8f8' : 'var(--surface-2, #151e2e)',
+                      border: `1px solid ${isBlocked ? '#fecdd3' : 'var(--border-default, #2a374b)'}`,
                       borderRadius: '8px',
                       padding: '12px',
                       display: 'flex',
@@ -608,11 +608,11 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                           <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '11px', color: '#0284c7' }}>
                             {stage.code}
                           </span>
-                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                             {stage.name}
                           </span>
                         </div>
-                        <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                           {stage.description}
                         </div>
                       </div>
@@ -623,7 +623,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
 
                     {/* Blocker Notice if Predecessor is Incomplete */}
                     {isBlocked && (
-                      <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '4px', padding: '6px 8px', fontSize: '10px', color: '#991b1b', marginBottom: '8px' }}>
+                      <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '4px', padding: '6px 8px', fontSize: '10px', color: '#f87171', marginBottom: '8px' }}>
                         ⛔ Requires: Stage {stage.prerequisiteStages.map((p) => `STAGE-${String(p).padStart(2, '0')}`).join(', ')} Gate Sign-Off
                       </div>
                     )}
@@ -638,8 +638,8 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                           onClick={() => setSelectedTask(t)}
                           style={{
                             padding: '8px 10px',
-                            backgroundColor: selectedTask?.id === t.id ? '#eff6ff' : '#ffffff',
-                            border: `1px solid ${selectedTask?.id === t.id ? '#93c5fd' : t.isCritical ? '#fca5a5' : '#e2e8f0'}`,
+                            backgroundColor: selectedTask?.id === t.id ? '#eff6ff' : 'var(--surface-1, #0f1624)',
+                            border: `1px solid ${selectedTask?.id === t.id ? '#93c5fd' : t.isCritical ? '#fca5a5' : 'var(--border-default, #2a374b)'}`,
                             borderRadius: '6px',
                             cursor: 'grab',
                             boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
@@ -654,7 +654,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                             </span>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               {t.isCritical && (
-                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#dc2626', backgroundColor: '#fee2e2', padding: '1px 4px', borderRadius: '3px' }}>
+                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#dc2626', backgroundColor: 'rgba(239, 68, 68, 0.12)', padding: '1px 4px', borderRadius: '3px' }}>
                                   CPM CRITICAL
                                 </span>
                               )}
@@ -671,11 +671,11 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                             </div>
                           </div>
 
-                          <div style={{ fontSize: '11px', fontWeight: 600, color: '#1e293b' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
                             {t.title}
                           </div>
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#64748b' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>
                             <span>Duration: <strong>{t.durationHours}h</strong></span>
                             <span style={{ color: t.isCritical ? '#ef4444' : '#16a34a', fontWeight: 600 }}>
                               Float: {t.totalFloatHours ?? 0}h
@@ -689,7 +689,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                           style={{
                             padding: '16px',
                             textAlign: 'center',
-                            border: '1px dashed #cbd5e1',
+                            border: '1px dashed var(--border-default, #2a374b)',
                             borderRadius: '6px',
                             color: '#94a3b8',
                             fontSize: '11px',
@@ -710,8 +710,8 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         {viewMode === 'timeline' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {activeTasks.length === 0 ? (
-              <div style={{ padding: '36px 20px', textAlign: 'center', color: '#64748b' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>No timeline activities scheduled</div>
+              <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>No timeline activities scheduled</div>
                 <div style={{ fontSize: '12px' }}>Add canonical tasks or drag items from the stage board to populate the Critical Path Method timeline.</div>
               </div>
             ) : (
@@ -733,8 +733,8 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                     gap: '16px',
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    backgroundColor: selectedTask?.id === t.id ? '#f1f5f9' : '#ffffff',
-                    border: selectedTask?.id === t.id ? '1px solid #cbd5e1' : '1px solid #f1f5f9',
+                    backgroundColor: selectedTask?.id === t.id ? '#f1f5f9' : 'var(--surface-1, #0f1624)',
+                    border: selectedTask?.id === t.id ? '1px solid #cbd5e1' : '1px solid var(--border-subtle, #1d2939)',
                     cursor: 'grab',
                     transition: 'all 0.15s ease',
                   }}
@@ -747,7 +747,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                       {t.isCritical && (
                         <span
                           style={{
-                            backgroundColor: '#fee2e2',
+                            backgroundColor: 'rgba(239, 68, 68, 0.12)',
                             color: '#dc2626',
                             fontSize: '10px',
                             fontWeight: 800,
@@ -761,8 +761,8 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                       )}
                       <span
                         style={{
-                          backgroundColor: '#f1f5f9',
-                          color: '#475569',
+                          backgroundColor: 'var(--surface-2, #151e2e)',
+                          color: 'var(--text-secondary, #cbd5e1)',
                           fontSize: '10px',
                           fontWeight: 700,
                           padding: '1px 6px',
@@ -773,13 +773,13 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                         STAGE {t.stageNumber || 1}
                       </span>
                     </div>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
                       {t.title}
                     </div>
                   </div>
 
                   {/* Timeline Bar Track */}
-                  <div style={{ position: 'relative', height: '24px', backgroundColor: '#f8fafc', borderRadius: '4px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                  <div style={{ position: 'relative', height: '24px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', overflow: 'hidden' }}>
                     <div
                       style={{
                         position: 'absolute',
@@ -792,7 +792,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#ffffff',
+                        color: 'var(--surface-1, #0f1624)',
                         fontSize: '10px',
                         fontWeight: 700,
                         boxShadow: t.isCritical ? '0 0 8px rgba(239, 68, 68, 0.4)' : 'none',
@@ -802,7 +802,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                     </div>
                   </div>
 
-                  <div style={{ textAlign: 'right', fontSize: '11px', color: '#64748b' }}>
+                  <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                     Float: <strong style={{ color: t.isCritical ? '#ef4444' : '#16a34a' }}>{t.totalFloatHours ?? 0}h</strong>
                   </div>
                 </div>
@@ -814,42 +814,42 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
 
         {/* Selected Task CPM Diagnostics Inspector */}
         {selectedTask && (
-          <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+          <div style={{ marginTop: '20px', padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '14px', color: selectedTask.isCritical ? '#ef4444' : '#2563eb' }}>
                   {selectedTask.code}
                 </span>
-                <span style={{ fontWeight: 700, fontSize: '13px', color: '#0f172a' }}>
+                <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                   {selectedTask.title}
                 </span>
                 {selectedTask.isCritical && (
                   <Badge variant="danger" size="sm">CRITICAL PATH</Badge>
                 )}
               </div>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                 Duration: <strong>{selectedTask.durationHours}h</strong>
               </span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', fontSize: '11px' }}>
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>Early Start (ES):</span> <strong>Hour {selectedTask.earlyStartHours ?? 0}</strong>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Early Start (ES):</span> <strong>Hour {selectedTask.earlyStartHours ?? 0}</strong>
               </div>
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>Early Finish (EF):</span> <strong>Hour {selectedTask.earlyFinishHours ?? selectedTask.durationHours}</strong>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Early Finish (EF):</span> <strong>Hour {selectedTask.earlyFinishHours ?? selectedTask.durationHours}</strong>
               </div>
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>Late Start (LS):</span> <strong>Hour {selectedTask.lateStartHours ?? selectedTask.earlyStartHours ?? 0}</strong>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Late Start (LS):</span> <strong>Hour {selectedTask.lateStartHours ?? selectedTask.earlyStartHours ?? 0}</strong>
               </div>
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>Late Finish (LF):</span> <strong>Hour {selectedTask.lateFinishHours ?? selectedTask.earlyFinishHours ?? selectedTask.durationHours}</strong>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Late Finish (LF):</span> <strong>Hour {selectedTask.lateFinishHours ?? selectedTask.earlyFinishHours ?? selectedTask.durationHours}</strong>
               </div>
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>Total Float:</span> <strong style={{ color: selectedTask.isCritical ? '#dc2626' : '#16a34a' }}>{selectedTask.totalFloatHours ?? 0}h</strong>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Total Float:</span> <strong style={{ color: selectedTask.isCritical ? '#dc2626' : '#16a34a' }}>{selectedTask.totalFloatHours ?? 0}h</strong>
               </div>
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>Free Float:</span> <strong>{selectedTask.freeFloatHours ?? selectedTask.totalFloatHours ?? 0}h</strong>
+              <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Free Float:</span> <strong>{selectedTask.freeFloatHours ?? selectedTask.totalFloatHours ?? 0}h</strong>
               </div>
             </div>
           </div>
@@ -860,23 +860,23 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
       <Card style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               24/7 Venue Bump-In Operational Shifts & Constraint Profile
             </h3>
-            <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Shifts dynamically evaluated against active Operational Constraint Profile with controlled source documents and verification status.
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '11px', color: '#166534', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+            <span style={{ fontSize: '11px', color: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
               📋 Pack: DECC Controlled Venue Pack (DOC-DECC-FP-2024 & DOC-MECC-ENV-2005)
             </span>
             {constraints.length > 0 && constraints.every((c: any) => c.verificationStatus === 'Verified') ? (
-              <span style={{ fontSize: '11px', color: '#1e40af', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+              <span style={{ fontSize: '11px', color: '#60a5fa', backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
                 ✓ Status: Verified (Floor: 2.5 T/m² | Day: 65 dB | Night: 55 dB [22:00-04:00])
               </span>
             ) : (
-              <span style={{ fontSize: '11px', color: '#b45309', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+              <span style={{ fontSize: '11px', color: '#b45309', backgroundColor: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
                 ⚠️ Status: Unverified (Evidence Pending)
               </span>
             )}
@@ -888,14 +888,14 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             <div
               key={shift.shiftNumber}
               style={{
-                border: shift.isCurfewActive ? '1.5px solid #fde68a' : '1px solid #e2e8f0',
-                backgroundColor: shift.isCurfewActive ? '#fffbeb' : '#ffffff',
+                border: shift.isCurfewActive ? '1.5px solid #fde68a' : '1px solid var(--border-default, #2a374b)',
+                backgroundColor: shift.isCurfewActive ? '#fffbeb' : 'var(--surface-1, #0f1624)',
                 borderRadius: '6px',
                 padding: '14px',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                   {shift.label}
                 </span>
                 <Badge variant={shift.isCurfewActive ? 'warning' : 'info'} size="sm">
@@ -903,10 +903,10 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                 </Badge>
               </div>
 
-              <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', marginTop: '4px' }}>
                 Noise Threshold: <strong>{shift.allowedNoiseDb} dB(A)</strong> • Floor Load: <strong>{shift.maxFloorLoadKgM2 || 2500} kg/m²</strong>
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                 Source Doc: <strong>{shift.sourceDocument || 'DOC-DECC-FP-2024'}</strong> • Status:{' '}
                 <strong style={{ color: shift.verificationStatus === 'Verified' ? '#16a34a' : '#b45309' }}>
                   {shift.verificationStatus === 'Verified' ? '✅ Verified' : '⚠️ Unverified'}
@@ -923,13 +923,13 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         </div>
 
         {/* Controlled Operational Constraints Provenance Table */}
-        <div style={{ marginTop: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+        <div style={{ marginTop: '12px', borderTop: '1px solid var(--border-default, #2a374b)', paddingTop: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
-              <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+              <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                 Controlled Operational Constraints & Verification Provenance
               </h4>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 Every constraint item maintains full 14-point regulatory provenance and cryptographic evidence.
               </p>
             </div>
@@ -945,9 +945,9 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             style={{
               padding: '10px 14px',
               borderRadius: '6px',
-              backgroundColor: '#fffbeb',
-              border: '1px solid #fde68a',
-              color: '#92400e',
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              color: '#f59e0b',
               fontSize: '12px',
               fontWeight: 600,
               display: 'flex',
@@ -963,12 +963,12 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
           </div>
 
           {actionError && (
-            <div style={{ padding: '8px 12px', borderRadius: '4px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: '12px', marginBottom: '12px' }}>
+            <div style={{ padding: '8px 12px', borderRadius: '4px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#dc2626', fontSize: '12px', marginBottom: '12px' }}>
               {actionError}
             </div>
           )}
           {actionSuccess && (
-            <div style={{ padding: '8px 12px', borderRadius: '4px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', fontSize: '12px', marginBottom: '12px' }}>
+            <div style={{ padding: '8px 12px', borderRadius: '4px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#22c55e', fontSize: '12px', marginBottom: '12px' }}>
               {actionSuccess}
             </div>
           )}
@@ -976,7 +976,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                   <th style={{ padding: '10px 12px', fontWeight: 700 }}>Constraint Type & ID</th>
                   <th style={{ padding: '10px 12px', fontWeight: 700 }}>Limit / Value</th>
                   <th style={{ padding: '10px 12px', fontWeight: 700 }}>Time Window & Zone</th>
@@ -996,8 +996,8 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                     <tr
                       key={c.id}
                       style={{
-                        borderBottom: '1px solid #f1f5f9',
-                        backgroundColor: isVerified ? '#ffffff' : '#fafafa',
+                        borderBottom: '1px solid var(--border-subtle, #1d2939)',
+                        backgroundColor: isVerified ? 'var(--surface-1, #0f1624)' : 'var(--surface-2, #151e2e)',
                         cursor: 'pointer',
                       }}
                       onClick={() => {
@@ -1006,23 +1006,23 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                       }}
                     >
                       <td style={{ padding: '10px 12px' }}>
-                        <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                           {c.constraintType?.replace(/_/g, ' ').toUpperCase()}
                         </div>
-                        <div style={{ fontFamily: 'monospace', fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                        <div style={{ fontFamily: 'monospace', fontSize: '10px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                           {c.id}
                         </div>
                       </td>
-                      <td style={{ padding: '10px 12px', fontWeight: 800, color: '#0f172a' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                         {c.limitValue} {c.unit}
                       </td>
-                      <td style={{ padding: '10px 12px', color: '#475569' }}>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                         <div>{c.timeWindow}</div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>{c.locationZone}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>{c.locationZone}</div>
                       </td>
                       <td style={{ padding: '10px 12px', color: '#2563eb' }}>
                         <div style={{ fontWeight: 600 }}>{c.sourceDocument}</div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>
                           {c.sourceOrganization} {c.sourceRevisionDate ? `• ${c.sourceRevisionDate}` : ''}
                         </div>
                       </td>
@@ -1058,7 +1058,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                       <td style={{ padding: '10px 12px', fontSize: '10px' }}>
                         {c.verifiedBy ? (
                           <div>
-                            <strong style={{ color: '#0f172a' }}>{c.verifiedBy}</strong>
+                            <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{c.verifiedBy}</strong>
                             <div style={{ fontFamily: 'monospace', color: '#059669', marginTop: '2px', wordBreak: 'break-all' }}>
                               🔒 {c.sourceDocumentHash ? `${c.sourceDocumentHash.slice(0, 18)}...` : 'sha256:verified'}
                             </div>
@@ -1171,7 +1171,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                     ? 'AUTHORITATIVE RULE — ACTIVELY ENFORCED BY DETERMINISTIC SCHEDULING ENGINE'
                     : 'UNVERIFIED CONSTRAINT — BARRED FROM DETERMINISTIC CPM TIMELINE ENFORCEMENT'}
                 </div>
-                <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', marginTop: '2px' }}>
                   {selectedConstraint.verificationStatus === 'Verified'
                     ? 'Backed by certified reviewer sign-off, system-calculated SHA-256 cryptographic hash, and immutable audit event.'
                     : 'Unverified and draft constraints are barred from production scheduling. The scheduling engine strictly falls back to safe statutory baselines.'}
@@ -1181,58 +1181,58 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
 
             {/* Provenance Metadata Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px' }}>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b', fontSize: '11px' }}>Constraint ID & Type:</span>
-                <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{selectedConstraint.id}</div>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>Constraint ID & Type:</span>
+                <div style={{ fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>{selectedConstraint.id}</div>
                 <div style={{ color: '#2563eb', fontWeight: 600 }}>{selectedConstraint.constraintType}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b', fontSize: '11px' }}>Operational Limit / Value:</span>
-                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '16px', marginTop: '2px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>Operational Limit / Value:</span>
+                <div style={{ fontWeight: 800, color: 'var(--text-primary, #f8fafc)', fontSize: '16px', marginTop: '2px' }}>
                   {selectedConstraint.limitValue} {selectedConstraint.unit}
                 </div>
-                <div style={{ color: '#64748b', fontSize: '11px' }}>Zone: {selectedConstraint.locationZone} ({selectedConstraint.timeWindow})</div>
+                <div style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>Zone: {selectedConstraint.locationZone} ({selectedConstraint.timeWindow})</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b', fontSize: '11px' }}>Controlled Document ID & Number:</span>
-                <div style={{ fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>Controlled Document ID & Number:</span>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                   {selectedConstraint.controlledDocumentId || 'None (Unattached)'}
                 </div>
                 <div style={{ color: '#2563eb', fontWeight: 600 }}>{selectedConstraint.sourceDocument}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b', fontSize: '11px' }}>Document Revision & Date:</span>
-                <div style={{ fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>Document Revision & Date:</span>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                   {selectedConstraint.documentRevisionId || selectedConstraint.sourceRevisionDate}
                 </div>
-                <div style={{ color: '#64748b' }}>Source Org: {selectedConstraint.sourceOrganization}</div>
+                <div style={{ color: 'var(--text-muted, #94a3b8)' }}>Source Org: {selectedConstraint.sourceOrganization}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b', fontSize: '11px' }}>Page / Clause / Section Cited:</span>
-                <div style={{ fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>Page / Clause / Section Cited:</span>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                   {selectedConstraint.verificationRecord?.pageClauseSection || selectedConstraint.evidenceSummary || 'Pending verification citation'}
                 </div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b', fontSize: '11px' }}>Extracted Rule / Value:</span>
-                <div style={{ fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '11px' }}>Extracted Rule / Value:</span>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                   {selectedConstraint.verificationRecord?.extractedRuleValue || `${selectedConstraint.limitValue} ${selectedConstraint.unit}`}
                 </div>
               </div>
             </div>
 
             {/* Cryptographic SHA-256 Hash Card */}
-            <div style={{ backgroundColor: '#0f172a', color: '#f8fafc', padding: '14px 16px', borderRadius: '6px', border: '1px solid #1e293b' }}>
+            <div style={{ backgroundColor: 'var(--text-primary, #f8fafc)', color: 'var(--surface-2, #151e2e)', padding: '14px 16px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   🔒 System-Calculated SHA-256 Document Integrity Hash
                 </span>
-                <span style={{ fontSize: '10px', color: '#94a3b8', backgroundColor: '#1e293b', padding: '2px 6px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '10px', color: '#94a3b8', backgroundColor: 'var(--surface-2, #151e2e)', padding: '2px 6px', borderRadius: '4px' }}>
                   Byte-Level Calculation
                 </span>
               </div>
@@ -1245,38 +1245,38 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             </div>
 
             {/* Certified Reviewer & Audit Ledger Info */}
-            <div style={{ backgroundColor: '#f8fafc', padding: '14px 16px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <h5 style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>
+            <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '14px 16px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
+              <h5 style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                 Audited Review Action & Ledger Event
               </h5>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '11px' }}>
                 <div>
-                  <span style={{ color: '#64748b' }}>Verified By / Reviewer:</span>
-                  <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Verified By / Reviewer:</span>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     {selectedConstraint.verifiedBy || selectedConstraint.verificationRecord?.reviewerIdentity || 'Pending Verification'}
                   </div>
                 </div>
                 <div>
-                  <span style={{ color: '#64748b' }}>Reviewer Role:</span>
-                  <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Reviewer Role:</span>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     {selectedConstraint.verificationRecord?.reviewerRole || 'None'}
                   </div>
                 </div>
                 <div>
-                  <span style={{ color: '#64748b' }}>Verified Timestamp:</span>
-                  <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Verified Timestamp:</span>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     {selectedConstraint.verifiedAt || 'Pending'}
                   </div>
                 </div>
                 <div>
-                  <span style={{ color: '#64748b' }}>Immutable Audit Event ID:</span>
+                  <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Immutable Audit Event ID:</span>
                   <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
                     {selectedConstraint.verificationRecord?.auditEventId || 'audit-ledger-pending'}
                   </div>
                 </div>
               </div>
               {selectedConstraint.verificationRecord?.reviewerComment && (
-                <div style={{ marginTop: '10px', fontSize: '11px', color: '#475569', backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                <div style={{ marginTop: '10px', fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-1, #0f1624)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}>
                   <strong>Reviewer Compliance Comment:</strong> {selectedConstraint.verificationRecord.reviewerComment}
                 </div>
               )}
@@ -1319,57 +1319,57 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
       >
         {constraintToVerify && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '12px' }}>
-            <div style={{ padding: '10px 14px', backgroundColor: '#eff6ff', borderRadius: '6px', border: '1px solid #bfdbfe', color: '#1e40af' }}>
+            <div style={{ padding: '10px 14px', backgroundColor: 'rgba(59, 130, 246, 0.12)', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.3)', color: '#60a5fa' }}>
               <strong>Authorized Review Action:</strong> Only authorized roles (technical_director, structural_engineer, hse_director, project_director, super_admin) can transition constraints to Verified.
             </div>
 
             <div>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Page / Clause / Section Reference *
               </label>
               <input
                 type="text"
                 value={verifyForm.pageClauseSection}
                 onChange={(e) => setVerifyForm({ ...verifyForm, pageClauseSection: e.target.value })}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
                 placeholder="e.g. Section 3.2 (Ground Slab Capacities)"
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Extracted Rule / Value *
               </label>
               <input
                 type="text"
                 value={verifyForm.extractedRuleValue}
                 onChange={(e) => setVerifyForm({ ...verifyForm, extractedRuleValue: e.target.value })}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
                 placeholder="e.g. 2.5 T/m² (2,500 kg/m²)"
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Applicability Statement *
               </label>
               <input
                 type="text"
                 value={verifyForm.applicabilityStatement}
                 onChange={(e) => setVerifyForm({ ...verifyForm, applicabilityStatement: e.target.value })}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
                 placeholder="e.g. Exhibition Halls 1 to 5 Ground Slab"
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Reviewer Authorized Role *
               </label>
               <select
                 value={verifyForm.reviewerRole}
                 onChange={(e) => setVerifyForm({ ...verifyForm, reviewerRole: e.target.value })}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
               >
                 <option value="technical_director">Technical Director (technical_director)</option>
                 <option value="structural_engineer">Licensed Structural Engineer (structural_engineer)</option>
@@ -1380,14 +1380,14 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
             </div>
 
             <div>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Reviewer Compliance Comment
               </label>
               <textarea
                 value={verifyForm.reviewerComment}
                 onChange={(e) => setVerifyForm({ ...verifyForm, reviewerComment: e.target.value })}
                 rows={3}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
                 placeholder="Authoritative compliance statement..."
               />
             </div>
@@ -1434,18 +1434,18 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
         size="md"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '12px' }}>
-          <div style={{ padding: '10px 14px', backgroundColor: '#fffbeb', borderRadius: '6px', border: '1px solid #fde68a', color: '#92400e' }}>
+          <div style={{ padding: '10px 14px', backgroundColor: 'rgba(245, 158, 11, 0.12)', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.3)', color: '#f59e0b' }}>
             🔒 <strong>Verification Policy:</strong> New constraints are strictly initialized in <strong>Draft</strong> status. Manual assignment of 'Verified' status is prohibited by EOS security policy.
           </div>
 
           <div>
-            <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+            <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
               Constraint Type *
             </label>
             <select
               value={createForm.constraintType}
               onChange={(e) => setCreateForm({ ...createForm, constraintType: e.target.value })}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
             >
               <option value="environmental_boundary_noise">Environmental Boundary Noise</option>
               <option value="occupational_noise_exposure">Occupational Noise Exposure</option>
@@ -1463,32 +1463,32 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
 
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
             <div>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Limit / Value *
               </label>
               <input
                 type="number"
                 value={createForm.limitValue}
                 onChange={(e) => setCreateForm({ ...createForm, limitValue: Number(e.target.value) })}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Unit *
               </label>
               <input
                 type="text"
                 value={createForm.unit}
                 onChange={(e) => setCreateForm({ ...createForm, unit: e.target.value })}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
               />
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Location / Zone *
               </label>
               <input
@@ -1496,11 +1496,11 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                 value={createForm.locationZone}
                 onChange={(e) => setCreateForm({ ...createForm, locationZone: e.target.value })}
                 placeholder="e.g. Main Exhibition Hall 1"
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Time Window *
               </label>
               <input
@@ -1508,13 +1508,13 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
                 value={createForm.timeWindow}
                 onChange={(e) => setCreateForm({ ...createForm, timeWindow: e.target.value })}
                 placeholder="e.g. 08:00 - 20:00"
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
               />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+            <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
               Source Organization
             </label>
             <input
@@ -1522,12 +1522,12 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
               value={createForm.sourceOrganization}
               onChange={(e) => setCreateForm({ ...createForm, sourceOrganization: e.target.value })}
               placeholder="e.g. Venue Authority Operations"
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+            <label style={{ display: 'block', fontWeight: 700, marginBottom: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>
               Notes / Proposed Citation
             </label>
             <textarea
@@ -1535,7 +1535,7 @@ export const MasterGanttView: React.FC<MasterGanttViewProps> = ({ projectId }) =
               onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
               placeholder="e.g. Venue acoustic and operational regulations manual..."
               rows={2}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)' }}
             />
           </div>
 

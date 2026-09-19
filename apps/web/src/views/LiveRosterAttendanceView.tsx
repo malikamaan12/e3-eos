@@ -93,12 +93,12 @@ export const LiveRosterAttendanceView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               👷 {currentLanguage === 'ar' ? 'سجل الحضور الحي والتأهيل المهني' : 'Live Crew Attendance & Qualifications Register'}
             </h1>
             <Badge variant="neutral">STATUTORY FATIGUE ENFORCED</Badge>
           </div>
-          <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted, #94a3b8)', fontSize: '13px' }}>
             Real-time biometric & QR attendance with Qatar Labour Law working limits and qualification gating (AT-055, AT-059).
           </p>
         </div>
@@ -157,7 +157,7 @@ export const LiveRosterAttendanceView: React.FC = () => {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', backgroundColor: '#f8fafc' }}>
+                <tr style={{ borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                   <th style={{ padding: '12px' }}>Worker Name</th>
                   <th style={{ padding: '12px' }}>Role</th>
                   <th style={{ padding: '12px' }}>Location / Zone</th>
@@ -169,11 +169,11 @@ export const LiveRosterAttendanceView: React.FC = () => {
               </thead>
               <tbody>
                 {records.map((att: any) => (
-                  <tr key={att.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>{att.workerName}</td>
-                    <td style={{ padding: '12px', color: '#475569' }}>{att.role}</td>
+                  <tr key={att.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
+                    <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{att.workerName}</td>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>{att.role}</td>
                     <td style={{ padding: '12px' }}><Badge variant="neutral">{att.location}</Badge></td>
-                    <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       {new Date(att.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
                     <td style={{ padding: '12px' }}>
@@ -200,7 +200,7 @@ export const LiveRosterAttendanceView: React.FC = () => {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', backgroundColor: '#f8fafc' }}>
+                <tr style={{ borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                   <th style={{ padding: '12px' }}>Worker Name</th>
                   <th style={{ padding: '12px' }}>Qualification Type</th>
                   <th style={{ padding: '12px' }}>Certificate #</th>
@@ -217,8 +217,8 @@ export const LiveRosterAttendanceView: React.FC = () => {
                     <tr
                       key={q.id}
                       style={{
-                        borderBottom: '1px solid #f1f5f9',
-                        backgroundColor: isRevoked ? '#fff1f2' : '#ffffff',
+                        borderBottom: '1px solid var(--border-subtle, #1d2939)',
+                        backgroundColor: isRevoked ? '#fff1f2' : 'var(--surface-1, #0f1624)',
                       }}
                     >
                       <td style={{ padding: '12px', fontWeight: 600 }}>{q.workerName}</td>
@@ -229,8 +229,8 @@ export const LiveRosterAttendanceView: React.FC = () => {
                         )}
                       </td>
                       <td style={{ padding: '12px', fontFamily: 'monospace' }}>{q.certificateNumber}</td>
-                      <td style={{ padding: '12px', color: '#475569' }}>{q.issuingBody}</td>
-                      <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                      <td style={{ padding: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>{q.issuingBody}</td>
+                      <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         Until {new Date(q.validUntil).toLocaleDateString()}
                       </td>
                       <td style={{ padding: '12px' }}>
@@ -270,7 +270,7 @@ export const LiveRosterAttendanceView: React.FC = () => {
           title="Crew Shift Check-In (AT-059)"
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px', borderRadius: '6px', fontSize: '12px', color: '#166534' }}>
+            <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '12px', borderRadius: '6px', fontSize: '12px', color: '#22c55e' }}>
               <strong>STATUTORY FATIGUE GUARD (AT-059):</strong> Working hours must adhere to Qatar Labour Law (8h ordinary, max 10h actual, 10h rest).
             </div>
 

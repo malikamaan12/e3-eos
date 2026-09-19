@@ -119,17 +119,17 @@ export const ClientBillingView: React.FC = () => {
       </div>
 
       {/* Decoupled Operational vs Settlement Closeout Invariant (AT-078) */}
-      <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+      <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontSize: '24px' }}>⚖️</span>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <strong style={{ color: '#1e40af', fontSize: '13px' }}>
+              <strong style={{ color: '#60a5fa', fontSize: '13px' }}>
                 INVARIANT AT-078: Decoupled Operational Closeout & Commercial Receivables
               </strong>
               <Badge variant="accent">AT-078 ENFORCED</Badge>
             </div>
-            <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#3b82f6' }}>
+            <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
               The event operations can be 100% closed, de-rigged, and handed over to {currentProject?.clientName || (isDemo ? 'Qatar Tourism' : 'the client')} while remaining milestone receivables ({openReceivablesVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR) stay active in this commercial ledger until final payment collection.
             </p>
           </div>

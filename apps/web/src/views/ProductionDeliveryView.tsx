@@ -166,7 +166,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
   );
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Loading production and fabrication intelligence...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>Loading production and fabrication intelligence...</div>;
   }
 
   return (
@@ -177,7 +177,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
           id="dispatch-blocker-alert"
           style={{
             padding: '16px',
-            backgroundColor: '#fef2f2',
+            backgroundColor: 'rgba(239, 68, 68, 0.12)',
             border: '2px solid #ef4444',
             borderRadius: '8px',
             display: 'flex',
@@ -187,10 +187,10 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
         >
           <span style={{ fontSize: '24px' }}>🛑</span>
           <div>
-            <div style={{ fontWeight: 800, color: '#991b1b', fontSize: '14px' }}>
+            <div style={{ fontWeight: 800, color: '#f87171', fontSize: '14px' }}>
               DISPATCH BLOCKED: UNRESOLVED CRITICAL SNAGS DETECTED
             </div>
-            <div style={{ fontSize: '12px', color: '#b91c1c', marginTop: '2px' }}>
+            <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '2px' }}>
               EOS invariant AT-058 strictly prohibits moving production packages into 'ready_for_dispatch' while critical quality defects remain open.
             </div>
           </div>
@@ -201,10 +201,10 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
               🏭 Production Packages & Fabrication Release Gate
             </h3>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
               Fabrication cannot begin until Design, Commercial, Structural/HSE, and Vendor Award conditions are certified.
             </p>
           </div>
@@ -218,8 +218,8 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
               style={{
                 padding: '16px',
                 borderRadius: '8px',
-                border: selectedPkg?.id === pkg.id ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                backgroundColor: selectedPkg?.id === pkg.id ? '#f8fafc' : '#ffffff',
+                border: selectedPkg?.id === pkg.id ? '2px solid #2563eb' : '1px solid var(--border-default, #2a374b)',
+                backgroundColor: selectedPkg?.id === pkg.id ? '#f8fafc' : 'var(--surface-1, #0f1624)',
                 cursor: 'pointer',
               }}
             >
@@ -228,8 +228,8 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
                 <Badge variant={pkg.status === 'delivered' ? 'success' : 'primary'}>{pkg.status}</Badge>
               </div>
 
-              <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '8px 0 4px 0' }}>{pkg.title}</h4>
-              <div style={{ fontSize: '12px', color: '#64748b' }}>Vendor: {pkg.vendorName || (isDemo ? 'ABC Joinery & Fabrication' : 'Vendor')}</div>
+              <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', margin: '8px 0 4px 0' }}>{pkg.title}</h4>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Vendor: {pkg.vendorName || (isDemo ? 'ABC Joinery & Fabrication' : 'Vendor')}</div>
 
               <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                 <span>Material: <strong>{pkg.material}</strong></span>
@@ -263,9 +263,9 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
             </div>
           ))}
           {packages.length === 0 && (
-            <div style={{ padding: '36px', textAlign: 'center', color: '#64748b', gridColumn: '1 / -1' }}>
+            <div style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)', gridColumn: '1 / -1' }}>
               <div style={{ fontSize: '24px', marginBottom: '8px' }}>🏭</div>
-              <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Production Packages Assigned</div>
+              <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Production Packages Assigned</div>
               <div style={{ fontSize: '12px', marginTop: '4px' }}>Fabrication and workshop packages will appear once released from design.</div>
             </div>
           )}
@@ -290,7 +290,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
 
             <div style={{ textAlign: 'right' }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#0369a1' }}>Active CAD Drawing:</span>
-              <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#0f172a', fontWeight: 800 }}>
+              <div style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-primary, #f8fafc)', fontWeight: 800 }}>
                 DWG-LUS-STAGE-REV-0{cadRevision}.dwg (v{cadRevision}.0)
               </div>
             </div>
@@ -298,15 +298,15 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
 
           {/* CAD Revision Discrepancy Alert */}
           {builtActualVersion < cadRevision ? (
-            <div style={{ marginTop: '16px', padding: '14px', borderRadius: '8px', border: '1px solid #f97316', backgroundColor: '#fff7ed', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ marginTop: '16px', padding: '14px', borderRadius: '8px', border: '1px solid #f97316', backgroundColor: 'rgba(245, 158, 11, 0.12)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '16px' }}>⚠</span>
-                  <span style={{ fontWeight: 800, color: '#c2410c', fontSize: '13px' }}>
+                  <span style={{ fontWeight: 800, color: '#fbbf24', fontSize: '13px' }}>
                     DRAWING REVISION TAKEOFF ALERT: UNITS BUILT TO REV {builtActualVersion}.0 (AT-053)
                   </span>
                 </div>
-                <p style={{ fontSize: '12px', color: '#9a3412', margin: '4px 0 0 0' }}>
+                <p style={{ fontSize: '12px', color: '#f59e0b', margin: '4px 0 0 0' }}>
                   12 fabricated units were built using Rev 0{builtActualVersion}.0. Newly approved Rev 0{cadRevision}.0 alters the VIP canopy support anchors. Units cannot be dispatched without engineering re-inspection.
                 </p>
               </div>
@@ -321,8 +321,8 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
               </Button>
             </div>
           ) : (
-            <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', border: '1px solid #86efac', backgroundColor: '#f0fdf4' }}>
-              <span style={{ color: '#166534', fontWeight: 700, fontSize: '12px' }}>
+            <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', border: '1px solid rgba(34, 197, 94, 0.3)', backgroundColor: 'rgba(34, 197, 94, 0.12)' }}>
+              <span style={{ color: '#22c55e', fontWeight: 700, fontSize: '12px' }}>
                 ✓ All 12 fabricated units verified conforming to latest CAD Revision 0{cadRevision}.0. {reverifiedNotes}
               </span>
             </div>
@@ -330,7 +330,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
 
           {/* Shop Floor Routing Breakdown */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginTop: '16px' }}>
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #bae6fd' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                 <span style={{ fontWeight: 700, color: '#0369a1' }}>🪵 Carpentry & CNC</span>
                 <span style={{ fontWeight: 800, color: '#0284c7' }}>90%</span>
@@ -338,10 +338,10 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
               <div style={{ width: '100%', height: '6px', backgroundColor: '#e0f2fe', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
                 <div style={{ width: '90%', height: '100%', backgroundColor: '#0284c7' }}></div>
               </div>
-              <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0 0' }}>Main Stage Decking & Curved Risers</p>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', margin: '6px 0 0 0' }}>Main Stage Decking & Curved Risers</p>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #bae6fd' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                 <span style={{ fontWeight: 700, color: '#0369a1' }}>⚙️ Metalwork & Rigging</span>
                 <span style={{ fontWeight: 800, color: '#0284c7' }}>75%</span>
@@ -349,10 +349,10 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
               <div style={{ width: '100%', height: '6px', backgroundColor: '#e0f2fe', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
                 <div style={{ width: '75%', height: '100%', backgroundColor: '#0284c7' }}></div>
               </div>
-              <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0 0' }}>Overhead Lighting Rig Sub-frame</p>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', margin: '6px 0 0 0' }}>Overhead Lighting Rig Sub-frame</p>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #bae6fd' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                 <span style={{ fontWeight: 700, color: '#0369a1' }}>🎨 Scenic Paint & Texture</span>
                 <span style={{ fontWeight: 800, color: '#0284c7' }}>40%</span>
@@ -360,10 +360,10 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
               <div style={{ width: '100%', height: '6px', backgroundColor: '#e0f2fe', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
                 <div style={{ width: '40%', height: '100%', backgroundColor: '#0284c7' }}></div>
               </div>
-              <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0 0' }}>Gold Leaf & Textured Dune Finish</p>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', margin: '6px 0 0 0' }}>Gold Leaf & Textured Dune Finish</p>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid #bae6fd' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                 <span style={{ fontWeight: 700, color: '#0369a1' }}>🔌 Looms & Pre-assembly</span>
                 <span style={{ fontWeight: 800, color: '#0284c7' }}>60%</span>
@@ -371,18 +371,18 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
               <div style={{ width: '100%', height: '6px', backgroundColor: '#e0f2fe', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
                 <div style={{ width: '60%', height: '100%', backgroundColor: '#0284c7' }}></div>
               </div>
-              <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0 0' }}>Socapex 19-Pin Looms & DMX Trunks</p>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', margin: '6px 0 0 0' }}>Socapex 19-Pin Looms & DMX Trunks</p>
             </div>
           </div>
         </Card>
       ) : (
-        <Card style={{ border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+        <Card style={{ border: '1px solid var(--border-default, #2a374b)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#334155' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--text-secondary, #cbd5e1)' }}>
                 Workshop Routing & CAD Drawing Revision Studio
               </h3>
-              <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0' }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
                 No active CAD revision conflicts detected. Shop floor routing is synchronized with approved technical submittals.
               </p>
             </div>
@@ -396,10 +396,10 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                 🔍 Quality Inspections & Snag Register ({selectedPkg.packageCode})
               </h3>
-              <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
                 Formal factory acceptance tests, site receipts, and progressive snag rectification logs.
               </p>
             </div>
@@ -410,7 +410,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
 
           {/* Inspections List */}
           <div style={{ marginBottom: '20px' }}>
-            <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', marginBottom: '8px' }}>
+            <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', textTransform: 'uppercase', marginBottom: '8px' }}>
               Completed Inspections
             </h4>
             {inspections.map((insp) => (
@@ -418,18 +418,18 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
                 key={insp.id}
                 style={{
                   padding: '12px 16px',
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
                   borderRadius: '6px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--border-default, #2a374b)',
                   marginBottom: '8px',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <span style={{ fontWeight: 700, color: '#0f172a' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                       {insp.inspectionType.toUpperCase().replace(/_/g, ' ')}
                     </span>
-                    <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '8px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginLeft: '8px' }}>
                       by <strong>{insp.inspectorName || 'Fahad Al-Sulaiti (QA/QC Lead)'}</strong> on {new Date(insp.inspectionDate).toLocaleDateString()}
                     </span>
                   </div>
@@ -453,7 +453,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
               </div>
             ))}
             {inspections.length === 0 && (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', backgroundColor: '#f8fafc', borderRadius: '6px' }}>
+              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px' }}>
                 <div style={{ fontWeight: 600, fontSize: '13px' }}>No QC Inspections Recorded</div>
                 <div style={{ fontSize: '12px', marginTop: '2px' }}>QA/QC inspections will appear here once factory acceptance testing begins.</div>
               </div>
@@ -462,13 +462,13 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
 
           {/* Snags Table */}
           <div>
-            <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', marginBottom: '8px' }}>
+            <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', textTransform: 'uppercase', marginBottom: '8px' }}>
               Snags & Rectification Status
             </h4>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left' }}>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: 'left' }}>
                     <th style={{ padding: '8px 12px' }}>Snag Description</th>
                     <th style={{ padding: '8px 12px' }}>Severity</th>
                     <th style={{ padding: '8px 12px' }}>Assigned To</th>
@@ -479,9 +479,9 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
                 </thead>
                 <tbody>
                   {snags.map((snag) => (
-                    <tr key={snag.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <tr key={snag.id} style={{ borderBottom: '1px solid var(--border-default, #2a374b)' }}>
                       <td style={{ padding: '10px 12px' }}>
-                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{snag.title}</div>
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{snag.title}</div>
                         {snag.resolutionNotes && (
                           <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>
                             Resolution: {snag.resolutionNotes}
@@ -498,7 +498,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
                         {snag.blocksDispatch ? (
                           <span style={{ color: '#dc2626', fontWeight: 700 }}>🛑 BLOCKS DISPATCH</span>
                         ) : (
-                          <span style={{ color: '#64748b' }}>Non-blocking</span>
+                          <span style={{ color: 'var(--text-muted, #94a3b8)' }}>Non-blocking</span>
                         )}
                       </td>
                       <td style={{ padding: '10px 12px' }}>
@@ -540,12 +540,12 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
           onClose={() => setIsReleaseModalOpen(false)}
         >
           <form onSubmit={handleReleaseGateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: 0 }}>
               Verify mandatory conditions before authorizing workshop cut, weld, and assembly.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1e293b' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                 <input
                   type="checkbox"
                   checked={gateDesign}
@@ -554,7 +554,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
                 <strong>1. Design Package Approved</strong> (Approved Drawing Revision available to shop)
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1e293b' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                 <input
                   type="checkbox"
                   checked={gateCommercial}
@@ -563,7 +563,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
                 <strong>2. Commercial Commitment Authorized</strong> (Approved budget and PO issued)
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1e293b' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                 <input
                   type="checkbox"
                   checked={gateSafety}
@@ -572,7 +572,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
                 <strong>3. Structural & HSE Safety Clearances</strong> (Load calculations verified)
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1e293b' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                 <input
                   type="checkbox"
                   checked={gateVendor}
@@ -607,7 +607,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
         >
           <form onSubmit={handleCreateSnagSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Snag Description</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Snag Description</label>
               <Input
                 type="text"
                 value={newSnagTitle}
@@ -620,7 +620,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Severity</label>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Severity</label>
                 <Select
                   value={newSnagSeverity}
                   onChange={(e) => setNewSnagSeverity(e.target.value)}
@@ -634,7 +634,7 @@ export const ProductionDeliveryView: React.FC<ProductionDeliveryViewProps> = ({ 
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1e293b' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
                   <input
                     type="checkbox"
                     checked={newSnagSeverity === 'critical' || newSnagBlocksDispatch}

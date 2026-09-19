@@ -62,9 +62,43 @@
         font-family: Inter, "Noto Sans Arabic", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-default) var(--surface-inset);
       }
       #root {
         min-height: 100%;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--surface-inset);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border-default);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--border-strong);
+      }
+      h1, h2, h3, h4, h5, h6 {
+        color: var(--text-primary);
+        font-family: inherit;
+        letter-spacing: -0.01em;
+      }
+      input, select, textarea, button {
+        font-family: inherit;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        color: var(--accent-hover);
+      }
+      [dir="rtl"] {
+        text-align: right;
       }
     </style>
   </head>

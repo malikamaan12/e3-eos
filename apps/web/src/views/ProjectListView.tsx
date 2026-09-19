@@ -78,10 +78,10 @@ export const ProjectListView: React.FC = () => {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
             {isRtl ? 'دليل مشاريع الفعاليات' : 'Project Directory'}
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             {isRtl
               ? 'إدارة محفظة الفعاليات النشطة والفرص والمناقصات عبر المراحل الـ 13'
               : 'Enterprise portfolio of live event deliveries, tenders, and framework awards'}
@@ -122,10 +122,10 @@ export const ProjectListView: React.FC = () => {
           gap: '12px',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-1, #0f1624)',
           padding: '12px 16px',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-default, #2a374b)',
           marginBottom: '16px',
         }}
       >
@@ -153,9 +153,9 @@ export const ProjectListView: React.FC = () => {
                 padding: '6px 12px',
                 fontSize: '12px',
                 fontWeight: filter === item.id ? 700 : 500,
-                backgroundColor: filter === item.id ? '#eff6ff' : '#ffffff',
-                color: filter === item.id ? '#2563eb' : '#64748b',
-                border: filter === item.id ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                backgroundColor: filter === item.id ? '#eff6ff' : 'var(--surface-1, #0f1624)',
+                color: filter === item.id ? '#2563eb' : 'var(--text-muted, #94a3b8)',
+                border: filter === item.id ? '1px solid #bfdbfe' : '1px solid var(--border-default, #2a374b)',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 minHeight: '36px',
@@ -167,17 +167,17 @@ export const ProjectListView: React.FC = () => {
 
           {!isMobile && (
             <>
-              <div style={{ borderLeft: '1px solid #e2e8f0', height: '20px', margin: '0 6px' }} />
+              <div style={{ borderLeft: '1px solid var(--border-default, #2a374b)', height: '20px', margin: '0 6px' }} />
               <button
                 onClick={() => setViewMode(viewMode === 'table' ? 'cards' : 'table')}
                 style={{
                   padding: '6px 12px',
                   fontSize: '12px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  border: '1px solid var(--border-default, #2a374b)',
                   borderRadius: '6px',
                   cursor: 'pointer',
-                  color: '#475569',
+                  color: 'var(--text-secondary, #cbd5e1)',
                   fontWeight: 600,
                   minHeight: '36px',
                 }}
@@ -203,7 +203,7 @@ export const ProjectListView: React.FC = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   paddingBottom: '12px',
-                  borderBottom: i < 4 ? '1px solid #f1f5f9' : 'none',
+                  borderBottom: i < 4 ? '1px solid var(--border-subtle, #1d2939)' : 'none',
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '40%' }}>
@@ -241,11 +241,11 @@ export const ProjectListView: React.FC = () => {
                   display: 'grid',
                   gridTemplateColumns: '140px 1.5fr 1.2fr 120px 110px 100px',
                   padding: '12px 18px',
-                  backgroundColor: '#f8fafc',
-                  borderBottom: '1px solid #e2e8f0',
+                  backgroundColor: 'var(--surface-2, #151e2e)',
+                  borderBottom: '1px solid var(--border-default, #2a374b)',
                   fontSize: '11px',
                   fontWeight: 700,
-                  color: '#64748b',
+                  color: 'var(--text-muted, #94a3b8)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
                 }}
@@ -271,25 +271,25 @@ export const ProjectListView: React.FC = () => {
                         gridTemplateColumns: '140px 1.5fr 1.2fr 120px 110px 100px',
                         alignItems: 'center',
                         padding: '14px 18px',
-                        borderBottom: '1px solid #f1f5f9',
+                        borderBottom: '1px solid var(--border-subtle, #1d2939)',
                         cursor: 'pointer',
                         transition: 'background-color 0.15s ease',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: '#2563eb' }}>
                         <span dir="ltr">{code}</span>
                       </span>
                       <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{p.title}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{p.title}</div>
                         {p.description && (
-                          <div style={{ fontSize: '11px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>
                             {p.description}
                           </div>
                         )}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#334155' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                         {p.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')}
                       </div>
                       <div>
@@ -301,9 +301,9 @@ export const ProjectListView: React.FC = () => {
                             <span
                               id={`incomplete-badge-${p.id}`}
                               style={{
-                                backgroundColor: '#fffbeb',
+                                backgroundColor: 'rgba(245, 158, 11, 0.12)',
                                 color: '#b45309',
-                                border: '1px solid #fde68a',
+                                border: '1px solid rgba(245, 158, 11, 0.3)',
                                 fontWeight: 800,
                                 fontSize: '10px',
                                 padding: '2px 6px',
@@ -377,9 +377,9 @@ export const ProjectListView: React.FC = () => {
                       <span
                         id={`incomplete-badge-${p.id}`}
                         style={{
-                          backgroundColor: '#fffbeb',
+                          backgroundColor: 'rgba(245, 158, 11, 0.12)',
                           color: '#b45309',
-                          border: '1px solid #fde68a',
+                          border: '1px solid rgba(245, 158, 11, 0.3)',
                           fontWeight: 800,
                           fontSize: '10px',
                           padding: '2px 6px',
@@ -399,11 +399,11 @@ export const ProjectListView: React.FC = () => {
                       </Badge>
                     )}
                   </div>
-                  <h4 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{p.title}</h4>
-                  <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                  <h4 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{p.title}</h4>
+                  <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
                     {p.description || (isRtl ? 'مشروع فعالية مؤسسي خاضع للإدارة النشطة.' : 'Enterprise event project under active management.')}
                   </p>
-                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b' }}>
+                  <div style={{ borderTop: '1px solid var(--border-subtle, #1d2939)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     <span>{p.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')}</span>
                     <span style={{ color: '#2563eb', fontWeight: 600 }}>
                       {isRtl ? 'فتح لوحة القيادة ←' : 'Open Cockpit ➔'}

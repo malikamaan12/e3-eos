@@ -210,7 +210,7 @@ export const CrossModuleTraceabilityModal: React.FC<CrossModuleTraceabilityModal
       onClose={onClose}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#166534', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#22c55e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <strong>Unified Project Intelligence Chain (AT-013):</strong> Every physical deliverable maintains unbroken bidirectional provenance from contract requirement down to operational readiness sign-off.
           </div>
@@ -224,7 +224,7 @@ export const CrossModuleTraceabilityModal: React.FC<CrossModuleTraceabilityModal
             gap: '8px',
             overflowX: 'auto',
             paddingBottom: '8px',
-            borderBottom: '2px solid #e2e8f0',
+            borderBottom: '2px solid var(--border-default, #2a374b)',
           }}
         >
           {lineageNodes.map((node, index) => {
@@ -236,9 +236,9 @@ export const CrossModuleTraceabilityModal: React.FC<CrossModuleTraceabilityModal
                 style={{
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                  backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
-                  color: isSelected ? '#1d4ed8' : '#475569',
+                  border: isSelected ? '2px solid #2563eb' : '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: isSelected ? '#eff6ff' : 'var(--surface-1, #0f1624)',
+                  color: isSelected ? '#1d4ed8' : 'var(--text-secondary, #cbd5e1)',
                   fontSize: '12px',
                   fontWeight: isSelected ? 800 : 600,
                   whiteSpace: 'nowrap',
@@ -258,8 +258,8 @@ export const CrossModuleTraceabilityModal: React.FC<CrossModuleTraceabilityModal
         {/* Active Node Detail Card */}
         <div
           style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
+            backgroundColor: 'var(--surface-1, #0f1624)',
+            border: '1px solid var(--border-default, #2a374b)',
             borderRadius: '10px',
             padding: '20px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
@@ -269,31 +269,31 @@ export const CrossModuleTraceabilityModal: React.FC<CrossModuleTraceabilityModal
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '24px' }}>{selectedNode.icon}</span>
               <div>
-                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700, textTransform: 'uppercase' }}>
                   {selectedNode.stage} • {selectedNode.entityType}
                 </div>
-                <h3 style={{ margin: '2px 0 0', fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                <h3 style={{ margin: '2px 0 0', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                   {selectedNode.title}
                 </h3>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '13px', color: '#2563eb', backgroundColor: '#eff6ff', padding: '3px 8px', borderRadius: '4px' }}>
+              <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '13px', color: '#2563eb', backgroundColor: 'rgba(59, 130, 246, 0.12)', padding: '3px 8px', borderRadius: '4px' }}>
                 {selectedNode.code}
               </span>
               <Badge variant="success">{selectedNode.status.toUpperCase()}</Badge>
             </div>
           </div>
 
-          <div style={{ fontSize: '14px', color: '#334155', lineHeight: 1.5, marginBottom: '16px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5, marginBottom: '16px' }}>
             {selectedNode.summary}
           </div>
 
-          <div style={{ backgroundColor: '#f8fafc', borderRadius: '8px', padding: '14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+          <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', padding: '14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             {selectedNode.details.map((d) => (
               <div key={d.label}>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{d.label}</div>
-                <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: 700, marginTop: '2px' }}>{d.value}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>{d.label}</div>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary, #f8fafc)', fontWeight: 700, marginTop: '2px' }}>{d.value}</div>
               </div>
             ))}
           </div>
@@ -309,7 +309,7 @@ export const CrossModuleTraceabilityModal: React.FC<CrossModuleTraceabilityModal
           >
             ← Previous Stage
           </Button>
-          <span style={{ fontSize: '12px', color: '#64748b' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
             Step {selectedNodeIndex + 1} of {lineageNodes.length}
           </span>
           <Button

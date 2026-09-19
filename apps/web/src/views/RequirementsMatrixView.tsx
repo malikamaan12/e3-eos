@@ -737,12 +737,12 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
   if (loading && !matrixData) {
     return (
-      <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-        <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <div style={{ marginTop: '16px', fontSize: '15px', fontWeight: 600, color: '#1e293b' }}>
+      <div style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+        <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid var(--border-default, #2a374b)', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <div style={{ marginTop: '16px', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
           Loading 7-Point Traceability Matrix...
         </div>
-        <div style={{ marginTop: '4px', fontSize: '13px', color: '#64748b' }}>
+        <div style={{ marginTop: '4px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
           Evaluating cross-module connections across CAD, BOQ, Documents, and Production Gates.
         </div>
       </div>
@@ -751,7 +751,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
   if (error) {
     return (
-      <div style={{ padding: '24px', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b' }}>
+      <div style={{ padding: '24px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#f87171' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <strong style={{ fontSize: '15px' }}>⚠️ Unable to Load Requirements Matrix</strong>
@@ -768,11 +768,11 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       {/* 7-Point Traceability Invariant Banner */}
       <div
         style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'var(--text-primary, #f8fafc)',
+          color: 'var(--surface-1, #0f1624)',
           borderRadius: '8px',
           padding: '20px 24px',
-          border: '1px solid #1e293b',
+          border: '1px solid var(--border-subtle, #1d2939)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -787,7 +787,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </span>
             <Badge variant="warning">7-Point Connected Thread</Badge>
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--surface-2, #151e2e)' }}>
             Scope Requirement = Owner + Date + Document + Design + BOQ + Approval + Evidence
           </div>
           <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
@@ -817,7 +817,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             id="btn-bulk-scope-entry"
             variant="secondary"
             onClick={() => setIsBulkModalOpen(true)}
-            style={{ backgroundColor: '#475569', color: '#ffffff', borderColor: '#334155' }}
+            style={{ backgroundColor: 'var(--text-secondary, #cbd5e1)', color: 'var(--surface-1, #0f1624)', borderColor: 'var(--border-default, #2a374b)' }}
           >
             📋 {isRtl ? 'لصق مجمع' : 'Bulk Entry / Paste'}
           </Button>
@@ -825,7 +825,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             id="btn-parse-document"
             variant="secondary"
             onClick={() => setIsParseModalOpen(true)}
-            style={{ backgroundColor: '#6366f1', color: '#ffffff', borderColor: '#4f46e5' }}
+            style={{ backgroundColor: '#6366f1', color: 'var(--surface-1, #0f1624)', borderColor: '#4f46e5' }}
           >
             📄 {isRtl ? 'استخراج من الكراسة' : 'Parse RFP / Tender'}
           </Button>
@@ -834,7 +834,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             variant="secondary"
             onClick={handleExportCsv}
             disabled={isExportingCsv}
-            style={{ backgroundColor: '#0f766e', color: '#ffffff', borderColor: '#115e59' }}
+            style={{ backgroundColor: '#0f766e', color: 'var(--surface-1, #0f1624)', borderColor: '#115e59' }}
           >
             💾 {isExportingCsv ? (isRtl ? 'جاري التصدير...' : 'Exporting...') : (isRtl ? 'تصدير CSV' : 'Export CSV')}
           </Button>
@@ -842,7 +842,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             id="btn-submit-rfi"
             variant="secondary"
             onClick={() => setIsRfiModalOpen(true)}
-            style={{ backgroundColor: '#334155', color: '#ffffff', borderColor: '#475569' }}
+            style={{ backgroundColor: 'var(--text-secondary, #cbd5e1)', color: 'var(--surface-1, #0f1624)', borderColor: 'var(--text-secondary, #cbd5e1)' }}
           >
             ❓ {isRtl ? 'استفسار RFI' : 'Submit RFI'}
           </Button>
@@ -858,7 +858,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         }}
       >
         <Card style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Current-Stage Maturity</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Current-Stage Maturity</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#047857', margin: '4px 0' }}>
             {matrixData?.currentStageMaturityPct || 100}%
           </div>
@@ -866,15 +866,15 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #2563eb' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Overall Lifecycle Traceability</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Overall Lifecycle Traceability</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>
             {matrixData?.overallTraceabilityPct || 57}%
           </div>
           <div style={{ fontSize: '11px', color: '#16a34a' }}>All 7 points across complete lifecycle</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #6366f1' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Stage Satisfied Scope</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Stage Satisfied Scope</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#4338ca', margin: '4px 0' }}>
             {matrixData?.stageMaturitySatisfiedCount || matrixData?.totalRequirements || evaluations.length} / {matrixData?.totalRequirements || evaluations.length}
           </div>
@@ -882,7 +882,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Unassigned / Gaps</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Unassigned / Gaps</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>
             {matrixData?.unassignedRequirements ?? missingOwnerCount}
           </div>
@@ -914,16 +914,16 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 padding: '5px 10px',
                 fontSize: '12px',
                 fontWeight: 600,
-                backgroundColor: '#ffffff',
-                color: '#475569',
-                border: '1px solid #cbd5e1',
+                backgroundColor: 'var(--surface-1, #0f1624)',
+                color: 'var(--text-secondary, #cbd5e1)',
+                border: '1px solid var(--border-default, #2a374b)',
                 borderRadius: '4px',
                 cursor: 'pointer',
               }}
             >
               {(isMobile ? 'cards' : viewMode) === 'table' ? (isRtl ? '⊞ عرض البطاقات' : '⊞ Cards View') : (isRtl ? '☰ عرض الجدول' : '☰ Table View')}
             </button>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl ? 'عرض' : 'Showing'} <strong>{filteredEvaluations.length}</strong> {isRtl ? 'من أصل' : 'of'} {evaluations.length} {isRtl ? 'متطلب' : 'requirements'}
             </div>
           </div>
@@ -938,13 +938,13 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             flexWrap: 'wrap',
             marginBottom: '14px',
             padding: '10px 14px',
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'var(--surface-2, #151e2e)',
             borderRadius: '6px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-default, #2a374b)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               👁️ {isRtl ? 'طريقة العرض المسبقة:' : 'Saved View Preset:'}
             </span>
             <select
@@ -955,10 +955,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 fontSize: '12px',
                 padding: '4px 8px',
                 borderRadius: '4px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
+                border: '1px solid var(--border-default, #2a374b)',
+                backgroundColor: 'var(--surface-1, #0f1624)',
                 fontWeight: 600,
-                color: '#0f172a',
+                color: 'var(--text-primary, #f8fafc)',
                 cursor: 'pointer',
               }}
             >
@@ -972,7 +972,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
               {isRtl ? 'تجميع حسب:' : 'Group By:'}
             </span>
             <select
@@ -986,8 +986,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 fontSize: '12px',
                 padding: '4px 8px',
                 borderRadius: '4px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
+                border: '1px solid var(--border-default, #2a374b)',
+                backgroundColor: 'var(--surface-1, #0f1624)',
                 cursor: 'pointer',
               }}
             >
@@ -1004,7 +1004,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           {groupBy !== 'none' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                 {isRtl ? 'ثم حسب:' : 'Then By:'}
               </span>
               <select
@@ -1018,8 +1018,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   fontSize: '12px',
                   padding: '4px 8px',
                   borderRadius: '4px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                   cursor: 'pointer',
                 }}
               >
@@ -1044,8 +1044,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   fontSize: '11px',
                   padding: '3px 8px',
                   borderRadius: '4px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                   cursor: 'pointer',
                 }}
               >
@@ -1067,8 +1067,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   fontSize: '11px',
                   padding: '3px 8px',
                   borderRadius: '4px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--border-default, #2a374b)',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                   cursor: 'pointer',
                 }}
               >
@@ -1080,7 +1080,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
         {/* Filter Pills */}
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '16px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginRight: '4px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginRight: '4px' }}>
             {isRtl ? 'تصفية المتطلبات:' : 'Filters:'}
           </span>
           <button
@@ -1091,8 +1091,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'all' ? '#2563eb' : '#f1f5f9',
-              color: activeFilter === 'all' ? '#ffffff' : '#334155',
+              backgroundColor: activeFilter === 'all' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+              color: activeFilter === 'all' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -1107,8 +1107,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'missing_owner' ? '#ef4444' : '#f1f5f9',
-              color: activeFilter === 'missing_owner' ? '#ffffff' : '#334155',
+              backgroundColor: activeFilter === 'missing_owner' ? '#ef4444' : 'var(--surface-2, #151e2e)',
+              color: activeFilter === 'missing_owner' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -1123,8 +1123,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'missing_boq' ? '#f59e0b' : '#f1f5f9',
-              color: activeFilter === 'missing_boq' ? '#ffffff' : '#334155',
+              backgroundColor: activeFilter === 'missing_boq' ? '#f59e0b' : 'var(--surface-2, #151e2e)',
+              color: activeFilter === 'missing_boq' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -1139,8 +1139,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'missing_design' ? '#8b5cf6' : '#f1f5f9',
-              color: activeFilter === 'missing_design' ? '#ffffff' : '#334155',
+              backgroundColor: activeFilter === 'missing_design' ? '#8b5cf6' : 'var(--surface-2, #151e2e)',
+              color: activeFilter === 'missing_design' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -1155,8 +1155,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'high_risk' ? '#dc2626' : '#f1f5f9',
-              color: activeFilter === 'high_risk' ? '#ffffff' : '#334155',
+              backgroundColor: activeFilter === 'high_risk' ? '#dc2626' : 'var(--surface-2, #151e2e)',
+              color: activeFilter === 'high_risk' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -1171,8 +1171,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'unapproved' ? '#d97706' : '#f1f5f9',
-              color: activeFilter === 'unapproved' ? '#ffffff' : '#334155',
+              backgroundColor: activeFilter === 'unapproved' ? '#d97706' : 'var(--surface-2, #151e2e)',
+              color: activeFilter === 'unapproved' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -1190,7 +1190,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'tender_ready' ? '#0284c7' : '#f8fafc',
+              backgroundColor: activeFilter === 'tender_ready' ? '#0284c7' : 'var(--surface-2, #151e2e)',
               color: activeFilter === 'tender_ready' ? '#ffffff' : '#0369a1',
               border: '1px solid #bae6fd',
               cursor: 'pointer',
@@ -1206,7 +1206,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'design_ready' ? '#7c3aed' : '#f8fafc',
+              backgroundColor: activeFilter === 'design_ready' ? '#7c3aed' : 'var(--surface-2, #151e2e)',
               color: activeFilter === 'design_ready' ? '#ffffff' : '#6d28d9',
               border: '1px solid #ddd6fe',
               cursor: 'pointer',
@@ -1222,7 +1222,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'commercial_ready' ? '#059669' : '#f8fafc',
+              backgroundColor: activeFilter === 'commercial_ready' ? '#059669' : 'var(--surface-2, #151e2e)',
               color: activeFilter === 'commercial_ready' ? '#ffffff' : '#047857',
               border: '1px solid #a7f3d0',
               cursor: 'pointer',
@@ -1238,9 +1238,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'production_ready' ? '#d97706' : '#f8fafc',
+              backgroundColor: activeFilter === 'production_ready' ? '#d97706' : 'var(--surface-2, #151e2e)',
               color: activeFilter === 'production_ready' ? '#ffffff' : '#b45309',
-              border: '1px solid #fde68a',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
               cursor: 'pointer',
             }}
           >
@@ -1254,9 +1254,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
-              backgroundColor: activeFilter === 'closeout_ready' ? '#475569' : '#f8fafc',
-              color: activeFilter === 'closeout_ready' ? '#ffffff' : '#334155',
-              border: '1px solid #cbd5e1',
+              backgroundColor: activeFilter === 'closeout_ready' ? '#475569' : 'var(--surface-2, #151e2e)',
+              color: activeFilter === 'closeout_ready' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
+              border: '1px solid var(--border-default, #2a374b)',
               cursor: 'pointer',
             }}
           >
@@ -1266,12 +1266,12 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
         {/* 7-Point Matrix Table / Responsive Cards */}
         {filteredEvaluations.length === 0 ? (
-          <div style={{ padding: '36px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px dashed #cbd5e1' }}>
+          <div style={{ padding: '36px', textAlign: 'center', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', border: '1px dashed var(--border-default, #2a374b)' }}>
             <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
               {isRtl ? 'لا توجد متطلبات مطابقة لمعيار التصفية الحالي' : 'No requirements match the active filter or search'}
             </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
               {isRtl ? 'انتقل إلى "الكل" أو سجّل مطلباً جديداً في نطاق العمل.' : 'Switch to "All" or register a new progressive scope requirement.'}
             </div>
             <Button variant="secondary" size="sm" onClick={() => { setActiveFilter('all'); setSearchTerm(''); }} style={{ marginTop: '12px' }}>
@@ -1297,8 +1297,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   setIsDrawerOpen(true);
                 }}
                 style={{
-                  backgroundColor: isSelected ? '#eff6ff' : ev.isFullyTraceable ? '#f0fdf4' : '#ffffff',
-                  border: isSelected ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                  backgroundColor: isSelected ? '#eff6ff' : ev.isFullyTraceable ? '#f0fdf4' : 'var(--surface-1, #0f1624)',
+                  border: isSelected ? '2px solid #3b82f6' : '1px solid var(--border-default, #2a374b)',
                   borderRadius: '8px',
                   padding: '16px',
                   display: 'flex',
@@ -1336,42 +1336,42 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
                 {/* 6-Dimension Status Pills */}
                 <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', backgroundColor: alloc === 'fully_allocated' ? '#dcfce7' : alloc === 'partially_allocated' ? '#fef3c7' : alloc === 'over_allocated' ? '#fee2e2' : '#f1f5f9', color: alloc === 'fully_allocated' ? '#15803d' : alloc === 'partially_allocated' ? '#b45309' : alloc === 'over_allocated' ? '#b91c1c' : '#64748b', fontWeight: 700 }}>
+                  <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', backgroundColor: alloc === 'fully_allocated' ? '#dcfce7' : alloc === 'partially_allocated' ? '#fef3c7' : alloc === 'over_allocated' ? '#fee2e2' : 'var(--surface-2, #151e2e)', color: alloc === 'fully_allocated' ? '#15803d' : alloc === 'partially_allocated' ? '#b45309' : alloc === 'over_allocated' ? '#b91c1c' : 'var(--text-muted, #94a3b8)', fontWeight: 700 }}>
                     Alloc: {alloc.replace('_', ' ')}
                   </span>
-                  <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', backgroundColor: design === 'approved' ? '#dcfce7' : design.includes('review') ? '#fef3c7' : design === 'in_progress' ? '#e0e7ff' : '#f1f5f9', color: design === 'approved' ? '#15803d' : design.includes('review') ? '#b45309' : design === 'in_progress' ? '#4338ca' : '#64748b', fontWeight: 700 }}>
+                  <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', backgroundColor: design === 'approved' ? '#dcfce7' : design.includes('review') ? '#fef3c7' : design === 'in_progress' ? '#e0e7ff' : 'var(--surface-2, #151e2e)', color: design === 'approved' ? '#15803d' : design.includes('review') ? '#b45309' : design === 'in_progress' ? '#4338ca' : 'var(--text-muted, #94a3b8)', fontWeight: 700 }}>
                     Design: {design.replace('_', ' ')}
                   </span>
-                  <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', backgroundColor: prod === 'completed' || prod === 'qc_passed' ? '#dcfce7' : prod === 'in_production' || prod === 'released' ? '#dbeafe' : '#f1f5f9', color: prod === 'completed' || prod === 'qc_passed' ? '#15803d' : prod === 'in_production' || prod === 'released' ? '#1d4ed8' : '#64748b', fontWeight: 700 }}>
+                  <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', backgroundColor: prod === 'completed' || prod === 'qc_passed' ? '#dcfce7' : prod === 'in_production' || prod === 'released' ? '#dbeafe' : 'var(--surface-2, #151e2e)', color: prod === 'completed' || prod === 'qc_passed' ? '#15803d' : prod === 'in_production' || prod === 'released' ? '#1d4ed8' : 'var(--text-muted, #94a3b8)', fontWeight: 700 }}>
                     Prod: {prod.replace('_', ' ')}
                   </span>
-                  <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', backgroundColor: inst === 'accepted' || inst === 'installed' ? '#dcfce7' : '#f1f5f9', color: inst === 'accepted' || inst === 'installed' ? '#15803d' : '#64748b', fontWeight: 700 }}>
+                  <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', backgroundColor: inst === 'accepted' || inst === 'installed' ? '#dcfce7' : 'var(--surface-2, #151e2e)', color: inst === 'accepted' || inst === 'installed' ? '#15803d' : 'var(--text-muted, #94a3b8)', fontWeight: 700 }}>
                     Inst: {inst.replace('_', ' ')}
                   </span>
                 </div>
 
                 <div>
-                  <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                  <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                     {ev.title || 'Scope Deliverable'}
                   </h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.4, wordBreak: 'normal', overflowWrap: 'break-word' }}>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.4, wordBreak: 'normal', overflowWrap: 'break-word' }}>
                     {ev.description || '(No technical description provided yet)'}
                   </p>
                   {/* Quantity Tracking */}
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap', fontSize: '11px' }}>
-                    <span style={{ backgroundColor: '#f1f5f9', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, color: '#0f172a' }}>
+                    <span style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                       Req: {formatQuantityAndUnit(ev.quantity, ev.unit, ev.title, ev.description)}
                     </span>
                     <span style={{ backgroundColor: (ev.allocatedQuantity || 0) >= (ev.quantity || 1) ? '#dcfce7' : '#fef3c7', color: (ev.allocatedQuantity || 0) >= (ev.quantity || 1) ? '#15803d' : '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Alloc: {ev.allocatedQuantity ?? 0}
                     </span>
-                    <span style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    <span style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Released: {ev.releasedQuantity ?? 0}
                     </span>
-                    <span style={{ backgroundColor: '#fffbeb', color: '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Prod: {ev.producedQuantity ?? 0}
                     </span>
-                    <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#16a34a', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Inst: {ev.installedQuantity ?? 0}
                     </span>
                   </div>
@@ -1380,34 +1380,34 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 {/* 7-Point Progress Bar */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>
-                    <span style={{ color: '#475569' }}>{isRtl ? 'اكتمال التتبع (٧ نقاط):' : '7-Point Traceability:'}</span>
+                    <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'اكتمال التتبع (٧ نقاط):' : '7-Point Traceability:'}</span>
                     <span style={{ color: coveragePct >= 80 ? '#059669' : '#d97706' }}>{coveragePct}% ({ev.completedPoints || 0}/7)</span>
                   </div>
-                  <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ height: '6px', backgroundColor: 'var(--border-default, #2a374b)', borderRadius: '3px', overflow: 'hidden' }}>
                     <div style={{ width: `${coveragePct}%`, height: '100%', backgroundColor: coveragePct >= 80 ? '#10b981' : '#f59e0b', borderRadius: '3px' }} />
                   </div>
                 </div>
 
                 {/* Attributes Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px', borderTop: '1px solid var(--border-subtle, #1d2939)', paddingTop: '10px' }}>
                   <div>
-                    <span style={{ color: '#64748b' }}>{isRtl ? 'المسؤول: ' : 'Owner: '}</span>
-                    <strong style={{ color: ev.hasOwner ? '#0f172a' : '#dc2626' }}>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'المسؤول: ' : 'Owner: '}</span>
+                    <strong style={{ color: ev.hasOwner ? 'var(--text-primary, #f8fafc)' : '#dc2626' }}>
                       {ev.hasOwner ? ev.ownerName : (isRtl ? 'غير محدد' : 'Missing')}
                     </strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b' }}>{isRtl ? 'الاستحقاق: ' : 'Due: '}</span>
-                    <strong style={{ color: '#0f172a' }}>{ev.dueDate ? new Date(ev.dueDate).toLocaleDateString() : '—'}</strong>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)' }}>{isRtl ? 'الاستحقاق: ' : 'Due: '}</span>
+                    <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{ev.dueDate ? new Date(ev.dueDate).toLocaleDateString() : '—'}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b' }}>CAD: </span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)' }}>CAD: </span>
                     <strong style={{ color: ev.hasDesignVersion ? '#16a34a' : '#dc2626' }}>
                       {ev.hasDesignVersion ? '✓ Linked' : '✗ No CAD'}
                     </strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b' }}>BOQ: </span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)' }}>BOQ: </span>
                     <strong style={{ color: ev.hasBoqCost ? '#16a34a' : '#dc2626' }}>
                       {ev.hasBoqCost ? '✓ Costed' : '✗ Missing'}
                     </strong>
@@ -1421,7 +1421,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     paddingTop: '10px',
-                    borderTop: '1px solid #f1f5f9',
+                    borderTop: '1px solid var(--border-subtle, #1d2939)',
                     marginTop: '8px',
                     gap: '6px',
                     flexWrap: 'wrap',
@@ -1444,28 +1444,28 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     <button
                       title="Edit requirement"
                       onClick={(e) => handleOpenEdit(ev, e)}
-                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#fff', cursor: 'pointer', fontWeight: 600 }}
+                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', backgroundColor: 'var(--surface-1, #0f1624)', cursor: 'pointer', fontWeight: 600 }}
                     >
                       ✏️ Edit
                     </button>
                     <button
                       title={ev.status === 'on_hold' ? 'Resume requirement' : 'Put on hold'}
                       onClick={(e) => handleToggleHold(ev, e)}
-                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: ev.status === 'on_hold' ? '#fef3c7' : '#fff', color: ev.status === 'on_hold' ? '#b45309' : '#475569', cursor: 'pointer', fontWeight: 600 }}
+                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', backgroundColor: ev.status === 'on_hold' ? '#fef3c7' : 'var(--surface-1, #0f1624)', color: ev.status === 'on_hold' ? '#b45309' : 'var(--text-secondary, #cbd5e1)', cursor: 'pointer', fontWeight: 600 }}
                     >
                       {ev.status === 'on_hold' ? '▶️' : '⏸️'}
                     </button>
                     <button
                       title={ev.isBaselineFrozen ? 'Unfreeze baseline' : 'Freeze baseline'}
                       onClick={(e) => handleToggleFreeze(ev, e)}
-                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: ev.isBaselineFrozen ? '#e0f2fe' : '#fff', color: ev.isBaselineFrozen ? '#0284c7' : '#475569', cursor: 'pointer', fontWeight: 600 }}
+                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', backgroundColor: ev.isBaselineFrozen ? '#e0f2fe' : 'var(--surface-1, #0f1624)', color: ev.isBaselineFrozen ? '#0284c7' : 'var(--text-secondary, #cbd5e1)', cursor: 'pointer', fontWeight: 600 }}
                     >
                       {ev.isBaselineFrozen ? '🔓' : '❄️'}
                     </button>
                     <button
                       title="Delete requirement"
                       onClick={(e) => handleDeleteReq(ev, e)}
-                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #fca5a5', backgroundColor: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontWeight: 600 }}
+                      style={{ padding: '3px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.3)', backgroundColor: 'rgba(239, 68, 68, 0.12)', color: '#dc2626', cursor: 'pointer', fontWeight: 600 }}
                     >
                       🗑️
                     </button>
@@ -1491,16 +1491,16 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   setIsDrawerOpen(true);
                 }}
                 style={{
-                  borderBottom: '1px solid #f1f5f9',
-                  backgroundColor: isSelected ? '#eff6ff' : ev.isFullyTraceable ? '#f0fdf4' : '#ffffff',
+                  borderBottom: '1px solid var(--border-subtle, #1d2939)',
+                  backgroundColor: isSelected ? '#eff6ff' : ev.isFullyTraceable ? '#f0fdf4' : 'var(--surface-1, #0f1624)',
                   cursor: 'pointer',
                   transition: 'background-color 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isSelected && !ev.isFullyTraceable) e.currentTarget.style.backgroundColor = '#f8fafc';
+                  if (!isSelected && !ev.isFullyTraceable) e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
                 }}
                 onMouseLeave={(e) => {
-                  if (!isSelected && !ev.isFullyTraceable) e.currentTarget.style.backgroundColor = '#ffffff';
+                  if (!isSelected && !ev.isFullyTraceable) e.currentTarget.style.backgroundColor = 'var(--surface-1, #0f1624)';
                 }}
               >
                 {/* Checkbox */}
@@ -1526,7 +1526,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     position: 'sticky',
                     left: isRtl ? undefined : 0,
                     right: isRtl ? 0 : undefined,
-                    backgroundColor: isSelected ? '#eff6ff' : ev.isFullyTraceable ? '#f0fdf4' : '#ffffff',
+                    backgroundColor: isSelected ? '#eff6ff' : ev.isFullyTraceable ? '#f0fdf4' : 'var(--surface-1, #0f1624)',
                     zIndex: 1,
                     boxShadow: isRtl ? '-2px 0 4px rgba(0,0,0,0.06)' : '2px 0 4px rgba(0,0,0,0.06)',
                   }}
@@ -1536,32 +1536,32 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
                 {/* Column 2: Description & Scope + Quantities */}
                 <td style={{ padding: '12px 14px', minWidth: '320px', maxWidth: '440px', wordBreak: 'normal', overflowWrap: 'break-word' }}>
-                  <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px', fontSize: '13px' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '4px', fontSize: '13px' }}>
                     {ev.title || 'Scope Deliverable'}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5, wordBreak: 'normal', overflowWrap: 'break-word' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.5, wordBreak: 'normal', overflowWrap: 'break-word' }}>
                     {ev.description || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Pending technical description (Progressive)</span>}
                   </div>
                   {ev.originalWording && (
-                    <div style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic', marginTop: '4px', backgroundColor: '#f8fafc', padding: '4px 8px', borderRadius: '4px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontStyle: 'italic', marginTop: '4px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '4px 8px', borderRadius: '4px' }}>
                       {isRtl ? 'النص الأصلي:' : 'Original:'} "{ev.originalWording}"
                     </div>
                   )}
                   {/* Phase 2 Quantity Breakdown Pill */}
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap', fontSize: '11px' }}>
-                    <span style={{ backgroundColor: '#f1f5f9', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, color: '#0f172a' }}>
+                    <span style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                       Req: {formatQuantityAndUnit(ev.quantity, ev.unit, ev.title, ev.description)}
                     </span>
                     <span style={{ backgroundColor: (ev.allocatedQuantity || 0) >= (ev.quantity || 1) ? '#dcfce7' : '#fef3c7', color: (ev.allocatedQuantity || 0) >= (ev.quantity || 1) ? '#15803d' : '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Alloc: {ev.allocatedQuantity ?? 0}
                     </span>
-                    <span style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    <span style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Released: {ev.releasedQuantity ?? 0}
                     </span>
-                    <span style={{ backgroundColor: '#fffbeb', color: '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Prod: {ev.producedQuantity ?? 0}
                     </span>
-                    <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#16a34a', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Inst: {ev.installedQuantity ?? 0}
                     </span>
                   </div>
@@ -1569,10 +1569,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
                 {/* Column 3: Source */}
                 <td style={{ padding: '12px 14px', width: '130px', minWidth: '130px' }}>
-                  <div style={{ fontWeight: 600, color: '#334155' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>
                     {ev.sourceType || 'Client RFP'}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                     {ev.sourceReference || 'Tender Spec'}
                   </div>
                 </td>
@@ -1582,19 +1582,19 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   {ev.hasOwner ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span>
-                      <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '12px' }}>
+                      <span style={{ color: 'var(--text-primary, #f8fafc)', fontWeight: 600, fontSize: '12px' }}>
                         {ev.ownerName || 'Assigned Lead'}
                       </span>
                     </div>
                   ) : (
-                    <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
+                    <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: 'rgba(239, 68, 68, 0.12)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
                       ⚠️ {isRtl ? 'دون مسؤول' : 'Missing Owner'}
                     </span>
                   )}
                 </td>
 
                 {/* Column 5: Due Date */}
-                <td style={{ padding: '12px 14px', whiteSpace: 'nowrap', width: '110px', minWidth: '110px', color: ev.dueDate ? '#0f172a' : '#64748b', fontFamily: 'monospace' }}>
+                <td style={{ padding: '12px 14px', whiteSpace: 'nowrap', width: '110px', minWidth: '110px', color: ev.dueDate ? '#0f172a' : 'var(--text-muted, #94a3b8)', fontFamily: 'monospace' }}>
                   {ev.dueDate ? new Date(ev.dueDate).toLocaleDateString() : '—'}
                 </td>
 
@@ -1616,10 +1616,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                       {String(reqStatus).toUpperCase().replace('_', ' ')}
                     </Badge>
                     <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                      <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '3px', backgroundColor: alloc === 'fully_allocated' ? '#dcfce7' : alloc === 'partially_allocated' ? '#fef3c7' : '#f1f5f9', color: alloc === 'fully_allocated' ? '#15803d' : alloc === 'partially_allocated' ? '#b45309' : '#64748b', fontWeight: 700 }}>
+                      <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '3px', backgroundColor: alloc === 'fully_allocated' ? '#dcfce7' : alloc === 'partially_allocated' ? '#fef3c7' : 'var(--surface-2, #151e2e)', color: alloc === 'fully_allocated' ? '#15803d' : alloc === 'partially_allocated' ? '#b45309' : 'var(--text-muted, #94a3b8)', fontWeight: 700 }}>
                         {alloc.replace('_', ' ')}
                       </span>
-                      <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '3px', backgroundColor: prod === 'completed' || prod === 'qc_passed' ? '#dcfce7' : prod === 'in_production' || prod === 'released' ? '#dbeafe' : '#f1f5f9', color: prod === 'completed' || prod === 'qc_passed' ? '#15803d' : prod === 'in_production' || prod === 'released' ? '#1d4ed8' : '#64748b', fontWeight: 700 }}>
+                      <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '3px', backgroundColor: prod === 'completed' || prod === 'qc_passed' ? '#dcfce7' : prod === 'in_production' || prod === 'released' ? '#dbeafe' : 'var(--surface-2, #151e2e)', color: prod === 'completed' || prod === 'qc_passed' ? '#15803d' : prod === 'in_production' || prod === 'released' ? '#1d4ed8' : 'var(--text-muted, #94a3b8)', fontWeight: 700 }}>
                         {prod.replace('_', ' ')}
                       </span>
                     </div>
@@ -1632,7 +1632,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     <div style={{ fontWeight: 800, color: coveragePct >= 80 ? '#059669' : coveragePct >= 50 ? '#d97706' : '#dc2626', fontSize: '13px', fontFamily: 'monospace' }}>
                       {coveragePct}%
                     </div>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted, #94a3b8)' }}>
                       {ev.completedPoints || 0}/7 {isRtl ? 'نقاط' : 'pts'}
                     </div>
                   </div>
@@ -1641,11 +1641,11 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 {/* Column 8: Linked Design */}
                 <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                   {ev.hasDesignVersion ? (
-                    <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                    <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                       ✓ {ev.linkedDesignVersion || 'CAD Linked'}
                     </span>
                   ) : (
-                    <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                    <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: 'rgba(239, 68, 68, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                       ⚠️ No CAD
                     </span>
                   )}
@@ -1654,11 +1654,11 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 {/* Column 9: Linked BOQ */}
                 <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                   {ev.hasBoqCost ? (
-                    <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                    <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                       ✓ {ev.linkedBoqLineCode || 'Priced'}
                     </span>
                   ) : (
-                    <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                    <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: 'rgba(239, 68, 68, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                       ⚠️ Uncosted
                     </span>
                   )}
@@ -1667,11 +1667,11 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 {/* Column 10: Linked Document */}
                 <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                   {ev.hasControlledDocument ? (
-                    <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: '#f0fdf4', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                    <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                       ✓ {ev.linkedDocumentNumber || 'Controlled'}
                     </span>
                   ) : (
-                    <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: '#fee2e2', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                    <span style={{ color: '#dc2626', fontWeight: 700, backgroundColor: 'rgba(239, 68, 68, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                       ⚠️ Unlinked
                     </span>
                   )}
@@ -1711,9 +1711,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                       style={{
                         padding: '4px 8px',
                         borderRadius: '4px',
-                        border: '1px solid #cbd5e1',
-                        backgroundColor: '#ffffff',
-                        color: '#0f172a',
+                        border: '1px solid var(--border-default, #2a374b)',
+                        backgroundColor: 'var(--surface-1, #0f1624)',
+                        color: 'var(--text-primary, #f8fafc)',
                         cursor: 'pointer',
                         fontSize: '11px',
                         fontWeight: 600,
@@ -1728,9 +1728,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                       style={{
                         padding: '4px 8px',
                         borderRadius: '4px',
-                        border: ev.status === 'on_hold' ? '1px solid #f59e0b' : '1px solid #cbd5e1',
-                        backgroundColor: ev.status === 'on_hold' ? '#fef3c7' : '#ffffff',
-                        color: ev.status === 'on_hold' ? '#b45309' : '#475569',
+                        border: ev.status === 'on_hold' ? '1px solid #f59e0b' : '1px solid var(--border-default, #2a374b)',
+                        backgroundColor: ev.status === 'on_hold' ? '#fef3c7' : 'var(--surface-1, #0f1624)',
+                        color: ev.status === 'on_hold' ? '#b45309' : 'var(--text-secondary, #cbd5e1)',
                         cursor: 'pointer',
                         fontSize: '11px',
                         fontWeight: 600,
@@ -1745,9 +1745,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                       style={{
                         padding: '4px 8px',
                         borderRadius: '4px',
-                        border: ev.isBaselineFrozen ? '1px solid #38bdf8' : '1px solid #cbd5e1',
-                        backgroundColor: ev.isBaselineFrozen ? '#e0f2fe' : '#ffffff',
-                        color: ev.isBaselineFrozen ? '#0284c7' : '#475569',
+                        border: ev.isBaselineFrozen ? '1px solid #38bdf8' : '1px solid var(--border-default, #2a374b)',
+                        backgroundColor: ev.isBaselineFrozen ? '#e0f2fe' : 'var(--surface-1, #0f1624)',
+                        color: ev.isBaselineFrozen ? '#0284c7' : 'var(--text-secondary, #cbd5e1)',
                         cursor: 'pointer',
                         fontSize: '11px',
                         fontWeight: 600,
@@ -1762,8 +1762,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                       style={{
                         padding: '4px 8px',
                         borderRadius: '4px',
-                        border: '1px solid #fca5a5',
-                        backgroundColor: '#fef2f2',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.12)',
                         color: '#dc2626',
                         cursor: 'pointer',
                         fontSize: '11px',
@@ -1791,9 +1791,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                           onClick={() => toggleGroupCollapse(section.key)}
                           style={{
                             padding: '10px 14px',
-                            backgroundColor: '#f1f5f9',
+                            backgroundColor: 'var(--surface-2, #151e2e)',
                             borderRadius: '6px',
-                            border: '1px solid #cbd5e1',
+                            border: '1px solid var(--border-default, #2a374b)',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
@@ -1803,25 +1803,25 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                               {isCollapsed ? '▶' : '▼'} {section.label}
                             </span>
                             <Badge variant="neutral" size="sm">{section.items.length} reqs</Badge>
                           </div>
                           <div style={{ display: 'flex', gap: '6px', fontSize: '11px', flexWrap: 'wrap' }}>
-                            <span style={{ backgroundColor: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                            <span style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
                               Req: {section.rollup.totalQty}
                             </span>
                             <span style={{ backgroundColor: '#ecfdf5', color: '#047857', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                               Alloc: {section.rollup.allocatedQty}
                             </span>
-                            <span style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            <span style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                               Rel: {section.rollup.releasedQty}
                             </span>
-                            <span style={{ backgroundColor: '#fffbeb', color: '#b45309', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#b45309', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                               Prod: {section.rollup.producedQty}
                             </span>
-                            <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#16a34a', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                               Inst: {section.rollup.installedQty}
                             </span>
                           </div>
@@ -1839,19 +1839,19 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                                     onClick={() => toggleGroupCollapse(sub.key)}
                                     style={{
                                       padding: '6px 10px',
-                                      backgroundColor: '#f8fafc',
+                                      backgroundColor: 'var(--surface-2, #151e2e)',
                                       borderRadius: '4px',
-                                      border: '1px solid #e2e8f0',
+                                      border: '1px solid var(--border-default, #2a374b)',
                                       display: 'flex',
                                       justifyContent: 'space-between',
                                       alignItems: 'center',
                                       cursor: 'pointer',
                                     }}
                                   >
-                                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                                       {isSubCollapsed ? '▶' : '▼'} ↳ {sub.label} ({sub.items.length})
                                     </span>
-                                    <span style={{ fontSize: '11px', color: '#64748b' }}>
+                                    <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                                       Req: {sub.rollup.totalQty} | Alloc: {sub.rollup.allocatedQty} | Prod: {sub.rollup.producedQty}
                                     </span>
                                   </div>
@@ -1878,10 +1878,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
           }
 
           return (
-            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px' }}>
               <table style={{ width: '100%', minWidth: '1460px', borderCollapse: 'collapse', fontSize: '12px', textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', color: 'var(--text-secondary, #cbd5e1)' }}>
                     <th style={{ width: '40px', padding: '12px 10px', textAlign: 'center' }}>
                       <input
                         type="checkbox"
@@ -1906,7 +1906,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                         position: 'sticky',
                         left: isRtl ? undefined : 0,
                         right: isRtl ? 0 : undefined,
-                        backgroundColor: '#f8fafc',
+                        backgroundColor: 'var(--surface-2, #151e2e)',
                         zIndex: 2,
                         boxShadow: isRtl ? '-2px 0 4px rgba(0,0,0,0.06)' : '2px 0 4px rgba(0,0,0,0.06)',
                       }}
@@ -1956,36 +1956,36 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                         {groupBy !== 'none' && (
                           <tr
                             onClick={() => toggleGroupCollapse(section.key)}
-                            style={{ backgroundColor: '#f1f5f9', borderTop: '2px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', cursor: 'pointer' }}
+                            style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderTop: '2px solid #cbd5e1', borderBottom: '1px solid var(--border-default, #2a374b)', cursor: 'pointer' }}
                           >
                             <td colSpan={13} style={{ padding: '10px 14px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>
+                                  <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                                     {isCollapsed ? '▶' : '▼'} {section.label}
                                   </span>
                                   <Badge variant="neutral" size="sm">{section.items.length} reqs</Badge>
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', fontSize: '11px' }}>
-                                  <span style={{ backgroundColor: '#ffffff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', fontWeight: 700, color: '#0f172a' }}>
+                                  <span style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                                     Required Qty: <strong>{section.rollup.totalQty}</strong>
                                   </span>
                                   <span style={{ backgroundColor: '#ecfdf5', padding: '3px 8px', borderRadius: '4px', border: '1px solid #a7f3d0', fontWeight: 700, color: '#047857' }}>
                                     Allocated: <strong>{section.rollup.allocatedQty}</strong> / {section.rollup.totalQty}
                                   </span>
-                                  <span style={{ backgroundColor: '#eff6ff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bfdbfe', fontWeight: 700, color: '#1d4ed8' }}>
+                                  <span style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(59, 130, 246, 0.3)', fontWeight: 700, color: '#60a5fa' }}>
                                     Design Appr: <strong>{section.rollup.designApprovedQty}</strong>
                                   </span>
                                   <span style={{ backgroundColor: '#f5f3ff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #ddd6fe', fontWeight: 700, color: '#6d28d9' }}>
                                     Released: <strong>{section.rollup.releasedQty}</strong>
                                   </span>
-                                  <span style={{ backgroundColor: '#fffbeb', padding: '3px 8px', borderRadius: '4px', border: '1px solid #fde68a', fontWeight: 700, color: '#b45309' }}>
+                                  <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.3)', fontWeight: 700, color: '#b45309' }}>
                                     Produced: <strong>{section.rollup.producedQty}</strong>
                                   </span>
-                                  <span style={{ backgroundColor: '#f0fdf4', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bbf7d0', fontWeight: 700, color: '#15803d' }}>
+                                  <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.3)', fontWeight: 700, color: '#4ade80' }}>
                                     Delivered: <strong>{section.rollup.deliveredQty}</strong>
                                   </span>
-                                  <span style={{ backgroundColor: '#f0fdf4', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bbf7d0', fontWeight: 700, color: '#15803d' }}>
+                                  <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.3)', fontWeight: 700, color: '#4ade80' }}>
                                     Installed: <strong>{section.rollup.installedQty}</strong>
                                   </span>
                                 </div>
@@ -2002,17 +2002,17 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                                 <React.Fragment key={sub.key}>
                                   <tr
                                     onClick={() => toggleGroupCollapse(sub.key)}
-                                    style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', cursor: 'pointer' }}
+                                    style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '1px solid var(--border-default, #2a374b)', cursor: 'pointer' }}
                                   >
                                     <td colSpan={13} style={{ padding: '8px 14px 8px 32px' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                                          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                                             {isSubCollapsed ? '▶' : '▼'} ↳ {sub.label}
                                           </span>
                                           <Badge variant="neutral" size="sm">{sub.items.length} items</Badge>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '8px', fontSize: '11px', color: '#64748b' }}>
+                                        <div style={{ display: 'flex', gap: '8px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                                           <span>Total Qty: <strong>{sub.rollup.totalQty}</strong></span>
                                           <span>•</span>
                                           <span>Allocated: <strong>{sub.rollup.allocatedQty}</strong></span>
@@ -2049,8 +2049,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             position: 'sticky',
             bottom: '16px',
             zIndex: 100,
-            backgroundColor: '#0f172a',
-            color: '#ffffff',
+            backgroundColor: 'var(--text-primary, #f8fafc)',
+            color: 'var(--surface-1, #0f1624)',
             borderRadius: '8px',
             padding: '12px 18px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
@@ -2059,12 +2059,12 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             justifyContent: 'space-between',
             flexWrap: 'wrap',
             gap: '12px',
-            border: '1px solid #334155',
+            border: '1px solid var(--border-default, #2a374b)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Badge variant="info">{selectedReqIds.length} Selected</Badge>
-            <span style={{ fontSize: '13px', color: '#cbd5e1' }}>
+            <span style={{ fontSize: '13px', color: 'var(--border-default, #2a374b)' }}>
               Perform bulk operations on selected scope items:
             </span>
           </div>
@@ -2078,9 +2078,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 fontSize: '12px',
                 padding: '6px 10px',
                 borderRadius: '4px',
-                backgroundColor: '#1e293b',
-                color: '#f8fafc',
-                border: '1px solid #475569',
+                backgroundColor: 'var(--surface-2, #151e2e)',
+                color: 'var(--surface-2, #151e2e)',
+                border: '1px solid var(--border-default, #2a374b)',
               }}
             >
               <option value="">Assign Lead / Owner...</option>
@@ -2108,9 +2108,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 fontSize: '12px',
                 padding: '5px 8px',
                 borderRadius: '4px',
-                backgroundColor: '#1e293b',
-                color: '#f8fafc',
-                border: '1px solid #475569',
+                backgroundColor: 'var(--surface-2, #151e2e)',
+                color: 'var(--surface-2, #151e2e)',
+                border: '1px solid var(--border-default, #2a374b)',
               }}
             />
             <Button
@@ -2130,9 +2130,9 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 fontSize: '12px',
                 padding: '6px 10px',
                 borderRadius: '4px',
-                backgroundColor: '#1e293b',
-                color: '#f8fafc',
-                border: '1px solid #475569',
+                backgroundColor: 'var(--surface-2, #151e2e)',
+                color: 'var(--surface-2, #151e2e)',
+                border: '1px solid var(--border-default, #2a374b)',
               }}
             >
               <option value="">Set Status...</option>
@@ -2250,19 +2250,19 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       <Card style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               Clarifications, Addenda & RFI Impact Ledger
             </h3>
-            <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
               Tracks bidder inquiries, client addenda, and evaluates automatic contractual/commercial variation order impact.
             </p>
           </div>
           {clarificationsData?.meta?.urgentCount > 0 && (
             <span
               style={{
-                backgroundColor: '#fef2f2',
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
                 color: '#dc2626',
-                border: '1px solid #fca5a5',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
                 padding: '4px 10px',
                 borderRadius: '4px',
                 fontSize: '12px',
@@ -2282,10 +2282,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             <div
               key={clar.id}
               style={{
-                border: '1px solid #e2e8f0',
+                border: '1px solid var(--border-default, #2a374b)',
                 borderRadius: '6px',
                 padding: '14px 16px',
-                backgroundColor: '#ffffff',
+                backgroundColor: 'var(--surface-1, #0f1624)',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
@@ -2296,7 +2296,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   <Badge variant={clar.status === 'answered' ? 'success' : 'warning'} size="sm">
                     {clar.status?.toUpperCase()}
                   </Badge>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                     {clar.rfpSectionRef || 'General'} • Due: {new Date(clar.dueAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -2306,7 +2306,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     style={{
                       backgroundColor: '#fef3c7',
                       color: '#b45309',
-                      border: '1px solid #fde68a',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
                       fontSize: '11px',
                       fontWeight: 700,
                       padding: '2px 8px',
@@ -2318,18 +2318,18 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 )}
               </div>
 
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)', marginBottom: '6px' }}>
                 {clar.question}
               </div>
 
               {clar.response && (
                 <div
                   style={{
-                    backgroundColor: '#f8fafc',
+                    backgroundColor: 'var(--surface-2, #151e2e)',
                     borderLeft: '3px solid #16a34a',
                     padding: '8px 12px',
                     fontSize: '12px',
-                    color: '#334155',
+                    color: 'var(--text-secondary, #cbd5e1)',
                     marginTop: '6px',
                   }}
                 >
@@ -2349,12 +2349,12 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         size="md"
       >
         <form onSubmit={handleQuickAddRequirement} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ backgroundColor: '#eff6ff', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', color: '#1e40af', border: '1px solid #bfdbfe' }}>
+          <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
             ⚡ <strong>Progressive Invariant:</strong> Only <em>Title</em> is mandatory. Missing attributes remain unassigned until progressively refined. Never manufactured.
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
               Requirement Title *
             </label>
             <Input
@@ -2368,7 +2368,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Discipline</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Discipline</label>
               <Select value={quickCategory} onChange={(e) => setQuickCategory(e.target.value)}>
                 <option value="staging_technical">Staging Technical & Rigging</option>
                 <option value="creative_visual">Creative Visual & LED</option>
@@ -2380,7 +2380,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Priority</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Priority</label>
               <Select value={quickPriority} onChange={(e) => setQuickPriority(e.target.value as any)}>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -2392,7 +2392,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Initial Lead Owner (Optional)</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Initial Lead Owner (Optional)</label>
               <Select value={quickOwnerName} onChange={(e) => setQuickOwnerName(e.target.value)}>
                 <option value="">Unassigned (Progressive)</option>
                 {ALL_LOCAL_TEAM_USERS.map((u) => (
@@ -2404,7 +2404,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Target Due Date (Optional)</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Target Due Date (Optional)</label>
               <Input
                 type="date"
                 value={quickDueDate}
@@ -2415,7 +2415,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Scope Quantity (Optional)</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Scope Quantity (Optional)</label>
               <Input
                 type="number"
                 value={quickQuantity}
@@ -2425,7 +2425,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Physical Engineering Unit</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Physical Engineering Unit</label>
               <Select value={quickUnit} onChange={(e) => setQuickUnit(e.target.value)}>
                 <option value="sqm">sqm (Square Meters - m²)</option>
                 <option value="meter">meter (Linear Meters - m)</option>
@@ -2464,7 +2464,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         <form onSubmit={handleCreateRequirement} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Requirement Code</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Requirement Code</label>
               <Input
                 value={reqCode}
                 onChange={(e) => setReqCode(e.target.value)}
@@ -2473,7 +2473,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Requirement Title *</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Requirement Title *</label>
               <Input
                 value={reqTitle}
                 onChange={(e) => setReqTitle(e.target.value)}
@@ -2484,7 +2484,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Technical Scope Description</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Technical Scope Description</label>
             <Textarea
               value={reqDesc}
               onChange={(e) => setReqDesc(e.target.value)}
@@ -2495,7 +2495,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Original Client / RFP Wording</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Original Client / RFP Wording</label>
               <Textarea
                 value={reqOriginalWording}
                 onChange={(e) => setReqOriginalWording(e.target.value)}
@@ -2505,7 +2505,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>E3 Engineering Interpretation</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>E3 Engineering Interpretation</label>
               <Textarea
                 value={reqInterpretation}
                 onChange={(e) => setReqInterpretation(e.target.value)}
@@ -2517,7 +2517,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Source Type (9 Types)</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Source Type (9 Types)</label>
               <Select value={reqSourceType} onChange={(e) => setReqSourceType(e.target.value)}>
                 <option value="Client RFP">Client RFP</option>
                 <option value="Tender document">Tender document</option>
@@ -2532,7 +2532,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Source Reference</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Source Reference</label>
               <Input
                 value={reqSourceRef}
                 onChange={(e) => setReqSourceRef(e.target.value)}
@@ -2541,7 +2541,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Priority Level</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Priority Level</label>
               <Select value={reqPriority} onChange={(e) => setReqPriority(e.target.value as any)}>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -2553,7 +2553,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Engineering Trade / Discipline</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Engineering Trade / Discipline</label>
               <Select value={reqCategory} onChange={(e) => setReqCategory(e.target.value)}>
                 <option value="staging_technical">Staging Technical & Rigging</option>
                 <option value="creative_visual">Creative Visual & LED</option>
@@ -2565,7 +2565,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Assigned Owner</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Assigned Owner</label>
               <Select value={reqOwnerName} onChange={(e) => setReqOwnerName(e.target.value)}>
                 <option value="">Unassigned (Progressive)</option>
                 {ALL_LOCAL_TEAM_USERS.map((u) => (
@@ -2577,7 +2577,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Target Budget (QAR)</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Target Budget (QAR)</label>
               <Input
                 type="number"
                 value={reqTargetCost}
@@ -2588,7 +2588,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Required Quantity</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Required Quantity</label>
               <Input
                 type="number"
                 value={reqQuantity}
@@ -2598,7 +2598,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Physical Unit of Measure</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Physical Unit of Measure</label>
               <Select value={reqUnit} onChange={(e) => setReqUnit(e.target.value)}>
                 <option value="sqm">sqm (Square Meters - m²)</option>
                 <option value="meter">meter (Linear Meters - m)</option>
@@ -2616,7 +2616,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Due Date</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Due Date</label>
               <Input
                 type="date"
                 value={reqDueDate}
@@ -2645,7 +2645,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       >
         <form onSubmit={handleCreateRfi} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>RFI Inquired Question *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>RFI Inquired Question *</label>
             <Textarea
               value={rfiQuestion}
               onChange={(e) => setRfiQuestion(e.target.value)}
@@ -2657,7 +2657,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Category</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Category</label>
               <Select value={rfiCategory} onChange={(e) => setRfiCategory(e.target.value)}>
                 <option value="technical">Technical Engineering</option>
                 <option value="commercial">Commercial Pricing</option>
@@ -2670,7 +2670,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Tender Section Reference</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Tender Section Reference</label>
               <Input
                 value={rfiSection}
                 onChange={(e) => setRfiSection(e.target.value)}
@@ -2701,7 +2701,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       >
         <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '640px' }} dir={isRtl ? 'rtl' : 'ltr'}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Requirement Title *</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Requirement Title *</label>
             <Input
               value={editTitle}
               onChange={(e: any) => setEditTitle(e.target.value)}
@@ -2711,7 +2711,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Description & Scope</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Description & Scope</label>
             <Textarea
               value={editDescription}
               onChange={(e: any) => setEditDescription(e.target.value)}
@@ -2722,7 +2722,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Category</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Category</label>
               <Select value={editCategory} onChange={(e: any) => setEditCategory(e.target.value)}>
                 <option value="staging_technical">Staging & Technical</option>
                 <option value="creative_visual">Creative & Visual</option>
@@ -2733,7 +2733,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Priority</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Priority</label>
               <Select value={editPriority} onChange={(e: any) => setEditPriority(e.target.value as any)}>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -2745,7 +2745,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Status</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Status</label>
               <Select value={editStatus} onChange={(e: any) => setEditStatus(e.target.value)}>
                 <option value="active">Active</option>
                 <option value="draft">Draft</option>
@@ -2758,7 +2758,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Owner / Assigned Lead</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Owner / Assigned Lead</label>
               <Input
                 value={editOwnerName}
                 onChange={(e: any) => setEditOwnerName(e.target.value)}
@@ -2769,7 +2769,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Scope Quantity</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Scope Quantity</label>
               <Input
                 type="number"
                 value={editQuantity}
@@ -2779,7 +2779,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Physical Engineering Unit</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Physical Engineering Unit</label>
               <Select value={editUnit} onChange={(e: any) => setEditUnit(e.target.value)}>
                 <option value="sqm">sqm (Square Meters - m²)</option>
                 <option value="meter">meter (Linear Meters - m)</option>
@@ -2799,7 +2799,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Due Date</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Due Date</label>
               <Input
                 type="date"
                 value={editDueDate}
@@ -2808,7 +2808,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Target Budget (QAR)</label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>Target Budget (QAR)</label>
               <Input
                 type="number"
                 value={editCost}

@@ -169,12 +169,12 @@ export const AdminRolesView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {isRtl ? 'مصفوفة صلاحيات وأدوار RBAC القياسية' : 'Canonical RBAC Roles & Capabilities Matrix'}
             </h1>
             <Badge variant="neutral">{isRtl ? '١٣ دوراً قياسياً' : '13 Canonical Roles'}</Badge>
           </div>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             {isRtl
               ? 'مقارنة حدود الصلاحيات وقواعد الحوكمة الصارمة عبر جميع أدوار تشغيل فعاليات E3.'
               : 'Strict role boundaries with plain-English "Can" and "Cannot by default" governance rules for E3 operations.'}
@@ -182,7 +182,7 @@ export const AdminRolesView: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
+          <div style={{ display: 'flex', backgroundColor: 'var(--surface-2, #151e2e)', padding: '3px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)' }}>
             <button
               id="btn-roles-view-matrix"
               onClick={() => setViewMode('matrix')}
@@ -190,8 +190,8 @@ export const AdminRolesView: React.FC = () => {
                 padding: '6px 12px',
                 fontSize: '12px',
                 fontWeight: viewMode === 'matrix' ? 700 : 500,
-                backgroundColor: viewMode === 'matrix' ? '#ffffff' : 'transparent',
-                color: viewMode === 'matrix' ? '#0f172a' : '#64748b',
+                backgroundColor: viewMode === 'matrix' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: viewMode === 'matrix' ? 'var(--text-primary, #f8fafc)' : 'var(--text-muted, #94a3b8)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -206,8 +206,8 @@ export const AdminRolesView: React.FC = () => {
                 padding: '6px 12px',
                 fontSize: '12px',
                 fontWeight: viewMode === 'cards' ? 700 : 500,
-                backgroundColor: viewMode === 'cards' ? '#ffffff' : 'transparent',
-                color: viewMode === 'cards' ? '#0f172a' : '#64748b',
+                backgroundColor: viewMode === 'cards' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: viewMode === 'cards' ? 'var(--text-primary, #f8fafc)' : 'var(--text-muted, #94a3b8)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -222,8 +222,8 @@ export const AdminRolesView: React.FC = () => {
                 padding: '6px 12px',
                 fontSize: '12px',
                 fontWeight: viewMode === 'sod_gates' ? 700 : 500,
-                backgroundColor: viewMode === 'sod_gates' ? '#ffffff' : 'transparent',
-                color: viewMode === 'sod_gates' ? '#7c3aed' : '#64748b',
+                backgroundColor: viewMode === 'sod_gates' ? 'var(--surface-1, #0f1624)' : 'transparent',
+                color: viewMode === 'sod_gates' ? 'var(--accent, #d97706)' : 'var(--text-muted, #94a3b8)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -254,17 +254,17 @@ export const AdminRolesView: React.FC = () => {
           <div
             style={{
               padding: '12px 20px',
-              backgroundColor: '#f8fafc',
-              borderBottom: '1px solid #e2e8f0',
+              backgroundColor: 'var(--surface-2, #151e2e)',
+              borderBottom: '1px solid var(--border-default, #2a374b)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
             }}
           >
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               {isRtl ? 'مصفوفة مقارنة الصلاحيات عبر الـ 13 دوراً قياسياً' : 'Cross-Role Capability Comparison Matrix (13 Roles)'}
             </span>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
               {isRtl ? 'سياسة حوكمة العمليات المباشرة لدولة قطر' : 'Governed by Qatar Live Operations Policy Engine'}
             </span>
           </div>
@@ -272,21 +272,21 @@ export const AdminRolesView: React.FC = () => {
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <table style={{ width: '100%', minWidth: '1380px', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1' }}>
+                <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)' }}>
                   <th
                     style={{
                       padding: '12px 14px',
                       fontWeight: 800,
-                      color: '#0f172a',
+                      color: 'var(--text-primary, #f8fafc)',
                       textAlign: isRtl ? 'right' : 'left',
                       position: 'sticky',
                       left: isRtl ? undefined : 0,
                       right: isRtl ? 0 : undefined,
-                      backgroundColor: '#f1f5f9',
+                      backgroundColor: 'var(--surface-2, #151e2e)',
                       zIndex: 2,
                       width: '220px',
                       minWidth: '220px',
-                      boxShadow: isRtl ? '-2px 0 4px rgba(0,0,0,0.06)' : '2px 0 4px rgba(0,0,0,0.06)',
+                      boxShadow: isRtl ? '-2px 0 4px rgba(0,0,0,0.3)' : '2px 0 4px rgba(0,0,0,0.3)',
                     }}
                   >
                     {isRtl ? 'نطاق الصلاحية / الوحدة' : 'Capability Domain / Module'}
@@ -299,8 +299,8 @@ export const AdminRolesView: React.FC = () => {
                         textAlign: 'center',
                         fontSize: '11px',
                         fontWeight: 700,
-                        color: '#334155',
-                        borderLeft: '1px solid #e2e8f0',
+                        color: 'var(--text-secondary, #cbd5e1)',
+                        borderLeft: '1px solid var(--border-subtle, #1d2939)',
                         minWidth: '88px',
                       }}
                       title={r.title}
@@ -308,7 +308,7 @@ export const AdminRolesView: React.FC = () => {
                       <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '88px' }}>
                         {r.title.split(' ')[0]}
                       </div>
-                      <code style={{ fontSize: '9px', color: '#64748b' }}>{r.role}</code>
+                      <code style={{ fontSize: '9px', color: 'var(--text-muted, #94a3b8)' }}>{r.role}</code>
                     </th>
                   ))}
                 </tr>
@@ -318,23 +318,23 @@ export const AdminRolesView: React.FC = () => {
                   <tr
                     key={rowIdx}
                     style={{
-                      borderBottom: '1px solid #f1f5f9',
-                      backgroundColor: rowIdx % 2 === 0 ? '#ffffff' : '#f8fafc',
+                      borderBottom: '1px solid var(--border-subtle, #1d2939)',
+                      backgroundColor: rowIdx % 2 === 0 ? 'var(--surface-1, #0f1624)' : 'var(--surface-2, #151e2e)',
                     }}
                   >
                     <td
                       style={{
                         padding: '10px 14px',
                         fontWeight: 700,
-                        color: '#0f172a',
+                        color: 'var(--text-primary, #f8fafc)',
                         position: 'sticky',
                         left: isRtl ? undefined : 0,
                         right: isRtl ? 0 : undefined,
-                        backgroundColor: rowIdx % 2 === 0 ? '#ffffff' : '#f8fafc',
+                        backgroundColor: rowIdx % 2 === 0 ? 'var(--surface-1, #0f1624)' : 'var(--surface-2, #151e2e)',
                         zIndex: 1,
                         width: '220px',
                         minWidth: '220px',
-                        boxShadow: isRtl ? '-2px 0 4px rgba(0,0,0,0.06)' : '2px 0 4px rgba(0,0,0,0.06)',
+                        boxShadow: isRtl ? '-2px 0 4px rgba(0,0,0,0.3)' : '2px 0 4px rgba(0,0,0,0.3)',
                       }}
                     >
                       {row.domain}
@@ -350,11 +350,11 @@ export const AdminRolesView: React.FC = () => {
                           style={{
                             padding: '10px 6px',
                             textAlign: 'center',
-                            borderLeft: '1px solid #f1f5f9',
+                            borderLeft: '1px solid var(--border-subtle, #1d2939)',
                             fontSize: '11px',
                             fontWeight: isFull ? 700 : 500,
-                            color: isFull ? '#15803d' : isLock ? '#dc2626' : isRestricted ? '#94a3b8' : '#b45309',
-                            backgroundColor: isFull ? '#f0fdf4' : 'transparent',
+                            color: isFull ? '#4ade80' : isLock ? '#ef4444' : isRestricted ? 'var(--text-muted, #94a3b8)' : 'var(--accent, #d97706)',
+                            backgroundColor: isFull ? 'rgba(34, 197, 94, 0.12)' : 'transparent',
                           }}
                         >
                           {val}
@@ -370,23 +370,23 @@ export const AdminRolesView: React.FC = () => {
       ) : viewMode === 'cards' ? (
         <Card noPadding>
         {loading ? (
-          <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>Loading roles catalog...</div>
+          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>Loading roles catalog...</div>
         ) : (
           <div>
             <div
               style={{
                 padding: '12px 20px',
-                backgroundColor: '#f8fafc',
-                borderBottom: '1px solid #e2e8f0',
+                backgroundColor: 'var(--surface-2, #151e2e)',
+                borderBottom: '1px solid var(--border-default, #2a374b)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
               }}
             >
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Role Profile & Scope ({filteredRoles.length})
               </span>
-              <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                 Governed by Qatar Live Operations RBAC Policy
               </span>
             </div>
@@ -402,7 +402,7 @@ export const AdminRolesView: React.FC = () => {
                   id={`role-card-${r.role}`}
                   style={{
                     padding: '18px 20px',
-                    borderBottom: '1px solid #f1f5f9',
+                    borderBottom: '1px solid var(--border-subtle, #1d2939)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
@@ -411,12 +411,12 @@ export const AdminRolesView: React.FC = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>{r.title}</span>
-                        <code style={{ fontSize: '11px', padding: '2px 8px', backgroundColor: '#f1f5f9', borderRadius: '4px', color: '#475569', fontWeight: 600 }}>
+                        <span style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-primary, #f8fafc)' }}>{r.title}</span>
+                        <code style={{ fontSize: '11px', padding: '2px 8px', backgroundColor: 'var(--surface-inset, #0b111d)', borderRadius: '4px', color: 'var(--text-secondary, #cbd5e1)', fontWeight: 600 }}>
                           {r.role}
                         </code>
                       </div>
-                      <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#475569' }}>{r.description}</p>
+                      <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>{r.description}</p>
                     </div>
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '400px', justifyContent: 'flex-end' }}>
@@ -428,9 +428,9 @@ export const AdminRolesView: React.FC = () => {
                             fontFamily: 'monospace',
                             padding: '2px 6px',
                             borderRadius: '4px',
-                            backgroundColor: p === '*' ? '#faf5ff' : '#eff6ff',
-                            color: p === '*' ? '#6b21a8' : '#1d4ed8',
-                            border: p === '*' ? '1px solid #e9d5ff' : '1px solid #bfdbfe',
+                            backgroundColor: p === '*' ? 'rgba(139, 92, 246, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                            color: p === '*' ? '#a78bfa' : '#60a5fa',
+                            border: p === '*' ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)',
                           }}
                         >
                           {p}
@@ -442,11 +442,11 @@ export const AdminRolesView: React.FC = () => {
                   {/* Plain-English Can & Cannot Breakdown */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
                     {/* Can */}
-                    <div style={{ padding: '10px 14px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                    <div style={{ padding: '10px 14px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                         ✓ Can (Authorized Capabilities)
                       </div>
-                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', color: '#15803d', lineHeight: 1.5 }}>
+                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', color: '#4ade80', lineHeight: 1.5 }}>
                         {canList.map((item: string, idx: number) => (
                           <li key={idx}>{item}</li>
                         ))}
@@ -454,11 +454,11 @@ export const AdminRolesView: React.FC = () => {
                     </div>
 
                     {/* Cannot by default */}
-                    <div style={{ padding: '10px 14px', backgroundColor: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#9a3412', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                    <div style={{ padding: '10px 14px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                         ✕ Cannot by Default (Governance Boundaries)
                       </div>
-                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', color: '#c2410c', lineHeight: 1.5 }}>
+                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', color: '#f87171', lineHeight: 1.5 }}>
                         {cannotList.map((item: string, idx: number) => (
                           <li key={idx}>{item}</li>
                         ))}
@@ -477,37 +477,37 @@ export const AdminRolesView: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                     🛡️ Separation of Duties (SoD) & Anti-Self-Authorization Console (P00-ST02 / AT-003 - AT-005)
                   </h3>
                   <Badge variant="danger">FOUR-EYES ENFORCED</Badge>
                   <Badge variant="info">ANTI-SELF-AUTH ACTIVE</Badge>
                 </div>
-                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
                   Enterprise governance invariants strictly prevent single-user dual roles (AT-004), reject mid-session decisions after role revocation (AT-003), and block self-weakening of approval routes (AT-005).
                 </p>
               </div>
             </div>
 
             {/* Invariant 1: SoD Dual-Role Conflict Detector (AT-004) */}
-            <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <span style={{ fontSize: '16px' }}>⚖️</span>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                   1. Independent Dual-Role Conflict Detector (AT-004)
                 </h4>
               </div>
-              <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#475569' }}>
+              <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Under AT-004, one identity assigned two approval or operational roles cannot satisfy an independent two-person maker-checker requirement.
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>User Identity</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>User Identity</label>
                   <select
                     value={sodUser}
                     onChange={(e) => setSodUser(e.target.value)}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '12px', backgroundColor: 'var(--surface-inset, #0b111d)', color: 'var(--text-primary, #f8fafc)' }}
                   >
                     <option value="Tariq Al-Mansoor">Tariq Al-Mansoor</option>
                     <option value="Elena Rostova">Elena Rostova</option>
@@ -516,21 +516,21 @@ export const AdminRolesView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>Current Assigned Role</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>Current Assigned Role</label>
                   <input
                     type="text"
                     disabled
                     value={sodPrimaryRole === 'procurement' ? 'Procurement Specialist (Maker)' : sodPrimaryRole}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', backgroundColor: '#f1f5f9' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '12px', backgroundColor: 'var(--surface-inset, #0b111d)', color: 'var(--text-secondary, #cbd5e1)' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>Proposed Secondary Role</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px' }}>Proposed Secondary Role</label>
                   <select
                     value={sodProposedRole}
                     onChange={(e) => setSodProposedRole(e.target.value)}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-default, #2a374b)', fontSize: '12px', backgroundColor: 'var(--surface-inset, #0b111d)', color: 'var(--text-primary, #f8fafc)' }}
                   >
                     <option value="finance">Finance Approver / Controller (Checker)</option>
                     <option value="executive">Executive Director (Approver)</option>
@@ -570,33 +570,33 @@ export const AdminRolesView: React.FC = () => {
                 <div style={{
                   padding: '12px',
                   borderRadius: '6px',
-                  backgroundColor: sodCheckResult.allowed ? '#f0fdf4' : '#fef2f2',
-                  border: `1px solid ${sodCheckResult.allowed ? '#86efac' : '#fca5a5'}`,
+                  backgroundColor: sodCheckResult.allowed ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                  border: `1px solid ${sodCheckResult.allowed ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
                   fontSize: '12px',
-                  color: sodCheckResult.allowed ? '#166534' : '#991b1b',
+                  color: sodCheckResult.allowed ? '#4ade80' : '#f87171',
                   fontWeight: 600,
                 }}>
                   <div>{sodCheckResult.allowed ? '✅' : '⛔'} <strong>{sodCheckResult.code}:</strong> {sodCheckResult.message}</div>
-                  <div style={{ fontSize: '11px', fontFamily: 'monospace', color: '#64748b', marginTop: '4px' }}>SHA-256 Audit Seal: {sodCheckResult.auditHash}</div>
+                  <div style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>SHA-256 Audit Seal: {sodCheckResult.auditHash}</div>
                 </div>
               )}
             </div>
 
             {/* Invariant 2: Mid-Session Role Revocation Simulation (AT-003) */}
-            <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <span style={{ fontSize: '16px' }}>⚡</span>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                   2. Mid-Session Privilege Revocation Interception (AT-003)
                 </h4>
               </div>
-              <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#475569' }}>
+              <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 If an approver role is revoked in admin, their next decision must be denied immediately on the authoritative backend, preventing stale browser token execution.
               </p>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 600 }}>
-                  Active Approver Session: <span style={{ color: '#2563eb' }}>Sarah Jenkins (Executive Director)</span>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
+                  Active Approver Session: <span style={{ color: 'var(--accent, #d97706)' }}>Sarah Jenkins (Executive Director)</span>
                 </div>
                 <Button
                   variant={revocationRoleRevoked ? 'secondary' : 'danger'}
@@ -639,8 +639,8 @@ export const AdminRolesView: React.FC = () => {
                   <div style={{
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    backgroundColor: revocationDecisionResult.authorized ? '#f0fdf4' : '#fef2f2',
-                    color: revocationDecisionResult.authorized ? '#166534' : '#991b1b',
+                    backgroundColor: revocationDecisionResult.authorized ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                    color: revocationDecisionResult.authorized ? '#4ade80' : '#f87171',
                     fontSize: '12px',
                     fontWeight: 700,
                   }}>
@@ -652,14 +652,14 @@ export const AdminRolesView: React.FC = () => {
             </div>
 
             {/* Invariant 3: Anti-Self-Authorization Protected Route Defense (AT-005) */}
-            <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <span style={{ fontSize: '16px' }}>🔒</span>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
                   3. Anti-Self-Authorization Route Weakening Defense (AT-005)
                 </h4>
               </div>
-              <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#475569' }}>
+              <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                 Under AT-005, a requester attempting to modify or weaken their own pending approval threshold or route is automatically blocked from self-authorisation.
               </p>
 
@@ -681,8 +681,8 @@ export const AdminRolesView: React.FC = () => {
                   <div style={{
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    backgroundColor: '#fef2f2',
-                    color: '#991b1b',
+                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                    color: '#f87171',
                     fontSize: '12px',
                     fontWeight: 700,
                   }}>

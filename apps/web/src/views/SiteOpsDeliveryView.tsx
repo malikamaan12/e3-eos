@@ -263,7 +263,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
         Loading site operations & readiness data...
       </div>
     );
@@ -278,7 +278,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
         style={{
           display: 'flex',
           gap: '8px',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: '1px solid var(--border-default, #2a374b)',
           paddingBottom: '8px',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -295,8 +295,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               fontSize: '13px',
               fontWeight: 700,
               border: 'none',
-              backgroundColor: activeSection === 'dsr' ? '#2563eb' : '#f1f5f9',
-              color: activeSection === 'dsr' ? '#ffffff' : '#475569',
+              backgroundColor: activeSection === 'dsr' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+              color: activeSection === 'dsr' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -306,7 +306,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             <span>📝</span> Daily Site Reports (DSR)
             <span
               style={{
-                backgroundColor: activeSection === 'dsr' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                backgroundColor: activeSection === 'dsr' ? 'rgba(255,255,255,0.25)' : 'var(--border-default, #2a374b)',
                 padding: '1px 6px',
                 borderRadius: '10px',
                 fontSize: '11px',
@@ -325,8 +325,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               fontSize: '13px',
               fontWeight: 700,
               border: 'none',
-              backgroundColor: activeSection === 'installation' ? '#2563eb' : '#f1f5f9',
-              color: activeSection === 'installation' ? '#ffffff' : '#475569',
+              backgroundColor: activeSection === 'installation' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+              color: activeSection === 'installation' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -336,7 +336,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             <span>🏗️</span> Installation Tracker
             <span
               style={{
-                backgroundColor: activeSection === 'installation' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                backgroundColor: activeSection === 'installation' ? 'rgba(255,255,255,0.25)' : 'var(--border-default, #2a374b)',
                 padding: '1px 6px',
                 borderRadius: '10px',
                 fontSize: '11px',
@@ -355,8 +355,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               fontSize: '13px',
               fontWeight: 700,
               border: 'none',
-              backgroundColor: activeSection === 'readiness' ? '#2563eb' : '#f1f5f9',
-              color: activeSection === 'readiness' ? '#ffffff' : '#475569',
+              backgroundColor: activeSection === 'readiness' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+              color: activeSection === 'readiness' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -367,7 +367,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             <span
               style={{
                 backgroundColor: readinessData?.overallStatus === 'READY' ? '#16a34a' : '#ea580c',
-                color: '#ffffff',
+                color: 'var(--surface-1, #0f1624)',
                 padding: '1px 6px',
                 borderRadius: '10px',
                 fontSize: '11px',
@@ -387,8 +387,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               fontSize: '13px',
               fontWeight: 700,
               border: 'none',
-              backgroundColor: activeSection === 'snags' ? '#2563eb' : '#f1f5f9',
-              color: activeSection === 'snags' ? '#ffffff' : '#475569',
+              backgroundColor: activeSection === 'snags' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+              color: activeSection === 'snags' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -399,7 +399,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             <span
               style={{
                 backgroundColor: siteSnags.some((s) => s.blocksRto && s.status === 'open') ? '#dc2626' : '#16a34a',
-                color: '#ffffff',
+                color: 'var(--surface-1, #0f1624)',
                 padding: '1px 6px',
                 borderRadius: '10px',
                 fontSize: '11px',
@@ -419,8 +419,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               fontSize: '13px',
               fontWeight: 700,
               border: 'none',
-              backgroundColor: activeSection === 'offline_sync' ? '#2563eb' : '#f1f5f9',
-              color: activeSection === 'offline_sync' ? '#ffffff' : '#475569',
+              backgroundColor: activeSection === 'offline_sync' ? '#2563eb' : 'var(--surface-2, #151e2e)',
+              color: activeSection === 'offline_sync' ? '#ffffff' : 'var(--text-secondary, #cbd5e1)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -460,10 +460,10 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                   Daily Site Reports & Delivery Proof (Sprint 03 Module 12)
                 </h3>
-                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
                   Immutable evidentiary log of site activities, manpower, deliveries, client directives, and zero-incident tracking.
                 </p>
               </div>
@@ -474,7 +474,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {reports.map((r) => (
               <Card key={r.id}>
-                <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', paddingBottom: '12px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '16px', fontWeight: 800, color: '#2563eb' }}>
                       📅 {r.reportDate}
@@ -484,43 +484,43 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                       ✓ Verified & Locked
                     </span>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     👥 Manpower On Site: <strong>{r.manpowerCount} personnel</strong>
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', fontSize: '13px' }}>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
-                    <div style={{ fontWeight: 700, color: '#15803d', marginBottom: '4px' }}>✓ Work Completed:</div>
-                    <div style={{ color: '#334155' }}>{r.workCompleted}</div>
+                  <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px' }}>
+                    <div style={{ fontWeight: 700, color: '#4ade80', marginBottom: '4px' }}>✓ Work Completed:</div>
+                    <div style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{r.workCompleted}</div>
                   </div>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
-                    <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>🚚 Deliveries Received:</div>
-                    <div style={{ color: '#334155' }}>{r.deliveriesReceived}</div>
+                  <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '4px' }}>🚚 Deliveries Received:</div>
+                    <div style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{r.deliveriesReceived}</div>
                   </div>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px' }}>
                     <div style={{ fontWeight: 700, color: '#2563eb', marginBottom: '4px' }}>🔧 Equipment Active:</div>
-                    <div style={{ color: '#334155' }}>{r.equipmentActive}</div>
+                    <div style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{r.equipmentActive}</div>
                   </div>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px' }}>
                     <div style={{ fontWeight: 700, color: '#b45309', marginBottom: '4px' }}>🛠️ Snags & Rectifications:</div>
-                    <div style={{ color: '#334155' }}>{r.snagsIdentified}</div>
+                    <div style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{r.snagsIdentified}</div>
                   </div>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px' }}>
                     <div style={{ fontWeight: 700, color: '#0284c7', marginBottom: '4px' }}>🤝 Client Instructions:</div>
-                    <div style={{ color: '#334155' }}>{r.clientInstructions}</div>
+                    <div style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{r.clientInstructions}</div>
                   </div>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
-                    <div style={{ fontWeight: 700, color: '#7c3aed', marginBottom: '4px' }}>📋 Tomorrow's Plan:</div>
-                    <div style={{ color: '#334155' }}>{r.tomorrowPlan}</div>
+                  <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', padding: '12px', borderRadius: '6px' }}>
+                    <div style={{ fontWeight: 700, color: '#a78bfa', marginBottom: '4px' }}>📋 Tomorrow's Plan:</div>
+                    <div style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{r.tomorrowPlan}</div>
                   </div>
                 </div>
               </Card>
             ))}
             {reports.length === 0 && (
-              <Card style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+              <Card style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                 <div style={{ fontSize: '28px', marginBottom: '8px' }}>📅</div>
-                <div style={{ fontWeight: 700, color: '#334155', fontSize: '15px' }}>No Daily Site Reports Recorded</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '15px' }}>No Daily Site Reports Recorded</div>
                 <div style={{ fontSize: '13px', marginTop: '4px' }}>Click "+ Record Daily Site Report" to log daily shift progress, manpower, and safety tracking.</div>
               </Card>
             )}
@@ -533,10 +533,10 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <Card>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                 🏗️ Installation Progression & Acceptance Tracker (Sprint 03 Module 12)
               </h3>
-              <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
                 Strict linear status progression: Not Delivered → Delivered → Positioned → Installed → Tested → Accepted.
               </p>
             </div>
@@ -550,12 +550,12 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{item.title}</span>
+                        <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{item.title}</span>
                         <Badge variant={item.status === 'accepted' ? 'success' : 'primary'}>
                           {item.status.toUpperCase()}
                         </Badge>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                         Notes: {item.installerNotes}
                       </div>
                       {item.verifiedBy && (
@@ -586,8 +586,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                           key={step}
                           style={{
                             flex: 1,
-                            backgroundColor: isCurrent ? '#2563eb' : isCompleted ? '#16a34a' : '#e2e8f0',
-                            color: isCompleted ? '#ffffff' : '#64748b',
+                            backgroundColor: isCurrent ? '#2563eb' : isCompleted ? '#16a34a' : 'var(--border-default, #2a374b)',
+                            color: isCompleted ? '#ffffff' : 'var(--text-muted, #94a3b8)',
                             padding: '8px 4px',
                             borderRadius: '4px',
                             textAlign: 'center',
@@ -605,9 +605,9 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               );
             })}
             {installationItems.length === 0 && (
-              <Card style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+              <Card style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                 <div style={{ fontSize: '28px', marginBottom: '8px' }}>🏗️</div>
-                <div style={{ fontWeight: 700, color: '#334155', fontSize: '15px' }}>No Installation Elements Assigned</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '15px' }}>No Installation Elements Assigned</div>
                 <div style={{ fontSize: '13px', marginTop: '4px' }}>Staging, AV, lighting, and scenic items will appear here as materials arrive on site.</div>
               </Card>
             )}
@@ -654,15 +654,15 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                     : '🔴'}
                 </span>
                 <div>
-                  <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+                  <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                     OPERATIONAL READINESS: {effectiveReadiness.overallStatus}
                   </h2>
-                  <div style={{ fontSize: '13px', color: '#475569' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>
                     Authoritative Multi-Dimensional Readiness Engine (Sprint 03 Module 13)
                   </div>
                 </div>
               </div>
-              <div style={{ fontSize: '14px', color: '#334155', fontWeight: 600 }}>
+              <div style={{ fontSize: '14px', color: 'var(--text-secondary, #cbd5e1)', fontWeight: 600 }}>
                 {effectiveReadiness.canOpen ? (
                   <span style={{ color: '#16a34a' }}>
                     ✅ AUTHORIZED FOR PUBLIC OPENING & SHOW COMMENCEMENT
@@ -676,10 +676,10 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a' }}>
+              <div style={{ fontSize: '36px', fontWeight: 900, color: 'var(--text-primary, #f8fafc)' }}>
                 {effectiveReadiness.overallScorePercent}%
               </div>
-              <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700 }}>
                 READINESS SCORE
               </div>
             </div>
@@ -722,24 +722,24 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '14px' }}>
-              <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>AFFECTED ZONE</div>
-                <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+              <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)' }}>AFFECTED ZONE</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginTop: '2px' }}>
                   VIP Royal Pavilion & North Overhead Truss
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748b' }}>Zone Capacity: 850 Dignitaries & VVIPs</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Zone Capacity: 850 Dignitaries & VVIPs</div>
               </div>
 
-              <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>PHYSICAL MILESTONE COMPLETION</div>
+              <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)' }}>PHYSICAL MILESTONE COMPLETION</div>
                 <div style={{ fontSize: '14px', fontWeight: 800, color: '#2563eb', marginTop: '2px' }}>
                   149 / 150 Tasks Complete (99.33%)
                 </div>
                 <div style={{ fontSize: '11px', color: '#059669' }}>Carpentry, Lighting, Audio, Scenic: 100% Done</div>
               </div>
 
-              <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>S1 CRITICAL LIFE SAFETY PREREQUISITE</div>
+              <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)' }}>S1 CRITICAL LIFE SAFETY PREREQUISITE</div>
                 <div style={{ fontSize: '14px', fontWeight: 800, color: at059CriticalUnresolved ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
                   {at059CriticalUnresolved ? 'QCDD-INSP-441: UNRESOLVED' : 'QCDD-INSP-441: CERTIFIED'}
                 </div>
@@ -748,8 +748,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 </div>
               </div>
 
-              <div style={{ padding: '12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>AUTHORITATIVE ZONE OPENING VERDICT</div>
+              <div style={{ padding: '12px', backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '8px', border: '1px solid var(--border-default, #2a374b)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)' }}>AUTHORITATIVE ZONE OPENING VERDICT</div>
                 <div style={{ fontSize: '14px', fontWeight: 800, color: at059CriticalUnresolved ? '#dc2626' : '#16a34a', marginTop: '2px' }}>
                   {at059CriticalUnresolved ? 'BLOCKED / NOT READY' : 'AUTHORIZED FOR DOORS OPEN'}
                 </div>
@@ -760,7 +760,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             </div>
 
             {at059CriticalUnresolved && (
-              <div style={{ padding: '10px 14px', backgroundColor: '#fef2f2', borderRadius: '6px', border: '1px solid #fca5a5', fontSize: '12px', color: '#991b1b', fontWeight: 700 }}>
+              <div style={{ padding: '10px 14px', backgroundColor: 'rgba(239, 68, 68, 0.12)', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '12px', color: '#f87171', fontWeight: 700 }}>
                 ⛔ <strong>CRITICAL STATUTORY OVERRIDE ENFORCED (AT-059):</strong> Although Zone 02 has attained 99.33% physical completion, public doors opening is strictly prohibited until the mandatory QCDD Smoke Flaps certificate is certified.
               </div>
             )}
@@ -770,8 +770,8 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
           <div
             id="governed-opening-authorization-card"
             style={{
-              backgroundColor: effectiveReadiness.canOpen ? '#f0fdf4' : '#ffffff',
-              border: `2px solid ${effectiveReadiness.canOpen ? '#16a34a' : '#e2e8f0'}`,
+              backgroundColor: effectiveReadiness.canOpen ? '#f0fdf4' : 'var(--surface-1, #0f1624)',
+              border: `2px solid ${effectiveReadiness.canOpen ? '#16a34a' : 'var(--border-default, #2a374b)'}`,
               borderRadius: '12px',
               padding: '24px',
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
@@ -781,18 +781,18 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <span style={{ fontSize: '20px' }}>🏛️</span>
-                  <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                     Governed Show Opening Authorization Console
                   </h3>
                   <Badge variant={effectiveReadiness.canOpen ? 'success' : effectiveReadiness.eligibleForOpeningReview ? 'warning' : 'danger'}>
                     {effectiveReadiness.canOpen ? 'OFFICIALLY OPENED' : effectiveReadiness.eligibleForOpeningReview ? 'ELIGIBLE FOR REVIEW' : 'INELIGIBLE'}
                   </Badge>
                 </div>
-                <p style={{ fontSize: '13px', color: '#64748b', margin: 0, maxWidth: '780px', lineHeight: 1.4 }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: 0, maxWidth: '780px', lineHeight: 1.4 }}>
                   <strong>E3 Governance Invariant:</strong> 100% Operational Readiness score confers <em>eligibility</em> for opening review, but does NOT automatically unlock doors. Opening requires an explicit, policy-governed sign-off transaction executed by an authorized Project Director or Executive Producer, producing an immutable cryptographic audit record.
                 </p>
                 {at059CriticalUnresolved && (
-                  <div style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: '#fef2f2', borderRadius: '6px', border: '1px solid #fca5a5', fontSize: '12px', color: '#991b1b', fontWeight: 600 }}>
+                  <div style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: 'rgba(239, 68, 68, 0.12)', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '12px', color: '#f87171', fontWeight: 600 }}>
                     ⛔ <strong>Show Opening Strictly Blocked:</strong> 1 unresolved critical life-safety prerequisite (QCDD-INSP-441: Smoke flap safety interlock uncertified in Main Stage Zone). Opening authorization console is disabled until certified.
                   </div>
                 )}
@@ -818,7 +818,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
               <div
                 id="opening-authorization-seal"
                 style={{
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                   border: '1.5px solid #86efac',
                   borderRadius: '8px',
                   padding: '16px 20px',
@@ -828,7 +828,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '20px' }}>👑</span>
-                    <span style={{ fontWeight: 800, fontSize: '15px', color: '#166534' }}>
+                    <span style={{ fontWeight: 800, fontSize: '15px', color: '#22c55e' }}>
                       IMMUTABLE SHOW OPENING AUDIT RECORD & SEAL
                     </span>
                   </div>
@@ -837,37 +837,37 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '12px' }}>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Authorized Signatory:</span>
-                    <strong style={{ color: '#0f172a' }}>{effectiveReadiness.authorizedBy || 'Elena Rostova'}</strong>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Authorized Signatory:</span>
+                    <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{effectiveReadiness.authorizedBy || 'Elena Rostova'}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Authorized Role:</span>
-                    <strong style={{ color: '#0f172a' }}>{effectiveReadiness.authorizedRole || 'Executive Producer'}</strong>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Authorized Role:</span>
+                    <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{effectiveReadiness.authorizedRole || 'Executive Producer'}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Signed Timestamp:</span>
-                    <strong style={{ color: '#0f172a' }}>{effectiveReadiness.authorizedAt ? new Date(effectiveReadiness.authorizedAt).toLocaleString() : '2026-09-12 09:30:00 AST'}</strong>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Signed Timestamp:</span>
+                    <strong style={{ color: 'var(--text-primary, #f8fafc)' }}>{effectiveReadiness.authorizedAt ? new Date(effectiveReadiness.authorizedAt).toLocaleString() : '2026-09-12 09:30:00 AST'}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Certified Score:</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>Certified Score:</span>
                     <strong style={{ color: '#16a34a' }}>{effectiveReadiness.overallScorePercent}% (10/10 Dimensions)</strong>
                   </div>
                 </div>
 
                 {effectiveReadiness.dualSignoffBy && (
-                  <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1', fontSize: '12px', color: '#334155' }}>
+                  <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                     <strong>Dual Signoff Confirmed:</strong> {effectiveReadiness.dualSignoffBy} at {effectiveReadiness.dualSignoffAt ? new Date(effectiveReadiness.dualSignoffAt).toLocaleString() : '2026-09-12 09:35:00 AST'}
                   </div>
                 )}
 
                 {effectiveReadiness.justification && (
-                  <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '6px', fontSize: '12px', color: '#475569', fontStyle: 'italic' }}>
+                  <div style={{ marginTop: '10px', padding: '10px', backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', fontStyle: 'italic' }}>
                     "{effectiveReadiness.justification}"
                   </div>
                 )}
 
-                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                  <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Sha256 Audit Digest:</span>
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-default, #2a374b)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Sha256 Audit Digest:</span>
                   <div
                     style={{
                       fontFamily: 'monospace',
@@ -889,10 +889,10 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
           {/* 10 Dimensions Matrix */}
           <Card>
             <div style={{ marginBottom: '16px' }}>
-              <h4 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+              <h4 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                 The 10 Canonical Operational Dimensions
               </h4>
-              <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', margin: '2px 0 0 0' }}>
                 Derived directly from verifiable physical data points across previous delivery stages.
               </p>
             </div>
@@ -902,21 +902,21 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 <div
                   key={check.dimension}
                   style={{
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--border-default, #2a374b)',
                     borderRadius: '8px',
                     padding: '14px',
-                    backgroundColor: check.isPassed ? '#ffffff' : '#fff1f2',
+                    backgroundColor: check.isPassed ? 'var(--surface-1, #0f1624)' : 'rgba(239,68,68,0.12)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <div style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a' }}>
+                    <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
                       {idx + 1}. {check.dimension}
                     </div>
                     <Badge variant={check.isPassed ? 'success' : 'danger'}>
                       {check.isPassed ? 'PASSED (100%)' : 'BLOCKED'}
                     </Badge>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', lineHeight: 1.4 }}>
                     {check.details}
                   </div>
                   {check.openException && (
@@ -932,9 +932,9 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
       )}
 
       {activeSection === 'readiness' && !effectiveReadiness && (
-        <Card style={{ padding: '48px 24px', textAlign: 'center', color: '#64748b' }}>
+        <Card style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
           <div style={{ fontSize: '32px', marginBottom: '12px' }}>🚦</div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', margin: '0 0 8px 0' }}>
             10-Dimension Readiness Gate Not Yet Evaluated
           </h3>
           <p style={{ fontSize: '13px', margin: '0 0 16px 0', maxWidth: '500px', marginInline: 'auto' }}>
@@ -977,7 +977,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 <Badge variant={siteSnags.some((s) => s.blocksRto && s.status === 'open') ? 'danger' : 'success'}>
                   {siteSnags.some((s) => s.blocksRto && s.status === 'open') ? 'RTO BLOCKED' : 'RTO CLEARED'}
                 </Badge>
-                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
                   Offline Queue: 0 Pending
                 </div>
               </div>
@@ -988,10 +988,10 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                   📋 Defect & Snag Register (S1 / S2 / S3 Severity Tiering)
                 </h3>
-                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
                   S1: Life Safety / QCDD (blocks opening) • S2: Show-stopper (blocks show call) • S3: Cosmetic.
                 </p>
               </div>
@@ -1000,7 +1000,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: 'left' }}>
                     <th style={{ padding: '10px 12px' }}>Severity</th>
                     <th style={{ padding: '10px 12px' }}>Defect Description</th>
                     <th style={{ padding: '10px 12px' }}>Location</th>
@@ -1011,19 +1011,19 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 </thead>
                 <tbody>
                   {siteSnags.map((snag) => (
-                    <tr key={snag.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <tr key={snag.id} style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                       <td style={{ padding: '12px' }}>
                         <Badge variant={snag.severity === 'S1_LIFE_SAFETY' ? 'danger' : snag.severity === 'S2_SHOW_STOPPER' ? 'warning' : 'neutral'}>
                           {snag.severity.replace(/_/g, ' ')}
                         </Badge>
                       </td>
                       <td style={{ padding: '12px' }}>
-                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{snag.title}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{snag.title}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                           Reported by: {snag.reportedBy} {snag.qcddRef !== 'N/A' && `• ${snag.qcddRef}`}
                         </div>
                       </td>
-                      <td style={{ padding: '12px', color: '#475569' }}>{snag.location}</td>
+                      <td style={{ padding: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>{snag.location}</td>
                       <td style={{ padding: '12px' }}>
                         {snag.blocksRto ? (
                           <span style={{ color: '#dc2626', fontWeight: 700 }}>🛑 BLOCKS RTO</span>
@@ -1056,9 +1056,9 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                   ))}
                   {siteSnags.length === 0 && (
                     <tr>
-                      <td colSpan={6} style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={6} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                         <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
-                        <div style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>No Site Snags or Safety Deficiencies Recorded</div>
+                        <div style={{ fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)', fontSize: '14px' }}>No Site Snags or Safety Deficiencies Recorded</div>
                         <div style={{ fontSize: '12px', marginTop: '4px' }}>All inspection criteria and life-safety clearance gates are currently clear.</div>
                       </td>
                     </tr>
@@ -1078,20 +1078,20 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                     📲 Mobile Field PWA & Offline Mutation Queue Simulator
                   </h3>
                   <Badge variant="accent">AT-055 / AT-056 / AT-057 / AT-058</Badge>
                 </div>
-                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
                   Simulate field edge conditions across Lusail Stadium and DECC halls. Validates Dexie.js offline mutation queue, per-operation deduplication, and supervisor review gating.
                 </p>
               </div>
 
               {/* Network Connectivity Selector */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Radio State:</span>
-                <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '6px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Radio State:</span>
+                <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '4px', borderRadius: '6px' }}>
                   <button
                     onClick={() => setNetworkMode('online_5g')}
                     style={{
@@ -1101,7 +1101,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                       fontWeight: 700,
                       border: 'none',
                       backgroundColor: networkMode === 'online_5g' ? '#16a34a' : 'transparent',
-                      color: networkMode === 'online_5g' ? '#ffffff' : '#64748b',
+                      color: networkMode === 'online_5g' ? '#ffffff' : 'var(--text-muted, #94a3b8)',
                       cursor: 'pointer',
                     }}
                   >
@@ -1116,7 +1116,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                       fontWeight: 700,
                       border: 'none',
                       backgroundColor: networkMode === 'low_bandwidth_2g' ? '#f59e0b' : 'transparent',
-                      color: networkMode === 'low_bandwidth_2g' ? '#ffffff' : '#64748b',
+                      color: networkMode === 'low_bandwidth_2g' ? '#ffffff' : 'var(--text-muted, #94a3b8)',
                       cursor: 'pointer',
                     }}
                   >
@@ -1131,7 +1131,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                       fontWeight: 700,
                       border: 'none',
                       backgroundColor: networkMode === 'airplane_offline' ? '#dc2626' : 'transparent',
-                      color: networkMode === 'airplane_offline' ? '#ffffff' : '#64748b',
+                      color: networkMode === 'airplane_offline' ? '#ffffff' : 'var(--text-muted, #94a3b8)',
                       cursor: 'pointer',
                     }}
                   >
@@ -1146,10 +1146,10 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--text-primary, #f8fafc)' }}>
                   📦 IndexedDB / Dexie Mutation Queue (4 Operations Staged)
                 </h4>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
                   Local storage status: <strong>Persistent (Quota: 24.8 MB / 500 MB)</strong>
                 </div>
               </div>
@@ -1169,7 +1169,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+                  <tr style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderBottom: '2px solid var(--border-default, #2a374b)', textAlign: 'left' }}>
                     <th style={{ padding: '10px 12px' }}>Op ID & Type</th>
                     <th style={{ padding: '10px 12px' }}>Payload Description</th>
                     <th style={{ padding: '10px 12px' }}>Client Timestamp</th>
@@ -1179,15 +1179,15 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                 </thead>
                 <tbody>
                   {/* Operation 1: Normal Incident Log */}
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>OP-QA-7701</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>OP-QA-7701</div>
                       <Badge variant="neutral">incident</Badge>
                     </td>
-                    <td style={{ padding: '12px', color: '#334155' }}>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
                       Truss clamp torque re-checked at Grid C (120 Nm verified)
                     </td>
-                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                       2026-09-12 11:20:04 AST
                     </td>
                     <td style={{ padding: '12px' }}>
@@ -1201,16 +1201,16 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                   </tr>
 
                   {/* Operation 2: Revoked Credential Attendance (AT-055) */}
-                  <tr style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#fffbeb' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', backgroundColor: 'rgba(245, 158, 11, 0.12)' }}>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>OP-QA-7702</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>OP-QA-7702</div>
                       <Badge variant="warning">attendance</Badge>
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 600, color: '#92400e' }}>Turnstile badge scan for Worker #449 (Rigging Tech)</div>
+                      <div style={{ fontWeight: 600, color: '#f59e0b' }}>Turnstile badge scan for Worker #449 (Rigging Tech)</div>
                       <div style={{ fontSize: '11px', color: '#b45309' }}>Server state: IPAF license revoked 2h ago during offline window</div>
                     </td>
-                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                       2026-09-12 11:24:18 AST
                     </td>
                     <td style={{ padding: '12px' }}>
@@ -1224,16 +1224,16 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                   </tr>
 
                   {/* Operation 3: Incomplete Binary Upload (AT-057) */}
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)' }}>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>OP-QA-7703</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>OP-QA-7703</div>
                       <Badge variant="neutral">inspection_media</Badge>
                     </td>
                     <td style={{ padding: '12px' }}>
                       <div>Photo evidence: `egress-doors-gate4.jpg`</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>Transferred: 1.4 MB of 4.2 MB (Connection interrupted)</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Transferred: 1.4 MB of 4.2 MB (Connection interrupted)</div>
                     </td>
-                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                       2026-09-12 11:26:00 AST
                     </td>
                     <td style={{ padding: '12px' }}>
@@ -1247,15 +1247,15 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
                   </tr>
 
                   {/* Operation 4: Duplicate Operation Replay (AT-056) */}
-                  <tr style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle, #1d2939)', backgroundColor: 'var(--surface-2, #151e2e)' }}>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>OP-QA-7701-DUP</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>OP-QA-7701-DUP</div>
                       <Badge variant="neutral">replay_test</Badge>
                     </td>
-                    <td style={{ padding: '12px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                       Replay of OP-QA-7701 (Simulated duplicate packet re-transmission)
                     </td>
-                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                       2026-09-12 11:28:40 AST
                     </td>
                     <td style={{ padding: '12px' }}>
@@ -1272,7 +1272,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
             </div>
 
             {/* Storage Eviction & Session Revocation Contingency Notice (AT-058) */}
-            <div style={{ marginTop: '16px', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', color: '#475569' }}>
+            <div style={{ marginTop: '16px', padding: '12px 16px', backgroundColor: 'var(--surface-2, #151e2e)', border: '1px solid var(--border-default, #2a374b)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
               🛡️ <strong>AT-058 Contingency Protocol:</strong> {FieldSyncEngine.getStorageContingencyDisclosure()}
             </div>
           </Card>
@@ -1413,7 +1413,7 @@ export const SiteOpsDeliveryView: React.FC<SiteOpsDeliveryViewProps> = ({
           onClose={() => setIsAuthModalOpen(false)}
         >
           <form onSubmit={handleAuthorizeShowOpening} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '12px', fontSize: '13px', color: '#1e40af' }}>
+            <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '6px', padding: '12px', fontSize: '13px', color: '#60a5fa' }}>
               <strong>Policy Check:</strong> You are executing the final governed authority transaction to unlock public venue doors. This transaction is permanently recorded with a SHA-256 cryptographic audit seal.
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
