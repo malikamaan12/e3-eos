@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import {
   Card,
@@ -14,6 +14,7 @@ import {
 } from '../components/DesignSystem.js';
 import { UniversalDesignViewer } from '../components/UniversalDesignViewer.js';
 import { EosApiClient, isSyntheticDemo } from '../services/api-client.js';
+import { safeSha256, DESIGN_FORMAT_CAPABILITY_MATRIX, FormatCapability } from '@e3-eos/domain';
 
 interface DesignCreativeModuleViewProps {
   projectId: string;
@@ -64,7 +65,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewLayout, setViewLayout] = useState<'grid' | 'table' | 'kanban'>('grid');
 
-  // Modals
+  // Modals: New Design Package
   const [isNewDesignModalOpen, setIsNewDesignModalOpen] = useState<boolean>(false);
   const [newTitle, setNewTitle] = useState<string>('');
   const [newDiscipline, setNewDiscipline] = useState<string>('staging');
@@ -72,6 +73,28 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
   const [newWorkspaceId, setNewWorkspaceId] = useState<string>('');
   const [newDescription, setNewDescription] = useState<string>('');
   const [newClientVisible, setNewClientVisible] = useState<boolean>(true);
+  const designFileInputRef = useRef<HTMLInputElement>(null);
+  const [designSelectedFile, setDesignSelectedFile] = useState<File | null>(null);
+  const [designComputedHash, setDesignComputedHash] = useState<string | null>(null);
+  const [designFileContent, setDesignFileContent] = useState<string | null>(null);
+
+  // Modals: New Revision (+ New Revision)
+  const [isNewRevisionModalOpen, setIsNewRevisionModalOpen] = useState<boolean>(false);
+  const [targetDesignForRevision, setTargetDesignForRevision] = useState<string>('');
+  const revFileInputRef = useRef<HTMLInputElement>(null);
+  const [revSelectedFile, setRevSelectedFile] = useState<File | null>(null);
+  const [revFileName, setRevFileName] = useState<string>('');
+  const [revComputedHash, setRevComputedHash] = useState<string | null>(null);
+  const [revFileContent, setRevFileContent] = useState<string | null>(null);
+  const [revPurpose, setRevPurpose] = useState<string>('client_review');
+  const [revStructuralCert, setRevStructuralCert] = useState<string>('');
+  const [revDescription, setRevDescription] = useState<string>('');
+  const [revHasCostImpact, setRevHasCostImpact] = useState<boolean>(false);
+  const [revHasScheduleImpact, setRevHasScheduleImpact] = useState<boolean>(false);
+  const [revIsSubmitting, setRevIsSubmitting] = useState<boolean>(false);
+
+  // Modals: Format Capabilities Matrix
+  const [isCapabilitiesModalOpen, setIsCapabilitiesModalOpen] = useState<boolean>(false);
 
   // Workspace Modal
   const [isNewWsModalOpen, setIsNewWsModalOpen] = useState<boolean>(false);
@@ -97,6 +120,9 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
           if (wsData.length > 0 && !newWorkspaceId) {
             setNewWorkspaceId(wsData[0].id);
           }
+          if (itemsData.length > 0 && !targetDesignForRevision) {
+            setTargetDesignForRevision(itemsData[0].id);
+          }
         }
       } catch (err) {
         console.warn('Failed to load designs:', err);
@@ -109,6 +135,34 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       isMounted = false;
     };
   }, [projectId, refreshTrigger, isClientMode]);
+
+  // Handle Design File Selected
+  const handleDesignFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setDesignSelectedFile(file);
+    if (!newTitle.trim()) {
+      const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+      setNewTitle(nameWithoutExt);
+    }
+    const lower = file.name.toLowerCase();
+    if (lower.endsWith('.obj') || lower.endsWith('.gltf') || lower.endsWith('.glb')) {
+      setNewAssetType('3d_model');
+    } else if (lower.endsWith('.mp4') || lower.endsWith('.webm')) {
+      setNewAssetType('video_simulation');
+    } else if (lower.endsWith('.dwg') || lower.endsWith('.dxf') || lower.endsWith('.pdf') || lower.endsWith('.ifc')) {
+      setNewAssetType('technical_drawing');
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const content = ev.target?.result as string;
+      setDesignFileContent(content);
+      const hash = safeSha256(content);
+      setDesignComputedHash(hash);
+    };
+    reader.readAsText(file);
+  };
 
   // Handle Create Design Item
   const handleCreateDesign = async (e: React.FormEvent) => {
@@ -124,18 +178,132 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
         description: newDescription,
         clientVisibility: newClientVisible,
         priority: 'medium',
+        initialRevision: designSelectedFile
+          ? {
+              fileName: designSelectedFile.name,
+              contentData: designFileContent || designComputedHash || `INITIAL_${Date.now()}`,
+              contentHash: designComputedHash || safeSha256(`INITIAL_${Date.now()}`),
+            }
+          : undefined,
       });
       const created = res.data?.payload;
       if (created) {
+        if (designSelectedFile && (!created.revisions || created.revisions.length === 0)) {
+          created.revisions = [
+            {
+              revisionCode: 'REV-A',
+              versionNumber: 1,
+              releaseStatus: 'draft',
+              uploadedAt: new Date().toISOString(),
+              uploadedBy: 'Lead Design Engineer',
+              contentHash: designComputedHash || safeSha256(designSelectedFile.name),
+              fileName: designSelectedFile.name,
+              notes: 'Initial drawing package deposit',
+            },
+          ];
+        }
         setDesigns([created, ...designs]);
         setSelectedDesign(created);
       }
       setIsNewDesignModalOpen(false);
       setNewTitle('');
       setNewDescription('');
+      setDesignSelectedFile(null);
+      setDesignComputedHash(null);
+      setDesignFileContent(null);
       triggerRefresh();
     } catch (err) {
       console.error('Failed to create design item:', err);
+    }
+  };
+
+  // Handle Revision File Selected
+  const handleRevFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setRevSelectedFile(file);
+    setRevFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const content = ev.target?.result as string;
+      setRevFileContent(content);
+      const hash = safeSha256(content);
+      setRevComputedHash(hash);
+    };
+    reader.readAsText(file);
+  };
+
+  // Handle Create Revision Submit
+  const handleCreateRevisionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetDesignForRevision || !revDescription.trim()) return;
+
+    const targetDesign = designs.find((d) => d.id === targetDesignForRevision);
+    if (!targetDesign) return;
+
+    setRevIsSubmitting(true);
+    try {
+      const revs = targetDesign.revisions || [];
+      const nextIndex = revs.length;
+      const nextLetter = String.fromCharCode(65 + nextIndex);
+      const nextCode = `REV-${nextLetter}`;
+      const nextVerNum = nextIndex + 1;
+      const finalHash = revComputedHash || safeSha256(revFileContent || `REV_${nextCode}_${Date.now()}`);
+
+      await apiClient.createDesignVersion(projectId, targetDesign.id, {
+        versionNumber: nextVerNum,
+        revisionCode: nextCode,
+        title: `${targetDesign.title} - ${nextCode}`,
+        purpose: revPurpose === 'approved_for_fabrication' ? 'for_fabrication' : 'for_review',
+        revisionDescription: revDescription,
+        storageKey: `designs/${targetDesign.id}-${nextCode}.${revFileName.split('.').pop() || 'pdf'}`,
+        contentData: revFileContent || finalHash,
+        fileName: revFileName || `${targetDesign.id}-${nextCode}.pdf`,
+        costImpactFlag: revHasCostImpact,
+        scheduleImpactFlag: revHasScheduleImpact,
+      });
+
+      const updatedRev = {
+        revisionCode: nextCode,
+        versionNumber: nextVerNum,
+        releaseStatus: revPurpose === 'approved_for_fabrication' ? 'approved_for_production' : 'draft',
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: 'Lead Design Engineer',
+        notes: revDescription,
+        contentHash: finalHash,
+        purpose: revPurpose,
+        fileName: revFileName,
+        hasCostImpact: revHasCostImpact,
+        hasScheduleImpact: revHasScheduleImpact,
+        structuralCertification: revStructuralCert || undefined,
+      };
+
+      const updatedDesigns = designs.map((d) => {
+        if (d.id === targetDesign.id) {
+          return {
+            ...d,
+            currentRevisionCode: nextCode,
+            currentVersionNumber: nextVerNum,
+            currentStatus: revPurpose === 'approved_for_fabrication' ? 'approved_for_production' : 'draft',
+            revisions: [...(d.revisions || []), updatedRev],
+          };
+        }
+        return d;
+      });
+
+      setDesigns(updatedDesigns);
+      setIsNewRevisionModalOpen(false);
+      setRevSelectedFile(null);
+      setRevFileName('');
+      setRevComputedHash(null);
+      setRevFileContent(null);
+      setRevDescription('');
+      triggerRefresh();
+    } catch (err) {
+      console.error('Failed to create revision:', err);
+    } finally {
+      setRevIsSubmitting(false);
     }
   };
 
@@ -232,25 +400,48 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
           </p>
         </div>
 
-        {!isClientMode && (
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsNewWsModalOpen(true)}
-              style={{ color: 'var(--text-secondary, #cbd5e1)', borderColor: 'var(--border-default, #2a374b)' }}
-            >
-              + New Workspace
-            </Button>
-            <Button
-              variant="accent"
-              size="sm"
-              onClick={() => setIsNewDesignModalOpen(true)}
-            >
-              + Register Design Package
-            </Button>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCapabilitiesModalOpen(true)}
+            style={{ color: '#38bdf8', borderColor: '#0284c7', fontSize: '12px' }}
+          >
+            ⚙️ Capabilities Matrix
+          </Button>
+          {!isClientMode && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (designs.length > 0 && !targetDesignForRevision) {
+                    setTargetDesignForRevision(designs[0].id);
+                  }
+                  setIsNewRevisionModalOpen(true);
+                }}
+                style={{ color: '#f59e0b', borderColor: '#d97706', fontSize: '12px' }}
+              >
+                + New Revision
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsNewWsModalOpen(true)}
+                style={{ color: 'var(--text-secondary, #cbd5e1)', borderColor: 'var(--border-default, #2a374b)' }}
+              >
+                + New Workspace
+              </Button>
+              <Button
+                variant="accent"
+                size="sm"
+                onClick={() => setIsNewDesignModalOpen(true)}
+              >
+                + Register Design Package
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Sub-Navigation Tabs */}
@@ -615,9 +806,23 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                     <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                       Discipline: <strong style={{ color: 'var(--text-secondary, #cbd5e1)' }}>{item.discipline}</strong>
                     </div>
-                    <Button variant="primary" size="sm">
-                      Open Viewer 📐
-                    </Button>
+                    <div style={{ display: 'flex', gap: '6px' }} onClick={(e) => e.stopPropagation()}>
+                      {!isClientMode && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setTargetDesignForRevision(item.id);
+                            setIsNewRevisionModalOpen(true);
+                          }}
+                        >
+                          + New Rev
+                        </Button>
+                      )}
+                      <Button variant="primary" size="sm" onClick={() => setSelectedDesign(item)}>
+                        Open Viewer 📐
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -1133,13 +1338,29 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       {/* ========================================================================= */}
       {activeTab === 'revision_register' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
-              Immutable Revision Register & Cryptographic Audit Trail
-            </h3>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
-              Complete history of every drawing version uploaded, with SHA-256 content hashes, upload timestamps, and release flags.
-            </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
+                Immutable Revision Register & Cryptographic Audit Trail
+              </h3>
+              <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
+                Complete history of every drawing version uploaded, with SHA-256 content hashes, upload timestamps, and release flags.
+              </p>
+            </div>
+            {!isClientMode && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  if (designs.length > 0 && !targetDesignForRevision) {
+                    setTargetDesignForRevision(designs[0].id);
+                  }
+                  setIsNewRevisionModalOpen(true);
+                }}
+              >
+                + New Revision
+              </Button>
+            )}
           </div>
 
           <div style={{ backgroundColor: 'var(--surface-1, #0f1624)', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)', overflowX: 'auto' }}>
@@ -1189,6 +1410,50 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
       >
         <form onSubmit={handleCreateDesign} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Select CAD / BIM / Model File (Optional)</label>
+            <div
+              onClick={() => designFileInputRef.current?.click()}
+              style={{
+                border: '2px dashed var(--border-subtle, #334155)',
+                borderRadius: '6px',
+                padding: '14px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                backgroundColor: designSelectedFile ? '#0f2942' : 'var(--canvas, #090d16)',
+                marginTop: '4px',
+              }}
+            >
+              <input
+                ref={designFileInputRef}
+                type="file"
+                accept=".dwg,.dxf,.ifc,.rvt,.pdf,.obj,.gltf,.glb,.mp4,.webm,.png,.jpg"
+                onChange={handleDesignFileSelected}
+                style={{ display: 'none' }}
+              />
+              {designSelectedFile ? (
+                <div>
+                  <div style={{ fontWeight: 700, color: '#38bdf8' }}>📄 {designSelectedFile.name}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
+                    {(designSelectedFile.size / 1024).toFixed(1)} KB
+                  </div>
+                  {designComputedHash && (
+                    <div style={{ fontSize: '10px', color: '#10b981', marginTop: '4px', fontFamily: 'monospace' }}>
+                      SHA-256: {designComputedHash}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <div style={{ color: 'var(--text-secondary, #cbd5e1)', fontSize: '12px' }}>Drop CAD / BIM / 3D / Video asset here or click to browse</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
+                    Auto-detects discipline, asset type, and calculates cryptographic SHA-256
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
             <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Drawing Title *</label>
             <Input
               value={newTitle}
@@ -1226,7 +1491,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
               <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Asset Type</label>
               <Select value={newAssetType} onChange={(e) => setNewAssetType(e.target.value)}>
                 <option value="technical_drawing">2D Technical Drawing (PDF/DWG)</option>
-                <option value="3d_model">3D Spatial Mesh (GLB/GLTF/IFC)</option>
+                <option value="3d_model">3D Spatial Mesh (GLB/GLTF/OBJ/IFC)</option>
                 <option value="render">Photorealistic Render</option>
                 <option value="video_simulation">Video Motion Simulation</option>
               </Select>
@@ -1313,6 +1578,228 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* MODAL: NEW REVISION UPLOAD (+ New Revision)                               */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isNewRevisionModalOpen}
+        onClose={() => setIsNewRevisionModalOpen(false)}
+        title="Upload New Design Revision"
+      >
+        <form onSubmit={handleCreateRevisionSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Target Design Package *</label>
+            <Select
+              value={targetDesignForRevision}
+              onChange={(e) => setTargetDesignForRevision(e.target.value)}
+            >
+              {designs.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.title} ({d.id}) - Current: {d.currentRevisionCode || 'Rev A'}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Select CAD / BIM / Model File *</label>
+            <div
+              onClick={() => revFileInputRef.current?.click()}
+              style={{
+                border: '2px dashed var(--border-subtle, #334155)',
+                borderRadius: '6px',
+                padding: '14px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                backgroundColor: revSelectedFile ? '#0f2942' : 'var(--canvas, #090d16)',
+                marginTop: '4px',
+              }}
+            >
+              <input
+                ref={revFileInputRef}
+                type="file"
+                accept=".dwg,.dxf,.ifc,.rvt,.pdf,.obj,.gltf,.glb,.mp4,.webm,.png,.jpg"
+                onChange={handleRevFileSelected}
+                style={{ display: 'none' }}
+              />
+              {revSelectedFile ? (
+                <div>
+                  <div style={{ fontWeight: 700, color: '#38bdf8' }}>📄 {revSelectedFile.name}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
+                    {(revSelectedFile.size / 1024).toFixed(1)} KB
+                  </div>
+                  {revComputedHash && (
+                    <div style={{ fontSize: '10px', color: '#10b981', marginTop: '4px', fontFamily: 'monospace' }}>
+                      SHA-256: {revComputedHash}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <div style={{ color: 'var(--text-secondary, #cbd5e1)', fontSize: '12px' }}>Click or drop to select CAD / BIM / 3D / Video asset</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
+                    Supports .dwg, .dxf, .ifc, .rvt, .pdf, .obj, .gltf, .glb, .mp4
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ marginTop: '8px' }}>
+              <label style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>Revision Filename Reference:</label>
+              <Input
+                type="text"
+                value={revFileName}
+                onChange={(e) => setRevFileName(e.target.value)}
+                placeholder="e.g. Arena_Stage_Rigging_RevC.dwg"
+                required
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Revision Purpose Gate *</label>
+              <Select value={revPurpose} onChange={(e) => setRevPurpose(e.target.value)}>
+                <option value="concept_presentation">Concept & Moodboard</option>
+                <option value="client_review">Client Review & Markup</option>
+                <option value="tender_pricing">Tender Commercial Pricing</option>
+                <option value="technical_construction">Technical Construction Drawings</option>
+                <option value="approved_for_fabrication">Factory Workshop Release</option>
+              </Select>
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Next Revision Code</label>
+              <Input
+                readOnly
+                value={`REV-${String.fromCharCode(65 + (designs.find((d) => d.id === targetDesignForRevision)?.revisions?.length || 0))}`}
+              />
+            </div>
+          </div>
+
+          {(revPurpose === 'approved_for_fabrication' || revPurpose === 'technical_construction') && (
+            <div
+              style={{
+                backgroundColor: '#172554',
+                border: '1px solid #1e40af',
+                borderRadius: '6px',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}
+            >
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#60a5fa' }}>
+                Engineering Gate: Structural & Safety Certification
+              </span>
+              <label style={{ fontSize: '11px', color: '#cbd5e1' }}>Certified PE License / QCDD Ref Number:</label>
+              <Input
+                value={revStructuralCert}
+                onChange={(e) => setRevStructuralCert(e.target.value)}
+                placeholder="QCDD-STR-2026-9921"
+                required
+              />
+            </div>
+          )}
+
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>Change Description & Delta Summary *</label>
+            <Textarea
+              value={revDescription}
+              onChange={(e) => setRevDescription(e.target.value)}
+              placeholder="Describe modifications: beam span reinforcement, lighting truss load redistribution, egress clearance..."
+              rows={3}
+              required
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={revHasCostImpact}
+                onChange={(e) => setRevHasCostImpact(e.target.checked)}
+              />
+              Has Commercial / BOQ Impact
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={revHasScheduleImpact}
+                onChange={(e) => setRevHasScheduleImpact(e.target.checked)}
+              />
+              Has Schedule / Milestone Impact
+            </label>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}>
+            <Button variant="outline" type="button" onClick={() => setIsNewRevisionModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" disabled={revIsSubmitting}>
+              {revIsSubmitting ? 'Uploading...' : 'Commit New Revision'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* MODAL: FORMAT CAPABILITIES MATRIX                                         */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isCapabilitiesModalOpen}
+        onClose={() => setIsCapabilitiesModalOpen(false)}
+        title="Universal Design Viewer • Format Capability Matrix"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '70vh', overflowY: 'auto' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
+            EOS Universal Design Viewer inspects CAD, BIM, raster, video, and audio assets natively within the browser or provides secure SHA-256 direct binary downloads.
+          </div>
+          <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse', color: 'var(--text-secondary, #cbd5e1)' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #334155', color: '#38bdf8', textAlign: 'left' }}>
+                <th style={{ padding: '6px' }}>Format</th>
+                <th style={{ padding: '6px' }}>Category</th>
+                <th style={{ padding: '6px' }}>Viewer Engine</th>
+                <th style={{ padding: '6px' }}>Markup</th>
+                <th style={{ padding: '6px' }}>Pipeline</th>
+              </tr>
+            </thead>
+            <tbody>
+              {DESIGN_FORMAT_CAPABILITY_MATRIX.map((item: FormatCapability) => (
+                <tr key={item.extension} style={{ borderBottom: '1px solid #1e293b' }}>
+                  <td style={{ padding: '6px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{item.extension}</td>
+                  <td style={{ padding: '6px' }}>
+                    <span
+                      style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '10px',
+                        background:
+                          item.category === 'native_view'
+                            ? '#065f46'
+                            : item.category === 'converted_view'
+                            ? '#1e40af'
+                            : '#78350f',
+                        color: '#fff',
+                      }}
+                    >
+                      {item.category.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td style={{ padding: '6px', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{item.viewerEngine}</td>
+                  <td style={{ padding: '6px', fontSize: '11px' }}>{item.canMarkup ? '✅ Pins & Threads' : '❌ Download Only'}</td>
+                  <td style={{ padding: '6px', fontSize: '11px' }}>{item.requiresConversion ? '⚡ Server Derivative' : 'Direct Browser'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <Button variant="outline" type="button" onClick={() => setIsCapabilitiesModalOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

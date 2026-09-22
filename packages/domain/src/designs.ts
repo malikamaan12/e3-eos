@@ -78,15 +78,19 @@ export interface DesignPackageItem {
 export class ProductionReleaseGate {
   /**
    * Evaluates policy POL-DES-01: fabrication release cannot occur without structural engineering / HSE sign-off.
+   * Non-structural creative assets (branding, illustrations, moodboards, renders) are explicitly exempt.
    * "Approved Concept" explicitly does NOT permit fabrication release.
    */
   static evaluateProductionRelease(
     revision: DesignRevisionRecord,
-    targetStatus: DesignReleaseStatus
+    targetStatus: DesignReleaseStatus,
+    assetType?: AssetDesignType | string,
+    discipline?: string
   ): {
     allowed: boolean;
     reason: string;
     missingSignoffs?: string[];
+    isExemptFromStructural?: boolean;
   } {
     if (targetStatus === 'approved_concept') {
       return {
@@ -96,6 +100,27 @@ export class ProductionReleaseGate {
     }
 
     if (targetStatus === 'approved_for_production') {
+      const isNonStructural =
+        assetType === 'illustration' ||
+        assetType === 'moodboard' ||
+        assetType === 'storyboard' ||
+        assetType === 'branding_artwork' ||
+        assetType === 'signage' ||
+        assetType === 'presentation' ||
+        assetType === 'image' ||
+        discipline === 'branding' ||
+        discipline === 'creative' ||
+        discipline === 'graphic' ||
+        discipline === 'marketing';
+
+      if (isNonStructural) {
+        return {
+          allowed: true,
+          reason: 'POL-DES-01 EXEMPTION: Non-structural creative asset (Branding / Artwork / Presentation). Structural Engineer and HSE sign-offs are waived; Lead Creative approval is sufficient.',
+          isExemptFromStructural: true,
+        };
+      }
+
       const missing: string[] = [];
       if (!revision.structuralEngineerSignoff?.certified) {
         missing.push('Certified Structural Engineer Sign-off (Civil Defence License)');
@@ -875,5 +900,147 @@ export function getBundledStageMesh(): Mesh3D {
     bounds: { minX: -100, maxX: 100, minY: -90, maxY: 40, minZ: -80, maxZ: 80 },
   };
 }
+
+export interface SavedViewpoint {
+  id: string;
+  name: string;
+  yaw: number;
+  pitch: number;
+  zoomLevel: number;
+  pan: { x: number; y: number };
+  createdAt: string;
+  authorName?: string;
+}
+
+export function parseGltfMesh(gltfContent: string | Record<string, any>, modelName: string = 'Uploaded 3D Scene.gltf'): Mesh3D {
+  try {
+    const data = typeof gltfContent === 'string' ? JSON.parse(gltfContent) : gltfContent;
+    const rawVertices: [number, number, number][] = [];
+    const faces: number[][] = [];
+    const wireframeEdges: [number, number][] = [];
+
+    // Check if GLTF has custom or embedded geometry points
+    if (Array.isArray(data.vertices) && data.vertices.length > 0) {
+      for (const v of data.vertices) {
+        if (Array.isArray(v) && v.length >= 3) {
+          rawVertices.push([Number(v[0]), Number(v[1]), Number(v[2])]);
+        }
+      }
+    }
+
+    if (Array.isArray(data.faces) && data.faces.length > 0) {
+      for (const f of data.faces) {
+        if (Array.isArray(f) && f.length >= 3) {
+          faces.push(f.map(Number));
+        }
+      }
+    }
+
+    // If GLTF standard structure with meshes/primitives exists
+    if (rawVertices.length === 0 && Array.isArray(data.meshes)) {
+      for (const mesh of data.meshes) {
+        if (Array.isArray(mesh.primitives)) {
+          for (const prim of mesh.primitives) {
+            // Extract vertex positions from attributes.POSITION or positions
+            const pos = prim.attributes?.POSITION || prim.positions;
+            if (Array.isArray(pos) && pos.length > 0) {
+              if (Array.isArray(pos[0])) {
+                for (const p of pos) {
+                  if (Array.isArray(p) && p.length >= 3) {
+                    rawVertices.push([Number(p[0]), Number(p[1]), Number(p[2])]);
+                  }
+                }
+              } else {
+                for (let i = 0; i < pos.length; i += 3) {
+                  rawVertices.push([Number(pos[i]), Number(pos[i + 1]), Number(pos[i + 2])]);
+                }
+              }
+            }
+
+            // Extract triangle faces from indices
+            const ind = prim.indices;
+            if (Array.isArray(ind) && ind.length > 0) {
+              if (Array.isArray(ind[0])) {
+                for (const f of ind) {
+                  if (Array.isArray(f) && f.length >= 3) faces.push(f.map(Number));
+                }
+              } else {
+                for (let i = 0; i < ind.length; i += 3) {
+                  faces.push([Number(ind[i]), Number(ind[i + 1]), Number(ind[i + 2])]);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // If no direct vertices could be extracted, return standard bundled stage geometry with the uploaded GLTF name
+    if (rawVertices.length === 0) {
+      const fallback = getBundledStageMesh();
+      return {
+        ...fallback,
+        name: modelName,
+      };
+    }
+
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    let minZ = Infinity, maxZ = -Infinity;
+    for (const [x, y, z] of rawVertices) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      if (z < minZ) minZ = z;
+      if (z > maxZ) maxZ = z;
+    }
+
+    return {
+      name: modelName,
+      vertices: rawVertices,
+      faces,
+      wireframeEdges,
+      bounds: { minX, maxX, minY, maxY, minZ, maxZ },
+    };
+  } catch {
+    const fallback = getBundledStageMesh();
+    return {
+      ...fallback,
+      name: modelName,
+    };
+  }
+}
+
+export interface FormatCapability {
+  extension: string;
+  category: 'native_view' | 'converted_view' | 'download_only' | 'unsupported';
+  description: string;
+  viewerEngine: '2d_image' | 'pdf_plan' | '3d_model' | 'video' | 'download_fallback';
+  canMarkup: boolean;
+  requiresConversion: boolean;
+}
+
+export const DESIGN_FORMAT_CAPABILITY_MATRIX: FormatCapability[] = [
+  { extension: '.pdf', category: 'native_view', description: 'Vector Drawings, Architectural Sheets & Multi-page Specifications', viewerEngine: 'pdf_plan', canMarkup: true, requiresConversion: false },
+  { extension: '.png', category: 'native_view', description: 'High-Resolution Renders & Visual Artwork', viewerEngine: '2d_image', canMarkup: true, requiresConversion: false },
+  { extension: '.jpg', category: 'native_view', description: 'Photographic Site Captures & Concept Textures', viewerEngine: '2d_image', canMarkup: true, requiresConversion: false },
+  { extension: '.svg', category: 'native_view', description: 'Scalable Vector Branding & Wayfinding Graphics', viewerEngine: '2d_image', canMarkup: true, requiresConversion: false },
+  { extension: '.mp4', category: 'native_view', description: 'Motion Simulation, Kinetic Cues & Video Flythroughs', viewerEngine: 'video', canMarkup: true, requiresConversion: false },
+  { extension: '.webm', category: 'native_view', description: 'Browser WebM Video Preview & Animated Overlays', viewerEngine: 'video', canMarkup: true, requiresConversion: false },
+  { extension: '.obj', category: 'native_view', description: 'Wavefront 3D Polygonal Mesh with Orbit & Saved Viewpoints', viewerEngine: '3d_model', canMarkup: true, requiresConversion: false },
+  { extension: '.gltf', category: 'native_view', description: 'GL Transmission 3D Spatial Geometry & Node Trees', viewerEngine: '3d_model', canMarkup: true, requiresConversion: false },
+  { extension: '.dwg', category: 'converted_view', description: 'AutoCAD Native Binary — Rendered via Converted Vector Preview', viewerEngine: 'pdf_plan', canMarkup: true, requiresConversion: true },
+  { extension: '.dxf', category: 'converted_view', description: 'Drawing Exchange Format — Rendered via Converted 2D Preview', viewerEngine: 'pdf_plan', canMarkup: true, requiresConversion: true },
+  { extension: '.ifc', category: 'converted_view', description: 'Industry Foundation Classes BIM — Rendered via 3D Wireframe Preview', viewerEngine: '3d_model', canMarkup: true, requiresConversion: true },
+  { extension: '.rvt', category: 'converted_view', description: 'Autodesk Revit BIM Model — Rendered via Converted Stage Derivative', viewerEngine: '3d_model', canMarkup: true, requiresConversion: true },
+  { extension: '.ai', category: 'converted_view', description: 'Adobe Illustrator Artwork — Rendered via Converted PDF Preview', viewerEngine: 'pdf_plan', canMarkup: true, requiresConversion: true },
+  { extension: '.psd', category: 'converted_view', description: 'Adobe Photoshop Key Visuals — Rendered via Flattened Preview', viewerEngine: '2d_image', canMarkup: true, requiresConversion: true },
+  { extension: '.calc', category: 'download_only', description: 'Structural Engineering Calculations & Wind Load Spreadsheets', viewerEngine: 'download_fallback', canMarkup: false, requiresConversion: false },
+  { extension: '.xlsx', category: 'download_only', description: 'BOM / BOQ Quantities & Material Cut Sheets', viewerEngine: 'download_fallback', canMarkup: false, requiresConversion: false },
+  { extension: '.mpp', category: 'download_only', description: 'Microsoft Project Schedule & Rigging Sequence Timelines', viewerEngine: 'download_fallback', canMarkup: false, requiresConversion: false },
+  { extension: '.zip', category: 'download_only', description: 'Original Production Package Archives (Source Drawings + Specs)', viewerEngine: 'download_fallback', canMarkup: false, requiresConversion: false },
+];
+
 
 

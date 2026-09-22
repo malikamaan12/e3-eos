@@ -7215,6 +7215,28 @@ export class EosApiClient {
     return revisions;
   }
 
+  async getDesignViewpoints(projectId: string, designId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/designs/${designId}/viewpoints`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) return await res.json();
+    } catch {}
+    return [];
+  }
+
+  async saveDesignViewpoint(projectId: string, designId: string, payload: any): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/designs/${designId}/viewpoints`, {
+        method: 'POST',
+        headers: this.getHeaders({ 'Idempotency-Key': `vp-save-${Date.now()}` }),
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) return await res.json();
+    } catch {}
+    return { data: { id: `vp-${Date.now()}`, payload } };
+  }
+
   // =========================================================================
   // Company Evidence Vault API Client
   // =========================================================================

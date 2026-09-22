@@ -7,6 +7,10 @@ import {
   StoredAssetRecord,
   parseWavefrontObj,
   getBundledStageMesh,
+  parseGltfMesh,
+  SavedViewpoint,
+  DESIGN_FORMAT_CAPABILITY_MATRIX,
+  FormatCapability,
 } from '@e3-eos/domain';
 import { EosApiClient } from '../services/api-client.js';
 
@@ -60,6 +64,21 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
   // 3D Viewport Controls & Model State
   const [pitch, setPitch] = useState<number>(25);
   const [yaw, setYaw] = useState<number>(45);
+  const [pan3d, setPan3d] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isOrbiting, setIsOrbiting] = useState<boolean>(false);
+  const [isPanning, setIsPanning] = useState<boolean>(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [savedViewpoints, setSavedViewpoints] = useState<SavedViewpoint[]>(() => [
+    { id: 'vp-front', name: 'Front Elevation', yaw: 0, pitch: 0, zoomLevel: 100, pan: { x: 0, y: 0 }, createdAt: new Date().toISOString() },
+    { id: 'vp-top', name: 'Top-Down Plan', yaw: 0, pitch: -89, zoomLevel: 100, pan: { x: 0, y: 0 }, createdAt: new Date().toISOString() },
+    { id: 'vp-iso', name: 'Isometric Axis A', yaw: 45, pitch: -30, zoomLevel: 100, pan: { x: 0, y: 0 }, createdAt: new Date().toISOString() },
+    { id: 'vp-iso-b', name: 'Isometric Axis B', yaw: 135, pitch: -30, zoomLevel: 100, pan: { x: 0, y: 0 }, createdAt: new Date().toISOString() },
+    { id: 'vp-side', name: 'Side East', yaw: 90, pitch: 0, zoomLevel: 100, pan: { x: 0, y: 0 }, createdAt: new Date().toISOString() },
+    { id: 'vp-stage', name: 'Stage Perspective', yaw: -25, pitch: -15, zoomLevel: 110, pan: { x: 0, y: 0 }, createdAt: new Date().toISOString() },
+  ]);
+  const [isSaveViewpointModalOpen, setIsSaveViewpointModalOpen] = useState<boolean>(false);
+  const [newViewpointName, setNewViewpointName] = useState<string>('');
+  const [isCapabilitiesModalOpen, setIsCapabilitiesModalOpen] = useState<boolean>(false);
   const [sectionPlaneCut, setSectionPlaneCut] = useState<number>(100);
   const [customModelMesh, setCustomModelMesh] = useState<Mesh3D | null>(null);
   const [uploadedModelName, setUploadedModelName] = useState<string>('Ceremonial_Main_Stage_10x8m.obj');
@@ -138,6 +157,10 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
   const [newVerStructuralCert, setNewVerStructuralCert] = useState<string>('QCDD-STR-2026-9921');
   const [newVerFileName, setNewVerFileName] = useState<string>('Arena_Stage_Rigging_RevC.dwg');
   const [newVerIsSubmitting, setNewVerIsSubmitting] = useState<boolean>(false);
+  const newVerFileInputRef = useRef<HTMLInputElement>(null);
+  const [newVerSelectedFile, setNewVerSelectedFile] = useState<File | null>(null);
+  const [newVerComputedHash, setNewVerComputedHash] = useState<string | null>(null);
+  const [newVerFileContent, setNewVerFileContent] = useState<string | null>(null);
 
   // Formal Approval Modal (POL-DES-01)
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState<boolean>(false);
@@ -224,25 +247,33 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
     reader.onload = (ev) => {
       try {
         const text = ev.target?.result as string;
-        const parsed = parseWavefrontObj(text, file.name);
+        let parsed: Mesh3D;
+        const lowerName = file.name.toLowerCase();
+        if (lowerName.endsWith('.gltf') || lowerName.endsWith('.glb')) {
+          parsed = parseGltfMesh(text, file.name);
+        } else {
+          parsed = parseWavefrontObj(text, file.name);
+        }
+
         if (parsed.vertices.length === 0) {
-          setModelLoadingError(`No valid 3D vertices found in ${file.name}. Ensure Wavefront .obj format with 'v x y z' lines.`);
+          setModelLoadingError(`No valid 3D geometry found in ${file.name}. Ensure .obj or .gltf format.`);
           return;
         }
+
         setCustomModelMesh(parsed);
         setUploadedModelName(file.name);
         setActiveEngine('3d_model');
 
-        // Store original uploaded file in storedAssets
+        const hash = safeSha256(text);
         setStoredAssets((prev) => ({
           ...prev,
           model3d: {
             id: 'model3d',
             fileName: file.name,
-            mimeType: 'model/obj',
+            mimeType: lowerName.endsWith('.gltf') ? 'model/gltf+json' : 'model/obj',
             data: file,
             sizeBytes: file.size,
-            hash: `sha256-${Date.now().toString(16)}89bf31a0e`,
+            hash,
             uploadedAt: new Date().toISOString(),
           },
         }));
@@ -251,6 +282,64 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleNewVerFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setNewVerSelectedFile(file);
+    setNewVerFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const content = ev.target?.result as string;
+      setNewVerFileContent(content);
+      const hash = safeSha256(content);
+      setNewVerComputedHash(hash);
+    };
+    reader.readAsText(file);
+  };
+
+  useEffect(() => {
+    if (apiClient && design?.id) {
+      (apiClient as any).getDesignViewpoints?.(projectId, design.id)
+        .then((vps: any[]) => {
+          if (Array.isArray(vps) && vps.length > 0) {
+            setSavedViewpoints((prev) => {
+              const existingIds = new Set(prev.map((p) => p.id));
+              const fresh = vps.filter((v: any) => !existingIds.has(v.id));
+              return [...prev, ...fresh];
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [apiClient, projectId, design?.id]);
+
+  const handleSaveCurrentViewpoint = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newViewpointName.trim()) return;
+
+    const newVp: SavedViewpoint = {
+      id: `vp-${Date.now()}`,
+      name: newViewpointName.trim(),
+      yaw,
+      pitch,
+      zoomLevel,
+      pan: { ...pan3d },
+      createdAt: new Date().toISOString(),
+      authorName: isClientMode ? 'Client Reviewer' : 'Design Lead',
+    };
+
+    setSavedViewpoints((prev) => [...prev, newVp]);
+    setIsSaveViewpointModalOpen(false);
+    setNewViewpointName('');
+
+    if (apiClient && design?.id) {
+      (apiClient as any).saveDesignViewpoint?.(projectId, design.id, newVp).catch((err: any) => {
+        console.warn('API viewpoint save warning:', err);
+      });
+    }
   };
 
   const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -310,7 +399,7 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleCreateNewRevision = (e: React.FormEvent) => {
+  const handleCreateNewRevision = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newVerDescription.trim()) return;
     setNewVerIsSubmitting(true);
@@ -319,6 +408,7 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
     const nextLetter = String.fromCharCode(65 + nextIndex); // A, B, C, D...
     const nextCode = `REV-${nextLetter}`;
     const nextVerNum = nextIndex + 1;
+    const finalHash = newVerComputedHash || safeSha256(newVerFileContent || `REV_${nextCode}_${Date.now()}`);
 
     const newRev = {
       revisionCode: nextCode,
@@ -327,7 +417,7 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
       uploadedAt: new Date().toISOString(),
       uploadedBy: 'Lead Design Engineer',
       notes: newVerDescription,
-      contentHash: `sha256-${Date.now().toString(16)}89bf31a0e`,
+      contentHash: finalHash,
       purpose: newVerPurpose,
       fileName: newVerFileName,
       hasCostImpact: newVerHasCostImpact,
@@ -338,12 +428,53 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
     const updated = [...revisions, newRev];
     setRevisions(updated);
     setSelectedRevCode(nextCode);
+
+    // If 3D or video file was selected, activate it directly
+    if (newVerSelectedFile) {
+      const lower = newVerSelectedFile.name.toLowerCase();
+      if (lower.endsWith('.obj') || lower.endsWith('.gltf') || lower.endsWith('.glb')) {
+        const mesh = lower.endsWith('.gltf') || lower.endsWith('.glb')
+          ? parseGltfMesh(newVerFileContent || '{}', newVerSelectedFile.name)
+          : parseWavefrontObj(newVerFileContent || '', newVerSelectedFile.name);
+        setCustomModelMesh(mesh);
+        setUploadedModelName(newVerSelectedFile.name);
+        setActiveEngine('3d_model');
+      } else if (lower.endsWith('.mp4') || lower.endsWith('.webm')) {
+        const objUrl = URL.createObjectURL(newVerSelectedFile);
+        setUploadedVideoUrl(objUrl);
+        setUploadedVideoName(newVerSelectedFile.name);
+        setActiveEngine('video');
+      }
+    }
+
+    if (apiClient && design?.id) {
+      try {
+        await apiClient.createDesignVersion(projectId, design.id, {
+          versionNumber: nextVerNum,
+          revisionCode: nextCode,
+          title: `${design.title} - ${nextCode}`,
+          purpose: newVerPurpose === 'approved_for_fabrication' ? 'for_fabrication' : 'for_review',
+          revisionDescription: newVerDescription,
+          storageKey: `designs/${design.id}-${nextCode}.${newVerFileName.split('.').pop() || 'pdf'}`,
+          contentData: newVerFileContent || finalHash,
+          fileName: newVerFileName,
+          costImpactFlag: newVerHasCostImpact,
+          scheduleImpactFlag: newVerHasScheduleImpact,
+        });
+      } catch (err) {
+        console.warn('API version sync warning:', err);
+      }
+    }
+
     setIsNewVersionModalOpen(false);
     setNewVerDescription('');
+    setNewVerSelectedFile(null);
+    setNewVerComputedHash(null);
+    setNewVerFileContent(null);
     setNewVerHasCostImpact(false);
     setNewVerHasScheduleImpact(false);
     setNewVerIsSubmitting(false);
-    alert(`Revision ${nextCode} (v${nextVerNum}) successfully uploaded and registered in immutable history.`);
+    onRefresh?.();
   };
 
   // Create Pin
@@ -357,6 +488,16 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
       revisionCode: selectedRevCode,
       xPercent: clickCoord.x,
       yPercent: clickCoord.y,
+      videoTimestampSec: activeEngine === 'video' ? videoCurrentTime : undefined,
+      viewpoint: activeEngine === '3d_model' ? { yaw, pitch, zoomLevel } : undefined,
+      threeDCoordinates:
+        activeEngine === '3d_model'
+          ? {
+              x: ((clickCoord.x - 50) / 50) * 80,
+              y: -25,
+              z: ((clickCoord.y - 50) / 50) * 55,
+            }
+          : undefined,
       title: newPinTitle,
       discipline: newPinDiscipline,
       priority: newPinPriority,
@@ -392,6 +533,8 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
           versionId: activeRev ? `ver-${design.id}-v${activeRev.versionNumber}` : 'ver-default',
           xPercent: clickCoord.x,
           yPercent: clickCoord.y,
+          videoTimestampSec: newPin.videoTimestampSec,
+          threeDCoordinates: newPin.threeDCoordinates,
           title: newPinTitle,
           discipline: newPinDiscipline,
           priority: newPinPriority,
@@ -475,14 +618,25 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
     e.preventDefault();
     setApprovalError(null);
 
-    // Enforce POL-DES-01 Gate
+    const isStructural =
+      design?.discipline === 'staging' ||
+      design?.discipline === 'rigging' ||
+      design?.discipline === 'structural' ||
+      design?.discipline === 'audio_visual' ||
+      design?.assetType === 'technical_drawing' ||
+      design?.assetType === 'fabrication_drawing' ||
+      design?.assetType === '3d_model' ||
+      design?.assetType === '3d_design';
+
+    // Enforce POL-DES-01 Gate: Structural packages require dual certification
     if (
       approvalDecision === 'approve' &&
-      (approvalPurpose === 'approved_for_fabrication' || approvalPurpose === 'approved_for_production')
+      (approvalPurpose === 'approved_for_fabrication' || approvalPurpose === 'approved_for_production') &&
+      isStructural
     ) {
       if (!structuralCertified || !hseCertified) {
         setApprovalError(
-          'POL-DES-01 VIOLATION: Production or Fabrication sign-off strictly requires BOTH verified Structural Engineer Certification and Civil Defence HSE Safety Sign-off.'
+          'POL-DES-01 VIOLATION: Production sign-off for structural/staging packages strictly requires BOTH verified Structural Engineer Certification and Civil Defence HSE Safety Sign-off.'
         );
         return;
       }
@@ -952,14 +1106,32 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
           )}
 
           {!isClientMode && (
-            <Button
-              variant="accent"
-              size="sm"
-              onClick={() => setIsApprovalModalOpen(true)}
-            >
-              ⚖️ Governance Sign-off
-            </Button>
+            <>
+              <Button
+                id="btn-viewer-new-revision"
+                variant="primary"
+                size="sm"
+                onClick={() => setIsNewVersionModalOpen(true)}
+              >
+                + New Revision
+              </Button>
+              <Button
+                variant="accent"
+                size="sm"
+                onClick={() => setIsApprovalModalOpen(true)}
+              >
+                ⚖️ Governance Sign-off
+              </Button>
+            </>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCapabilitiesModalOpen(true)}
+            style={{ color: '#38bdf8', borderColor: '#0284c7' }}
+          >
+            ⚙️ Capabilities Matrix
+          </Button>
         </div>
       </div>
 
@@ -1639,25 +1811,95 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                         <Badge variant="success" size="sm">Bundled Asset</Badge>
                       )}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                       <button
                         onClick={() => { setYaw(0); setPitch(0); }}
                         style={{ padding: '3px 8px', fontSize: '10px', background: yaw === 0 && pitch === 0 ? '#0284c7' : '#1e293b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        title="Front Elevation Preset"
                       >
-                        Front Elevation
+                        Front
                       </button>
                       <button
                         onClick={() => { setYaw(0); setPitch(-89); }}
                         style={{ padding: '3px 8px', fontSize: '10px', background: pitch <= -80 ? '#0284c7' : '#1e293b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        title="Top-Down Plan Preset"
                       >
-                        Top-Down Plan
+                        Top-Down
                       </button>
                       <button
                         onClick={() => { setYaw(45); setPitch(-30); }}
                         style={{ padding: '3px 8px', fontSize: '10px', background: yaw === 45 && pitch === -30 ? '#0284c7' : '#1e293b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        title="Isometric A Preset"
                       >
-                        Isometric Axis A
+                        Iso A
                       </button>
+                      <button
+                        onClick={() => { setYaw(-45); setPitch(-30); }}
+                        style={{ padding: '3px 8px', fontSize: '10px', background: yaw === -45 && pitch === -30 ? '#0284c7' : '#1e293b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        title="Isometric B Preset"
+                      >
+                        Iso B
+                      </button>
+                      <button
+                        onClick={() => { setYaw(90); setPitch(0); }}
+                        style={{ padding: '3px 8px', fontSize: '10px', background: yaw === 90 && pitch === 0 ? '#0284c7' : '#1e293b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        title="East Side Elevation Preset"
+                      >
+                        Side East
+                      </button>
+                      <button
+                        onClick={() => { setYaw(30); setPitch(-20); }}
+                        style={{ padding: '3px 8px', fontSize: '10px', background: yaw === 30 && pitch === -20 ? '#0284c7' : '#1e293b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        title="Perspective Angle Preset"
+                      >
+                        Perspective
+                      </button>
+
+                      <div style={{ height: '14px', width: '1px', backgroundColor: '#334155', margin: '0 4px' }} />
+
+                      <button
+                        onClick={() => setIsSaveViewpointModalOpen(true)}
+                        style={{
+                          padding: '3px 8px',
+                          fontSize: '10px',
+                          background: '#4338ca',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                        title="Save Current Camera Viewpoint"
+                      >
+                        💾 <span>+ Save View</span>
+                      </button>
+
+                      {savedViewpoints.map((vp) => (
+                        <button
+                          key={vp.id}
+                          onClick={() => {
+                            setYaw(vp.yaw);
+                            setPitch(vp.pitch);
+                            setZoomLevel(vp.zoomLevel);
+                            if (vp.pan) setPan3d({ x: vp.pan.x, y: vp.pan.y });
+                          }}
+                          style={{
+                            padding: '3px 8px',
+                            fontSize: '10px',
+                            background: '#0f172a',
+                            border: '1px solid #38bdf8',
+                            color: '#38bdf8',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                          }}
+                          title={`Saved Viewpoint: ${vp.name} (by ${vp.authorName || 'User'})`}
+                        >
+                          📍 {vp.name}
+                        </button>
+                      ))}
+
                       <label
                         style={{
                           cursor: 'pointer',
@@ -1671,8 +1913,8 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                           gap: '4px',
                         }}
                       >
-                        <span>📤 Upload 3D (.obj)</span>
-                        <input type="file" accept=".obj" onChange={handle3dModelUpload} style={{ display: 'none' }} />
+                        <span>📤 Upload 3D (.obj / .gltf)</span>
+                        <input type="file" accept=".obj,.gltf,.glb" onChange={handle3dModelUpload} style={{ display: 'none' }} />
                       </label>
                     </div>
                   </div>
@@ -1691,6 +1933,8 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      overflow: 'hidden',
+                      userSelect: 'none',
                     }}
                   >
                     <canvas
@@ -1715,8 +1959,8 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                           const fov = 420;
                           const pz = z2 + 550;
                           return {
-                            x: cx + (x1 * fov) / pz * scale,
-                            y: cy + (y2 * fov) / pz * scale,
+                            x: cx + ((x1 * fov) / pz) * scale + pan3d.x,
+                            y: cy + ((y2 * fov) / pz) * scale + pan3d.y,
                           };
                         };
 
@@ -1845,9 +2089,50 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                           ctx.fillText(String(pin.pinNumber || idx + 1), pp.x, pp.y);
                         });
                       }}
+                      onMouseDown={(e) => {
+                        if (e.button === 0) {
+                          setIsOrbiting(true);
+                          setDragStart({ x: e.clientX, y: e.clientY });
+                        } else if (e.button === 2) {
+                          e.preventDefault();
+                          setIsPanning(true);
+                          setDragStart({ x: e.clientX, y: e.clientY });
+                        }
+                      }}
+                      onMouseMove={(e) => {
+                        if (isOrbiting) {
+                          const dx = e.clientX - dragStart.x;
+                          const dy = e.clientY - dragStart.y;
+                          setYaw((prev) => (prev + dx * 0.5) % 360);
+                          setPitch((prev) => Math.max(-89, Math.min(89, prev + dy * 0.5)));
+                          setDragStart({ x: e.clientX, y: e.clientY });
+                        } else if (isPanning) {
+                          const dx = e.clientX - dragStart.x;
+                          const dy = e.clientY - dragStart.y;
+                          setPan3d((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+                          setDragStart({ x: e.clientX, y: e.clientY });
+                        }
+                      }}
+                      onMouseUp={() => {
+                        setIsOrbiting(false);
+                        setIsPanning(false);
+                      }}
+                      onMouseLeave={() => {
+                        setIsOrbiting(false);
+                        setIsPanning(false);
+                      }}
+                      onContextMenu={(e) => e.preventDefault()}
+                      onWheel={(e) => {
+                        e.preventDefault();
+                        setZoomLevel((prev) => Math.max(25, Math.min(400, prev - Math.sign(e.deltaY) * 10)));
+                      }}
                       width={800}
                       height={500}
-                      style={{ width: '100%', height: '100%', cursor: 'grab' }}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        cursor: isOrbiting ? 'grabbing' : isPanning ? 'move' : 'grab',
+                      }}
                     />
                   </div>
 
@@ -1862,6 +2147,7 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                       borderTop: '1px solid #1e293b',
                       fontSize: '11px',
                       color: '#94a3b8',
+                      flexWrap: 'wrap',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1873,7 +2159,7 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                         value={yaw}
                         onChange={(e) => setYaw(Number(e.target.value))}
                       />
-                      <span>{yaw}°</span>
+                      <span>{Math.round(yaw)}°</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span>Pitch:</span>
@@ -1884,8 +2170,35 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                         value={pitch}
                         onChange={(e) => setPitch(Number(e.target.value))}
                       />
-                      <span>{pitch}°</span>
+                      <span>{Math.round(pitch)}°</span>
                     </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>Zoom:</span>
+                      <input
+                        type="range"
+                        min="25"
+                        max="300"
+                        value={zoomLevel}
+                        onChange={(e) => setZoomLevel(Number(e.target.value))}
+                      />
+                      <span>{zoomLevel}%</span>
+                    </div>
+                    {(pan3d.x !== 0 || pan3d.y !== 0) && (
+                      <button
+                        onClick={() => setPan3d({ x: 0, y: 0 })}
+                        style={{
+                          padding: '2px 8px',
+                          fontSize: '10px',
+                          background: '#334155',
+                          color: '#f8fafc',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Reset Pan ({Math.round(pan3d.x)}, {Math.round(pan3d.y)})
+                      </button>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span>Section Plane:</span>
                       <input
@@ -1896,6 +2209,9 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                         onChange={(e) => setSectionPlaneCut(Number(e.target.value))}
                       />
                       <span>{sectionPlaneCut}%</span>
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#64748b' }}>
+                      Tip: Left-drag to orbit • Right-drag to pan • Scroll to zoom
                     </div>
                   </div>
                 </div>
@@ -1994,28 +2310,56 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                         </span>
                       </div>
 
-                      {/* Time-anchored clickable pin cue */}
-                      <button
-                        onClick={() => {
-                          setVideoCurrentTime(14.5);
-                          if (videoRef.current) videoRef.current.currentTime = 14.5;
-                        }}
-                        style={{
-                          pointerEvents: 'auto',
-                          alignSelf: 'center',
-                          backgroundColor: '#ea580c',
-                          color: '#fff',
-                          border: 'none',
-                          padding: '4px 10px',
-                          borderRadius: '12px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          boxShadow: '0 0 12px rgba(234, 88, 12, 0.6)',
-                        }}
-                      >
-                        #1 Ring Dynamic Acceleration Peak @ 14.5s (Click to Seek)
-                      </button>
+                      {/* Time-anchored clickable pin cues */}
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignSelf: 'center', pointerEvents: 'auto', justifyContent: 'center' }}>
+                        {visiblePins.filter((p: any) => p.videoTimestampSec !== undefined).length > 0 ? (
+                          visiblePins
+                            .filter((p: any) => p.videoTimestampSec !== undefined)
+                            .map((pin: any) => (
+                              <button
+                                key={pin.id}
+                                onClick={() => {
+                                  setVideoCurrentTime(pin.videoTimestampSec);
+                                  if (videoRef.current) videoRef.current.currentTime = pin.videoTimestampSec;
+                                  setSelectedPinId(pin.id);
+                                }}
+                                style={{
+                                  backgroundColor: selectedPinId === pin.id ? '#ef4444' : '#ea580c',
+                                  color: '#fff',
+                                  border: 'none',
+                                  padding: '4px 10px',
+                                  borderRadius: '12px',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  boxShadow: '0 0 10px rgba(234, 88, 12, 0.5)',
+                                }}
+                              >
+                                #{pin.pinNumber || 1} {pin.title} @ {pin.videoTimestampSec}s (Seek)
+                              </button>
+                            ))
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setVideoCurrentTime(14.5);
+                              if (videoRef.current) videoRef.current.currentTime = 14.5;
+                            }}
+                            style={{
+                              backgroundColor: '#ea580c',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '4px 10px',
+                              borderRadius: '12px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              boxShadow: '0 0 12px rgba(234, 88, 12, 0.6)',
+                            }}
+                          >
+                            #1 Dynamic Acceleration Peak @ 14.5s (Click to Seek)
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -3033,15 +3377,57 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
       >
         <form onSubmit={handleCreateNewRevision} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Select CAD / BIM / Model File *</label>
-            <Input
-              type="text"
-              value={newVerFileName}
-              onChange={(e) => setNewVerFileName(e.target.value)}
-              placeholder="e.g. Arena_Stage_Rigging_RevC.dwg or .ifc"
-              required
-            />
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Supported formats: .dwg, .dxf, .ifc, .rvt, .pdf, .gltf, .mp4</span>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Select CAD / BIM / Video / Model File *</label>
+            <div
+              onClick={() => newVerFileInputRef.current?.click()}
+              style={{
+                border: '2px dashed #334155',
+                borderRadius: '6px',
+                padding: '16px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                backgroundColor: newVerSelectedFile ? '#0f2942' : '#0f172a',
+                marginTop: '4px',
+              }}
+            >
+              <input
+                ref={newVerFileInputRef}
+                type="file"
+                accept=".dwg,.dxf,.ifc,.rvt,.pdf,.obj,.gltf,.glb,.mp4,.webm,.png,.jpg"
+                onChange={handleNewVerFileSelected}
+                style={{ display: 'none' }}
+              />
+              {newVerSelectedFile ? (
+                <div>
+                  <div style={{ fontWeight: 700, color: '#38bdf8' }}>📄 {newVerSelectedFile.name}</div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                    {(newVerSelectedFile.size / 1024).toFixed(1)} KB • {newVerSelectedFile.type || 'Binary Model'}
+                  </div>
+                  {newVerComputedHash && (
+                    <div style={{ fontSize: '10px', color: '#10b981', marginTop: '4px', fontFamily: 'monospace' }}>
+                      SHA-256: {newVerComputedHash}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <div style={{ color: '#cbd5e1', fontSize: '12px' }}>Click or drop to select CAD / BIM / 3D / Video asset</div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    Supports .dwg, .dxf, .ifc, .rvt, .pdf, .obj, .gltf, .glb, .mp4
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ marginTop: '8px' }}>
+              <label style={{ fontSize: '11px', color: '#94a3b8' }}>Revision Filename Reference:</label>
+              <Input
+                type="text"
+                value={newVerFileName}
+                onChange={(e) => setNewVerFileName(e.target.value)}
+                placeholder="e.g. Arena_Stage_Rigging_RevC.dwg"
+                required
+              />
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -3128,6 +3514,94 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal: Save Viewpoint */}
+      <Modal
+        isOpen={isSaveViewpointModalOpen}
+        onClose={() => setIsSaveViewpointModalOpen(false)}
+        title="Save 3D Spatial Viewpoint"
+      >
+        <form onSubmit={handleSaveCurrentViewpoint} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Viewpoint Label / Bookmark *</label>
+            <Input
+              type="text"
+              value={newViewpointName}
+              onChange={(e) => setNewViewpointName(e.target.value)}
+              placeholder="e.g. VIP Royal Box Sightline or Truss Node A4"
+              required
+            />
+          </div>
+          <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+            Current Camera State: Yaw: {Math.round(yaw)}°, Pitch: {Math.round(pitch)}°, Zoom: {zoomLevel}%, Pan: ({Math.round(pan3d.x)}, {Math.round(pan3d.y)})
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button variant="outline" type="button" onClick={() => setIsSaveViewpointModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit">
+              Save Viewpoint
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal: Format Capability Matrix */}
+      <Modal
+        isOpen={isCapabilitiesModalOpen}
+        onClose={() => setIsCapabilitiesModalOpen(false)}
+        title="Universal Design Viewer • Format Capability Matrix"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '70vh', overflowY: 'auto' }}>
+          <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+            EOS Universal Design Viewer inspects CAD, BIM, raster, video, and audio assets natively within the browser or provides secure SHA-256 direct binary downloads.
+          </div>
+          <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse', color: '#cbd5e1' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #334155', color: '#38bdf8', textAlign: 'left' }}>
+                <th style={{ padding: '6px' }}>Format</th>
+                <th style={{ padding: '6px' }}>Category</th>
+                <th style={{ padding: '6px' }}>Viewer Engine</th>
+                <th style={{ padding: '6px' }}>Markup</th>
+                <th style={{ padding: '6px' }}>Pipeline</th>
+              </tr>
+            </thead>
+            <tbody>
+              {DESIGN_FORMAT_CAPABILITY_MATRIX.map((item: FormatCapability) => (
+                <tr key={item.extension} style={{ borderBottom: '1px solid #1e293b' }}>
+                  <td style={{ padding: '6px', fontWeight: 700, color: '#f8fafc' }}>{item.extension}</td>
+                  <td style={{ padding: '6px' }}>
+                    <span
+                      style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '10px',
+                        background:
+                          item.category === 'native_view'
+                            ? '#065f46'
+                            : item.category === 'converted_view'
+                            ? '#1e40af'
+                            : '#78350f',
+                        color: '#fff',
+                      }}
+                    >
+                      {item.category.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td style={{ padding: '6px', fontSize: '11px', color: '#94a3b8' }}>{item.viewerEngine}</td>
+                  <td style={{ padding: '6px', fontSize: '11px' }}>{item.canMarkup ? '✅ Pins & Threads' : '❌ Download Only'}</td>
+                  <td style={{ padding: '6px', fontSize: '11px' }}>{item.requiresConversion ? '⚡ Server Derivative' : 'Direct Browser'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <Button variant="outline" type="button" onClick={() => setIsCapabilitiesModalOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

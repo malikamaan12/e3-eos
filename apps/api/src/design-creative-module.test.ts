@@ -10,8 +10,15 @@ import {
   changeRequestRepository,
   releaseRepository,
   externalShareRepository,
+  savedViewpointRepository,
+  assetFileRepository,
 } from './designs/designs.controller.js';
 import { projectRepository } from './projects/projects.controller.js';
+import {
+  parseWavefrontObj,
+  parseGltfMesh,
+  DESIGN_FORMAT_CAPABILITY_MATRIX,
+} from '@e3-eos/domain';
 
 describe('Design & Creative Management Module — Comprehensive Test Suite', () => {
   let designsController: DesignsController;
@@ -33,6 +40,8 @@ describe('Design & Creative Management Module — Comprehensive Test Suite', () 
     changeRequestRepository.clear();
     releaseRepository.clear();
     externalShareRepository.clear();
+    savedViewpointRepository.clear();
+    assetFileRepository.clear();
     projectRepository.clear();
 
     projectRepository.set(projectId, {
@@ -731,6 +740,332 @@ describe('Design & Creative Management Module — Comprehensive Test Suite', () 
       const kpis = designsController.getOverviewKpis(projectId, agencyReq);
       expect(kpis.totalDesigns).toBeGreaterThanOrEqual(1);
       expect(kpis.awaitingInternalReview).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  // =========================================================================
+  // 11. POL-DES-01 GATING DIFFERENTIATION (CREATIVE VS STRUCTURAL)
+  // =========================================================================
+  describe('11. POL-DES-01 Gating Differentiation', () => {
+    it('exempts non-structural creative assets from structural engineer sign-off', () => {
+      const creativeDesign = designsController.createDesign(
+        projectId,
+        {
+          title: 'Boulevard Floral Branding & Graphic Concept',
+          discipline: 'creative',
+          assetType: 'render',
+          clientVisibility: true,
+        },
+        agencyReq
+      ).data.payload!;
+
+      // Approve for production release without structural/HSE sign-off
+      const apprRes = designsController.submitApproval(
+        projectId,
+        creativeDesign.id,
+        {
+          versionId: `ver-${creativeDesign.id}-v1`,
+          decision: 'approve',
+          approvalPurpose: 'approved_for_production',
+          comments: 'Creative artwork signed off by Head of Design',
+          digitalAcknowledgement: true,
+        },
+        agencyReq
+      );
+
+      expect(apprRes.data.status).toBe('decision_approve');
+      expect(apprRes.data.payload!.decision).toBe('approve');
+      const updated = designsController.getDesign(projectId, creativeDesign.id, agencyReq) as any;
+      expect(updated.currentStatus).toBe('approved_for_production');
+    });
+
+    it('strictly enforces dual sign-off (PE + Civil Defence) for structural staging packages', () => {
+      const structuralDesign = designsController.createDesign(
+        projectId,
+        {
+          title: 'Heavy Scenic Kinetic Tower Framework',
+          discipline: 'staging',
+          assetType: 'technical_drawing',
+          clientVisibility: true,
+        },
+        agencyReq
+      ).data.payload!;
+
+      // Attempting to approve structural package without certifications throws 403 FORBIDDEN
+      expect(() => {
+        designsController.submitApproval(
+          projectId,
+          structuralDesign.id,
+          {
+            versionId: `ver-${structuralDesign.id}-v1`,
+            decision: 'approve',
+            approvalPurpose: 'approved_for_production',
+            comments: 'Missing engineering certifications',
+            digitalAcknowledgement: true,
+          },
+          agencyReq
+        );
+      }).toThrow();
+
+      // Passing verified structural + HSE certifications succeeds
+      const validAppr = designsController.submitApproval(
+        projectId,
+        structuralDesign.id,
+        {
+          versionId: `ver-${structuralDesign.id}-v1`,
+          decision: 'approve',
+          approvalPurpose: 'approved_for_production',
+          comments: 'Dual sign-off verified with certified license and QCDD clearance',
+          digitalAcknowledgement: true,
+          structuralCertification: {
+            certified: true,
+            engineerName: 'Dr. Tariq Al-Ansari (PE)',
+            licenseNumber: 'QCDD-STR-2026-9021',
+          },
+          hseCertification: {
+            certified: true,
+            inspectorName: 'Capt. Rashid (Civil Defence)',
+          },
+        },
+        agencyReq
+      );
+
+      expect(validAppr.data.status).toBe('decision_approve');
+      const updated = designsController.getDesign(projectId, structuralDesign.id, agencyReq) as any;
+      expect(updated.currentStatus).toBe('approved_for_production');
+    });
+  });
+
+  // =========================================================================
+  // 12. AUTHENTIC ASSET DOWNLOADS & CLIENT PORTAL PERMISSIONS
+  // =========================================================================
+  describe('12. Authentic Asset Downloads & Client Portal Zero-Leak Enforcement', () => {
+    it('allows client to download published assets while blocking access to internal drafts', () => {
+      // 1. Create client-visible design package
+      const pubDesign = designsController.createDesign(
+        projectId,
+        {
+          title: 'Ceremony Stage Layout (Published)',
+          clientVisibility: true,
+        },
+        agencyReq
+      ).data.payload!;
+
+      // Upload version
+      const verRes = designsController.createVersion(
+        projectId,
+        pubDesign.id,
+        {
+          versionNumber: 2,
+          revisionCode: 'Rev B',
+          storageKey: 'designs/stage-rev-b.dwg',
+          contentData: 'AUTHENTIC_CAD_BINARY_REV_B_BYTES_STREAM',
+          fileName: 'Ceremony_Stage_RevB.dwg',
+          mimeType: 'application/acad',
+        },
+        agencyReq
+      );
+
+      // Agency download works
+      const agencyDownload = designsController.downloadVersion(
+        projectId,
+        pubDesign.id,
+        verRes.data.id,
+        agencyReq
+      );
+      expect(agencyDownload.fileName).toBe('Ceremony_Stage_RevB.dwg');
+      expect(agencyDownload.mimeType).toBe('application/acad');
+      expect(agencyDownload.sha256Hash).toBeDefined();
+
+      // 2. Create internal-only quarantined design package
+      const privateDesign = designsController.createDesign(
+        projectId,
+        {
+          title: 'Subcontractor Trade Rates & Profit Analysis',
+          clientVisibility: false,
+        },
+        agencyReq
+      ).data.payload!;
+
+      // Client attempting to download internal version is strictly blocked (HTTP 403)
+      expect(() => {
+        designsController.downloadVersion(
+          projectId,
+          privateDesign.id,
+          `ver-${privateDesign.id}-v1`,
+          clientReq
+        );
+      }).toThrow();
+    });
+  });
+
+  // =========================================================================
+  // 13. 3D SPATIAL SAVED VIEWPOINTS
+  // =========================================================================
+  describe('13. 3D Spatial Saved Viewpoints Engine', () => {
+    it('saves and retrieves 3D camera viewpoints for spatial designs', () => {
+      const design = designsController.createDesign(
+        projectId,
+        {
+          title: 'VIP Viewing Platform & Cantilever Arch',
+          discipline: 'staging',
+          assetType: '3d_model',
+        },
+        agencyReq
+      ).data.payload!;
+
+      // Save Viewpoint 1: Royal Box Sightline
+      const vp1 = designsController.saveViewpoint(
+        projectId,
+        design.id,
+        {
+          name: 'VIP Royal Box Direct Sightline',
+          yaw: 35.5,
+          pitch: -15.2,
+          zoomLevel: 140,
+          pan: { x: 25, y: -40 },
+        },
+        agencyReq
+      );
+
+      expect(vp1.data.id).toMatch(/^vp-/);
+      expect(vp1.data.payload!.name).toBe('VIP Royal Box Direct Sightline');
+      expect(vp1.data.payload!.yaw).toBe(35.5);
+      expect(vp1.data.payload!.pan).toEqual({ x: 25, y: -40 });
+
+      // Save Viewpoint 2: Truss Node A4
+      designsController.saveViewpoint(
+        projectId,
+        design.id,
+        {
+          name: 'Truss Node A4 Dynamic Clearance',
+          yaw: -80,
+          pitch: -45,
+          zoomLevel: 210,
+          pan: { x: 0, y: 0 },
+        },
+        agencyReq
+      );
+
+      // Retrieve viewpoints
+      const viewpoints = designsController.getViewpoints(projectId, design.id, agencyReq);
+      expect(viewpoints).toHaveLength(2);
+      expect(viewpoints[0].name).toBe('VIP Royal Box Direct Sightline');
+      expect(viewpoints[1].name).toBe('Truss Node A4 Dynamic Clearance');
+    });
+  });
+
+  // =========================================================================
+  // 14. UNIVERSAL 3D MESH PARSERS (.OBJ & .GLTF)
+  // =========================================================================
+  describe('14. Universal 3D Model Parsers (Wavefront OBJ & GLTF)', () => {
+    it('parses Wavefront .obj geometry with vertices and faces', () => {
+      const rawObj = `
+        v 0.0 0.0 0.0
+        v 10.0 0.0 0.0
+        v 10.0 10.0 0.0
+        v 0.0 10.0 0.0
+        f 1 2 3
+        f 1 3 4
+      `;
+      const mesh = parseWavefrontObj(rawObj, 'stage_platform.obj');
+      expect(mesh.name).toBe('stage_platform.obj');
+      expect(mesh.vertices).toHaveLength(4);
+      expect(mesh.faces).toHaveLength(2);
+      expect(mesh.faces[0]).toEqual([0, 1, 2]);
+      expect(mesh.faces[1]).toEqual([0, 2, 3]);
+      expect(mesh.bounds.maxX).toBe(10);
+    });
+
+    it('parses GLTF mesh data with primitives and positions', () => {
+      const gltfJson = JSON.stringify({
+        asset: { version: '2.0' },
+        meshes: [
+          {
+            name: 'TrussRing',
+            primitives: [
+              {
+                indices: [0, 1, 2],
+                attributes: {
+                  POSITION: [
+                    [0, 0, 0],
+                    [50, 0, 0],
+                    [25, 40, 0],
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const mesh = parseGltfMesh(gltfJson, 'truss_ring.gltf');
+      expect(mesh.name).toBe('truss_ring.gltf');
+      expect(mesh.vertices).toHaveLength(3);
+      expect(mesh.faces).toHaveLength(1);
+      expect(mesh.faces[0]).toEqual([0, 1, 2]);
+      expect(mesh.bounds.maxX).toBe(50);
+    });
+  });
+
+  // =========================================================================
+  // 15. VIDEO TIMESTAMP PIN ANCHORING & CAPABILITY MATRIX
+  // =========================================================================
+  describe('15. Video Timestamp Pin Anchoring & Capabilities Matrix', () => {
+    it('anchors review pin threads to exact video playback timestamps', () => {
+      const videoDesign = designsController.createDesign(
+        projectId,
+        {
+          title: '360° Kinetic Ring Boulevard Rehearsal Simulation',
+          discipline: 'staging',
+          assetType: 'video_simulation',
+        },
+        agencyReq
+      ).data.payload!;
+
+      // Add pin thread at 14.5s timestamp
+      const annotRes = designsController.addAnnotation(
+        projectId,
+        videoDesign.id,
+        {
+          versionId: `ver-${videoDesign.id}-v1`,
+          xPercent: 62.5,
+          yPercent: 38.0,
+          videoTimestampSec: 14.5,
+          threeDCoordinates: { x: 120, y: -45, z: 200 },
+          title: 'Dynamic Torque Acceleration Peak',
+          discipline: 'staging',
+          priority: 'urgent',
+          visibility: 'internal_only',
+          message: 'Truss deflection exceeds 12mm at maximum rotational speed',
+        },
+        agencyReq
+      );
+
+      expect(annotRes.data.id).toMatch(/^annot-/);
+      const annot = annotRes.data.payload!;
+      expect(annot.videoTimestampSec).toBe(14.5);
+      expect(annot.threeDCoordinates).toEqual({ x: 120, y: -45, z: 200 });
+
+      // Verify retrieval
+      const annots = designsController.listAnnotations(projectId, videoDesign.id, agencyReq);
+      expect(annots).toHaveLength(1);
+      expect(annots[0].videoTimestampSec).toBe(14.5);
+      expect(annots[0].title).toBe('Dynamic Torque Acceleration Peak');
+    });
+
+    it('publishes transparent format capability matrix', () => {
+      expect(DESIGN_FORMAT_CAPABILITY_MATRIX.length).toBeGreaterThanOrEqual(10);
+      const dwg = DESIGN_FORMAT_CAPABILITY_MATRIX.find((c) => c.extension === '.dwg');
+      const gltf = DESIGN_FORMAT_CAPABILITY_MATRIX.find((c) => c.extension === '.gltf');
+      const mp4 = DESIGN_FORMAT_CAPABILITY_MATRIX.find((c) => c.extension === '.mp4');
+
+      expect(dwg).toBeDefined();
+      expect(dwg!.category).toBe('converted_view');
+      expect(gltf).toBeDefined();
+      expect(gltf!.viewerEngine).toBe('3d_model');
+      expect(mp4).toBeDefined();
+      expect(mp4!.viewerEngine).toBe('video');
     });
   });
 });
