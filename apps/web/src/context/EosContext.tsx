@@ -244,12 +244,9 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       : CANONICAL_E3_USERS[0];
     const savedToken = typeof window !== 'undefined' ? localStorage.getItem('eos_session_token') || undefined : undefined;
     const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
-    const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
     const apiBase = metaEnv && metaEnv.VITE_API_URL
       ? `${metaEnv.VITE_API_URL}/api/v1`
-      : isVercel
-        ? 'https://e3-eos-api-staging-4m6nzwqkuq-ww.a.run.app/api/v1'
-        : '/api/v1';
+      : '/api/v1';
     const client = new EosApiClient({
       baseUrl: apiBase,
       organisationId: initialUser.organisationId,
@@ -355,12 +352,9 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const switchPersona = async (targetEmail: string) => {
     try {
       const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
-      const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
       const apiBase = metaEnv && metaEnv.VITE_API_URL
         ? `${metaEnv.VITE_API_URL}/api/v1`
-        : isVercel
-          ? 'https://e3-eos-api-staging-4m6nzwqkuq-ww.a.run.app/api/v1'
-          : '/api/v1';
+        : '/api/v1';
 
       const res = await fetch(`${apiBase}/auth/impersonate`, {
         method: 'POST',
