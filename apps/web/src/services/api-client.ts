@@ -167,6 +167,12 @@ export class EosApiClient {
       }
     } catch {}
 
+    // Guarantee that universal testing lab project is always present in the returned list
+    const labProject = SYNTHETIC_PROJECTS.allFormatsLab as any;
+    if (!remoteProjects.some((p) => p.id === labProject.id || p.projectCode === labProject.projectCode || p.code === labProject.code)) {
+      remoteProjects.unshift(labProject);
+    }
+
     return remoteProjects;
   }
 
@@ -749,12 +755,61 @@ export class EosApiClient {
    * Fetches the live persistent Project Cockpit from PostgreSQL.
    */
   async getCockpit(projectId: string): Promise<any> {
-    const res = await fetch(`${this.baseUrl}/projects/${projectId}/cockpit`, {
-      headers: this.getHeaders(),
-    });
-    if (!res.ok) throw new Error(`Failed to load cockpit for project ${projectId}`);
-    const json = await res.json();
-    return json.data;
+    try {
+      const res = await fetch(`${this.baseUrl}/projects/${projectId}/cockpit`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data;
+      }
+    } catch {}
+
+    if (projectId === '00000000-0000-4000-8000-000000000099' || projectId === 'PRJ-TEST-ALL-FORMATS' || projectId === 'TEST-ALL-FORMATS') {
+      return {
+        projectId: '00000000-0000-4000-8000-000000000099',
+        projectCode: 'PRJ-TEST-ALL-FORMATS',
+        title: 'Universal File Formats & Design Testing Lab',
+        clientName: 'Universal Formats QA Testing',
+        maturity: 'delivery',
+        health: 'healthy',
+        isOnboardingComplete: true,
+        onboardingCompletionPct: 100,
+        missingSections: [],
+        pm: {
+          name: 'Lead Design QA Engineer',
+          email: 'qa@e3.qa',
+        },
+        venue: {
+          name: 'Lusail Testing Arena & Boulevard',
+          type: 'indoor',
+          location: 'Lusail City, Qatar',
+        },
+        dates: {
+          moveIn: '2026-10-01',
+          eventStart: '2026-10-15',
+          eventEnd: '2026-10-25',
+          moveOut: '2026-10-30',
+          daysRemaining: 45,
+        },
+        financials: {
+          currency: 'QAR',
+          budget: 500000,
+          committedCost: 200000,
+          actualCost: 150000,
+          forecastToComplete: 150000,
+          eac: 300000,
+          forecastMarginPercent: '45.00%',
+        },
+        workstreamProgress: [
+          { name: 'Creative & 3D Spatial Renders', lead: 'Design Team', progress: 100, openTasks: 0, blockers: 0, status: 'healthy' },
+          { name: 'Technical & Structural CAD Rigging', lead: 'Technical Lead', progress: 100, openTasks: 0, blockers: 0, status: 'healthy' },
+          { name: 'Commercial Pricing & BOQ', lead: 'Commercial Lead', progress: 100, openTasks: 0, blockers: 0, status: 'healthy' },
+        ],
+      };
+    }
+
+    throw new Error(`Failed to load cockpit for project ${projectId}`);
   }
 
   /**

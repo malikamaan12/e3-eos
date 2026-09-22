@@ -63,6 +63,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
     setCurrentOrg,
     setCurrentUser,
     setSelectedProjectId,
+    projects,
+    currentProject,
     setIsNewProjectModalOpen,
     setIsTaskModalOpen,
     setIsApprovalModalOpen,
@@ -190,7 +192,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
       titleEn: 'Enterprise Modules',
       titleAr: 'الوحدات التشغيلية',
       items: [
-        { path: '/projects/f1111111-1111-4111-8111-111111111111', labelEn: 'Project Cockpit', labelAr: 'قمرة القيادة للمشروع', icon: '🎯', id: 'nav-cockpit' },
+        { path: `/projects/${selectedProjectId || 'f1111111-1111-4111-8111-111111111111'}`, labelEn: 'Project Cockpit', labelAr: 'قمرة القيادة للمشروع', icon: '🎯', id: 'nav-cockpit' },
+        { path: '/projects/PRJ-TEST-ALL-FORMATS/designs', labelEn: 'Universal Design Lab (18 Formats)', labelAr: 'معمل التصاميم الشامل (١٨ صيغة)', icon: '🎨', id: 'nav-all-formats-lab' },
         { path: '/commercial/financial-control', labelEn: 'Financial Control Center', labelAr: 'مركز الرقابة المالية', icon: '💰', id: 'nav-fin-control' },
         { path: '/commercial/supplier-invoices', labelEn: 'Supplier Invoices (3-Way Match)', labelAr: 'فواتير الموردين والمطابقة', icon: '🧾', id: 'nav-sup-invoices' },
         { path: '/commercial/client-billing', labelEn: 'Client Billing & Collections', labelAr: 'فوترة العميل والتحصيل', icon: '💳', id: 'nav-client-billing' },
@@ -557,6 +560,62 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               </span>
             </>
           )}
+        </div>
+
+        {/* Global Active Project Switcher Dropdown */}
+        <div
+          id="global-project-switcher-container"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#101726',
+            border: '1.5px solid #d97706',
+            borderRadius: '6px',
+            padding: '3px 8px',
+            margin: isMobile ? '0 4px' : '0 10px',
+            maxWidth: isMobile ? '160px' : '360px',
+            flex: isMobile ? '0 1 auto' : '0 1 360px',
+            boxShadow: '0 0 10px rgba(217, 119, 6, 0.15)',
+          }}
+        >
+          <span style={{ fontSize: '13px', flexShrink: 0 }}>📁</span>
+          <select
+            id="global-project-selector"
+            aria-label="Active Project"
+            value={selectedProjectId || currentProject?.id || '00000000-0000-4000-8000-000000000099'}
+            onChange={(e) => {
+              const newId = e.target.value;
+              setSelectedProjectId(newId);
+              if (currentPath.includes('/design')) {
+                navigate(`/projects/${newId}/designs`);
+              } else if (currentPath.startsWith('/projects/') && !currentPath.includes('/new')) {
+                navigate(`/projects/${newId}`);
+              }
+            }}
+            style={{
+              backgroundColor: 'transparent',
+              color: '#f8fafc',
+              border: 'none',
+              fontSize: '12px',
+              fontWeight: 700,
+              outline: 'none',
+              cursor: 'pointer',
+              width: '100%',
+              textOverflow: 'ellipsis',
+              fontFamily: 'inherit',
+            }}
+          >
+            {projects.map((p) => {
+              const code = p.projectCode || p.code || p.id;
+              const isLab = code.includes('ALL-FORMATS') || p.id === '00000000-0000-4000-8000-000000000099';
+              return (
+                <option key={p.id} value={p.id} style={{ backgroundColor: '#0f172a', color: '#f8fafc' }}>
+                  {isLab ? `🧪 ${code} — ${p.title || p.name} (18 Formats Lab)` : `${code} — ${p.title || p.name}`}
+                </option>
+              );
+            })}
+          </select>
         </div>
 
         {/* Global Search Bar (Desktop) */}

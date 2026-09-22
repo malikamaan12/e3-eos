@@ -52,8 +52,9 @@ export const ProjectListView: React.FC = () => {
 
     if (!matchesSearch) return false;
     if (filter === 'all') return true;
+    if (filter === 'lab') return (p.projectCode || p.code || '').includes('ALL-FORMATS') || p.id === '00000000-0000-4000-8000-000000000099';
     if (filter === 'tender') return (p.originCode || '').toLowerCase().includes('tender');
-    if (filter === 'delivery') return (p.maturity || '').toLowerCase().includes('delivery');
+    if (filter === 'delivery') return (p.maturity || '').toLowerCase().includes('delivery') || (p.projectCode || p.code || '').includes('ALL-FORMATS');
     return true;
   });
 
@@ -145,6 +146,7 @@ export const ProjectListView: React.FC = () => {
             { id: 'all', en: 'All Projects', ar: 'جميع المشاريع' },
             { id: 'tender', en: 'Tenders / RFPs', ar: 'المناقصات والعطاءات' },
             { id: 'delivery', en: 'In Delivery', ar: 'قيد التنفيذ' },
+            { id: 'lab', en: '🧪 Test Lab (18 Formats)', ar: '🧪 معمل الاختبار (١٨ صيغة)' },
           ].map((item) => (
             <button
               key={item.id}
@@ -278,8 +280,15 @@ export const ProjectListView: React.FC = () => {
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: '#2563eb' }}>
-                        <span dir="ltr">{code}</span>
+                      <span style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: '#2563eb' }}>
+                          <span dir="ltr">{code}</span>
+                        </span>
+                        {(code.includes('ALL-FORMATS') || p.id === '00000000-0000-4000-8000-000000000099') && (
+                          <span style={{ fontSize: '10px', backgroundColor: '#d97706', color: '#ffffff', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
+                            🧪 18 FORMATS
+                          </span>
+                        )}
                       </span>
                       <div>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{p.title}</div>
@@ -346,7 +355,21 @@ export const ProjectListView: React.FC = () => {
                           </Badge>
                         )}
                       </div>
-                      <div style={{ textAlign: isRtl ? 'left' : 'right' }}>
+                      <div style={{ textAlign: isRtl ? 'left' : 'right', display: 'flex', gap: '6px', justifyContent: isRtl ? 'flex-start' : 'flex-end', alignItems: 'center' }}>
+                        {(code.includes('ALL-FORMATS') || p.id === '00000000-0000-4000-8000-000000000099') && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            style={{ backgroundColor: '#2563eb', fontSize: '11px', padding: '3px 8px', whiteSpace: 'nowrap' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedProjectId(p.id);
+                              navigate(`/projects/${p.id}/designs`);
+                            }}
+                          >
+                            🎨 Design Lab
+                          </Button>
+                        )}
                         <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleOpenProject(p.id); }}>
                           {isRtl ? 'فتح ←' : 'Open ➔'}
                         </Button>
@@ -370,9 +393,16 @@ export const ProjectListView: React.FC = () => {
               >
                 <div onClick={() => handleOpenProject(p.id)}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#2563eb', fontWeight: 700 }}>
-                      <span dir="ltr">{code}</span>
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#2563eb', fontWeight: 700 }}>
+                        <span dir="ltr">{code}</span>
+                      </span>
+                      {(code.includes('ALL-FORMATS') || p.id === '00000000-0000-4000-8000-000000000099') && (
+                        <span style={{ fontSize: '9px', backgroundColor: '#d97706', color: '#ffffff', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>
+                          🧪 18 FORMATS
+                        </span>
+                      )}
+                    </div>
                     {isIncomplete ? (
                       <span
                         id={`incomplete-badge-${p.id}`}
@@ -403,11 +433,25 @@ export const ProjectListView: React.FC = () => {
                   <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
                     {p.description || (isRtl ? 'مشروع فعالية مؤسسي خاضع للإدارة النشطة.' : 'Enterprise event project under active management.')}
                   </p>
-                  <div style={{ borderTop: '1px solid var(--border-subtle, #1d2939)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
+                  <div style={{ borderTop: '1px solid var(--border-subtle, #1d2939)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                     <span>{p.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')}</span>
-                    <span style={{ color: '#2563eb', fontWeight: 600 }}>
-                      {isRtl ? 'فتح لوحة القيادة ←' : 'Open Cockpit ➔'}
-                    </span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {(code.includes('ALL-FORMATS') || p.id === '00000000-0000-4000-8000-000000000099') && (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedProjectId(p.id);
+                            navigate(`/projects/${p.id}/designs`);
+                          }}
+                          style={{ color: '#d97706', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
+                        >
+                          🎨 Design Lab ➔
+                        </span>
+                      )}
+                      <span style={{ color: '#2563eb', fontWeight: 600 }}>
+                        {isRtl ? 'فتح لوحة القيادة ←' : 'Open Cockpit ➔'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </Card>

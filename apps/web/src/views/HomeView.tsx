@@ -92,6 +92,62 @@ export const HomeView: React.FC = () => {
           : (projects[0] ? `Technical approval for project ${projects[0].title} is pending executive sign-off before vendor PO release.` : 'No urgent alerts requiring intervention.')}
       </AlertBanner>
 
+      {/* Universal Formats Test Lab Quick Access Banner */}
+      <div
+        id="home-test-lab-banner"
+        style={{
+          backgroundColor: '#0f172a',
+          border: '1.5px solid #d97706',
+          borderRadius: '8px',
+          padding: '12px 18px',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          boxShadow: '0 2px 8px rgba(217, 119, 6, 0.12)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '20px' }}>🧪</span>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#f59e0b', fontSize: '13px' }}>
+                PRJ-TEST-ALL-FORMATS
+              </span>
+              <span style={{ fontSize: '11px', backgroundColor: '#d97706', color: '#ffffff', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
+                18 FILE FORMATS
+              </span>
+            </div>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+              {isRtl
+                ? 'مشروع الاختبار الشامل جاهز بجميع ملفات CAD و BIM و 3D والفيديو والمستندات الهندسية.'
+                : 'Universal test lab project loaded with complete datasets across all 18 CAD, BIM, 3D, Video, and Calc formats.'}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Button
+            id="home-open-design-lab-btn"
+            variant="primary"
+            size="sm"
+            onClick={() => navigate('/projects/PRJ-TEST-ALL-FORMATS/designs')}
+            style={{ backgroundColor: '#2563eb', borderColor: '#1d4ed8' }}
+          >
+            🎨 {isRtl ? 'فتح معمل التصاميم' : 'Open Design Lab'}
+          </Button>
+          <Button
+            id="home-open-cockpit-btn"
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate('/projects/PRJ-TEST-ALL-FORMATS')}
+          >
+            🎯 {isRtl ? 'قمرة القيادة' : 'Project Cockpit'}
+          </Button>
+        </div>
+      </div>
+
       {/* KPI Metrics Row */}
       <div
         style={{
@@ -184,8 +240,13 @@ export const HomeView: React.FC = () => {
                       <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--accent, #d97706)', fontWeight: 700 }}>
                         {p.projectCode || p.code}
                       </span>
+                      {((p.projectCode || p.code || '').includes('ALL-FORMATS') || p.id === '00000000-0000-4000-8000-000000000099') && (
+                        <span style={{ fontSize: '10px', backgroundColor: '#d97706', color: '#ffffff', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>
+                          🧪 18 FORMATS
+                        </span>
+                      )}
                       <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
-                        {p.title}
+                        {p.title || p.name}
                       </span>
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>

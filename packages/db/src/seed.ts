@@ -294,6 +294,18 @@ export async function runSeed(): Promise<SeedDataManifest> {
       ) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title;
     `, [defaultProjectId, e3OrgId, pmUserId]);
 
+    const labProjectId = '00000000-0000-4000-8000-000000000099';
+    await client.query(`
+      INSERT INTO projects (
+        id, organisation_id, project_code, title, description, origin_code, owner_id,
+        client_organisation_id, maturity, outcome, created_by, updated_by, created_at, updated_at
+      ) VALUES (
+        $1, $2, 'PRJ-TEST-ALL-FORMATS', 'Universal File Formats & Design Testing Lab',
+        'Comprehensive testing lab project containing full test dataset across all 18 CAD, BIM, 3D, Video, Image, Vector, and Engineering document formats.',
+        'DIRECT_AWARD', $3, '22222222-2222-4222-8222-222222222222', 'delivery', 'undetermined', $3, $3, NOW(), NOW()
+      ) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, project_code = EXCLUDED.project_code;
+    `, [labProjectId, e3OrgId, pmUserId]);
+
     // Seed 13 Stages for Qatar Tourism Project
     for (const stage of STANDARD_THIRTEEN_STAGE_TEMPLATE.stages) {
       await client.query(`

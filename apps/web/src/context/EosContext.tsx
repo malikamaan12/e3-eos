@@ -758,6 +758,25 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       if (found) return found;
       if (clean && clean !== 'projects' && clean !== 'new') {
+        const isLab = clean === 'PRJ-TEST-ALL-FORMATS' || clean === '00000000-0000-4000-8000-000000000099' || clean === 'TEST-ALL-FORMATS';
+        if (isLab) {
+          return {
+            id: '00000000-0000-4000-8000-000000000099',
+            code: 'PRJ-TEST-ALL-FORMATS',
+            projectCode: 'PRJ-TEST-ALL-FORMATS',
+            name: 'Universal File Formats & Design Testing Lab',
+            title: 'Universal File Formats & Design Testing Lab',
+            clientName: 'Universal Formats QA Testing',
+            venueName: 'Lusail Testing Arena & Boulevard',
+            venue: { name: 'Lusail Testing Arena & Boulevard', address: 'Lusail City, Qatar' },
+            currency: 'QAR',
+            status: 'operational',
+            maturity: 'delivery',
+            originCode: 'DIRECT_AWARD',
+            isOnboardingComplete: true,
+            onboardingCompletionPct: 100,
+          } as any;
+        }
         const isAccA = clean === 'PROJ-ACC-001' || clean === 'a0000000-0000-4000-8000-000000000001';
         const isAccB = clean === 'PROJ-ACC-002' || clean === 'a0000000-0000-4000-8000-000000000002';
         return {

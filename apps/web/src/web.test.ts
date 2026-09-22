@@ -1684,6 +1684,29 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect(superadmin).toBeDefined();
       expect(superadmin?.role).toBe('super_admin');
     });
+
+    it('always ensures PRJ-TEST-ALL-FORMATS is visible in project directory and cockpit', async () => {
+      const { EosApiClient } = await import('./services/api-client.js');
+      const client = new EosApiClient({
+        baseUrl: 'https://unreachable-mock-api.internal',
+        organisationId: '11111111-1111-4111-8111-111111111111',
+        userId: '10000000-0000-4000-8000-000000000001',
+      });
+
+      const projects = await client.getProjects();
+      const lab = projects.find(
+        (p: any) => p.projectCode === 'PRJ-TEST-ALL-FORMATS' || p.code === 'PRJ-TEST-ALL-FORMATS' || p.id === '00000000-0000-4000-8000-000000000099'
+      );
+      expect(lab).toBeDefined();
+      expect(lab?.title || (lab as any)?.name).toBe('Universal File Formats & Design Testing Lab');
+      expect(lab?.clientName).toBe('Universal Formats QA Testing');
+
+      // Test cockpit resolution
+      const cockpit = await client.getCockpit('PRJ-TEST-ALL-FORMATS');
+      expect(cockpit.projectCode).toBe('PRJ-TEST-ALL-FORMATS');
+      expect(cockpit.title).toBe('Universal File Formats & Design Testing Lab');
+      expect(cockpit.clientName).toBe('Universal Formats QA Testing');
+    });
   });
 });
 

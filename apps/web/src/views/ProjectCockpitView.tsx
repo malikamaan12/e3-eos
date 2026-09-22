@@ -29,12 +29,14 @@ export const ProjectCockpitView: React.FC = () => {
     navigate,
     refreshTrigger,
     triggerRefresh,
+    currentProject,
+    projects,
   } = useEosContext();
   const isRtl = currentLanguage === 'ar';
 
   const projectId = (typeof window !== 'undefined' && window.location.pathname.startsWith('/projects/') && window.location.pathname !== '/projects/new')
     ? window.location.pathname.split('/')[2]
-    : selectedProjectId;
+    : (selectedProjectId || '00000000-0000-4000-8000-000000000099');
 
   const [cockpitData, setCockpitData] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -335,13 +337,14 @@ export const ProjectCockpitView: React.FC = () => {
         status: 'on_track',
       })));
 
-  const projectTitle = cockpitData?.title || (isDemo ? 'Qatar Tourism Demo Tender' : 'Untitled Project');
-  const projectCode = cockpitData?.projectCode || (isDemo ? 'PRJ-2026-DEMO' : (projectId || 'PRJ-NEW'));
-  const clientName = cockpitData?.clientName || (isDemo ? 'Qatar Tourism Authority' : 'To Be Confirmed');
-  const venue = cockpitData?.venue?.name || (isDemo ? 'Doha Exhibition & Convention Center' : 'To Be Confirmed');
+  const isLab = projectId === '00000000-0000-4000-8000-000000000099' || projectId === 'PRJ-TEST-ALL-FORMATS' || projectId === 'TEST-ALL-FORMATS' || (currentProject?.code === 'PRJ-TEST-ALL-FORMATS');
+  const projectTitle = cockpitData?.title || currentProject?.title || currentProject?.name || (isLab ? 'Universal File Formats & Design Testing Lab' : (isDemo ? 'Qatar Tourism Demo Tender' : 'Untitled Project'));
+  const projectCode = cockpitData?.projectCode || currentProject?.projectCode || currentProject?.code || (isLab ? 'PRJ-TEST-ALL-FORMATS' : (isDemo ? 'PRJ-2026-DEMO' : (projectId || 'PRJ-NEW')));
+  const clientName = cockpitData?.clientName || currentProject?.clientName || (isLab ? 'Universal Formats QA Testing' : (isDemo ? 'Qatar Tourism Authority' : 'To Be Confirmed'));
+  const venue = cockpitData?.venue?.name || currentProject?.venueName || currentProject?.venue?.name || (isLab ? 'Lusail Testing Arena & Boulevard' : (isDemo ? 'Doha Exhibition & Convention Center' : 'To Be Confirmed'));
   const pmLeadName = cockpitData?.pm?.name
     ? `${cockpitData.pm.name} (${cockpitData.pm.email || 'pm@e3.qa'})`
-    : (isDemo ? 'Zaid Mansour (pm@e3.qa)' : (currentUser?.name ? `${currentUser.name} (Lead PM)` : 'Unassigned Lead PM'));
+    : (isLab ? 'Lead QA Engineer (qa@e3.qa)' : (isDemo ? 'Zaid Mansour (pm@e3.qa)' : (currentUser?.name ? `${currentUser.name} (Lead PM)` : 'Unassigned Lead PM')));
   const daysRemaining = cockpitData?.dates?.daysRemaining ?? (isDemo ? 66 : null);
   const isDraft = cockpitData?.maturity === 'draft';
 
@@ -437,6 +440,17 @@ export const ProjectCockpitView: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {isLab && (
+              <Button
+                id="cockpit-open-design-lab-btn"
+                variant="primary"
+                size="md"
+                onClick={() => setCockpitModuleTab('design')}
+                style={{ backgroundColor: '#2563eb', borderColor: '#1d4ed8' }}
+              >
+                🎨 {isRtl ? 'عرض معمل التصاميم (١٨ صيغة)' : 'Open Design Lab (18 Formats)'}
+              </Button>
+            )}
             <Button
               id="cockpit-request-approval-btn"
               variant="accent"

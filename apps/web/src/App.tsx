@@ -116,9 +116,12 @@ const AppRouter: React.FC = () => {
     if (cleanPath === '/projects/new') {
       return <NewProjectWizardView />;
     }
-    if (cleanPath.match(/^\/projects\/[^/]+\/designs/)) {
-      const match = cleanPath.match(/^\/projects\/([^/?#]+)\/designs/);
-      const prjId = match ? match[1] : 'f1111111-1111-4111-8111-111111111111';
+    if (cleanPath === '/design-lab' || cleanPath === '/designs' || cleanPath === '/design') {
+      return <DesignCreativeModuleView projectId="00000000-0000-4000-8000-000000000099" />;
+    }
+    if (cleanPath.match(/^\/projects\/[^/]+\/designs?/)) {
+      const match = cleanPath.match(/^\/projects\/([^/?#]+)\/designs?/);
+      const prjId = match ? match[1] : '00000000-0000-4000-8000-000000000099';
       return <DesignCreativeModuleView projectId={prjId} />;
     }
     if (
