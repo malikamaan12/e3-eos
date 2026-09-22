@@ -80,9 +80,21 @@ export const SYNTHETIC_PROJECTS = {
     ownerId: SYNTHETIC_USERS.projectManager.id,
     clientOrganisationId: SYNTHETIC_ORGANISATIONS.clientCorp.id,
   },
+  allFormatsLab: {
+    id: '00000000-0000-4000-8000-000000000099',
+    organisationId: SYNTHETIC_ORGANISATIONS.e3Internal.id,
+    projectCode: 'PRJ-TEST-ALL-FORMATS',
+    title: 'Universal File Formats & Design Testing Lab',
+    description: 'Comprehensive testing lab project containing full test dataset across all 18 CAD, BIM, 3D, Video, Image, Vector, and Engineering document formats.',
+    originCode: 'DIRECT_AWARD',
+    ownerId: SYNTHETIC_USERS.projectManager.id,
+    clientOrganisationId: SYNTHETIC_ORGANISATIONS.clientCorp.id,
+  },
 };
 
 export type SyntheticOrganisation = typeof SYNTHETIC_ORGANISATIONS[keyof typeof SYNTHETIC_ORGANISATIONS];
 export type SyntheticUser = typeof SYNTHETIC_USERS[keyof typeof SYNTHETIC_USERS];
 export type SyntheticProject = typeof SYNTHETIC_PROJECTS[keyof typeof SYNTHETIC_PROJECTS];
+
+export * from './dummy-designs.js';
 

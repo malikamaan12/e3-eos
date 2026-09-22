@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   DesignsController,
+  seedInitialDesigns,
   workspaceRepository,
   designRepository,
   designVersionRepository,
@@ -1068,4 +1069,127 @@ describe('Design & Creative Management Module — Comprehensive Test Suite', () 
       expect(mp4!.viewerEngine).toBe('video');
     });
   });
+
+  // =========================================================================
+  // 10. MULTI-FORMAT TEST PROJECT (PRJ-TEST-ALL-FORMATS) & DUMMY DESIGNS
+  // =========================================================================
+  describe('10. Multi-Format Test Project (PRJ-TEST-ALL-FORMATS) & Dummy Designs', () => {
+    const testProjectCode = 'PRJ-TEST-ALL-FORMATS';
+    const testProjectUuid = '00000000-0000-4000-8000-000000000099';
+
+    beforeEach(() => {
+      seedInitialDesigns();
+    });
+
+    it('populates 4 departmental workspaces for the all-formats lab project', () => {
+      const workspacesByCode = designsController.listWorkspaces(testProjectCode, agencyReq);
+      expect(workspacesByCode).toHaveLength(4);
+      expect(workspacesByCode.map((w: any) => w.id)).toEqual(
+        expect.arrayContaining([
+          `ws-${testProjectCode}-cad-bim`,
+          `ws-${testProjectCode}-3d-video`,
+          `ws-${testProjectCode}-branding`,
+          `ws-${testProjectCode}-specs`,
+        ])
+      );
+
+      // Verify UUID lookup works identically
+      const workspacesByUuid = designsController.listWorkspaces(testProjectUuid, agencyReq);
+      expect(workspacesByUuid).toHaveLength(4);
+    });
+
+    it('populates all 18 file types with complete engineering metadata and revisions', () => {
+      const designs = designsController.listDesigns(testProjectCode, undefined, undefined, undefined, undefined, undefined, agencyReq);
+      expect(designs).toHaveLength(18);
+
+      const allExtensions = [
+        '.pdf', '.png', '.jpg', '.svg', '.mp4', '.webm', '.obj', '.gltf',
+        '.dwg', '.dxf', '.ifc', '.rvt', '.ai', '.psd',
+        '.calc', '.xlsx', '.mpp', '.zip',
+      ];
+
+      for (const ext of allExtensions) {
+        const match = designs.find((d: any) => d.fileExtension === ext);
+        expect(match, `Expected design with extension ${ext} to exist`).toBeDefined();
+        expect(match.title).toBeTruthy();
+        expect(match.revisions.length).toBeGreaterThanOrEqual(1);
+        expect(match.revisions[0].contentHash).toMatch(/^[a-f0-9]{64}$/);
+      }
+    });
+
+    it('correctly maps all 18 formats to their designated viewer engines and categories', () => {
+      const designs = designsController.listDesigns(testProjectCode, undefined, undefined, undefined, undefined, undefined, agencyReq);
+
+      const expectedEngineMap: Record<string, string> = {
+        '.pdf': 'pdf_plan',
+        '.png': '2d_image',
+        '.jpg': '2d_image',
+        '.svg': '2d_image',
+        '.mp4': 'video',
+        '.webm': 'video',
+        '.obj': '3d_model',
+        '.gltf': '3d_model',
+        '.dwg': 'pdf_plan',
+        '.dxf': 'pdf_plan',
+        '.ifc': '3d_model',
+        '.rvt': '3d_model',
+        '.ai': 'pdf_plan',
+        '.psd': '2d_image',
+        '.calc': 'download_fallback',
+        '.xlsx': 'download_fallback',
+        '.mpp': 'download_fallback',
+        '.zip': 'download_fallback',
+      };
+
+      for (const [ext, expectedEngine] of Object.entries(expectedEngineMap)) {
+        const d = designs.find((item: any) => item.fileExtension === ext);
+        expect(d).toBeDefined();
+        expect(d.viewerEngine).toBe(expectedEngine);
+      }
+    });
+
+    it('returns authentic downloadable binary assets for all 18 file types', () => {
+      const designs = designsController.listDesigns(testProjectCode, undefined, undefined, undefined, undefined, undefined, agencyReq);
+
+      for (const d of designs) {
+        const ext = d.fileExtension.replace(/^\./, '');
+        const mockRes = {
+          setHeader: () => mockRes,
+          status: () => mockRes,
+          send: (data: any) => data,
+        };
+
+        const downloaded = designsController.downloadAsset(testProjectCode, d.id, ext, mockRes as any);
+        expect(downloaded).toBeDefined();
+        expect(downloaded.data.length).toBeGreaterThan(0);
+        expect(downloaded.sizeBytes).toBeGreaterThan(0);
+      }
+    });
+
+    it('serves 3D saved viewpoints and video time-anchored pins for the dummy designs', () => {
+      // Check 3D design viewpoints (OBJ)
+      const objVps = designsController.getViewpoints(testProjectCode, 'DES-ALL-007-OBJ', agencyReq);
+      expect(objVps.length).toBeGreaterThanOrEqual(3);
+      expect(objVps.some((vp: any) => vp.name === 'Front Elevation')).toBe(true);
+
+      // Check Video pins (MP4)
+      const mp4Pins = designsController.listAnnotations(testProjectCode, 'DES-ALL-005-MP4', agencyReq);
+      expect(mp4Pins.length).toBeGreaterThanOrEqual(2);
+      expect(mp4Pins.some((p: any) => p.videoTimestampSec === 14.5)).toBe(true);
+    });
+
+    it('computes accurate overview KPIs and registers for the test project', () => {
+      const kpis = designsController.getOverviewKpis(testProjectCode, agencyReq);
+      expect(kpis.totalDesigns).toBe(18);
+      expect(kpis.approvedForProduction).toBeGreaterThan(0);
+      expect(kpis.drafts).toBeGreaterThan(0);
+
+      const designRegister = designsController.getDesignRegister(testProjectCode, agencyReq);
+      expect(designRegister).toHaveLength(18);
+
+      const revisionRegister = designsController.getRevisionRegister(testProjectCode, agencyReq);
+      expect(revisionRegister.length).toBeGreaterThan(18); // Multiple revisions exist
+    });
+  });
 });
+

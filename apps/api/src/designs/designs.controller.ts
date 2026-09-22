@@ -60,6 +60,10 @@ import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { DbService } from '../common/db.service.js';
 import { projectRepository } from '../projects/projects.controller.js';
+import {
+  getSyntheticAllFormatDesigns,
+  getSyntheticAllFormatWorkspaces,
+} from '@e3-eos/test-fixtures';
 
 // =========================================================================
 // IN-MEMORY STORAGE REPOSITORIES (MATCHING CANONICAL EOS MONOREPO PATTERN)
@@ -73,9 +77,16 @@ export interface StoredDesignItem extends DesignItem {
   organisationId: string;
   category: string;
   isArchived: boolean;
+  fileExtension?: string;
+  fileName?: string;
+  mimeType?: string;
+  viewerEngine?: string;
+  sampleData?: string;
+  sizeBytes?: number;
 }
 
 export interface StoredDesignVersion extends DesignVersion {
+  id?: string;
   organisationId: string;
   purpose: ReleasePurpose;
   revisionCode: string;
@@ -107,6 +118,7 @@ export interface StoredDesignVersion extends DesignVersion {
 
 export interface StoredDesignAnnotation extends DesignAnnotation {
   organisationId: string;
+  designId?: string;
   pinNumber: number;
   xPercent?: number;
   yPercent?: number;
@@ -194,6 +206,253 @@ let designSeq = 1000;
 let releaseSeq = 1000;
 let varSeq = 1000;
 
+export function resolveCanonicalProjectId(id: string): string {
+  if (!id) return id;
+  const clean = id.split('?')[0].split('#')[0];
+  if (clean === '00000000-0000-4000-8000-000000000001' || clean === 'QND26' || clean === 'PRJ-QND-2026') {
+    return 'PRJ-QND-2026';
+  }
+  if (clean === 'f1111111-1111-4111-8111-111111111111' || clean === 'PRJ-2026-SYNTH-01' || clean === 'PRJ-2026-QATAR-01') {
+    return 'PRJ-2026-QATAR-01';
+  }
+  if (clean === '00000000-0000-4000-8000-000000000099' || clean === 'PRJ-TEST-ALL-FORMATS' || clean === 'TEST-ALL-FORMATS') {
+    return 'PRJ-TEST-ALL-FORMATS';
+  }
+  return clean;
+}
+
+export function seedInitialDesigns() {
+  const orgId = '11111111-1111-4111-8111-111111111111';
+  const targetProjects = [
+    'PRJ-TEST-ALL-FORMATS',
+    'PRJ-QND-2026',
+  ];
+
+  for (const pid of targetProjects) {
+    const workspaces = getSyntheticAllFormatWorkspaces(pid);
+    for (const ws of workspaces) {
+      if (!workspaceRepository.has(ws.id)) {
+        workspaceRepository.set(ws.id, {
+          id: ws.id,
+          projectId: pid,
+          organisationId: orgId,
+          name: ws.name,
+          description: ws.description,
+          responsibleDepartment: ws.responsibleDepartment,
+          ownerId: '10000000-0000-4000-8000-000000000001',
+          ownerName: ws.ownerName,
+          defaultReviewers: [],
+          defaultClientReviewers: [],
+          defaultWorkflow: 'standard_14_step',
+          linkedZones: [],
+          linkedLocations: [],
+          visibility: ws.visibility as any,
+          color: ws.color,
+          icon: ws.icon,
+          status: ws.status as any,
+          createdAt: '2026-09-01T00:00:00Z',
+          updatedAt: '2026-09-01T00:00:00Z',
+        });
+      }
+    }
+
+    const designs = getSyntheticAllFormatDesigns(pid);
+    for (const d of designs) {
+      if (!designRepository.has(d.id)) {
+        const storedItem: StoredDesignItem = {
+          id: d.id,
+          projectId: pid,
+          organisationId: orgId,
+          workspaceId: d.workspaceId,
+          title: d.title,
+          description: d.description,
+          category: d.category,
+          assetType: d.assetType as any,
+          fileExtension: d.fileExtension,
+          fileName: d.fileName,
+          mimeType: d.mimeType,
+          viewerEngine: d.viewerEngine,
+          sampleData: d.sampleData,
+          sizeBytes: d.sizeBytes,
+          projectPhase: d.projectPhase,
+          discipline: d.discipline,
+          department: d.department,
+          ownerId: '10000000-0000-4000-8000-000000000001',
+          ownerName: d.ownerName,
+          internalReviewerId: 'usr-reviewer-1',
+          internalReviewerName: 'Lead Reviewer',
+          priority: d.priority as any,
+          currentVersionNumber: d.currentVersionNumber,
+          currentRevisionCode: d.currentRevisionCode,
+          currentStatus: d.currentStatus as any,
+          approvalPurpose: d.approvalPurpose as any,
+          confidentiality: d.confidentiality as any,
+          clientVisibility: d.clientVisibility,
+          tags: d.tags,
+          zones: d.zones,
+          locations: d.locations,
+          scopePackageIds: [],
+          requirementIds: [],
+          boqItemIds: [],
+          taskIds: [],
+          productionPackageIds: [],
+          supplierIds: [],
+          relatedDesignItemIds: [],
+          isArchived: false,
+          revisions: d.revisions.map((rev) => ({
+            revisionCode: rev.revisionCode,
+            versionNumber: rev.versionNumber,
+            contentHash: rev.contentHash,
+            storageUrl: rev.storageUrl,
+            uploadedBy: rev.uploadedBy,
+            uploadedAt: rev.uploadedAt,
+            notes: rev.notes,
+            releaseStatus: rev.releaseStatus as any,
+          })),
+          pins: d.pins.map((pin) => ({
+            id: pin.id,
+            pinNumber: pin.pinNumber,
+            revisionCode: pin.revisionCode,
+            xPercent: pin.xPercent,
+            yPercent: pin.yPercent,
+            videoTimestampSec: pin.videoTimestampSec,
+            threeDCoordinates: pin.threeDCoordinates,
+            title: pin.title,
+            discipline: pin.discipline,
+            priority: pin.priority as any,
+            status: pin.status as any,
+            visibility: pin.visibility as any,
+            assigneeName: pin.assigneeName,
+            comments: pin.comments.map((c) => ({
+              id: c.id,
+              authorId: c.authorId,
+              authorName: c.authorName,
+              discipline: pin.discipline,
+              message: c.message,
+              visibility: c.visibility as any,
+              createdAt: c.createdAt,
+            })),
+            createdAt: pin.createdAt,
+          })),
+          createdAt: '2026-09-01T00:00:00Z',
+          updatedAt: '2026-09-12T12:00:00Z',
+        };
+
+        designRepository.set(d.id, storedItem);
+
+        for (const rev of d.revisions) {
+          const verId = `ver-${d.id}-v${rev.versionNumber}`;
+          if (!designVersionRepository.has(verId)) {
+            designVersionRepository.set(verId, {
+              id: verId,
+              versionId: verId,
+              title: `${d.title} - ${rev.revisionCode}`,
+              designId: d.id,
+              organisationId: orgId,
+              versionNumber: rev.versionNumber,
+              revisionCode: rev.revisionCode,
+              revisionDescription: rev.notes,
+              storageKey: rev.storageUrl,
+              contentHash: rev.contentHash,
+              contentBytes: d.sampleData,
+              mimeType: d.mimeType,
+              fileName: rev.fileName,
+              purpose: (rev.purpose || 'for_review') as any,
+              isLocked: false,
+              addressedCommentIds: [],
+              carriedForwardCommentIds: [],
+              rejectedCommentIds: [],
+              costImpactFlag: false,
+              scheduleImpactFlag: false,
+              scopeImpactFlag: false,
+              safetyImpactFlag: false,
+              procurementImpactFlag: false,
+              uploadedBy: rev.uploadedBy,
+              uploadedAt: new Date(rev.uploadedAt),
+            });
+          }
+        }
+
+        const assetExt = d.fileExtension.replace('.', '');
+        const assetFile: StoredAssetFile = {
+          id: d.id,
+          designId: d.id,
+          versionId: `ver-${d.id}-v${d.currentVersionNumber}`,
+          organisationId: orgId,
+          fileName: d.fileName,
+          mimeType: d.mimeType,
+          data: d.sampleData,
+          sizeBytes: d.sizeBytes,
+          sha256Hash: d.revisions[d.revisions.length - 1]?.contentHash || safeSha256(d.sampleData),
+          uploadedAt: '2026-09-10T12:00:00Z',
+          isInternalOnly: false,
+        };
+        assetFileRepository.set(`${d.id}:${assetExt}`, assetFile);
+        assetFileRepository.set(`${d.id}:${d.fileName}`, assetFile);
+        assetFileRepository.set(`${d.id}:default`, assetFile);
+        assetFileRepository.set(d.id, assetFile);
+
+        if (d.savedViewpoints) {
+          for (const vp of d.savedViewpoints) {
+            if (!savedViewpointRepository.has(vp.id)) {
+              savedViewpointRepository.set(vp.id, {
+                ...vp,
+                pan: vp.pan || { x: 0, y: 0 },
+                designId: d.id,
+                organisationId: orgId,
+              });
+            }
+          }
+        }
+
+        for (const pin of d.pins) {
+          if (!designAnnotationRepository.has(pin.id)) {
+            designAnnotationRepository.set(pin.id, {
+              id: pin.id,
+              designId: d.id,
+              versionId: `ver-${d.id}-v1`,
+              organisationId: orgId,
+              authorId: 'u-designer-1',
+              authorName: pin.assigneeName || 'Designer',
+              pageNumber: 1,
+              coordinates: { x: pin.xPercent, y: pin.yPercent },
+              comment: pin.title,
+              resolved: pin.status === 'resolved',
+              pinNumber: pin.pinNumber,
+              xPercent: pin.xPercent,
+              yPercent: pin.yPercent,
+              videoTimestampSec: pin.videoTimestampSec,
+              threeDCoordinates: pin.threeDCoordinates,
+              geometryType: 'point',
+              geometryData: { x: pin.xPercent, y: pin.yPercent },
+              title: pin.title,
+              discipline: pin.discipline,
+              priority: pin.priority,
+              status: pin.status,
+              commentType: 'general',
+              visibility: pin.visibility,
+              assigneeName: pin.assigneeName,
+              comments: pin.comments.map((c) => ({
+                id: c.id,
+                authorId: c.authorId,
+                authorName: c.authorName,
+                discipline: pin.discipline,
+                message: c.message,
+                visibility: c.visibility,
+                attachments: [],
+                createdAt: c.createdAt,
+              })),
+              createdAt: new Date(pin.createdAt),
+            });
+          }
+        }
+      }
+    }
+  }
+}
+
+seedInitialDesigns();
+
 @Controller('projects/:projectId/designs')
 @UseFilters(ProblemDetailsFilter)
 @UseGuards(TenantIsolationGuard)
@@ -214,8 +473,9 @@ export class DesignsController {
     @Req() req: Request
   ): StoredDesignWorkspace[] {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const canonicalId = resolveCanonicalProjectId(projectId);
     return Array.from(workspaceRepository.values()).filter(
-      (w) => w.projectId === projectId && w.organisationId === orgId && w.status === 'active'
+      (w) => (w.projectId === projectId || w.projectId === canonicalId) && w.organisationId === orgId && w.status === 'active'
     );
   }
 
@@ -296,22 +556,28 @@ export class DesignsController {
     const orgId = (req as any)?.organisationId || '11111111-1111-4111-8111-111111111111';
     const userRole = (req as any)?.userRole || 'super_admin';
     const isClient = userRole === 'client' || userRole === 'client_user' || clientOnly === 'true';
+    const canonicalId = resolveCanonicalProjectId(projectId);
+
+    const actualWorkspaceId = typeof workspaceId === 'string' ? workspaceId : undefined;
+    const actualStatus = typeof status === 'string' ? status : undefined;
+    const actualDiscipline = typeof discipline === 'string' ? discipline : undefined;
+    const actualSearch = typeof search === 'string' ? search : undefined;
 
     let items = Array.from(designRepository.values()).filter(
-      (d) => d.projectId === projectId && d.organisationId === orgId && !d.isArchived
+      (d) => (d.projectId === projectId || d.projectId === canonicalId) && d.organisationId === orgId && !d.isArchived
     );
 
-    if (workspaceId) {
-      items = items.filter((d) => d.workspaceId === workspaceId);
+    if (actualWorkspaceId) {
+      items = items.filter((d) => d.workspaceId === actualWorkspaceId);
     }
-    if (status) {
-      items = items.filter((d) => d.currentStatus === status);
+    if (actualStatus) {
+      items = items.filter((d) => d.currentStatus === actualStatus);
     }
-    if (discipline) {
-      items = items.filter((d) => d.discipline === discipline);
+    if (actualDiscipline) {
+      items = items.filter((d) => d.discipline === actualDiscipline);
     }
-    if (search) {
-      const q = search.toLowerCase();
+    if (actualSearch) {
+      const q = actualSearch.toLowerCase();
       items = items.filter(
         (d) => d.title.toLowerCase().includes(q) || d.id.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q)
       );
@@ -351,7 +617,8 @@ export class DesignsController {
     }
 
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
-    const project = projectRepository.get(projectId);
+    const canonicalId = resolveCanonicalProjectId(projectId);
+    const project = projectRepository.get(projectId) || projectRepository.get(canonicalId);
     if (!project && !projectId.startsWith('prj') && !projectId.startsWith('PRJ') && !projectId.includes('-')) {
       throw new HttpException({ message: 'PROJECT_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
@@ -461,9 +728,10 @@ export class DesignsController {
   ): StoredDesignItem | Partial<DesignItem> {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
     const userRole = (req as any).userRole || 'super_admin';
+    const canonicalId = resolveCanonicalProjectId(projectId);
     const design = designRepository.get(designId);
 
-    if (!design || design.projectId !== projectId || design.organisationId !== orgId) {
+    if (!design || (design.projectId !== projectId && design.projectId !== canonicalId) || design.organisationId !== orgId) {
       throw new HttpException({ message: 'DESIGN_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
 
@@ -493,8 +761,9 @@ export class DesignsController {
     }
 
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const canonicalId = resolveCanonicalProjectId(projectId);
     const design = designRepository.get(designId);
-    if (!design || design.projectId !== projectId || design.organisationId !== orgId) {
+    if (!design || (design.projectId !== projectId && design.projectId !== canonicalId) || design.organisationId !== orgId) {
       throw new HttpException({ message: 'DESIGN_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
 
@@ -1631,8 +1900,9 @@ export class DesignsController {
     @Req() req: Request
   ) {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const canonicalId = resolveCanonicalProjectId(projectId);
     const designs = Array.from(designRepository.values()).filter(
-      (d) => d.projectId === projectId && d.organisationId === orgId && !d.isArchived
+      (d) => (d.projectId === projectId || d.projectId === canonicalId) && d.organisationId === orgId && !d.isArchived
     );
 
     const total = designs.length;
@@ -1676,8 +1946,9 @@ export class DesignsController {
     @Req() req: Request
   ) {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const canonicalId = resolveCanonicalProjectId(projectId);
     return Array.from(designRepository.values())
-      .filter((d) => d.projectId === projectId && d.organisationId === orgId)
+      .filter((d) => (d.projectId === projectId || d.projectId === canonicalId) && d.organisationId === orgId)
       .map((d) => ({
         designId: d.id,
         title: d.title,
@@ -1702,8 +1973,9 @@ export class DesignsController {
     @Req() req: Request
   ) {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const canonicalId = resolveCanonicalProjectId(projectId);
     const designs = Array.from(designRepository.values()).filter(
-      (d) => d.projectId === projectId && d.organisationId === orgId
+      (d) => (d.projectId === projectId || d.projectId === canonicalId) && d.organisationId === orgId
     );
 
     const revisions: any[] = [];
@@ -1739,9 +2011,10 @@ export class DesignsController {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
     const userRole = (req as any).userRole || 'super_admin';
     const isClient = userRole === 'client' || userRole === 'client_user';
+    const canonicalId = resolveCanonicalProjectId(projectId);
     const design = designRepository.get(designId);
 
-    if (!design || design.projectId !== projectId || design.organisationId !== orgId) {
+    if (!design || (design.projectId !== projectId && design.projectId !== canonicalId) || design.organisationId !== orgId) {
       throw new HttpException({ message: 'DESIGN_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
 
@@ -1807,9 +2080,10 @@ export class DesignsController {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
     const userRole = (req as any).userRole || 'super_admin';
     const isClient = userRole === 'client' || userRole === 'client_user';
+    const canonicalId = resolveCanonicalProjectId(projectId);
     const design = designRepository.get(designId);
 
-    if (!design || design.projectId !== projectId || design.organisationId !== orgId) {
+    if (!design || (design.projectId !== projectId && design.projectId !== canonicalId) || design.organisationId !== orgId) {
       throw new HttpException({ message: 'DESIGN_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
 
@@ -1846,9 +2120,10 @@ export class DesignsController {
       revisionCode: version.revisionCode,
       fileName,
       mimeType,
-      sizeBytes: typeof data === 'string' ? Buffer.byteLength(data) : 1024,
+      sizeBytes: Buffer.byteLength(data),
       sha256Hash: version.contentHash,
       data,
+      downloadUrl: `/api/v1/projects/${projectId}/designs/${designId}/versions/${versionId}/download`,
     };
   }
 
@@ -1865,8 +2140,9 @@ export class DesignsController {
     @Req() req: Request
   ): CommandResult<StoredSavedViewpoint> {
     const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const canonicalId = resolveCanonicalProjectId(projectId);
     const design = designRepository.get(designId);
-    if (!design || design.projectId !== projectId || design.organisationId !== orgId) {
+    if (!design || (design.projectId !== projectId && design.projectId !== canonicalId) || design.organisationId !== orgId) {
       throw new HttpException({ message: 'DESIGN_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
 
@@ -1904,9 +2180,9 @@ export class DesignsController {
   getViewpoints(
     @Param('projectId') _projectId: string,
     @Param('designId') designId: string,
-    @Req() req: Request
+    @Req() req?: Request
   ): StoredSavedViewpoint[] {
-    const orgId = (req as any).organisationId || '11111111-1111-4111-8111-111111111111';
+    const orgId = (req as any)?.organisationId || '11111111-1111-4111-8111-111111111111';
     return Array.from(savedViewpointRepository.values()).filter(
       (vp) => vp.designId === designId && vp.organisationId === orgId
     );

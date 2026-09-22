@@ -211,6 +211,24 @@ export function seedInitialProjects(): void {
         payrollSchedule: 'CONFIDENTIAL-INTERNAL',
       },
     },
+    {
+      id: '00000000-0000-4000-8000-000000000099',
+      organisationId: '11111111-1111-4111-8111-111111111111',
+      projectCode: 'PRJ-TEST-ALL-FORMATS',
+      title: 'Universal File Formats & Design Testing Lab',
+      description: 'Comprehensive testing lab project containing full test dataset across all 18 CAD, BIM, 3D, Video, Image, Vector, and Engineering document formats.',
+      originCode: 'DIRECT_AWARD',
+      ownerId: '10000000-0000-4000-8000-000000000001',
+      maturity: 'delivery',
+      outcome: 'undetermined',
+      rowVersion: 1,
+      clientOrganisationId: '22222222-2222-4222-8222-222222222222',
+      costingData: {
+        contractorBuyRateHourly: '150.00 QAR',
+        internalMarginTarget: '45.00%',
+        payrollSchedule: 'CONFIDENTIAL-INTERNAL',
+      },
+    },
   ];
 
   for (const proj of defaultProjects) {
@@ -221,6 +239,9 @@ export function seedInitialProjects(): void {
     }
     if (proj.projectCode === 'PRJ-QND-2026') {
       projectRepository.set('QND26', proj);
+    }
+    if (proj.projectCode === 'PRJ-TEST-ALL-FORMATS') {
+      projectRepository.set('TEST-ALL-FORMATS', proj);
     }
   }
 }

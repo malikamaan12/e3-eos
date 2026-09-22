@@ -777,9 +777,27 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontFamily: 'monospace' }}>
-                        {item.id}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontFamily: 'monospace' }}>
+                          {item.id}
+                        </span>
+                        {item.fileExtension && (
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              fontFamily: 'monospace',
+                              backgroundColor: '#1e293b',
+                              color: '#38bdf8',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              border: '1px solid #334155',
+                            }}
+                          >
+                            {item.fileExtension.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
                       <Badge
                         variant={
                           item.currentStatus === 'approved_for_production'
@@ -836,6 +854,7 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                 <thead>
                   <tr style={{ backgroundColor: 'var(--canvas, #090d16)', borderBottom: '1px solid var(--border-subtle, #1d2939)', color: 'var(--text-muted, #94a3b8)' }}>
                     <th style={{ padding: '10px 14px' }}>DWG ID</th>
+                    <th style={{ padding: '10px 14px' }}>Format</th>
                     <th style={{ padding: '10px 14px' }}>Title</th>
                     <th style={{ padding: '10px 14px' }}>Discipline</th>
                     <th style={{ padding: '10px 14px' }}>Rev</th>
@@ -853,6 +872,22 @@ export const DesignCreativeModuleView: React.FC<DesignCreativeModuleViewProps> =
                       onClick={() => setSelectedDesign(d)}
                     >
                       <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#38bdf8' }}>{d.id}</td>
+                      <td style={{ padding: '10px 14px' }}>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            fontFamily: 'monospace',
+                            backgroundColor: '#1e293b',
+                            color: '#38bdf8',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            border: '1px solid #334155',
+                          }}
+                        >
+                          {d.fileExtension ? d.fileExtension.toUpperCase() : 'FILE'}
+                        </span>
+                      </td>
                       <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{d.title}</td>
                       <td style={{ padding: '10px 14px', color: 'var(--text-secondary, #cbd5e1)' }}>{d.discipline}</td>
                       <td style={{ padding: '10px 14px' }}>

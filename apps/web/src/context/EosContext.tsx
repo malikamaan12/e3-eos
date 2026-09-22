@@ -751,7 +751,9 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           (clean === 'QND26' && ((p as any).projectCode === 'PRJ-QND-2026' || p.id === '00000000-0000-4000-8000-000000000001')) ||
           (clean === 'PRJ-QND-2026' && (p.id === '00000000-0000-4000-8000-000000000001' || (p as any).projectCode === 'PRJ-QND-2026')) ||
           (clean === 'PRJ-2026-SYNTH-01' && ((p as any).projectCode === 'PRJ-2026-QATAR-01' || p.id === 'f1111111-1111-4111-8111-111111111111')) ||
-          (clean === 'PRJ-2026-QATAR-01' && (p.id === 'f1111111-1111-4111-8111-111111111111' || (p as any).projectCode === 'PRJ-2026-QATAR-01'))
+          (clean === 'PRJ-2026-QATAR-01' && (p.id === 'f1111111-1111-4111-8111-111111111111' || (p as any).projectCode === 'PRJ-2026-QATAR-01')) ||
+          (clean === 'PRJ-TEST-ALL-FORMATS' && (p.id === '00000000-0000-4000-8000-000000000099' || (p as any).projectCode === 'PRJ-TEST-ALL-FORMATS')) ||
+          (clean === '00000000-0000-4000-8000-000000000099' && (p.id === '00000000-0000-4000-8000-000000000099' || (p as any).projectCode === 'PRJ-TEST-ALL-FORMATS'))
         );
       });
       if (found) return found;

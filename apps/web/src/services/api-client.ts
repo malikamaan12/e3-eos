@@ -1,6 +1,8 @@
 import {
   SYNTHETIC_PROJECTS,
   SyntheticProject,
+  getSyntheticAllFormatDesigns,
+  getSyntheticAllFormatWorkspaces,
 } from '@e3-eos/test-fixtures';
 import {
   InstantiatedActivity,
@@ -28,6 +30,8 @@ export function isSyntheticDemo(projectId?: string): boolean {
   return (
     projectId === 'f1111111-1111-4111-8111-111111111111' ||
     projectId === '00000000-0000-4000-8000-000000000001' ||
+    projectId === '00000000-0000-4000-8000-000000000099' ||
+    projectId === 'PRJ-TEST-ALL-FORMATS' ||
     projectId === 'PRJ-QND-2026' ||
     projectId === 'PRJ-2026-FEE-01' ||
     projectId === 'PRJ-2026-DEMO'
@@ -6356,9 +6360,12 @@ export class EosApiClient {
     } catch {}
 
     if (items.length === 0) {
-      items = [
-        {
-          id: `ws-${projectId}-ceremony`,
+      if (projectId === 'PRJ-TEST-ALL-FORMATS' || projectId === '00000000-0000-4000-8000-000000000099') {
+        items = getSyntheticAllFormatWorkspaces(projectId);
+      } else {
+        items = [
+          {
+            id: `ws-${projectId}-ceremony`,
           projectId,
           name: 'Main Ceremony Scenography & Kinetic Pavilion',
           description: '360° kinetic rings, automated trusses, ceremonial dais, and main entrance portal',
@@ -6403,6 +6410,7 @@ export class EosApiClient {
           updatedAt: new Date().toISOString(),
         },
       ];
+      }
     }
     return items;
   }
@@ -6464,9 +6472,12 @@ export class EosApiClient {
     } catch {}
 
     if (items.length === 0) {
-      items = [
-        {
-          id: 'DES-QND-001',
+      if (projectId === 'PRJ-TEST-ALL-FORMATS' || projectId === '00000000-0000-4000-8000-000000000099') {
+        items = getSyntheticAllFormatDesigns(projectId);
+      } else {
+        items = [
+          {
+            id: 'DES-QND-001',
           projectId,
           workspaceId: `ws-${projectId}-ceremony`,
           title: 'Main Ceremony 360° Kinetic LED Arch & Motorized Truss System',
@@ -6653,6 +6664,7 @@ export class EosApiClient {
           updatedAt: '2026-09-12T10:00:00Z',
         },
       ];
+      }
     }
 
     if (filters?.clientOnly) {
@@ -7145,6 +7157,22 @@ export class EosApiClient {
       });
       if (res.ok) return await res.json();
     } catch {}
+
+    if (projectId === 'PRJ-TEST-ALL-FORMATS' || projectId === '00000000-0000-4000-8000-000000000099') {
+      const items = await this.getDesignItems(projectId);
+      return {
+        totalDesigns: items.length,
+        drafts: items.filter((i) => i.currentStatus === 'draft').length,
+        awaitingInternalReview: items.filter((i) => i.currentStatus === 'internal_review').length,
+        awaitingClientReview: items.filter((i) => i.currentStatus === 'client_review').length,
+        changesRequested: items.filter((i) => i.currentStatus === 'changes_requested').length,
+        approved: items.filter((i) => i.currentStatus === 'approved').length,
+        approvedForProduction: items.filter((i) => i.currentStatus === 'approved_for_production').length,
+        unresolvedComments: 2,
+        releasesAwaitingAcknowledgement: 1,
+        overdueReviews: 0,
+      };
+    }
 
     return {
       totalDesigns: 12,

@@ -23,9 +23,26 @@ export interface UniversalDesignViewerProps {
   onRefresh?: () => void;
 }
 
-type ViewerEngine = '2d_image' | 'pdf_plan' | 'video' | '3d_model';
+export type ViewerEngine = '2d_image' | 'pdf_plan' | 'video' | '3d_model' | 'download_fallback';
 type MarkupTool = 'select' | 'pin' | 'arrow' | 'rectangle' | 'cloud' | 'measure';
 type RightPanelTab = 'comments' | 'versions' | 'details' | 'approvals' | 'activity';
+
+export function getDesignViewerEngine(des: any): ViewerEngine {
+  if (!des) return 'pdf_plan';
+  if (des.viewerEngine) return des.viewerEngine;
+  const ext = (
+    des.fileExtension ||
+    des.fileName?.split('.').pop() ||
+    des.revisions?.[0]?.storageUrl?.split('.').pop() ||
+    ''
+  ).toLowerCase().replace(/^\./, '');
+  if (['obj', 'gltf', 'glb', 'ifc', 'rvt'].includes(ext)) return '3d_model';
+  if (['mp4', 'webm', 'mov'].includes(ext)) return 'video';
+  if (['png', 'jpg', 'jpeg', 'svg', 'psd', 'webp', 'bmp'].includes(ext)) return '2d_image';
+  if (['pdf', 'dwg', 'dxf', 'ai'].includes(ext)) return 'pdf_plan';
+  if (['calc', 'xlsx', 'xls', 'csv', 'mpp', 'zip', 'tar', 'gz'].includes(ext)) return 'download_fallback';
+  return 'pdf_plan';
+}
 
 export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
   projectId,
@@ -36,7 +53,7 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
   onRefresh,
 }) => {
   const [design, setDesign] = useState<any>(initialDesign);
-  const [activeEngine, setActiveEngine] = useState<ViewerEngine>('pdf_plan');
+  const [activeEngine, setActiveEngine] = useState<ViewerEngine>(() => getDesignViewerEngine(initialDesign));
   const [activeTool, setActiveTool] = useState<MarkupTool>('select');
   const [rightTab, setRightTab] = useState<RightPanelTab>('comments');
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState<boolean>(false);
@@ -45,10 +62,48 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
   const [revisions, setRevisions] = useState<any[]>(design?.revisions || []);
 
   useEffect(() => {
-    if (design?.revisions) {
-      setRevisions(design.revisions);
+    if (initialDesign) {
+      setDesign(initialDesign);
+      setActiveEngine(getDesignViewerEngine(initialDesign));
+      if (initialDesign.revisions) {
+        setRevisions(initialDesign.revisions);
+      }
+      if (initialDesign.sampleData) {
+        const ext = (initialDesign.fileExtension || '').replace(/^\./, '');
+        if (ext) {
+          setStoredAssets((prev) => ({
+            ...prev,
+            [ext]: {
+              id: ext,
+              fileName: initialDesign.fileName || `${initialDesign.id}.${ext}`,
+              mimeType: initialDesign.mimeType || 'application/octet-stream',
+              data: initialDesign.sampleData,
+              sizeBytes: initialDesign.sizeBytes || 1024 * 1024,
+              hash: initialDesign.revisions?.[0]?.contentHash || safeSha256(initialDesign.sampleData),
+              uploadedAt: new Date().toISOString(),
+            },
+          }));
+        }
+      }
+      if ((initialDesign.fileExtension === '.obj' || initialDesign.fileName?.endsWith('.obj')) && initialDesign.sampleData) {
+        try {
+          const parsed = parseWavefrontObj(initialDesign.sampleData, initialDesign.fileName || 'model.obj');
+          if (parsed.vertices.length > 0) {
+            setCustomModelMesh(parsed);
+            setUploadedModelName(initialDesign.fileName || 'model.obj');
+          }
+        } catch {}
+      } else if ((initialDesign.fileExtension === '.gltf' || initialDesign.fileName?.endsWith('.gltf')) && initialDesign.sampleData) {
+        try {
+          const parsed = parseGltfMesh(initialDesign.sampleData, initialDesign.fileName || 'model.gltf');
+          if (parsed.vertices.length > 0) {
+            setCustomModelMesh(parsed);
+            setUploadedModelName(initialDesign.fileName || 'model.gltf');
+          }
+        } catch {}
+      }
     }
-  }, [design?.revisions]);
+  }, [initialDesign]);
 
   const [selectedRevCode, setSelectedRevCode] = useState<string>(
     design?.currentRevisionCode || (revisions[revisions.length - 1]?.revisionCode ?? 'Rev A')
@@ -384,8 +439,13 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
         blob = new Blob([asset.data as any], { type: asset.mimeType });
       }
     } else {
-      blob = new Blob([fallbackContent || 'E3-EOS-ASSET-STORED-BINARY'], {
-        type: mimeType || 'application/octet-stream',
+      finalFileName = design?.fileName || assetKeyOrFilename;
+      if (!finalFileName.includes('.')) {
+        finalFileName = `${finalFileName}${design?.fileExtension || '.dat'}`;
+      }
+      const dataToDownload = fallbackContent || design?.sampleData || 'E3-EOS-ASSET-STORED-BINARY';
+      blob = new Blob([dataToDownload], {
+        type: mimeType || design?.mimeType || 'application/octet-stream',
       });
     }
 
@@ -1011,6 +1071,23 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
           >
             🎬 Video Simulation
           </button>
+          {activeEngine === 'download_fallback' && (
+            <button
+              onClick={() => setActiveEngine('download_fallback')}
+              style={{
+                background: '#059669',
+                color: '#ffffff',
+                border: 'none',
+                padding: '5px 10px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 600,
+              }}
+            >
+              📥 Direct Download Asset
+            </button>
+          )}
         </div>
 
         {/* Right: Revision Selector & Comparison Controls */}
@@ -2429,6 +2506,231 @@ export const UniversalDesignViewer: React.FC<UniversalDesignViewerProps> = ({
                       ))}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Engine 5: Direct Download & Specification Inspection Card */}
+              {activeEngine === 'download_fallback' && (
+                <div
+                  style={{
+                    width: '88%',
+                    maxWidth: '850px',
+                    maxHeight: '90%',
+                    overflowY: 'auto',
+                    backgroundColor: '#0c121e',
+                    border: '1px solid #1e293b',
+                    borderRadius: '12px',
+                    padding: '28px',
+                    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '18px',
+                  }}
+                >
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div
+                        style={{
+                          width: '52px',
+                          height: '52px',
+                          borderRadius: '10px',
+                          backgroundColor: '#064e3b',
+                          border: '1px solid #059669',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '26px',
+                        }}
+                      >
+                        {design?.fileExtension === '.calc'
+                          ? '📊'
+                          : design?.fileExtension === '.xlsx'
+                          ? '📑'
+                          : design?.fileExtension === '.mpp'
+                          ? '📅'
+                          : design?.fileExtension === '.zip'
+                          ? '🗄️'
+                          : '📥'}
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                            {design?.fileName || `${design?.id || 'Design'}${design?.fileExtension || ''}`}
+                          </h3>
+                          <Badge variant="success" size="sm">
+                            {design?.fileExtension || 'DOWNLOAD ONLY'}
+                          </Badge>
+                        </div>
+                        <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+                          {design?.title || 'Contract & Engineering Specification Asset'}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      onClick={() => handleDownloadAsset(design?.fileExtension?.replace(/^\./, '') || 'file', design?.mimeType, design?.sampleData)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#059669', borderColor: '#059669' }}
+                    >
+                      <span>📥 Download File</span>
+                    </Button>
+                  </div>
+
+                  {/* Capability notice banner */}
+                  <div
+                    style={{
+                      backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      borderRadius: '8px',
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>ℹ️</span>
+                    <div style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: '1.4' }}>
+                      <strong>Design Format Capability: Direct Download Only</strong>
+                      <br />
+                      This asset format ({design?.fileExtension}) requires specialized desktop engineering/management software (such as Microsoft Excel, MS Project, or PE Structural analysis tools). In-browser viewport markup is disabled to preserve full native calculation precision, macros, and cryptographic signatures.
+                    </div>
+                  </div>
+
+                  {/* Metadata Grid */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                      gap: '12px',
+                      backgroundColor: '#080d17',
+                      padding: '14px',
+                      borderRadius: '8px',
+                      border: '1px solid #1e293b',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>File Size</div>
+                      <div style={{ fontSize: '13px', color: '#f8fafc', fontWeight: 600, marginTop: '2px' }}>
+                        {design?.sizeBytes ? `${(design.sizeBytes / (1024 * 1024)).toFixed(1)} MB` : '4.0 MB'}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>MIME Type</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'monospace', marginTop: '2px', wordBreak: 'break-all' }}>
+                        {design?.mimeType || 'application/octet-stream'}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Current Revision</div>
+                      <div style={{ fontSize: '13px', color: '#f59e0b', fontWeight: 700, marginTop: '2px' }}>
+                        {selectedRevCode} ({activeRev?.releaseStatus || design?.currentStatus})
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Governance Gate</div>
+                      <div style={{ fontSize: '12px', color: '#10b981', fontWeight: 600, marginTop: '2px' }}>
+                        POL-DES-01 Certified
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SHA-256 Checksum */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>SHA-256 Authenticity Checksum:</div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        backgroundColor: '#060a12',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #1e293b',
+                        fontFamily: 'monospace',
+                        fontSize: '11px',
+                        color: '#38bdf8',
+                        wordBreak: 'break-all',
+                      }}
+                    >
+                      <span>🔒 {activeRev?.contentHash || design?.revisions?.[0]?.contentHash || 'sha256-verified-tamper-evident-hash'}</span>
+                    </div>
+                  </div>
+
+                  {/* Sample Data or File Content Preview (if text) */}
+                  {design?.sampleData && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>
+                        Specification Preview / Calculation Summary:
+                      </div>
+                      <pre
+                        style={{
+                          margin: 0,
+                          padding: '12px',
+                          backgroundColor: '#060a12',
+                          borderRadius: '6px',
+                          border: '1px solid #1e293b',
+                          color: '#cbd5e1',
+                          fontSize: '11px',
+                          lineHeight: '1.4',
+                          maxHeight: '150px',
+                          overflowY: 'auto',
+                          whiteSpace: 'pre-wrap',
+                          fontFamily: 'monospace',
+                        }}
+                      >
+                        {design.sampleData.slice(0, 1000)}
+                        {design.sampleData.length > 1000 ? '\n... [truncated]' : ''}
+                      </pre>
+                    </div>
+                  )}
+
+                  {/* Revisions Download List */}
+                  {revisions.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase' }}>
+                        Available Revisions for Download ({revisions.length})
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {revisions.map((rev: any) => (
+                          <div
+                            key={rev.revisionCode}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '8px 12px',
+                              borderRadius: '6px',
+                              backgroundColor: rev.revisionCode === selectedRevCode ? '#1e293b' : '#080d17',
+                              border: '1px solid #1e293b',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <Badge variant={rev.revisionCode === selectedRevCode ? 'warning' : 'neutral'} size="sm">
+                                {rev.revisionCode}
+                              </Badge>
+                              <span style={{ fontSize: '12px', color: '#f8fafc', fontWeight: 500 }}>
+                                {rev.fileName || `${design?.title} ${rev.revisionCode}`}
+                              </span>
+                              {rev.uploadedAt && (
+                                <span style={{ fontSize: '11px', color: '#64748b' }}>
+                                  ({new Date(rev.uploadedAt).toLocaleDateString()})
+                                </span>
+                              )}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownloadAsset(rev.fileName || `${design?.id}-${rev.revisionCode}${design?.fileExtension}`, design?.mimeType, design?.sampleData)}
+                              style={{ fontSize: '11px', padding: '3px 10px' }}
+                            >
+                              ⬇️ Download
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
