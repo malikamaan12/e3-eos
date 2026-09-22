@@ -1699,7 +1699,7 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       );
       expect(lab).toBeDefined();
       expect(lab?.title || (lab as any)?.name).toBe('Universal File Formats & Design Testing Lab');
-      expect(lab?.clientName).toBe('Universal Formats QA Testing');
+      expect((lab as any)?.clientName).toBe('Universal Formats QA Testing');
 
       // Test cockpit resolution
       const cockpit = await client.getCockpit('PRJ-TEST-ALL-FORMATS');
