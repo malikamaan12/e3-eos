@@ -2,7 +2,7 @@
   "buildCommand": "node scripts/build-web-vercel.cjs",
   "outputDirectory": "dist",
   "framework": "vite",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --prod=false",
   "headers": [
     {
       "source": "/sw.js",
