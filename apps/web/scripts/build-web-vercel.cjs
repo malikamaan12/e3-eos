@@ -24,8 +24,13 @@ try {
   pnpmCmd = 'npx pnpm';
 }
 
-console.log('[Vercel Build] Building @e3-eos/web with ' + pnpmCmd + '...');
-execSync(pnpmCmd + ' --filter @e3-eos/web build', { cwd: repoRoot, stdio: 'inherit' });
+console.log('[Vercel Build] Building packages & @e3-eos/web with ' + pnpmCmd + '...');
+try {
+  execSync(pnpmCmd + ' -r run build', { cwd: repoRoot, stdio: 'inherit' });
+} catch (err) {
+  console.warn('[Vercel Build] pnpm -r run build warning, falling back to direct web build:', err.message);
+  execSync(pnpmCmd + ' --filter @e3-eos/web build', { cwd: repoRoot, stdio: 'inherit' });
+}
 
 const srcDist = path.join(repoRoot, 'apps', 'web', 'dist');
 const targetLocations = [

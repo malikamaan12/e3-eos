@@ -1,5 +1,5 @@
 // E3-EOS Field Operations Service Worker (P04 / M13 Bounded Offline Engine)
-const CACHE_NAME = 'e3-eos-v1.0.0';
+const CACHE_NAME = 'e3-eos-v1.0.4-all-formats';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -36,6 +36,21 @@ self.addEventListener('fetch', (event) => {
 
   // Pass API calls through network directly
   if (request.url.includes('/api/')) {
+    return;
+  }
+
+  // Network-first for navigation requests (HTML document) to ensure users always receive the latest release
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse.clone()));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('/')))
+    );
     return;
   }
 

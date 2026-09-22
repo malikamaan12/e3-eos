@@ -3,7 +3,20 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "installCommand": "pnpm install",
-  "ignoreCommand": "node -e \"process.exit(process.env.VERCEL_GIT_COMMIT_REF === 'main' ? 1 : 0)\"",
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "x-e3-release", "value": "1.0.4-all-formats-lab" }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
