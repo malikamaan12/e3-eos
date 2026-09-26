@@ -1,0 +1,340 @@
+{
+  "environment": "Loopback API localhost:4000; loopback PostgreSQL; isolated synthetic fixtures",
+  "confidentiality": "No raw invitation tokens, links, passwords, delivery key, or sessions are included in evidence. Temporary fixture state is encrypted and removed after cleanup.",
+  "checks": [
+    {
+      "name": "Isolated synthetic fixtures",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.314Z",
+      "evidence": {
+        "organisations": 2,
+        "users": 6,
+        "memberships": 6,
+        "passwordCredentials": 1,
+        "externalMessages": 0,
+        "initialApiPid": 4780
+      }
+    },
+    {
+      "name": "Live admin capabilities and no-store header",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.385Z",
+      "evidence": {
+        "httpStatus": 200,
+        "canInvite": true,
+        "canCancelInvitations": true,
+        "cacheControl": "no-store"
+      }
+    },
+    {
+      "name": "Forged headers cannot establish authentication",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.391Z",
+      "evidence": {
+        "httpStatus": 401,
+        "code": "UNAUTHENTICATED"
+      }
+    },
+    {
+      "name": "Executive cannot create an invitation",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.407Z",
+      "evidence": {
+        "httpStatus": 403,
+        "code": "FORBIDDEN_ROLE"
+      }
+    },
+    {
+      "name": "Cookie command without Origin is rejected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.422Z",
+      "evidence": {
+        "httpStatus": 403,
+        "code": "UNTRUSTED_REQUEST_ORIGIN"
+      }
+    },
+    {
+      "name": "Cookie command with hostile Origin is rejected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.428Z",
+      "evidence": {
+        "httpStatus": 403,
+        "code": "UNTRUSTED_REQUEST_ORIGIN"
+      }
+    },
+    {
+      "name": "Browser Bearer command with hostile Origin is rejected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.437Z",
+      "evidence": {
+        "httpStatus": 403,
+        "code": "UNTRUSTED_REQUEST_ORIGIN"
+      }
+    },
+    {
+      "name": "Origin rejections have no database effects",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.440Z",
+      "evidence": {
+        "unchanged": true
+      }
+    },
+    {
+      "name": "Allowed-origin cookie creation queues delivery",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.470Z",
+      "evidence": {
+        "httpStatus": 201,
+        "code": null
+      }
+    },
+    {
+      "name": "Hashed token and encrypted queued delivery without membership",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.477Z",
+      "evidence": {
+        "tokenColumn": null,
+        "tokenHashVerified": true,
+        "encryptedFragmentLink": true,
+        "plaintextTokenInStoredPayloadOrReceipt": false,
+        "membershipCount": 6
+      }
+    },
+    {
+      "name": "Non-browser Bearer creation replay",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.490Z",
+      "evidence": {
+        "httpStatus": 201,
+        "identicalReceipt": true
+      }
+    },
+    {
+      "name": "Public token inspection with no-store",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.508Z",
+      "evidence": {
+        "httpStatus": 201,
+        "requiresExistingSignIn": false,
+        "cacheControl": "no-store"
+      }
+    },
+    {
+      "name": "Scoped invitation list excludes another organisation",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.541Z",
+      "evidence": {
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "crossOrganisationRows": 0
+      }
+    },
+    {
+      "name": "Forged organisation selection is rejected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.555Z",
+      "evidence": {
+        "httpStatus": 401,
+        "code": "UNAUTHENTICATED"
+      }
+    },
+    {
+      "name": "Privileged invitation role is denied",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.574Z",
+      "evidence": {
+        "httpStatus": 403,
+        "code": "INVITATION_ROLE_NOT_ALLOWED"
+      }
+    },
+    {
+      "name": "Existing account cannot accept anonymously",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.620Z",
+      "evidence": {
+        "httpStatus": 401,
+        "code": "INVITATION_SIGN_IN_REQUIRED"
+      }
+    },
+    {
+      "name": "Existing account requires the matching session",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.627Z",
+      "evidence": {
+        "httpStatus": 401,
+        "code": "INVITATION_SIGN_IN_REQUIRED"
+      }
+    },
+    {
+      "name": "Existing account accepts with its own session",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.644Z",
+      "evidence": {
+        "httpStatus": 201,
+        "code": null
+      }
+    },
+    {
+      "name": "Existing account credentials and profile remain unchanged",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.645Z",
+      "evidence": {
+        "exactNameEmailVerificationAndPasswordHashPreserved": true
+      }
+    },
+    {
+      "name": "New account accepts once",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.690Z",
+      "evidence": {
+        "httpStatus": 201,
+        "code": null
+      }
+    },
+    {
+      "name": "Same-key acceptance replay has one membership and audit",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.738Z",
+      "evidence": {
+        "httpStatus": 201,
+        "identicalReceipt": true,
+        "creation_audit": 1,
+        "acceptance_audit": 1,
+        "memberships": 1,
+        "receipts": 2
+      }
+    },
+    {
+      "name": "Changed new-account name conflicts with receipt",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.758Z",
+      "evidence": {
+        "httpStatus": 409,
+        "code": "IDEMPOTENCY_CONFLICT"
+      }
+    },
+    {
+      "name": "Consumed invitation rejects a different key",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.774Z",
+      "evidence": {
+        "httpStatus": 410,
+        "code": "INVITATION_NOT_AVAILABLE"
+      }
+    },
+    {
+      "name": "Cancellation commits through trusted cookie origin",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.810Z",
+      "evidence": {
+        "httpStatus": 201,
+        "code": null
+      }
+    },
+    {
+      "name": "Cancelled token cannot be inspected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.814Z",
+      "evidence": {
+        "httpStatus": 410,
+        "code": "INVITATION_NOT_AVAILABLE"
+      }
+    },
+    {
+      "name": "Cancellation stops the pending delivery row",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.821Z",
+      "evidence": {
+        "outboxStatus": "cancelled"
+      }
+    },
+    {
+      "name": "Expired token is rejected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.857Z",
+      "evidence": {
+        "httpStatus": 410,
+        "code": "INVITATION_NOT_AVAILABLE"
+      }
+    },
+    {
+      "name": "Synthetic issuer can be durably revoked",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.892Z",
+      "evidence": {
+        "httpStatus": 201,
+        "code": null
+      }
+    },
+    {
+      "name": "Revoked issuer makes invitation unavailable",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.906Z",
+      "evidence": {
+        "httpStatus": 410,
+        "code": "INVITATION_NOT_AVAILABLE"
+      }
+    },
+    {
+      "name": "Durable audit metadata is discoverable over HTTP",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.923Z",
+      "evidence": {
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "acceptanceEventPresent": true
+      }
+    },
+    {
+      "name": "Preview-only pending fixtures prepared",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.961Z",
+      "evidence": {
+        "pendingPreviews": 2,
+        "kinds": [
+          "new-account",
+          "existing-account"
+        ],
+        "deterministicNonsecretFixtureTokens": true,
+        "originalEncryptedDeliveryUnusable": true,
+        "browserAcceptanceAuthorised": false
+      }
+    },
+    {
+      "name": "Fixtures retained for independent-process replay",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:56:02.966Z",
+      "evidence": {
+        "nextAction": "Root restarts API; run replay, then cleanup."
+      }
+    },
+    {
+      "name": "Independent-process creation and acceptance replay",
+      "status": "PASS",
+      "timestamp": "2026-09-26T10:01:19.637Z",
+      "evidence": {
+        "initialApiPid": 4780,
+        "restartedApiPid": 24088,
+        "creationHttpStatus": 201,
+        "acceptanceHttpStatus": 201,
+        "identicalReceipts": true,
+        "unchangedRowCounts": true,
+        "creation_audit": 1,
+        "acceptance_audit": 1,
+        "memberships": 1,
+        "receipts": 2
+      }
+    },
+    {
+      "name": "Exact synthetic fixture cleanup",
+      "status": "PASS",
+      "timestamp": "2026-09-26T10:01:35.767Z",
+      "evidence": {
+        "organisationsRemoved": 2,
+        "usersRemoved": 7,
+        "ownedUsersAndOrganisationsRemaining": 0,
+        "encryptedStateFileRemoved": true
+      }
+    }
+  ]
+}

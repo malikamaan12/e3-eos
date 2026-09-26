@@ -1,7 +1,11 @@
-import { describe, it, expect, afterAll } from 'vitest';
+import { describe, it, expect, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import { ConstraintsController } from '../apps/api/src/operations/constraints.controller.js';
 import { DocumentsController } from '../apps/api/src/documents/documents.controller.js';
 import { DbService } from '../apps/api/src/common/db.service.js';
+
+// Direct compatibility fixtures are not evidence of an authorised HTTP workflow.
+beforeEach(() => { vi.stubEnv('NODE_ENV', 'test'); vi.stubEnv('ENVIRONMENT', 'test'); vi.stubEnv('EOS_ENABLE_LOCAL_SYNTHETIC_AUTH', 'true'); });
+afterEach(() => vi.unstubAllEnvs());
 
 describe('Multi-Instance Cloud Run Durability Suite (Directive 8)', () => {
   const projectId = '00000000-0000-4000-8000-000000000001';

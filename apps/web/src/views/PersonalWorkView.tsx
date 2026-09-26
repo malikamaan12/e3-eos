@@ -10,14 +10,15 @@ export const PersonalWorkView: React.FC = () => {
   const { client } = useEosApi();
 
   const [activeTab, setActiveTab] = useState('approvals');
+  const [approvalError, setApprovalError] = useState<string | null>(null);
   const [signedItems, setSignedItems] = useState<string[]>([]);
   const [inspectingItem, setInspectingItem] = useState<any | null>(null);
   const [dbApprovals, setDbApprovals] = useState<any[]>([]);
 
   useEffect(() => {
     client.getApprovalRequests(selectedProjectId).then((reqs) => {
-      if (reqs && reqs.length > 0) {
-        setDbApprovals(reqs.map((r: any) => ({
+      if (reqs) {
+        setDbApprovals(reqs.filter((r: any) => r.status === 'pending').map((r: any) => ({
           id: r.id,
           title: `Formal Sign-off: ${r.targetType?.toUpperCase()} (${r.targetId?.slice(0, 8)})`,
           stage: 'Stage 06: Delivery Execution',
@@ -26,54 +27,32 @@ export const PersonalWorkView: React.FC = () => {
           requiresDualSignature: true,
           policyId: 'POL-GOV-01',
           notes: r.reason || 'Requested sign-off for operational clearance.',
-          targetHash: r.targetHash || 'hash-genesis',
+          targetHash: r.targetHash,
+          targetVersionId: r.targetVersionId,
         })));
       }
-    }).catch(() => {});
+    }).catch((error: Error) => { setDbApprovals([]); setApprovalError(error.message); });
   }, [selectedProjectId, refreshTrigger, client]);
 
-  const defaultApprovals = [
-    {
-      id: 'appr-01',
-      title: 'Technical Drawings Freeze: Main Stage AV Rigging v2.4',
-      stage: 'Stage 04: Technical Design',
-      type: 'Drawings Release',
-      requestedBy: 'Elena Rostova (Lead CAD Engineer)',
-      requiresDualSignature: true,
-      policyId: 'POL-ENG-04',
-      notes: 'Requires Project Director sign-off before fabrication release.',
-      targetHash: '4a6b8c...9f21',
-    },
-    {
-      id: 'appr-02',
-      title: 'Purchase Order PO-2026-089: High-Output LED Screen Panels',
-      stage: 'Stage 07: Procurement',
-      type: 'Commercial PO',
-      amount: '30,000 QAR',
-      requestedBy: 'Tariq Al-Mansoor (Procurement Lead)',
-      requiresDualSignature: true,
-      policyId: 'POL-FIN-02',
-      notes: 'Within contracted framework ceiling of 100,000 QAR.',
-      targetHash: '8b1c3d...2e44',
-    },
-  ];
+  const allPending = dbApprovals;
 
-  const allPending = [...dbApprovals, ...defaultApprovals];
-
-  const handleSign = async (id: string, targetHash?: string) => {
+  const handleSign = async (id: string, _targetHash?: string) => {
+    const item = dbApprovals.find(approval => approval.id === id);
+    if (!item) return;
+    setApprovalError(null);
     try {
       await client.decideApproval(selectedProjectId, id, {
         outcome: 'approved',
-        comment: 'Executive sign-off recorded with cryptographic audit entry.',
-        targetHash: targetHash || 'hash-genesis',
+        comment: 'Reviewed version approved from personal work.',
+        targetHash: item.targetHash,
+        targetVersionId: item.targetVersionId,
       });
+      setSignedItems(prev => [...prev, id]);
       triggerRefresh();
-    } catch {
-      // fallback
+    } catch (error) {
+      setApprovalError(error instanceof Error ? error.message : 'Decision could not be saved.');
     }
-    setSignedItems((prev) => [...prev, id]);
   };
-
   const tabs = [
     { id: 'approvals', label: currentLanguage === 'ar' ? 'الموافقات المعلقة' : 'Pending Approvals', badge: Math.max(0, allPending.length - signedItems.length) },
     { id: 'tasks', label: currentLanguage === 'ar' ? 'مهام التسليم الشخصية' : 'Assigned Deliverables', badge: 3 },
@@ -84,6 +63,7 @@ export const PersonalWorkView: React.FC = () => {
 
   return (
     <div data-testid="personal-workspace">
+      {approvalError && <p role="alert" style={{ color: 'var(--status-critical-fg)' }}>{approvalError}</p>}
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
           {currentLanguage === 'ar' ? 'مساحة العمل الشخصية والموافقات' : 'Personal Work & Governance Approvals'}

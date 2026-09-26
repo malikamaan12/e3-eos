@@ -222,7 +222,7 @@ describe('No Invented Structural Fallbacks & Safety Blocking Suite (Directive 7 
     }
   });
 
-  it('SAFE-03: End-to-end API lifecycle: creates unverified floor load, verifies it, and confirms Gantt schedule unblocks', async () => {
+  it('SAFE-03: verification persists to the constraint register without conferring schedule access', async () => {
     const req = { sessionUser: structuralEngineer, organisationId: orgId } as any;
 
     // 1. Create fresh floor load constraint
@@ -260,15 +260,16 @@ describe('No Invented Structural Fallbacks & Safety Blocking Suite (Directive 7 
     expect(verifyRes.data.verificationStatus).toBe('Verified');
     expect(verifyRes.data.verifiedBy).toBe('Eng. Bilal Qasim (Structural Engineer)');
 
-    // 4. Query Gantt schedule endpoint to ensure live schedule reflects verified state
-    const ganttRes = await workController.getGanttSchedule(projectId);
-    expect(ganttRes.data.operationalConstraints).toBeDefined();
-
-    const verifiedConstraintInDb = ganttRes.data.operationalConstraints.constraints.find(
+    // Read the persisted verification from its register. A verified constraint
+    // alone cannot fabricate a schedule or substitute for a current session.
+    const register = await constraintsController.listConstraints(projectId, req);
+    const verifiedConstraintInDb = register.data.find(
       (c: any) => c.id === createdConstraintId
     );
     expect(verifiedConstraintInDb).toBeDefined();
     expect(verifiedConstraintInDb.verificationStatus).toBe('Verified');
     expect(verifiedConstraintInDb.limitValue).toBe(2500);
+    await expect(workController.getGanttSchedule(projectId, { organisationId: orgId, headers: {} } as any))
+      .rejects.toMatchObject({ status: 401 });
   });
 });

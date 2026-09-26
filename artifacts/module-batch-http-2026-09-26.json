@@ -1,0 +1,414 @@
+{
+  "runId": "b6416cad-45af-4df8-aa21-1f526f7244db",
+  "scope": "Loopback-only ephemeral fixtures. No existing users, grants or operational data changed. No external messages or files.",
+  "restartEvidence": {
+    "performed": true,
+    "previousApiPid": 39780,
+    "newApiPid": 19180
+  },
+  "checks": [
+    {
+      "name": "Create isolated durable project",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated durable project",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated durable project",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Work package persists with pending acceptance",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Work package exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Viewer cannot create work packages",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Foreign owner cannot be assigned",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Task persists at row version one",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Task exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Cross-project work package rejected",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Field worker cannot complete another assignment",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Viewer cannot complete task",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Completion requires version",
+      "status": "PASS",
+      "httpStatus": 428
+    },
+    {
+      "name": "Complete task without accepting package",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Task completion exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Stale task version rejected",
+      "status": "PASS",
+      "httpStatus": 412
+    },
+    {
+      "name": "Create assigned field task",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Field list contains only assigned work",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Field worker completes own assignment",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Acceptance is not falsely reported as implemented",
+      "status": "PASS",
+      "httpStatus": 503
+    },
+    {
+      "name": "Client cannot forge internal work audience",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Foreign organization cannot read work",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Document draft persists without file claims",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Document exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Viewer cannot register document",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Caller cannot inject storage path or hash",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "PM cannot register commercial-sensitive classification",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Authorized internal role registers sensitive metadata",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Document classification applies before listing",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Sensitive document cannot be obtained by id",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revision metadata remains unscanned and undownloadable",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Document revision exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Stale document row version rejected",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Cross-project document revision denied",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Caller cannot inject file scan outcomes",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Client cannot forge internal document audience",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "No fake file bytes, storage path, hash, size or accepted scan",
+      "status": "PASS"
+    },
+    {
+      "name": "Legacy transmittal cannot falsely publish",
+      "status": "PASS",
+      "httpStatus": 503
+    },
+    {
+      "name": "Report snapshots canonical records as internal draft",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Report exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Report rejects user-provided authoritative financial facts",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Report rejects invalid calendar date",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Report rejects reversed date period",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Viewer cannot create reports",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Client cannot forge internal report audience",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Field role cannot read broad report",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Cross-project report lookup denied",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Report revision captures current state and retains old version",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Report revision exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Prior report version preserves original snapshot and hash",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Stale report revision rejected",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Report list shows latest series version only",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Database rejects overwritten report snapshot",
+      "status": "PASS"
+    },
+    {
+      "name": "Publication stays unavailable until controlled approval path",
+      "status": "PASS",
+      "httpStatus": 503
+    },
+    {
+      "name": "Portfolio aggregates only explicitly granted projects",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Viewer portfolio excludes ungranted projects",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Client cannot access internal portfolio aggregate",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Other organization portfolio reveals no local projects",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "API process restart confirmed by controlling task",
+      "status": "PASS",
+      "performed": true,
+      "previousApiPid": 39780,
+      "newApiPid": 19180
+    },
+    {
+      "name": "Task completion receipt survives API restart or reload",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Document revision receipt survives API restart or reload",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Report revision receipt survives API restart or reload",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Report version and hash persist across process boundary",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Revoke isolated editor project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Revoked grant denies tasks",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant denies work-packages",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant denies documents",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant denies reports",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant cannot replay an earlier successful task command",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant cannot replay a report creation receipt",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Portfolio updates immediately after grant revocation",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Atomic command cardinality and matching effect identities",
+      "status": "PASS",
+      "audit": 21,
+      "outbox": 21,
+      "receipts": 21
+    },
+    {
+      "name": "Exact isolated fixture cleanup",
+      "status": "PASS",
+      "users": 7,
+      "organisations": 2
+    }
+  ]
+}

@@ -3,26 +3,29 @@ import { ALL_STAGE_ACTIVITIES } from '@e3-eos/domain';
 
 import { execSync } from 'child_process';
 
-function getEnvironment(): string {
-  const kService = (process.env.K_SERVICE || '').toLowerCase();
-  if (kService.includes('staging')) return 'staging';
-  const env = (process.env.ENVIRONMENT || process.env.NODE_ENV || '').trim().toLowerCase();
-  if (env === 'production' && !kService.includes('production')) {
-    // If not explicitly a production Cloud Run service, default to staging
-    return 'staging';
+export type RuntimeEnvironment = 'local' | 'development' | 'test' | 'staging' | 'preview' | 'production' | 'unknown';
+
+export function getEnvironment(): RuntimeEnvironment {
+  const configured = process.env.ENVIRONMENT?.trim().toLowerCase();
+  if (configured) {
+    const recognized: RuntimeEnvironment[] = ['local', 'development', 'test', 'staging', 'preview', 'production'];
+    return recognized.includes(configured as RuntimeEnvironment) ? configured as RuntimeEnvironment : 'unknown';
   }
-  return env || 'staging';
+  const nodeEnvironment = process.env.NODE_ENV?.trim().toLowerCase();
+  return nodeEnvironment === 'development' || nodeEnvironment === 'test' || nodeEnvironment === 'production'
+    ? nodeEnvironment
+    : 'unknown';
 }
 
 export function resolveGitCommit(): string {
-  if (process.env.GIT_COMMIT) return process.env.GIT_COMMIT;
-  if (process.env.BUILD_SHA) return process.env.BUILD_SHA;
-  if (process.env.VERCEL_GIT_COMMIT_SHA) return process.env.VERCEL_GIT_COMMIT_SHA;
+  for (const configured of [process.env.GIT_COMMIT, process.env.BUILD_SHA, process.env.VERCEL_GIT_COMMIT_SHA]) {
+    if (configured?.trim()) return configured.trim();
+  }
   try {
     const rev = execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
     if (rev) return rev;
   } catch {}
-  return '22eb92b7617b700140798e1467bece201991d798';
+  return 'unknown';
 }
 
 export const GIT_COMMIT = resolveGitCommit();
@@ -49,7 +52,8 @@ export class HealthController {
     const uptimeSeconds = Math.floor((Date.now() - this.startTime) / 1000);
 
     return {
-      status: 'healthy',
+      status: 'ok',
+      checkScope: 'process_liveness',
       version: '1.0.0',
       service: 'e3-eos-api',
       environment: getEnvironment(),
@@ -58,10 +62,10 @@ export class HealthController {
       uptimeSeconds,
       timestamp: new Date().toISOString(),
       governance: {
-        multiTenantIsolation: 'enforced',
-        idempotencyEnforcement: 'active',
-        documentQuarantineService: 'active',
-        cryptographicAuditing: 'enabled',
+        multiTenantIsolation: 'not_verified',
+        idempotencyEnforcement: 'not_verified',
+        documentQuarantineService: 'not_verified',
+        cryptographicAuditing: 'not_verified',
       },
       catalog: {
         totalStageActivities: ALL_STAGE_ACTIVITIES.length,

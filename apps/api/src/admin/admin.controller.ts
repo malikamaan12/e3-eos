@@ -9,212 +9,30 @@ import {
   UseFilters,
   UseGuards,
   Optional,
+  Req,
+  Header,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { DbService } from '../common/db.service.js';
-import { EmailDispatcherService } from '../common/email.service.js';
-import { TenantIsolationGuard, RequireRoles, Public } from '../common/tenant.guard.js';
-import crypto from 'crypto';
+import { TenantIsolationGuard, RequireRoles, Public, AllowedAudiences } from '../common/tenant.guard.js';
+import { localSyntheticAuthEnabled, readSessionToken } from '../auth/local-synthetic-auth.js';
 import { CommercialApprovalPolicyRegistry } from '@e3-eos/policy';
-import { LOCAL_TEAM_ACCOUNTS } from '@e3-eos/domain';
+import { normalizeRole, CANONICAL_ROLES, CANONICAL_ROLE_DEFINITIONS } from '@e3-eos/domain';
+import { ALLOWED_MEMBERSHIP_ROLES } from '../identity/membership-admin.service.js';
+import { ALLOWED_INVITATION_ROLES, invitationDeliveryConfigured } from '../identity/invitation.service.js';
 
-export const CANONICAL_ROLES_CATALOG = [
-  {
-    role: 'super_admin',
-    title: 'Super Admin',
-    description: 'Unrestricted system-wide configuration, tenant management, and root governance.',
-    permissions: ['*'],
-    can: [
-      'Configure tenant settings, authentication policies, and security controls',
-      'Provision users, assign roles, and audit access permissions',
-      'Manage database migrations and system-level integrations',
-    ],
-    cannot: [
-      'Bypass project stage gate approval policies without generating an immutable audit trail',
-      'Act as sole approver on commercial transactions where four-eyes principle is enforced',
-    ],
-  },
-  {
-    role: 'executive',
-    title: 'Executive Partner',
-    description: 'Executive oversight, commercial portfolio sign-offs, four-eyes gate approvals.',
-    permissions: ['portfolio.read', 'approvals.decide', 'commercial.approve', 'governance.override'],
-    can: [
-      'Authorize commercial commitments and purchase orders ≥ 250,000 QAR (POL-COMM-03)',
-      'Review cross-portfolio executive dashboards and strategic margin reports',
-      'Approve final handover stage gates and commercial settlements',
-    ],
-    cannot: [
-      'Directly alter engineering site tasks or field supervisor assignments',
-      'Modify database schema or tenant authentication settings',
-    ],
-  },
-  {
-    role: 'project_director',
-    title: 'Project Director',
-    description: 'Multi-project direction, stage progression authorisation, major budget variations.',
-    permissions: ['project.create', 'project.manage', 'stage.progress', 'approvals.decide'],
-    can: [
-      'Direct multi-project stage progression across all 13 lifecycle stages',
-      'Approve project-level variation orders and lead project managers',
-      'Allocate high-level budget envelopes across project workstreams',
-    ],
-    cannot: [
-      'Approve single commitments exceeding 250,000 QAR without Executive co-signature',
-      'Modify system security or tenant configuration',
-    ],
-  },
-  {
-    role: 'project_manager',
-    title: 'Project Manager (Lead PM)',
-    description: 'Full 13-stage lifecycle delivery, task assignment, daily blockers, and vendor call-offs.',
-    permissions: ['project.manage', 'tasks.manage', 'approvals.request', 'procurement.request'],
-    can: [
-      'Manage day-to-day 13-stage project delivery, milestones, and workstreams',
-      'Assign and complete project tasks, coordinate vendor call-offs',
-      'Submit approval requests and approve commitments up to 50,000 QAR (POL-COMM-01)',
-    ],
-    cannot: [
-      'Approve own commitment requests or self-authorize stage progression',
-      'Approve commercial commitments exceeding 50,000 QAR without Finance / Exec escalation',
-    ],
-  },
-  {
-    role: 'finance',
-    title: 'Financial Controller',
-    description: 'BOQ pricing, PO commitment validation, contractor rates, invoice reconciliation.',
-    permissions: ['finance.manage', 'boq.manage', 'po.approve', 'eac.recalculate'],
-    can: [
-      'Approve commercial commitments between 50,000 QAR and 250,000 QAR (POL-COMM-02)',
-      'Validate BOQ pricing, baseline costs, and EAC calculations',
-      'Authorize supplier payment releases and financial invoice reconciliations',
-    ],
-    cannot: [
-      'Approve commitments ≥ 250,000 QAR without Executive sign-off',
-      'Direct site operations or sign off on safety / structural clearance permits',
-    ],
-  },
-  {
-    role: 'procurement',
-    title: 'Procurement Manager',
-    description: 'RFQ packages, vendor quote comparisons, framework call-offs, PO generation.',
-    permissions: ['procurement.manage', 'vendor.manage', 'po.create'],
-    can: [
-      'Issue RFQ packages, compare vendor bids, and negotiate supplier framework terms',
-      'Create purchase orders and submit for policy-based authorization',
-      'Manage vendor ratings, supplier catalog, and performance records',
-    ],
-    cannot: [
-      'Self-authorize purchase orders (requires PM, Finance, or Exec per policy)',
-      'Advance project stage gates or modify project scope',
-    ],
-  },
-  {
-    role: 'design_production',
-    title: 'Design / Production Director',
-    description: 'CAD drawings, moodboards, fabrication orders, technical safety specifications.',
-    permissions: ['design.upload', 'design.version', 'production.order', 'specifications.edit'],
-    can: [
-      'Upload, version, and manage CAD drawings, 3D renders, and master technical packs',
-      'Create workshop fabrication orders and scenic construction specifications',
-      'Oversee structural engineering documentation and staging elevations',
-    ],
-    cannot: [
-      'Approve financial budgets or issue external supplier purchase orders',
-      'Progress commercial or financial stage gates',
-    ],
-  },
-  {
-    role: 'operations',
-    title: 'Head of Event Operations',
-    description: 'Site layout, venue clearance, zone safety permits, operational runbooks.',
-    permissions: ['operations.manage', 'safety.permit', 'zones.clear', 'runbooks.execute'],
-    can: [
-      'Plan venue layouts, bump-in schedules, and crowd management plans',
-      'Coordinate security, emergency services, and venue authority clearances',
-      'Clear operational zones for live event activation',
-    ],
-    cannot: [
-      'Authorize commercial budget increases or sign off on procurement contracts',
-      'Delete audit logs or override financial controls',
-    ],
-  },
-  {
-    role: 'logistics',
-    title: 'Logistics & Fleet Manager',
-    description: 'Asset dispatch, serialized warehouse tracking, inventory collision resolution.',
-    permissions: ['inventory.manage', 'dispatch.create', 'returns.inspect'],
-    can: [
-      'Dispatch serialized warehouse inventory and manage fleet transportation',
-      'Scan assets in/out, log asset maintenance, and inspect return conditions',
-      'Flag inventory collisions across overlapping project dates',
-    ],
-    cannot: [
-      'Alter project contractual milestones or commercial terms',
-      'Authorize procurement purchase orders or approve vendor invoices',
-    ],
-  },
-  {
-    role: 'hse_quality',
-    title: 'HSE / Quality Inspector',
-    description: 'Civil Defence approvals, risk assessments, structural checks, snag lists.',
-    permissions: ['hse.inspect', 'incident.log', 'permit.validate'],
-    can: [
-      'Issue safety permits, Civil Defence compliance certificates, and stop-work orders',
-      'Conduct site snag inspections, structural audits, and risk assessments',
-      'Enforce mandatory Stage Gate 09 (HSE & Civil Defence Clearance)',
-    ],
-    cannot: [
-      'Waive mandatory government safety requirements',
-      'Authorize financial disbursements or modify commercial contracts',
-    ],
-  },
-  {
-    role: 'marketing_commercial',
-    title: 'Marketing & Commercial Lead',
-    description: 'Sponsorship tiers, client proposals, public event briefings, turnstile footfall.',
-    permissions: ['commercial.edit', 'proposals.create', 'sponsorship.track'],
-    can: [
-      'Manage sponsorship packages, brand activations, and commercial proposals',
-      'Track client sponsor ROI, hospitality allocations, and public ticketing data',
-      'Update commercial lead pipelines and proposal presentations',
-    ],
-    cannot: [
-      'Issue binding site operational permits or alter engineering runbooks',
-      'Access confidential internal supplier cost margins without authorization',
-    ],
-  },
-  {
-    role: 'field_supervisor',
-    title: 'Field Supervisor',
-    description: 'On-site mobile PWA task execution, photo snag uploads, offline sync queue.',
-    permissions: ['field.inspect', 'snags.create', 'attendance.log'],
-    can: [
-      'Execute assigned daily tasks via mobile PWA on-site',
-      'Upload photo snag records, incident reports, and log workforce attendance',
-      'Sync updates offline/online during active bump-in and live run',
-    ],
-    cannot: [
-      'Approve financial variations, procurement orders, or contractual deliverables',
-      'Access executive portfolio financials or sensitive vendor pricing',
-    ],
-  },
-  {
-    role: 'client_user',
-    title: 'Client Stakeholder',
-    description: 'Client collaboration portal, design sign-offs, milestone tracking (margins redacted).',
-    permissions: ['portal.read', 'design.approve', 'client.signoff'],
-    can: [
-      'Access restricted Client Stakeholder Portal to view milestones and deliverables',
-      'Review and approve submitted design concepts and creative packages',
-      'Sign off on formal stage gate completions (with internal margins redacted)',
-    ],
-    cannot: [
-      'View internal supplier costs, profit margins, or internal team discussions',
-      'Access administrative settings, user management, or internal procurement details',
-    ],
-  },
-];
+// Reference the permissions used by the domain; this is not a grant or an approval policy.
+export const CANONICAL_ROLES_CATALOG = CANONICAL_ROLES.map((role) => ({
+  role,
+  title: CANONICAL_ROLE_DEFINITIONS[role].title,
+  description: role === 'super_admin'
+    ? 'Organization administration. Project access, audience restrictions and business approvals remain separate controls.'
+    : role === 'project_manager'
+      ? 'Project delivery, task coordination and approval requests within assigned scope.'
+      : CANONICAL_ROLE_DEFINITIONS[role].description,
+  permissions: [...CANONICAL_ROLE_DEFINITIONS[role].permissions],
+}));
 
 @Controller('admin')
 @UseFilters(ProblemDetailsFilter)
@@ -225,49 +43,107 @@ export class AdminController {
     this.dbService = dbService || new DbService();
   }
 
-  @Get('users')
-  @RequireRoles('super_admin', 'executive')
-  async listUsers() {
-    const pool = this.dbService.getPool();
-    const res = await pool.query(`
-      SELECT u.id, u.email, u.name, u.is_super_admin, u.created_at,
-             m.role, m.audience, o.name as org_name, o.id as org_id
-      FROM users u
-      LEFT JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
-      LEFT JOIN organisations o ON o.id = m.organisation_id
-      ORDER BY u.created_at ASC;
-    `);
+  private async requireCurrentAdmin(req: Request) {
+    const organisationId = (req as any)?.organisationId;
+    const token = req && readSessionToken(req);
+    if (!organisationId || !token) {
+      throw new HttpException({ code: 'UNAUTHENTICATED', detail: 'A current authenticated organisation session is required.' }, HttpStatus.UNAUTHORIZED);
+    }
 
-    const existingEmails = new Set(res.rows.map((r: any) => r.email.toLowerCase()));
-    const missingLocalTeam = LOCAL_TEAM_ACCOUNTS.filter(
-      (m) => !existingEmails.has(m.email.toLowerCase())
-    ).map((m) => ({
-      id: m.id,
-      name: `${m.name} (${m.position})`,
-      email: m.email,
-      isSuperAdmin: m.isSuperAdmin,
-      role: m.isSuperAdmin ? 'super_admin' : m.role,
-      audience: m.role === 'client_user' ? 'client' : 'internal',
-      organisationName: m.role === 'client_user' ? 'Qatar Tourism Authority' : 'E3 Events',
-      organisationId: m.organisationId || '11111111-1111-4111-8111-111111111111',
-      createdAt: new Date().toISOString(),
-    }));
+    let result;
+    try {
+      result = await this.dbService.getPool().query(`
+        SELECT u.id, u.is_super_admin, m.role, m.audience, m.organisation_id
+        FROM sessions s
+        INNER JOIN users u ON u.id = s.user_id
+        INNER JOIN memberships m ON m.user_id = u.id
+        WHERE s.token = $1 AND s.expires_at > NOW()
+          AND m.organisation_id = $2 AND m.is_revoked = false
+        ORDER BY m.created_at, m.id
+        LIMIT 1;
+      `, [token, organisationId]);
+    } catch {
+      throw new HttpException({ code: 'ADMIN_DIRECTORY_UNAVAILABLE', detail: 'Current access could not be verified. Please retry later.' }, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    const actor = result.rows[0];
+    const role = normalizeRole(actor?.role || '');
+    if (!actor || actor.audience !== 'internal' || (!actor.is_super_admin && !['super_admin', 'executive'].includes(role))) {
+      throw new HttpException({ code: 'FORBIDDEN_ADMIN_ACCESS', detail: 'Current internal administrative membership is required.' }, HttpStatus.FORBIDDEN);
+    }
+    return { organisationId, isSuperAdmin: actor.is_super_admin === true, role };
+  }
+
+  private unavailable(operation: string, detail: string): never {
+    throw new HttpException({ code: 'ADMIN_CAPABILITY_UNAVAILABLE', operation, detail }, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  @Get('users')
+  @Header('Cache-Control', 'no-store')
+  @RequireRoles('super_admin', 'executive')
+  @AllowedAudiences('internal')
+  async listUsers(@Req() req: Request) {
+    const { organisationId } = await this.requireCurrentAdmin(req);
+    const pool = this.dbService.getPool();
+    let res;
+    try {
+      res = await pool.query(`
+      SELECT u.id, u.email, u.name, u.is_super_admin, u.created_at,
+             m.id as membership_id, m.role, m.audience, m.is_revoked, m.row_version,
+             m.organisation_id as org_id, o.name as org_name
+      FROM users u
+      INNER JOIN memberships m ON m.user_id = u.id
+      INNER JOIN organisations o ON o.id = m.organisation_id
+      WHERE m.organisation_id = $1
+      ORDER BY u.created_at ASC, m.id;
+    `, [organisationId]);
+    } catch {
+      throw new HttpException({ code: 'ADMIN_DIRECTORY_UNAVAILABLE', detail: 'The organisation member directory is unavailable. Please retry later.' }, HttpStatus.SERVICE_UNAVAILABLE);
+    }
 
     return {
-      users: [
-        ...res.rows.map((r: any) => ({
+      users: res.rows.map((r: any) => ({
           id: r.id,
+          membershipId: r.membership_id,
+          rowVersion: r.row_version,
           name: r.name,
           email: r.email,
           isSuperAdmin: r.is_super_admin,
-          role: r.is_super_admin ? 'super_admin' : (r.role || 'unassigned'),
-          audience: r.audience || 'internal',
-          organisationName: r.org_name || 'E3 Events',
+          role: r.role,
+          audience: r.audience,
+          isRevoked: r.is_revoked,
+          organisationName: r.org_name,
           organisationId: r.org_id,
           createdAt: r.created_at,
         })),
-        ...missingLocalTeam,
-      ],
+    };
+  }
+
+  @Get('access-capabilities')
+  @Header('Cache-Control', 'no-store')
+  @RequireRoles('super_admin', 'executive')
+  @AllowedAudiences('internal')
+  async getAccessCapabilities(@Req() req: Request) {
+    const actor = await this.requireCurrentAdmin(req);
+    const canManageMemberships = actor.isSuperAdmin || actor.role === 'super_admin';
+    const canImpersonate = localSyntheticAuthEnabled() && actor.isSuperAdmin;
+    const canInvite = canManageMemberships && invitationDeliveryConfigured();
+    return {
+      canManageMemberships,
+      canInvite,
+      canCancelInvitations: canManageMemberships,
+      allowedInvitationRoles: [...ALLOWED_INVITATION_ROLES],
+      canAssignProjectAccess: canManageMemberships,
+      canChangeRoles: canManageMemberships,
+      canRestoreMemberships: canManageMemberships,
+      allowedMembershipRoles: [...ALLOWED_MEMBERSHIP_ROLES],
+      canImpersonate,
+      disabledReasons: {
+        ...(!canInvite ? { invite: canManageMemberships ? 'Encrypted invitation delivery storage is not configured. Invitations cannot be queued.' : 'Only a current internal super administrator can create invitations.' } : {}),
+        ...(!canManageMemberships ? { projectAccess: 'Only a current internal super administrator can manage project grants.', roleChange: 'Only a current internal super administrator can change ordinary membership roles.', statusChange: 'Only a current internal super administrator can restore ordinary memberships.' } : {}),
+        ...(!canManageMemberships ? { memberships: 'Only a current internal super administrator can revoke memberships.' } : {}),
+        ...(!canImpersonate ? { impersonation: 'Identity switching requires a verified super administrator and explicitly enabled local synthetic authentication.' } : {}),
+      },
     };
   }
 
@@ -281,143 +157,38 @@ export class AdminController {
 
   @Get('project-access')
   @RequireRoles('super_admin', 'executive')
+  @AllowedAudiences('internal')
   async getProjectAccess() {
-    const pool = this.dbService.getPool();
-    const res = await pool.query(`
-      SELECT p.id as project_id, p.project_code, p.title as project_title,
-             u.id as user_id, u.name as user_name, u.email as user_email,
-             m.role
-      FROM projects p
-      JOIN users u ON u.id = p.owner_id
-      LEFT JOIN memberships m ON m.user_id = u.id
-      LIMIT 50;
-    `);
-
-    return {
-      grants: res.rows.map((r: any) => ({
-        projectId: r.project_id,
-        projectCode: r.project_code,
-        projectTitle: r.project_title,
-        userId: r.user_id,
-        userName: r.user_name,
-        userEmail: r.user_email,
-        role: r.role || 'project_manager',
-      })),
-    };
+    return this.unavailable('project_access.read', 'Project ownership is not an access grant. Use GET /project-access for the scoped access register.');
   }
 
   @Post('users')
   @RequireRoles('super_admin')
-  async inviteUser(@Body() body: { name: string; email: string; role?: string; organisationId?: string; department?: string }) {
-    const pool = this.dbService.getPool();
-    const email = body.email?.trim().toLowerCase();
-    const name = body.name?.trim() || 'Invited User';
-    const role = body.role || 'project_manager';
-    const orgId = body.organisationId || '11111111-1111-4111-8111-111111111111';
-
-    if (!email) {
-      throw new HttpException({ title: 'Validation Error', detail: 'Email is required' }, HttpStatus.BAD_REQUEST);
-    }
-
-    const userRes = await pool.query(`
-      INSERT INTO users (id, email, name, email_verified, is_super_admin, created_at, updated_at)
-      VALUES (gen_random_uuid(), $1, $2, true, false, NOW(), NOW())
-      ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, updated_at = NOW()
-      RETURNING id, email, name, is_super_admin, created_at;
-    `, [email, name]);
-
-    const user = userRes.rows[0];
-
-    await pool.query(`
-      INSERT INTO memberships (id, organisation_id, user_id, role, audience, is_revoked)
-      VALUES (gen_random_uuid(), $1, $2, $3, 'internal', false)
-      ON CONFLICT DO NOTHING;
-    `, [orgId, user.id, role]);
-
-    const rawToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000); // 7 days
-
-    await pool.query(`
-      INSERT INTO user_invitations (id, organisation_id, email, name, role, department, token, token_hash, expires_at, created_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NULL, $6, $7, NOW());
-    `, [orgId, email, name, role, body.department || null, tokenHash, expiresAt]);
-
-    const inviteUrl = `${process.env.APP_BASE_URL || 'https://e3-eos-web-staging-4m6nzwqkuq-ww.a.run.app'}/accept-invite?token=${rawToken}`;
-    const emailDispatcher = new EmailDispatcherService(this.dbService);
-    const dispatchRes = await emailDispatcher.dispatchEmail({
-      to: email,
-      subject: 'Invitation to join E3 Event Operating System (EOS)',
-      template: 'user_invitation',
-      link: inviteUrl,
-      recipientName: name,
-      metadata: { organisationId: orgId },
-    });
-
-    // Invariant: Never return tokens in staging or production environments.
-    const isLocalTestOnly = process.env.NODE_ENV === 'test' && !process.env.ENVIRONMENT;
-    return {
-      success: true,
-      message: `User ${name} successfully invited with role ${role}.`,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role,
-        organisationId: orgId,
-        createdAt: user.created_at,
-      },
-      messageId: dispatchRes.messageId,
-      deliveryStatus: dispatchRes.status,
-      ...(isLocalTestOnly ? { inviteToken: rawToken, inviteUrl } : {}),
-    };
+  @AllowedAudiences('internal')
+  async inviteUser(@Body() _body: { name: string; email: string; role?: string; organisationId?: string; department?: string }) {
+    return this.unavailable('membership.invite', 'This legacy invitation endpoint is unavailable. Use POST /invitations for controlled, audited invitations. This request created no user, membership, or invitation.');
   }
 
   @Post('project-access')
   @RequireRoles('super_admin', 'executive')
-  async assignProjectAccess(@Body() body: { projectId: string; userId: string; role?: string }) {
-    const pool = this.dbService.getPool();
-    const { projectId, userId, role } = body;
-    if (!projectId || !userId) {
-      throw new HttpException({ title: 'Validation Error', detail: 'projectId and userId are required' }, HttpStatus.BAD_REQUEST);
-    }
-
-    await pool.query(`
-      UPDATE projects SET owner_id = $1, updated_at = NOW() WHERE id = $2;
-    `, [userId, projectId]).catch(() => {});
-
-    return {
-      success: true,
-      message: 'Project access granted successfully.',
-      grant: { projectId, userId, role: role || 'project_manager' },
-    };
+  @AllowedAudiences('internal')
+  async assignProjectAccess(@Body() _body: { projectId: string; userId: string; role?: string }) {
+    return this.unavailable('project_access.assign', 'This legacy user-based endpoint is unavailable. Use POST /project-access with a membershipId and reason. Project ownership has not been changed.');
   }
 
   @Post('users/:id/role')
   @RequireRoles('super_admin')
-  async updateUserRole(@Param('id') userId: string, @Body() body: { role: string }) {
-    const pool = this.dbService.getPool();
-    const { role } = body;
-    if (!role) {
-      throw new HttpException({ title: 'Validation Error', detail: 'Role is required' }, HttpStatus.BAD_REQUEST);
-    }
-    await pool.query(`
-      UPDATE memberships SET role = $1, updated_at = NOW() WHERE user_id = $2;
-    `, [role, userId]);
-    return { success: true, message: `User role updated to ${role}.` };
+  @AllowedAudiences('internal')
+  async updateUserRole(@Param('id') _userId: string, @Body() _body: { role: string }) {
+    return this.unavailable('membership.role_change', 'This legacy user-wide endpoint is unavailable. Use POST /memberships/:id/role with reason and expectedVersion. No roles have been changed.');
   }
 
   @Post('users/:id/status')
   @RequireRoles('super_admin')
-  async updateUserStatus(@Param('id') userId: string, @Body() body: { isRevoked: boolean }) {
-    const pool = this.dbService.getPool();
-    const { isRevoked } = body;
-    await pool.query(`
-      UPDATE memberships SET is_revoked = $1, updated_at = NOW() WHERE user_id = $2;
-    `, [isRevoked, userId]);
-    return { success: true, message: isRevoked ? 'User access revoked.' : 'User access restored.' };
+  @AllowedAudiences('internal')
+  async updateUserStatus(@Param('id') _userId: string, @Body() _body: { isRevoked: boolean }) {
+    return this.unavailable('membership.status_change', 'User-wide status changes are unavailable. Use /memberships/:id/revoke or /memberships/:id/restore with the required reason and version.');
   }
-
   @Get('approval-policies')
   @RequireRoles('super_admin', 'executive', 'finance')
   async listApprovalPolicies() {

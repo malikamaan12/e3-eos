@@ -1,3 +1,4 @@
+import { LegacyFieldBoundaryGuard } from '../common/legacy-capture-boundary.guard.js';
 import {
   Controller,
   Post,
@@ -43,7 +44,7 @@ export const mediaUploadRepository = new Map<string, StoredMediaUpload>();
 
 @Controller('field')
 @UseFilters(ProblemDetailsFilter)
-@UseGuards(TenantIsolationGuard)
+@UseGuards(TenantIsolationGuard, LegacyFieldBoundaryGuard)
 export class FieldSyncController {
   // --- Worker Qualification Management ---
 

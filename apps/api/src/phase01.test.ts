@@ -1,8 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProjectsController, projectRepository } from './projects/projects.controller.js';
 import { ScopeController, requirementRepository } from './scope/scope.controller.js';
 import { WorkController, workPackageRepository, taskRepository } from './work/work.controller.js';
 import { PolicyCompiler, PolicyEvaluator, PolicyRule } from '@e3-eos/policy';
+
+// Explicit opt-in for direct repository fixtures, never HTTP authentication.
+beforeEach(() => {
+  vi.stubEnv('NODE_ENV', 'test');
+  vi.stubEnv('ENVIRONMENT', 'local');
+  vi.stubEnv('EOS_ENABLE_LOCAL_SYNTHETIC_AUTH', 'true');
+});
+afterEach(() => vi.unstubAllEnvs());
 
 describe('AT-014: Progressive Completeness & Unknowns Preservation', () => {
   let projectsController: ProjectsController;
@@ -532,4 +540,3 @@ describe('AT-031: Multi-Timezone & DST Boundary Invariance', () => {
     expect(elapsedHours).toBe(48); // Deterministic elapsed time in UTC regardless of DST change
   });
 });
-

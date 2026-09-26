@@ -27,7 +27,7 @@ import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { projectRepository } from '../projects/projects.controller.js';
 import { DbService } from '../common/db.service.js';
 import { resolveRequiredApprover } from '@e3-eos/policy';
-import { canApproveCommercialAmount } from '@e3-eos/domain';
+import { canApproveCommercialAmount, normalizeRole } from '@e3-eos/domain';
 
 export interface StoredPolicySnapshot {
   id: string;
@@ -268,38 +268,26 @@ export class GovernanceController {
       throw new HttpException({ message: 'PROJECT_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
 
-    let approvalReq = approvalRequestRepository.get(requestId);
+    const storedRequest = approvalRequestRepository.get(requestId);
+    let approvalReq = storedRequest && { ...storedRequest };
     if (!approvalReq || approvalReq.projectId !== projectId || approvalReq.organisationId !== orgId) {
-      // Create ad-hoc pending approval request if not pre-seeded
-      approvalReq = {
-        id: requestId,
-        projectId,
-        organisationId: orgId,
-        targetType: 'proposal',
-        targetId: parseResult.data.targetVersionId,
-        targetVersionId: parseResult.data.targetVersionId,
-        targetHash: parseResult.data.targetHash,
-        requiredRole: 'Commercial Director',
-        status: 'pending',
-      };
+      throw new HttpException({ message: 'APPROVAL_REQUEST_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
-
-    // Invariant AT-008: Verify target hash matches targetVersionId
-    if (approvalReq.targetHash && parseResult.data.targetHash && approvalReq.targetHash !== parseResult.data.targetHash) {
-      if (parseResult.data.targetHash === 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') {
-        // Fallback default hash provided by generic clients - align to actual target record hash
-        parseResult.data.targetHash = approvalReq.targetHash;
-      } else {
-        throw new HttpException(
-          { message: 'TARGET_HASH_MISMATCH', detail: 'The item has been modified since approval request creation' },
-          HttpStatus.PRECONDITION_FAILED
-        );
-      }
+    if (approvalReq.status !== 'pending') {
+      throw new HttpException({ message: 'APPROVAL_ALREADY_DECIDED', detail: 'This request is no longer pending. Refresh before proceeding.' }, HttpStatus.CONFLICT);
     }
-
-    const deciderId = (req as any).userId || (req.headers['x-user-id'] as string) || '10000000-0000-4000-8000-000000000002';
-    const deciderRole = (req as any).userRole || (req.headers['x-user-role'] as string) || 'executive';
-    const isSuperAdmin = (req as any).isSuperAdmin === true || (req.headers['x-is-super-admin'] === 'true') || deciderRole === 'super_admin';
+    if (approvalReq.targetVersionId !== parseResult.data.targetVersionId) {
+      throw new HttpException({ message: 'TARGET_VERSION_MISMATCH', detail: 'The reviewed version does not match the approval request.' }, HttpStatus.PRECONDITION_FAILED);
+    }
+    if (!approvalReq.targetHash || approvalReq.targetHash.toLowerCase() !== parseResult.data.targetHash.toLowerCase()) {
+      throw new HttpException({ message: 'TARGET_HASH_MISMATCH', detail: 'The reviewed content does not match the approval request.' }, HttpStatus.PRECONDITION_FAILED);
+    }
+    const deciderId = (req as any).userId;
+    const deciderRole = (req as any).userRole || (req as any).role;
+    if (!deciderId || !deciderRole) {
+      throw new HttpException({ message: 'AUTHENTICATED_DECIDER_REQUIRED' }, HttpStatus.UNAUTHORIZED);
+    }
+    const isSuperAdmin = (req as any).isSuperAdmin === true;
 
     // Anti-self-approval rule (Separation of Duties: Submitter/requester cannot approve own request)
     if (parseResult.data.outcome === 'approved' && approvalReq.requesterId && approvalReq.requesterId === deciderId) {
@@ -328,6 +316,13 @@ export class GovernanceController {
           HttpStatus.FORBIDDEN
         );
       }
+    }
+
+    if (!approvalReq.requiredRole || normalizeRole(deciderRole) !== normalizeRole(approvalReq.requiredRole)) {
+      throw new HttpException({ message: 'REQUIRED_APPROVER_ROLE', detail: 'The current identity does not hold the role required by this request.' }, HttpStatus.FORBIDDEN);
+    }
+    if (parseResult.data.outcome === 'approved' && !approvalReq.requesterId) {
+      throw new HttpException({ message: 'REQUESTER_IDENTITY_REQUIRED', detail: 'The requester must be recorded before independent approval can be verified.' }, HttpStatus.PRECONDITION_FAILED);
     }
 
     approvalReq.outcome = parseResult.data.outcome;
@@ -408,6 +403,8 @@ export class GovernanceController {
       targetHash,
       requiredRole: body.requiredRole || 'executive',
       status: 'pending',
+      requesterId: (req as any).userId,
+      amount: body.amount,
     };
 
     approvalRequestRepository.set(requestId, approvalReq);

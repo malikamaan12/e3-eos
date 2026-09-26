@@ -6,13 +6,7 @@ import {
   creditNoteRepository,
   financialPositionRepository,
 } from './finance/finance.controller.js';
-import {
-  ReportingController,
-  reportRepository,
-  reportRevisionHistory,
-  closeoutRepository,
-  lessonRepository,
-} from './reporting/reporting.controller.js';
+import { ReportingEngine, ProjectCloseoutEngine, type ReportSnapshot, type ProjectedReport } from '@e3-eos/domain';
 import {
   IntegrationsController,
   processedWebhookIds,
@@ -23,7 +17,6 @@ import { projectRepository } from './projects/projects.controller.js';
 
 describe('Phase 05 Integration Tests (AT-066 through AT-079)', () => {
   let financeController: FinanceController;
-  let reportingController: ReportingController;
   let integrationsController: IntegrationsController;
 
   const agencyOrgId = '11111111-1111-4111-8111-111111111111';
@@ -31,17 +24,12 @@ describe('Phase 05 Integration Tests (AT-066 through AT-079)', () => {
 
   beforeEach(() => {
     financeController = new FinanceController();
-    reportingController = new ReportingController();
     integrationsController = new IntegrationsController();
 
     costImportRepository.clear();
     invoiceRepository.clear();
     creditNoteRepository.clear();
     financialPositionRepository.clear();
-    reportRepository.clear();
-    reportRevisionHistory.clear();
-    closeoutRepository.clear();
-    lessonRepository.clear();
     processedWebhookIds.clear();
     metricObservationRepository.clear();
     calendarProposalRepository.clear();
@@ -71,6 +59,23 @@ describe('Phase 05 Integration Tests (AT-066 through AT-079)', () => {
     organisationId: agencyOrgId,
     userId: 'usr-finance-lead',
   } as any;
+
+
+  // Explicit source fixtures for pure legacy reporting algorithms. These tests
+  // do not represent authenticated API publication or authoritative finance.
+  const snapshotFixture = (): ReportSnapshot => ({
+    projectId, reportCode: 'REP-EXAMPLE', periodStart: new Date('2026-10-01T00:00:00Z'),
+    periodEnd: new Date('2026-10-05T00:00:00Z'),
+    financials: { revenue: '3000000', currentBudget: '2000000', actualCost: '1850000',
+      internalMarginPercent: '38.33%', vendorCostBreakdown: { 'Test Supplier': '100000' } },
+    incidents: [{ title: 'Test incident', severity: 'low', operationalImpact: 'Short pause', restrictedPersonalNarrative: 'Restricted test narrative' }],
+    metrics: { totalTurnstileEntries: 25000, uniqueAttendees: 18000, daysCount: 3 }, milestonesCompleted: ['Show Complete'],
+  });
+  const projectedFixture = (snapshot: ReportSnapshot): ProjectedReport => ({
+    id: 'report-example', version: 1, projectId, reportCode: snapshot.reportCode,
+    targetAudience: 'internal_command', publishedAt: new Date('2026-10-06T00:00:00Z'),
+    deterministicContentHash: ReportingEngine.generateSnapshotHash(snapshot), content: ReportingEngine.projectForAudience(snapshot, 'internal_command'),
+  });
 
   // --- AT-066: Worked Accrual-to-Invoice Example (90,000 EAC Invariant) ---
   describe('AT-066: Worked Accrual-to-Invoice Example (90,000 EAC Invariant)', () => {
@@ -176,65 +181,18 @@ describe('Phase 05 Integration Tests (AT-066 through AT-079)', () => {
     });
   });
 
-  // --- AT-069: Credit Note / Reversal Arrives After Final Report ---
-  describe('AT-069: Credit Note / Reversal Arrives After Final Report', () => {
-    it('creates revision V2 while retaining V1 historical report and source manifest', () => {
-      // 1. Create and publish initial report V1
-      const repRes = reportingController.createReport(
-        projectId,
-        {
-          reportCode: 'REP-DOHA-EXPO-FINAL',
-          periodStart: '2026-10-01T00:00:00Z',
-          periodEnd: '2026-10-05T00:00:00Z',
-          targetAudience: 'client_portal',
-          snapshotData: {
-            financials: {
-              revenue: '3000000',
-              currentBudget: '2000000',
-              actualCost: '1850000',
-            },
-            incidents: [],
-            metrics: { totalTurnstileEntries: 25000, uniqueAttendees: 18000, daysCount: 3 },
-            milestonesCompleted: ['Show Complete'],
-          },
-        },
-        agencyReq
-      );
-      const reportId = repRes.data.id;
-      reportingController.publishReport(projectId, reportId, { idempotencyKey: 'idemp-pub-v1' }, agencyReq);
-
-      // 2. Post-report credit note arrives (e.g. 50,000 QAR volume refund from AV supplier)
-      financeController.applyCreditNote(
-        projectId,
-        {
-          invoiceId: 'inv-av-01',
-          creditAmount: '50000',
-          currency: 'QAR',
-          reason: 'Supplier volume rebate credited post-show',
-        },
-        agencyReq
-      );
-
-      // 3. Generate report revision V2
-      const revRes = reportingController.createRevision(
-        projectId,
-        reportId,
-        {
-          revisionReason: 'Supplier volume rebate of 50,000 QAR applied post-show',
-          revisedActualCost: '1800000',
-        },
-        agencyReq
-      );
-
-      // 4. Invariant: V2 exists with version 2 and updated financials, V1 is preserved
-      expect(revRes.data.payload?.version).toBe(2);
-      expect(revRes.data.payload?.content.financials.actualCost).toBe('1800000');
-      expect(revRes.data.payload?.revisionReason).toContain('Supplier volume rebate');
-
-      const history = reportRevisionHistory.get(reportId)!;
-      expect(history.length).toBe(2);
-      expect(history[0].version).toBe(1);
-      expect(history[0].content.financials.actualCost).toBe('1850000'); // Preserved!
+  // --- AT-069: Pure report revision algorithm example ---
+  describe('AT-069: Report revision algorithm', () => {
+    it('retains the earlier snapshot when a later source correction creates V2', () => {
+      const original = snapshotFixture(), previous = projectedFixture(original);
+      const changed = { ...original, financials: { ...original.financials, actualCost: '1800000' } };
+      const next = ReportingEngine.createReportRevision(previous, changed, 'Supplier volume rebate recorded');
+      expect(next.version).toBe(2);
+      expect(next.content.financials.actualCost).toBe('1800000');
+      expect(next.revisionReason).toContain('Supplier volume rebate');
+      expect(previous.version).toBe(1);
+      expect(previous.content.financials.actualCost).toBe('1850000');
+      expect(original.financials.actualCost).toBe('1850000');
     });
   });
 
@@ -441,130 +399,40 @@ describe('Phase 05 Integration Tests (AT-066 through AT-079)', () => {
     });
   });
 
-  // --- AT-077: Client Report Generated from Internal Data ---
-  describe('AT-077: Client Report Generated from Internal Data', () => {
-    it('projects client views by stripping internal margins and confidential narratives', () => {
-      const repRes = reportingController.createReport(
-        projectId,
-        {
-          reportCode: 'REP-DOHA-CLIENT-PACK',
-          periodStart: '2026-10-01T00:00:00Z',
-          periodEnd: '2026-10-03T00:00:00Z',
-          targetAudience: 'client_portal',
-          snapshotData: {
-            financials: {
-              revenue: '2500000',
-              currentBudget: '1600000',
-              actualCost: '1500000',
-              internalMarginPercent: '40.00%',
-              vendorCostBreakdown: { 'Sub-Contractor A': '600000', 'Sub-Contractor B': '900000' },
-            },
-            incidents: [
-              {
-                title: 'Minor Lighting Board Power Trip',
-                severity: 'low',
-                operationalImpact: '3-minute pause before secondary generator engaged',
-                restrictedPersonalNarrative: 'Electrician Ahmed suffered minor thumb abrasion during breaker reset.',
-              },
-            ],
-            metrics: { totalTurnstileEntries: 12000, uniqueAttendees: 8000, daysCount: 2 },
-            milestonesCompleted: ['VIP Arrival', 'Main Ceremony'],
-          },
-        },
-        agencyReq
-      );
-      const reportId = repRes.data.id;
-
-      // Query as client portal
-      const clientReq = { ...agencyReq, headers: { ...agencyReq.headers, 'x-audience': 'client_portal' } };
-      const clientView = reportingController.getReport(projectId, reportId, clientReq);
-
-      expect(clientView.data.payload?.content.financials.internalMarginPercent).toBeUndefined();
-      expect(clientView.data.payload?.content.financials.vendorCostBreakdown).toBeUndefined();
-      expect(clientView.data.payload?.content.incidents[0].restrictedPersonalNarrative).toBeUndefined();
-      expect(clientView.data.payload?.content.incidents[0].operationalImpact).toContain('3-minute pause');
-
-      // Query as internal command
-      const internalReq = { ...agencyReq, headers: { ...agencyReq.headers, 'x-audience': 'internal_command' } };
-      const internalView = reportingController.getReport(projectId, reportId, internalReq);
-
-      expect(internalView.data.payload?.content.financials.internalMarginPercent).toBe('40.00%');
-      expect(internalView.data.payload?.content.incidents[0].restrictedPersonalNarrative).toContain('Ahmed');
+  // --- Pure algorithms retained; controlled route security is tested separately. ---
+  describe('AT-077: Report audience projection algorithm', () => {
+    it('omits sensitive fields from a client projection without changing the source', () => {
+      const snapshot = snapshotFixture();
+      const client = ReportingEngine.projectForAudience(snapshot, 'client_portal');
+      expect(client.financials.internalMarginPercent).toBeUndefined();
+      expect(client.financials.vendorCostBreakdown).toBeUndefined();
+      expect(client.incidents[0].restrictedPersonalNarrative).toBeUndefined();
+      expect(client.incidents[0].operationalImpact).toBe('Short pause');
+      const internal = ReportingEngine.projectForAudience(snapshot, 'internal_command');
+      expect(internal.financials.internalMarginPercent).toBe('38.33%');
+      expect(internal.incidents[0].restrictedPersonalNarrative).toBe('Restricted test narrative');
     });
   });
 
-  // --- AT-078: Operational Project Closed with Receivable Open ---
-  describe('AT-078: Operational Project Closed with Receivable Open', () => {
-    it('permits operational closure while accounts receivable settlement remains open', () => {
-      // 1. Issue operational closure
-      const closeRes = reportingController.recordClosureDecision(
-        projectId,
-        {
-          dimension: 'operational',
-          decision: 'closed',
-          notes: 'Venue demobilized and site handed back to Katara administration',
-        },
-        agencyReq
-      );
-
-      // Invariant: operationalStatus is operational_closed, settlementStatus remains open_receivables
-      expect(closeRes.data.payload?.operationalStatus).toBe('operational_closed');
-      expect(closeRes.data.payload?.settlementStatus).toBe('open_receivables');
-      expect(closeRes.data.payload?.openReceivablesCount).toBe(2);
-
-      // 2. Record lesson learned without altering master policies
-      const lessonRes = reportingController.captureLesson(
-        projectId,
-        {
-          title: 'Pre-wire secondary generator transfer switches',
-          category: 'safety',
-          narrative: 'Automatic switchover prevented ceremonial broadcast disruption.',
-          policyRevisionProposed: true,
-        },
-        agencyReq
-      );
-
-      expect(lessonRes.data.payload?.masterPolicyModified).toBe(false);
+  describe('AT-078: Closure dimension algorithm', () => {
+    it('leaves explicitly supplied receivables open when operations close', () => {
+      const closed = ProjectCloseoutEngine.closeOperationally({ projectId, operationalStatus: 'active',
+        acceptanceStatus: 'pending', reportingStatus: 'draft', financialReviewStatus: 'pending',
+        settlementStatus: 'open_receivables', openReceivablesCount: 2 }, 'test-owner');
+      expect(closed.operationalStatus).toBe('operational_closed');
+      expect(closed.settlementStatus).toBe('open_receivables');
+      expect(closed.openReceivablesCount).toBe(2);
+      const lesson = ProjectCloseoutEngine.captureLesson(projectId, { title: 'Test lesson', category: 'safety',
+        narrative: 'Explicit test observation', policyRevisionProposed: true });
+      expect(lesson.masterPolicyModified).toBe(false);
     });
   });
 
-  // --- AT-079: Report Generated Twice from Frozen Snapshot ---
-  describe('AT-079: Report Generated Twice from Frozen Snapshot', () => {
-    it('produces deterministic content and ensures duplicate publication requests are idempotent', () => {
-      // 1. Create report
-      const repRes = reportingController.createReport(
-        projectId,
-        {
-          reportCode: 'REP-FROZEN-001',
-          periodStart: '2026-10-01T00:00:00Z',
-          periodEnd: '2026-10-02T00:00:00Z',
-          targetAudience: 'public_report',
-        },
-        agencyReq
-      );
-      const reportId = repRes.data.id;
-      const initialHash = repRes.data.payload?.deterministicContentHash;
-      expect(initialHash).toBeDefined();
-
-      // 2. Publish with idempotency key
-      const pub1 = reportingController.publishReport(
-        projectId,
-        reportId,
-        { idempotencyKey: 'idemp-freeze-publish-999' },
-        agencyReq
-      );
-      expect(pub1.data.status).toBe('published');
-
-      // 3. Duplicate publication with same idempotency key returns existing state without duplicate effect
-      const pub2 = reportingController.publishReport(
-        projectId,
-        reportId,
-        { idempotencyKey: 'idemp-freeze-publish-999' },
-        agencyReq
-      );
-      expect(pub2.data.status).toBe('published');
-      expect(pub2.data.id).toBe(reportId);
-      expect(reportRepository.size).toBe(1); // No duplicate publication record created
+  describe('AT-079: Frozen report algorithm', () => {
+    it('produces the same content for an identical explicit snapshot', () => {
+      const snapshot = snapshotFixture();
+      expect(ReportingEngine.generateSnapshotHash(snapshot)).toBe(ReportingEngine.generateSnapshotHash(snapshot));
+      expect(ReportingEngine.projectForAudience(snapshot, 'internal_command')).toEqual(ReportingEngine.projectForAudience(snapshot, 'internal_command'));
     });
   });
 });

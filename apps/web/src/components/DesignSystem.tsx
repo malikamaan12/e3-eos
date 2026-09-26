@@ -80,6 +80,7 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   style,
   disabled,
+  className,
   ...props
 }) => {
   const baseStyle: React.CSSProperties = {
@@ -88,7 +89,7 @@ export const Button: React.FC<ButtonProps> = ({
     justifyContent: 'center',
     gap: '8px',
     fontWeight: 600,
-    borderRadius: '6px',
+    borderRadius: '8px',
     border: '1px solid transparent',
     cursor: disabled || isLoading ? 'not-allowed' : 'pointer',
     opacity: disabled || isLoading ? 0.6 : 1,
@@ -150,6 +151,8 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
+      className={['eos-button', className].filter(Boolean).join(' ')}
+      data-variant={variant}
       style={{
         ...baseStyle,
         ...sizeStyles[size],
@@ -193,12 +196,12 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', 
     neutral: { bg: 'rgba(148, 163, 184, 0.14)', text: 'var(--text-secondary, #cbd5e1)', border: 'rgba(148, 163, 184, 0.25)' },
     default: { bg: 'rgba(148, 163, 184, 0.14)', text: 'var(--text-secondary, #cbd5e1)', border: 'rgba(148, 163, 184, 0.25)' },
     secondary: { bg: 'rgba(148, 163, 184, 0.14)', text: 'var(--text-secondary, #cbd5e1)', border: 'rgba(148, 163, 184, 0.25)' },
-    primary: { bg: 'rgba(59, 130, 246, 0.14)', text: '#60a5fa', border: 'rgba(59, 130, 246, 0.3)' },
-    info: { bg: 'rgba(59, 130, 246, 0.14)', text: '#60a5fa', border: 'rgba(59, 130, 246, 0.3)' },
-    success: { bg: 'rgba(34, 197, 94, 0.14)', text: '#4ade80', border: 'rgba(34, 197, 94, 0.3)' },
-    warning: { bg: 'rgba(245, 158, 11, 0.14)', text: '#fbbf24', border: 'rgba(245, 158, 11, 0.3)' },
-    danger: { bg: 'rgba(239, 68, 68, 0.14)', text: '#f87171', border: 'rgba(239, 68, 68, 0.3)' },
-    purple: { bg: 'rgba(139, 92, 246, 0.14)', text: '#c084fc', border: 'rgba(139, 92, 246, 0.3)' },
+    primary: { bg: 'rgba(59, 130, 246, 0.14)', text: 'var(--status-info-fg)', border: 'rgba(59, 130, 246, 0.3)' },
+    info: { bg: 'rgba(59, 130, 246, 0.14)', text: 'var(--status-info-fg)', border: 'rgba(59, 130, 246, 0.3)' },
+    success: { bg: 'rgba(34, 197, 94, 0.14)', text: 'var(--status-success-fg)', border: 'rgba(34, 197, 94, 0.3)' },
+    warning: { bg: 'rgba(245, 158, 11, 0.14)', text: 'var(--status-warning-fg)', border: 'rgba(245, 158, 11, 0.3)' },
+    danger: { bg: 'rgba(239, 68, 68, 0.14)', text: 'var(--status-critical-fg)', border: 'rgba(239, 68, 68, 0.3)' },
+    purple: { bg: 'rgba(139, 92, 246, 0.14)', text: 'var(--chart-1)', border: 'rgba(139, 92, 246, 0.3)' },
     accent: { bg: 'var(--accent-soft, rgba(217, 119, 6, 0.14))', text: 'var(--accent, #d97706)', border: 'var(--accent, #d97706)' },
     outline: { bg: 'transparent', text: 'var(--text-muted, #94a3b8)', border: 'var(--border-default, #2a374b)' },
   };
@@ -212,7 +215,7 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'neutral', size = 'sm', 
         display: 'inline-flex',
         alignItems: 'center',
         padding: size === 'sm' ? '2px 8px' : size === 'lg' ? '6px 14px' : '4px 10px',
-        fontSize: size === 'sm' ? '11px' : size === 'lg' ? '13px' : '12px',
+        fontSize: size === 'sm' ? '12px' : size === 'lg' ? '13px' : '12px',
         fontWeight: 600,
         borderRadius: '4px',
         backgroundColor: style.bg,
@@ -295,7 +298,11 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div
+      className="eos-metric"
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onClick(); } } : undefined}
       style={{
         backgroundColor: 'var(--surface-1, #0f1624)',
         borderRadius: '8px',
@@ -313,7 +320,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         justifyContent: 'space-between',
       }}
     >
-      <div
+      <div className="eos-metric-accent"
         style={{
           position: 'absolute',
           top: 0,
@@ -324,13 +331,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         }}
       />
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted, #94a3b8)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+          <span className="eos-metric-title" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted, #94a3b8)' }}>
             {displayTitle}
           </span>
-          {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
+          {badge && <Badge variant={badge.variant} style={{ whiteSpace: 'normal', overflowWrap: 'anywhere', maxWidth: '100%' }}>{badge.label}</Badge>}
         </div>
-        <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginBottom: '4px', fontVariantNumeric: 'tabular-nums', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+        <div className="eos-metric-value" style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', marginBottom: '4px', fontVariantNumeric: 'tabular-nums', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
           {isValueLoading ? (
             <Skeleton width="90px" height="26px" style={{ margin: '2px 0' }} />
           ) : (
@@ -391,10 +398,10 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
   action,
 }) => {
   const configs: Record<string, { bg: string; border: string; text: string; icon: string }> = {
-    info: { bg: 'rgba(59, 130, 246, 0.14)', border: 'rgba(59, 130, 246, 0.3)', text: '#60a5fa', icon: 'ℹ️' },
-    warning: { bg: 'rgba(245, 158, 11, 0.14)', border: 'rgba(245, 158, 11, 0.3)', text: '#fbbf24', icon: '⚠️' },
-    error: { bg: 'rgba(239, 68, 68, 0.14)', border: 'rgba(239, 68, 68, 0.3)', text: '#f87171', icon: '⛔' },
-    success: { bg: 'rgba(34, 197, 94, 0.14)', border: 'rgba(34, 197, 94, 0.3)', text: '#4ade80', icon: '✅' },
+    info: { bg: 'rgba(59, 130, 246, 0.14)', border: 'rgba(59, 130, 246, 0.3)', text: 'var(--status-info-fg)', icon: 'ℹ️' },
+    warning: { bg: 'rgba(245, 158, 11, 0.14)', border: 'rgba(245, 158, 11, 0.3)', text: 'var(--status-warning-fg)', icon: '⚠️' },
+    error: { bg: 'rgba(239, 68, 68, 0.14)', border: 'rgba(239, 68, 68, 0.3)', text: 'var(--status-critical-fg)', icon: '⛔' },
+    success: { bg: 'rgba(34, 197, 94, 0.14)', border: 'rgba(34, 197, 94, 0.3)', text: 'var(--status-success-fg)', icon: '✅' },
   };
 
   const conf = configs[type];
@@ -406,7 +413,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
         alignItems: 'flex-start',
         gap: '12px',
         padding: '12px 16px',
-        borderRadius: '6px',
+        borderRadius: '8px',
         backgroundColor: conf.bg,
         border: `1px solid ${conf.border}`,
         color: conf.text,
@@ -532,6 +539,29 @@ export interface ModalProps {
 }
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer, size = 'md' }) => {
+  const titleId = React.useId();
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const closeRef = React.useRef(onClose);
+  closeRef.current = onClose;
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]') || []);
+    (focusable()[0] || dialog)?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); closeRef.current(); }
+      if (event.key === 'Tab') {
+        const elements = focusable();
+        const first = elements[0]; const last = elements[elements.length - 1];
+        if (!first) { event.preventDefault(); dialog?.focus(); }
+        else if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    };
+    dialog?.addEventListener('keydown', handleKey);
+    return () => { dialog?.removeEventListener('keydown', handleKey); previousFocus?.focus(); };
+  }, [isOpen]);
   if (!isOpen) return null;
 
   const maxWidth = size === 'sm' ? '420px' : size === 'lg' ? '720px' : size === 'xl' ? '960px' : size === 'full' ? '96vw' : '560px';
@@ -551,6 +581,11 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
         style={{
           backgroundColor: 'var(--surface-1, #0f1624)',
           borderRadius: '10px',
@@ -559,6 +594,9 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
           border: '1px solid var(--border-default, #2a374b)',
           overflow: 'hidden',
+          maxHeight: 'calc(100dvh - 32px)',
+          display: 'flex',
+          flexDirection: 'column',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -572,8 +610,9 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             backgroundColor: 'var(--surface-2, #151e2e)',
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{title}</h3>
+          <h3 id={titleId} style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>{title}</h3>
           <button
+            aria-label={document.documentElement.lang === 'ar' ? 'إغلاق' : 'Close'}
             onClick={onClose}
             style={{
               border: 'none',
@@ -588,7 +627,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             ✕
           </button>
         </div>
-        <div style={{ padding: '20px', maxHeight: '70vh', overflowY: 'auto' }}>{children}</div>
+        <div style={{ padding: '20px', minHeight: 0, overflowY: 'auto' }}>{children}</div>
         {footer && (
           <div
             style={{
@@ -598,6 +637,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
               display: 'flex',
               justifyContent: 'flex-end',
               gap: '10px',
+              flexWrap: 'wrap',
+              flexShrink: 0,
             }}
           >
             {footer}
@@ -720,7 +761,7 @@ export const Input: React.FC<InputProps> = ({ label, error, hint, style, id, con
         style={{
           padding: '8px 12px',
           fontSize: '13px',
-          borderRadius: '6px',
+          borderRadius: '8px',
           border: error ? '1px solid #ef4444' : '1px solid var(--border-default, #2a374b)',
           outline: 'none',
           backgroundColor: 'var(--surface-inset, #0b111d)',
@@ -759,7 +800,7 @@ export const Select: React.FC<SelectProps> = ({ label, error, hint, options, chi
         style={{
           padding: '8px 12px',
           fontSize: '13px',
-          borderRadius: '6px',
+          borderRadius: '8px',
           border: error ? '1px solid #ef4444' : '1px solid var(--border-default, #2a374b)',
           outline: 'none',
           backgroundColor: 'var(--surface-inset, #0b111d)',
@@ -804,7 +845,7 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, hint, style, i
         style={{
           padding: '8px 12px',
           fontSize: '13px',
-          borderRadius: '6px',
+          borderRadius: '8px',
           border: error ? '1px solid #ef4444' : '1px solid var(--border-default, #2a374b)',
           outline: 'none',
           backgroundColor: 'var(--surface-inset, #0b111d)',
@@ -839,6 +880,7 @@ export interface CardProps {
 export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, style, noPadding = false, onClick }) => {
   return (
     <div
+      className="eos-card"
       onClick={onClick}
       style={{
         backgroundColor: 'var(--surface-1, #0f1624)',
@@ -851,7 +893,7 @@ export const Card: React.FC<CardProps> = ({ title, subtitle, action, children, s
       }}
     >
       {(title || action) && (
-        <div
+        <div className="eos-card-heading"
           style={{
             padding: '12px 18px',
             borderBottom: '1px solid var(--border-subtle, #1d2939)',
@@ -981,4 +1023,3 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon = '📂', title, de
     </div>
   );
 };
-

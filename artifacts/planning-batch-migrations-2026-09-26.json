@@ -1,0 +1,19 @@
+{
+  "applied": [
+    "0024_allocation_register.sql",
+    "0025_design_register.sql",
+    "0026_impact_review_records.sql"
+  ],
+  "before": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "after": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "grants": 0,
+  "ledger": 28
+}

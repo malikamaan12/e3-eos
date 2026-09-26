@@ -11,6 +11,9 @@ export const MyWorkView: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [approvals, setApprovals] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [taskLoadError, setTaskLoadError] = useState<string | null>(null);
+  const [approvalLoadError, setApprovalLoadError] = useState<string | null>(null);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
   const [taskFilter, setTaskFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [approvalFilter, setApprovalFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
@@ -32,6 +35,15 @@ export const MyWorkView: React.FC = () => {
   const [decisionComment, setDecisionComment] = useState<string>('');
   const [isSubmittingDecision, setIsSubmittingDecision] = useState<boolean>(false);
 
+  useEffect(() => {
+    setDecisionError(null);
+  }, [decidingApproval?.id]);
+
+  useEffect(() => {
+    setDecidingApproval(null);
+    setDecisionComment('');
+  }, [selectedProjectId]);
+
   // Rejection Detail & Resubmit Modals
   const [selectedDetailApproval, setSelectedDetailApproval] = useState<any | null>(null);
   const [isResubmitOpen, setIsResubmitOpen] = useState<boolean>(false);
@@ -41,10 +53,17 @@ export const MyWorkView: React.FC = () => {
     let isMounted = true;
     async function loadWork() {
       setLoading(true);
+      setApprovalLoadError(null);
+      setTaskLoadError(null);
+      setTasks([]);
+      setApprovals([]);
       try {
         const [taskList, apprList] = await Promise.all([
-          apiClient.getTasks(selectedProjectId).catch(() => []),
-          apiClient.getApprovalRequests(selectedProjectId).catch(() => []),
+          apiClient.getTasks(selectedProjectId).catch((error: Error) => { if (isMounted) setTaskLoadError(error.message); return []; }),
+          apiClient.getApprovalRequests(selectedProjectId).catch((error: Error) => {
+            if (isMounted) setApprovalLoadError(error.message);
+            return [];
+          }),
         ]);
         if (isMounted) {
           setTasks(taskList || []);
@@ -60,30 +79,27 @@ export const MyWorkView: React.FC = () => {
     return () => { isMounted = false; };
   }, [apiClient, selectedProjectId, refreshTrigger]);
 
-  const handleToggleComplete = async (taskId: string, isCompleted: boolean) => {
-    if (isCompleted) return;
-    try {
-      await apiClient.completeTask(selectedProjectId, taskId, 'Completed via My Work dashboard');
-      triggerRefresh();
-    } catch (err: any) {
-      alert(err.message || 'Failed to complete task');
-    }
+  const handleToggleComplete = async (_taskId: string, isCompleted: boolean) => {
+    if (!isCompleted) navigate(selectedProjectId ? '/projects/' + selectedProjectId + '/work' : '/work-register');
   };
 
   const handleDecideApproval = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!decidingApproval) return;
     setIsSubmittingDecision(true);
+    setDecisionError(null);
     try {
       await apiClient.decideApproval(selectedProjectId, decidingApproval.id, {
         outcome: decisionOutcome,
         comment: decisionComment || (decisionOutcome === 'approved' ? 'Approved in My Work' : 'Rework requested'),
+        targetHash: decidingApproval.targetHash,
+        targetVersionId: decidingApproval.targetVersionId,
       });
       setDecidingApproval(null);
       setDecisionComment('');
       triggerRefresh();
     } catch (err: any) {
-      alert(err.message || 'Failed to record decision');
+      setDecisionError(err.message || 'Failed to record decision');
     } finally {
       setIsSubmittingDecision(false);
     }
@@ -93,7 +109,7 @@ export const MyWorkView: React.FC = () => {
   const pendingApprovals = useMemo(() => approvals.filter(a => a.status === 'pending'), [approvals]);
   const approvedApprovals = useMemo(() => approvals.filter(a => a.status === 'approved'), [approvals]);
   const rejectedApprovals = useMemo(() => approvals.filter(a => a.status === 'rejected'), [approvals]);
-  const returnedApprovals = useMemo(() => approvals.filter(a => a.status === 'returned' || a.status === 'rework' || a.status === 'revision_requested'), [approvals]);
+  const returnedApprovals = useMemo(() => approvals.filter(a => ['returned', 'rework', 'revision_requested', 'changes_requested'].includes(a.status)), [approvals]);
   const activeTasks = useMemo(() => tasks.filter(t => !(t.isCompleted || t.state === 'completed' || t.status === 'completed')), [tasks]);
   const completedTasks = useMemo(() => tasks.filter(t => t.isCompleted || t.state === 'completed' || t.status === 'completed'), [tasks]);
 
@@ -230,6 +246,12 @@ export const MyWorkView: React.FC = () => {
 
   return (
     <div>
+      {taskLoadError && <div role="alert" className="records-notice">{taskLoadError} <Button size="sm" variant="secondary" onClick={() => navigate("/work-register")}>{isRtl ? "فتح سجل العمل" : "Open work register"}</Button></div>}
+      {approvalLoadError && <div role="alert" style={{ padding: 16, marginBottom: 16, border: '1px solid var(--status-critical-fg)', borderRadius: 12 }}>
+        <strong>{isRtl ? 'تعذر تحميل الموافقات. لا يمكن تأكيد حالة قائمة الانتظار.' : 'Approvals unavailable. The queue status could not be verified.'}</strong>
+        <p>{approvalLoadError}</p>
+        <Button variant="secondary" onClick={triggerRefresh}>{isRtl ? 'إعادة المحاولة' : 'Retry'}</Button>
+      </div>}
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
@@ -273,15 +295,19 @@ export const MyWorkView: React.FC = () => {
         onChange={setActiveTab}
       />
 
+      {isApprovalsRoute && loading && <p role="status" style={{ color: 'var(--text-secondary)', padding: 16 }}>
+        {isRtl ? 'جارٍ تحميل الموافقات...' : 'Loading approval requests...'}
+      </p>}
+
       {/* Dedicated Governance Route Tabs */}
-      {isApprovalsRoute && (
+      {isApprovalsRoute && !approvalLoadError && !loading && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
           {activeTab === 'pending' && (
             pendingApprovals.length === 0 ? (
               <EmptyState
                 icon="✅"
                 title={isRtl ? 'لا توجد توقيعات معلقة' : 'No Pending Sign-offs'}
-                description={isRtl ? 'تمت مراجعة وتوقيع كافة الطلبات المعلقة.' : 'All stage gates and commercial requests are up to date.'}
+                description={isRtl ? 'لا توجد طلبات معلقة في قائمة هذا المشروع.' : 'No pending requests are recorded in this project queue.'}
               />
             ) : (
               pendingApprovals.map(renderApprovalCard)
@@ -458,7 +484,7 @@ export const MyWorkView: React.FC = () => {
                               {appr.reason || `Approval Request for ${appr.targetType}`}
                             </div>
                             <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '6px' }}>
-                              Target: <strong>{appr.targetType}</strong> • Project: <strong>{currentProject?.title || currentProject?.clientName || 'Active Project'}</strong> • Hash: <span style={{ fontFamily: 'monospace' }}>{appr.targetHash ? appr.targetHash.slice(0, 16) + '...' : 'Verified SHA-256'}</span>
+                              Target: <strong>{appr.targetType}</strong> • Project: <strong>{currentProject?.title || currentProject?.clientName || 'Active Project'}</strong> • Hash: <span style={{ fontFamily: 'monospace' }}>{appr.targetHash ? appr.targetHash.slice(0, 16) + '...' : 'Hash not recorded'}</span>
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -957,8 +983,13 @@ export const MyWorkView: React.FC = () => {
         }
       >
         <form onSubmit={handleDecideApproval}>
+          {decisionError && <p role="alert" style={{ color: 'var(--status-critical-fg)', marginBottom: 12 }}>{decisionError}</p>}
           <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', marginTop: 0 }}>
             Request: <strong>{decidingApproval?.id}</strong> ({decidingApproval?.reason})
+          </p>
+          <p style={{ fontSize: 12, overflowWrap: 'anywhere', marginBlock: 12 }}>
+            {isRtl ? 'الإصدار الذي تتم مراجعته:' : 'Reviewed version:'} <bdi>{decidingApproval?.targetVersionId || '—'}</bdi><br />
+            SHA-256: <bdi>{decidingApproval?.targetHash || '—'}</bdi>
           </p>
           <Textarea
             id="mywork-decision-comment-input"

@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState } from 'react';
 import {
   SYNTHETIC_ORGANISATIONS,
-  SYNTHETIC_PROJECTS,
   SyntheticOrganisation,
   SyntheticUser,
   SyntheticProject,
 } from '@e3-eos/test-fixtures';
 import { WorkspaceType } from '../routes.js';
 import { SupportedLocale } from '../localization.js';
+import { FIELD_SYNC_UNAVAILABLE, recoverOfflineCaptures } from '../services/offline-sync.js';
 
 export interface PendingOfflineMutation {
   id: string;
@@ -17,6 +17,7 @@ export interface PendingOfflineMutation {
   payload: Record<string, unknown>;
   status: 'pending' | 'syncing' | 'synced' | 'failed';
   syncedAt?: string;
+  syncError?: string;
   dedupTag?: string;
   tenantId?: string;
   projectId?: string;
@@ -52,6 +53,7 @@ export type ExtendedSyntheticProject = SyntheticProject & {
 
 export interface EosContextValue {
   currentUser: ExtendedSyntheticUser | null;
+  isCheckingSession: boolean;
   currentOrg: SyntheticOrganisation;
   currentLanguage: SupportedLocale;
   direction: 'ltr' | 'rtl';
@@ -63,6 +65,8 @@ export interface EosContextValue {
   currentPath: string;
   selectedProjectId: string;
   projects: ExtendedSyntheticProject[];
+  projectsLoading: boolean;
+  projectsError: string | null;
   currentProject?: ExtendedSyntheticProject;
   userRole?: string;
   pendingMutations: PendingOfflineMutation[];
@@ -99,7 +103,7 @@ export interface EosContextValue {
   setSelectedProjectId: (id: string) => void;
   queueMutation: (action: string, entity: string, payload: Record<string, unknown>, meta?: { projectId?: string; tenantId?: string; actorId?: string; entityVersion?: number }) => void;
   clearPendingMutations: () => void;
-  syncPendingMutations: () => Promise<{ success: number; failed: number }>;
+  syncPendingMutations: () => Promise<{ success: number; failed: number; message?: string }>;
   removePendingMutation: (id: string) => void;
   clearSyncedMutations: () => void;
 }
@@ -150,16 +154,10 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentPath, setCurrentPathState] = useState<string>(getInitialPath);
   const [theme, setThemeState] = useState<ThemeMode>(getInitialTheme);
   const [currentUser, setCurrentUserState] = useState<ExtendedSyntheticUser | null>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('eos_user_email');
-      if (saved) {
-        const found = CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === saved.toLowerCase());
-        if (found) return found as any;
-      }
-      return null;
-    }
-    return CANONICAL_E3_USERS[0] as any;
+    return null;
   });
+  const sessionVersion = React.useRef(0);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [currentOrg, setCurrentOrg] = useState<SyntheticOrganisation>(() => {
     return SYNTHETIC_ORGANISATIONS.e3Internal;
   });
@@ -187,7 +185,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const raw = localStorage.getItem('e3_offline_mutations_v1');
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed)) return recoverOfflineCaptures(parsed);
         }
       } catch {
         // Fallback to empty on parse failure
@@ -267,6 +265,24 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
   };
 
+  // Restore real invited users as well as seeded local accounts. Local storage is
+  // only a session transport, never evidence of a user's role or organization.
+  React.useEffect(() => {
+    let active = true;
+    const version = sessionVersion.current;
+    apiClient.authMe().then((data) => {
+      if (!active || version !== sessionVersion.current) return;
+      if (data.authenticated && data.user?.id && data.activeMembership?.organisationId && data.activeMembership?.role) {
+        const membership = data.activeMembership;
+        setCurrentUserState({ ...data.user, role: membership.role, organisationId: membership.organisationId });
+        setCurrentOrg({ id: membership.organisationId, name: membership.organisationName, code: '' });
+        apiClient.setContext(membership.organisationId, data.user.id, [membership.role]);
+      }
+    }).catch(() => { /* Unverified sessions stay signed out. */ })
+      .finally(() => { if (active) setIsCheckingSession(false); });
+    return () => { active = false; };
+  }, [apiClient]);
+
   const markNotificationRead = async (id: string) => {
     await apiClient.markNotificationRead(id);
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
@@ -317,6 +333,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const login = async (email: string, password?: string, mfaCode?: string) => {
+    sessionVersion.current += 1;
     try {
       const res = await apiClient.authLogin(email, password, mfaCode);
       if (res.mfaRequired) {
@@ -326,8 +343,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (typeof window !== 'undefined') {
           localStorage.setItem('eos_user_email', email);
         }
-        const matching = CANONICAL_E3_USERS.find((u) => u.email.toLowerCase() === email.toLowerCase());
-        const userObj = matching || {
+        const userObj = {
           id: res.user.id,
           name: res.user.name,
           email: res.user.email,
@@ -337,6 +353,9 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           mfaEnabled: res.user.mfaEnabled,
         };
         setCurrentUserState(userObj as any);
+        setCurrentOrg({ id: res.activeMembership.organisationId, name: res.activeMembership.organisationName, code: '' });
+        setSessionToken(res.sessionToken || null);
+        setIsCheckingSession(false);
         apiClient.setContext(res.activeMembership.organisationId, res.user.id, [res.activeMembership.role]);
         if (typeof window !== 'undefined' && res.sessionToken) {
           localStorage.setItem('eos_session_token', res.sessionToken);
@@ -350,62 +369,26 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const switchPersona = async (targetEmail: string) => {
-    try {
-      const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
-      const apiBase = metaEnv && metaEnv.VITE_API_URL
-        ? `${metaEnv.VITE_API_URL}/api/v1`
-        : '/api/v1';
-
-      const res = await fetch(`${apiBase}/auth/impersonate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
-        },
-        body: JSON.stringify({ targetEmail }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || data.message || 'Impersonation rejected');
-      }
-      if (!isImpersonating && sessionToken && typeof window !== 'undefined') {
-        sessionStorage.setItem('eos_admin_primary_token', sessionToken);
-      }
-      setSessionToken(data.sessionToken);
-      apiClient.setSessionToken(data.sessionToken);
-      setIsImpersonating(true);
-      setImpersonatedBy(data.impersonatedBy);
-      if (data.user) {
-        setCurrentUserState({
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.activeMembership?.role || 'project_manager',
-          permissions: [],
-        } as any);
-      }
-      triggerRefresh();
-    } catch (e: any) {
-      const cleanTarget = (targetEmail || '').trim().toLowerCase();
-      const canonicalTarget = CANONICAL_E3_USERS.find(
-        (u) => u.email.toLowerCase() === cleanTarget
-      );
-      if (canonicalTarget) {
-        if (!isImpersonating && sessionToken && typeof window !== 'undefined') {
-          sessionStorage.setItem('eos_admin_primary_token', sessionToken);
-        }
-        const fallbackToken = `eos-impersonate-${canonicalTarget.id}-${Date.now()}`;
-        setSessionToken(fallbackToken);
-        apiClient.setSessionToken(fallbackToken);
-        setIsImpersonating(true);
-        setImpersonatedBy(`${currentUser?.name || 'Superadmin'} (${currentUser?.email || 'superadmin@eeeqa.com'})`);
-        setCurrentUserState(canonicalTarget as any);
-        triggerRefresh();
-        return;
-      }
-      console.error('[Impersonation Error]:', e.message);
-      alert(e.message || 'Impersonation failed');
+    sessionVersion.current += 1;
+    // Only a complete server-issued session can change the active identity.
+    const data = await apiClient.impersonateUser(targetEmail);
+    if (!isImpersonating && sessionToken && typeof window !== 'undefined') {
+      sessionStorage.setItem('eos_admin_primary_token', sessionToken);
     }
+    setSessionToken(data.sessionToken);
+    apiClient.setSessionToken(data.sessionToken);
+    apiClient.setContext(data.activeMembership.organisationId, data.user.id, [data.activeMembership.role]);
+    setIsImpersonating(true);
+    setImpersonatedBy(data.impersonatedBy);
+    setCurrentUserState({
+      id: data.user.id,
+      name: data.user.name,
+      email: data.user.email,
+      isSuperAdmin: data.user.isSuperAdmin,
+      role: data.activeMembership.role,
+      permissions: [],
+    } as any);
+    triggerRefresh();
   };
 
   const exitImpersonation = async () => {
@@ -423,6 +406,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = async () => {
+    sessionVersion.current += 1;
     try {
       await fetch('/api/v1/auth/logout', { method: 'POST' });
     } catch {}
@@ -431,6 +415,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem('eos_session_token');
     }
     setCurrentUserState(null);
+    setSessionToken(null);
     apiClient.setSessionToken(undefined);
     setIsImpersonating(false);
     setImpersonatedBy(null);
@@ -526,149 +511,56 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPendingMutations(mutationsRef.current);
   };
 
-  const syncPendingMutations = async (): Promise<{ success: number; failed: number }> => {
-    const pendingItems = mutationsRef.current.filter((m) => m.status === 'pending');
+  const syncPendingMutations = async (): Promise<{ success: number; failed: number; message?: string }> => {
+    const pendingItems = mutationsRef.current.filter((m) => m.status === 'pending' || m.status === 'failed');
     if (pendingItems.length === 0) return { success: 0, failed: 0 };
-
+    const attemptedIds = new Set(pendingItems.map((m) => m.id));
     mutationsRef.current = mutationsRef.current.map((m) =>
-      m.status === 'pending' ? { ...m, status: 'syncing' } : m
+      attemptedIds.has(m.id) ? { ...m, status: 'syncing', syncError: undefined } : m
     );
     setPendingMutations([...mutationsRef.current]);
 
-    let successCount = 0;
-    let failedCount = 0;
-
-    for (const item of pendingItems) {
-      try {
-        await new Promise((r) => setTimeout(r, 60));
-        mutationsRef.current = mutationsRef.current.map((m) =>
-          m.id === item.id
-            ? {
-                ...m,
-                status: 'synced',
-                syncedAt: new Date().toISOString(),
-              }
-            : m
-        );
-        successCount++;
-      } catch {
-        mutationsRef.current = mutationsRef.current.map((m) =>
-          m.id === item.id ? { ...m, status: 'failed' } : m
-        );
-        failedCount++;
-      }
+    let message = FIELD_SYNC_UNAVAILABLE;
+    try {
+      await apiClient.syncFieldBatch(pendingItems);
+      // A legacy success response is not a durable receipt. Keep captures
+      // provisional until this path is replaced by the verified API contract.
+    } catch (error) {
+      if (error instanceof Error) message = error.message;
     }
-
-    setPendingMutations([...mutationsRef.current]);
-    triggerRefresh();
-    return { success: successCount, failed: failedCount };
-  };
-
-  const removePendingMutation = (id: string) => {
-    mutationsRef.current = mutationsRef.current.filter((m) => m.id !== id);
-    setPendingMutations(mutationsRef.current);
-  };
-
-  const clearSyncedMutations = () => {
-    mutationsRef.current = mutationsRef.current.filter((m) => m.status !== 'synced');
-    setPendingMutations(mutationsRef.current);
-  };
-
-  const clearPendingMutations = () => {
-    mutationsRef.current = [];
-    setPendingMutations([]);
-  };
-
-  const [projects, setProjects] = useState<ExtendedSyntheticProject[]>(() => {
-    const base = Object.values(SYNTHETIC_PROJECTS) as any[];
-    const accA: ExtendedSyntheticProject = {
-      id: 'PROJ-ACC-001',
-      code: 'PROJ-ACC-001',
-      projectCode: 'PROJ-ACC-001',
-      name: 'Acceptance A',
-      title: 'Acceptance A',
-      clientName: 'Qatar Tourism Authority',
-      venueName: 'DECC — Hall 1 & 2',
-      venue: { name: 'DECC — Hall 1 & 2', address: 'Doha Exhibition and Convention Center' },
-      status: 'operational',
-      currency: 'QAR',
-    } as any;
-    const accB: ExtendedSyntheticProject = {
-      id: 'PROJ-ACC-002',
-      code: 'PROJ-ACC-002',
-      projectCode: 'PROJ-ACC-002',
-      name: 'Acceptance B',
-      title: 'Acceptance B',
-      clientName: 'Ministry of Culture',
-      venueName: 'DECC — VIP Pavilion',
-      venue: { name: 'DECC — VIP Pavilion', address: 'Doha Exhibition and Convention Center' },
-      status: 'operational',
-      currency: 'QAR',
-    } as any;
-    return [accA, accB, ...base];
-  });
-
-  React.useEffect(() => {
-    let isMounted = true;
-    apiClient
-      .getProjects()
-      .then((remoteList) => {
-        if (isMounted && Array.isArray(remoteList) && remoteList.length > 0) {
-          setProjects((prev) => {
-            const map = new Map<string, any>();
-            prev.forEach((p) => map.set(p.id, p));
-            remoteList.forEach((p) => {
-              const existing = map.get(p.id) || {};
-              map.set(p.id, { ...existing, ...p });
-            });
-            return Array.from(map.values());
-          });
-        }
-      })
-      .catch(() => {});
-    return () => {
-      isMounted = false;
-    };
-  }, [apiClient, refreshTrigger]);
-
-  React.useEffect(() => {
-    if (!selectedProjectId) return;
-    let isMounted = true;
-    const clean = selectedProjectId.split('?')[0].split('#')[0];
-    const exists = projects.some(
-      (p) => p.id === clean || (p as any).code === clean || (p as any).projectCode === clean
+    mutationsRef.current = mutationsRef.current.map((m) =>
+      attemptedIds.has(m.id) ? { ...m, status: 'failed', syncedAt: undefined, syncError: message } : m
     );
-    if (!exists && clean !== 'new' && clean !== 'projects') {
-      apiClient
-        .getCockpit(clean)
-        .then((c) => {
-          if (isMounted && c) {
-            const venueStr = typeof c.venue === 'string'
-              ? c.venue
-              : typeof c.venue === 'object' && c.venue?.name
-              ? (typeof c.venue.name === 'string' ? c.venue.name : 'Doha Exhibition & Convention Center')
-              : 'Doha Exhibition & Convention Center';
-            const synth: ExtendedSyntheticProject = {
-              id: clean,
-              name: c.title || c.name || `Project ${clean.slice(0, 8)}`,
-              title: c.title || c.name || `Project ${clean.slice(0, 8)}`,
-              code: c.projectCode || c.code || clean,
-              projectCode: c.projectCode || c.code || clean,
-              clientName: c.clientName || 'Client Organization',
-              venueName: venueStr,
-              venue: { name: venueStr, address: 'Doha, Qatar' },
-              currency: 'QAR',
-              status: 'operational',
-            } as any;
-            setProjects((prev) => [synth, ...prev]);
-          }
-        })
-        .catch(() => {});
-    }
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedProjectId, apiClient, projects]);
+    setPendingMutations([...mutationsRef.current]);
+    return { success: 0, failed: pendingItems.length, message };
+  };
+
+  const retainUnacknowledgedCaptures = () => {
+    // No current sync endpoint provides durable receipts. In particular, do
+    // not discard captures marked "synced" by an earlier simulated client.
+    mutationsRef.current = recoverOfflineCaptures(mutationsRef.current);
+    setPendingMutations(mutationsRef.current);
+  };
+  const removePendingMutation = (_id: string) => retainUnacknowledgedCaptures();
+  const clearSyncedMutations = retainUnacknowledgedCaptures;
+  const clearPendingMutations = retainUnacknowledgedCaptures;
+
+  const [projects, setProjects] = useState<ExtendedSyntheticProject[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    let active = true;
+    setProjects([]);
+    setProjectsError(null);
+    if (!currentUser || isCheckingSession) { setProjectsLoading(false); return; }
+    setProjectsLoading(true);
+    apiClient.getProjects()
+      .then((list) => { if (active) setProjects(list); })
+      .catch((error: Error) => { if (active) setProjectsError(error.message); })
+      .finally(() => { if (active) setProjectsLoading(false); });
+    return () => { active = false; };
+  }, [apiClient, refreshTrigger, currentUser?.id, currentUser?.role, currentOrg.id, isCheckingSession]);
 
   React.useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -690,15 +582,15 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         root.style.setProperty(k, v);
       });
       // Semantic status tokens as CSS variables
-      root.style.setProperty('--status-info-fg', '#3B82F6');
+      root.style.setProperty('--status-info-fg', isDark ? '#60A5FA' : '#1D4ED8');
       root.style.setProperty('--status-info-bg', 'rgba(59,130,246,.14)');
-      root.style.setProperty('--status-success-fg', '#22C55E');
+      root.style.setProperty('--status-success-fg', isDark ? '#4ADE80' : '#167347');
       root.style.setProperty('--status-success-bg', 'rgba(34,197,94,.14)');
-      root.style.setProperty('--status-warning-fg', '#F59E0B');
+      root.style.setProperty('--status-warning-fg', isDark ? '#FBBF24' : '#92400E');
       root.style.setProperty('--status-warning-bg', 'rgba(245,158,11,.14)');
       root.style.setProperty('--status-risk-fg', '#F97316');
       root.style.setProperty('--status-risk-bg', 'rgba(249,115,22,.14)');
-      root.style.setProperty('--status-critical-fg', '#EF4444');
+      root.style.setProperty('--status-critical-fg', isDark ? '#F87171' : '#B91C1C');
       root.style.setProperty('--status-critical-bg', 'rgba(239,68,68,.14)');
       root.style.setProperty('--status-neutral-fg', '#94A3B8');
       root.style.setProperty('--status-neutral-bg', 'rgba(148,163,184,.14)');
@@ -724,6 +616,7 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const contextValue: EosContextValue = {
     currentUser,
+    isCheckingSession,
     currentOrg,
     currentLanguage,
     direction,
@@ -735,6 +628,8 @@ export const EosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentPath,
     selectedProjectId,
     projects,
+    projectsLoading,
+    projectsError,
     currentProject: (() => {
       const clean = selectedProjectId?.split('?')[0].split('#')[0];
       const found = projects.find((p) => {

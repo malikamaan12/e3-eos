@@ -1,0 +1,19 @@
+{
+  "applied": [
+    "0021_requirement_intake_versions.sql",
+    "0022_clarification_records.sql",
+    "0023_field_observations.sql"
+  ],
+  "before": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "after": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "grants": 0,
+  "ledger": 25
+}

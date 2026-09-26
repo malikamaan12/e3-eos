@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Request } from 'express';
 import {
   FinancialCalculator,
@@ -24,6 +24,7 @@ import {
   submissionPackItemsRepository,
 } from '../apps/api/src/documents/documents.repositories.js';
 
+
 describe('E3-EOS End-to-End Functional Lifecycle & Project Isolation Test Suite', () => {
   const orgId = '11111111-1111-4111-8111-111111111111';
   const runId = 'RUN01';
@@ -45,12 +46,17 @@ describe('E3-EOS End-to-End Functional Lifecycle & Project Isolation Test Suite'
   } as unknown as Request;
 
   beforeEach(() => {
+    // Direct in-memory lifecycle fixtures are explicit local test data.
+    vi.stubEnv('NODE_ENV', 'test');
+    vi.stubEnv('ENVIRONMENT', 'local');
+    vi.stubEnv('EOS_ENABLE_LOCAL_SYNTHETIC_AUTH', 'true');
     projectsController = new ProjectsController();
     commercialController = new CommercialFinanceController();
     operationsController = new OperationsController();
     vaultController = new CompanyVaultController();
     packsController = new SubmissionPacksController();
   });
+  afterEach(() => vi.unstubAllEnvs());
 
   // ===========================================================================
   // 1. Fresh Project Creation, Time/Timezone Preservation & Strict Isolation

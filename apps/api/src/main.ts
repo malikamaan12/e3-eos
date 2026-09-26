@@ -6,11 +6,18 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ProblemDetailsFilter } from './common/problem.filter.js';
+import { allowedWebOrigins, commandOriginMiddleware } from './auth/request-origin.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({ origin: true, credentials: true });
+  const origins = allowedWebOrigins();
+  app.enableCors({
+    origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) =>
+      callback(null, origin !== undefined && origins.has(origin)),
+    credentials: true,
+  });
+  app.use(commandOriginMiddleware(origins));
   app.setGlobalPrefix('api/v1');
   app.useGlobalFilters(new ProblemDetailsFilter());
 

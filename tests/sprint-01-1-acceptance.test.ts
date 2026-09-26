@@ -6,7 +6,7 @@ import {
   DEFAULT_E3_APPROVAL_POLICY,
   CommercialApprovalPolicyConfig,
 } from '@e3-eos/policy';
-import { calculateOnboardingCompleteness, normalizeBusinessRoute } from '@e3-eos/domain';
+import { calculateOnboardingCompleteness, normalizeBusinessRoute, CANONICAL_ROLE_DEFINITIONS } from '@e3-eos/domain';
 import { CANONICAL_ROLE_EXPLANATIONS, getRoleExplanation } from '../apps/web/src/utils/role-explanations.js';
 import { CANONICAL_ROLES_CATALOG } from '../apps/api/src/admin/admin.controller.js';
 
@@ -359,19 +359,19 @@ describe('Sprint 01.1 Product Polish Pass — Acceptance Verification Suite', ()
   // TEST E: PLAIN-ENGLISH RBAC EXPLANATIONS & MANDATORY GATE GOVERNANCE
   // =========================================================================
   describe('Test E: Plain-English RBAC Explanations & Mandatory Gate Governance', () => {
-    it('provides plain-English Can and Cannot by default explanations for all 13 canonical roles in backend catalog', () => {
+    it('uses actual canonical permissions in the backend reference catalog and keeps project/approval scope separate', () => {
       expect(CANONICAL_ROLES_CATALOG.length).toBe(13);
 
       for (const r of CANONICAL_ROLES_CATALOG) {
         expect(r.role).toBeDefined();
         expect(r.title).toBeDefined();
         expect(r.description).toBeDefined();
-        expect(Array.isArray(r.permissions)).toBe(true);
-        expect(Array.isArray((r as any).can)).toBe(true);
-        expect((r as any).can.length).toBeGreaterThanOrEqual(2);
-        expect(Array.isArray((r as any).cannot)).toBe(true);
-        expect((r as any).cannot.length).toBeGreaterThanOrEqual(2);
+        expect(r.permissions).toEqual(CANONICAL_ROLE_DEFINITIONS[r.role].permissions);
+        expect(r).not.toHaveProperty('can');
+        expect(r).not.toHaveProperty('cannot');
       }
+      expect(CANONICAL_ROLES_CATALOG.find((role) => role.role === 'super_admin')?.description).toContain('separate controls');
+      expect(CANONICAL_ROLES_CATALOG.find((role) => role.role === 'project_manager')?.description).toContain('assigned scope');
     });
 
     it('provides plain-English Can and Cannot by default explanations in frontend canonical map', () => {

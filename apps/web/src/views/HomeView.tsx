@@ -1,351 +1,81 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { MetricCard, Card, Badge, Button, AlertBanner, Skeleton, formatCurrency } from '../components/DesignSystem.js';
+import { Badge, Button, Card, MetricCard, Skeleton } from '../components/DesignSystem.js';
+import './HomeView.css';
+
+type Project = { id: string; title?: string; name?: string; projectCode?: string; code?: string; maturity?: string; clientName?: string };
+const stages = [
+  { key: 'idea', en: 'Idea', ar: 'فكرة', color: 'var(--chart-1)' },
+  { key: 'developing', en: 'Developing', ar: 'قيد التطوير', color: 'var(--chart-1)' },
+  { key: 'submitted', en: 'Submitted', ar: 'تم التقديم', color: 'var(--chart-2)' },
+  { key: 'negotiating', en: 'Negotiating', ar: 'قيد التفاوض', color: 'var(--chart-2)' },
+  { key: 'authorised', en: 'Authorised', ar: 'معتمد', color: 'var(--chart-3)' },
+  { key: 'delivering', en: 'Delivering', ar: 'قيد التنفيذ', color: 'var(--chart-3)' },
+  { key: 'closing', en: 'Closing', ar: 'قيد الإغلاق', color: 'var(--chart-4)' },
+  { key: 'closed', en: 'Closed', ar: 'مغلق', color: 'var(--chart-4)' },
+  { key: 'unknown', en: 'Not recorded', ar: 'غير مسجل', color: 'var(--text-muted)' },
+];
+const stageOf = (p: Project) => p.maturity === 'delivery' ? 'delivering' : stages.some(s => s.key === p.maturity) ? p.maturity! : 'unknown';
 
 export const HomeView: React.FC = () => {
-  const { currentUser, currentLanguage, navigate, apiClient, refreshTrigger, projects: contextProjects } = useEosContext();
-  const [projects, setProjects] = useState<any[]>(() => contextProjects || []);
-  const [loading, setLoading] = useState<boolean>(!contextProjects || contextProjects.length === 0);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      try {
-        const res = await apiClient.getProjects();
-        if (isMounted) {
-          const projectList = (res as any).data || (Array.isArray(res) ? res : []);
-          if (projectList && projectList.length > 0) {
-            setProjects(projectList);
-          }
-        }
-      } catch {
-        // Handled
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    loadData();
-    return () => { isMounted = false; };
-  }, [apiClient, refreshTrigger]);
-
-  const isRtl = currentLanguage === 'ar';
-
-  return (
-    <div style={{ paddingBottom: '32px' }}>
-      {/* Welcome Banner */}
-      <div
-        style={{
-          backgroundColor: 'var(--surface-1, #0f1624)',
-          borderRadius: '8px',
-          border: '1px solid var(--border-default, #2a374b)',
-          padding: '20px 24px',
-          marginBottom: '20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
-              {isRtl ? (
-                <>مرحباً، <span dir="ltr" style={{ unicodeBidi: 'isolate' }}>{currentUser?.name || ''}</span></>
-              ) : (
-                `Good morning, ${currentUser?.name || 'User'}`
-              )}
-            </h1>
-            <Badge variant="accent">{currentUser?.role || 'Super Admin'}</Badge>
-          </div>
-          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary, #94a3b8)' }}>
-            {isRtl
-              ? 'إليك ملخص العمليات الحرجة والموافقات المطلوبة اليوم عبر محفظة فعاليات E3.'
-              : 'Here is your operational situational awareness and urgent items across the E3 event portfolio today.'}
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <Button variant="secondary" size="md" onClick={() => navigate('/my-work')}>
-            📋 {isRtl ? 'مهامي' : 'My Work'}
-          </Button>
-          {currentUser?.role !== 'client' && !currentUser?.email?.includes('client') && (
-            <Button id="home-create-project-btn" variant="primary" size="md" onClick={() => navigate('/projects/new')}>
-              + {isRtl ? 'مشروع جديد' : 'New Project'}
-            </Button>
-          )}
-        </div>
+  const { currentUser, currentLanguage, navigate, projects, projectsLoading: loading, projectsError: error, triggerRefresh } = useEosContext();
+  const canAdministerAccess = currentUser?.isSuperAdmin === true || currentUser?.role === 'super_admin';
+  const ar = currentLanguage === 'ar';
+  const t = (en: string, arabic: string) => ar ? arabic : en;
+  const distribution = stages.map(s => ({ ...s, count: projects.filter(p => stageOf(p) === s.key).length })).filter(s => s.count > 0);
+  const count = (keys: string[]) => projects.filter(p => keys.includes(stageOf(p))).length;
+  const number = (n: number) => n.toLocaleString(ar ? 'ar-QA' : 'en-GB');
+  const lab = projects.find(p => (p.projectCode || p.code || '').includes('ALL-FORMATS'));
+  let offset = 0;
+  const segments = distribution.map(s => { const start = offset; offset += s.count / projects.length * 100; return `${s.color} ${start}% ${offset}%`; }).join(', ');
+  return <div className="eos-dashboard">
+    <header className="dashboard-heading">
+      <div><div className="dashboard-eyebrow">{t('YOUR WORKSPACE, AT A GLANCE', 'مساحة عملك في لمحة')}</div>
+        <h1>{t('Welcome back, ', 'مرحباً بعودتك، ')}<bdi>{currentUser?.name || t('User', 'مستخدم')}</bdi></h1>
+        <p>{t('A clear view of your projects. A focused start to your day.', 'نظرة واضحة على مشاريعك. بداية يوم أكثر تركيزاً.')}</p>
       </div>
-
-      {/* Urgent Operational Alerts */}
-      <AlertBanner
-        type="warning"
-        title={isRtl ? 'تنبيه حرج يتطلب تدخلاً فورياً' : 'Urgent Operational Action Required'}
-        action={{
-          label: isRtl ? 'مراجعة الآن' : 'Review Cockpit',
-          onClick: () => navigate(projects[0] ? `/projects/${projects[0].id}` : '/projects'),
-        }}
-      >
-        {isRtl
-          ? (projects[0] ? `الموافقة الفنية لمشروع ${projects[0].title} معلقة بانتظار توقيع الإدارة التنفيذية.` : 'لا توجد تنبيهات حرجة في الوقت الحالي.')
-          : (projects[0] ? `Technical approval for project ${projects[0].title} is pending executive sign-off before vendor PO release.` : 'No urgent alerts requiring intervention.')}
-      </AlertBanner>
-
-      {/* Universal Formats Test Lab Quick Access Banner */}
-      <div
-        id="home-test-lab-banner"
-        style={{
-          backgroundColor: '#0f172a',
-          border: '1.5px solid #d97706',
-          borderRadius: '8px',
-          padding: '12px 18px',
-          marginBottom: '20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          boxShadow: '0 2px 8px rgba(217, 119, 6, 0.12)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '20px' }}>🧪</span>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#f59e0b', fontSize: '13px' }}>
-                PRJ-TEST-ALL-FORMATS
-              </span>
-              <span style={{ fontSize: '11px', backgroundColor: '#d97706', color: '#ffffff', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
-                18 FILE FORMATS
-              </span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-              {isRtl
-                ? 'مشروع الاختبار الشامل جاهز بجميع ملفات CAD و BIM و 3D والفيديو والمستندات الهندسية.'
-                : 'Universal test lab project loaded with complete datasets across all 18 CAD, BIM, 3D, Video, and Calc formats.'}
-            </div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button
-            id="home-open-design-lab-btn"
-            variant="primary"
-            size="sm"
-            onClick={() => navigate('/projects/PRJ-TEST-ALL-FORMATS/designs')}
-            style={{ backgroundColor: '#2563eb', borderColor: '#1d4ed8' }}
-          >
-            🎨 {isRtl ? 'فتح معمل التصاميم' : 'Open Design Lab'}
-          </Button>
-          <Button
-            id="home-open-cockpit-btn"
-            variant="secondary"
-            size="sm"
-            onClick={() => navigate('/projects/PRJ-TEST-ALL-FORMATS')}
-          >
-            🎯 {isRtl ? 'قمرة القيادة' : 'Project Cockpit'}
-          </Button>
-        </div>
+      <div className="dashboard-actions"><Button variant="secondary" onClick={() => navigate('/my-work')}>{t('My Work', 'مهامي')}</Button>
+        {currentUser?.role !== 'client' && !currentUser?.email?.includes('client') && <Button id="home-create-project-btn" onClick={() => navigate('/projects/new')}>+ {t('New Project', 'مشروع جديد')}</Button>}
       </div>
-
-      {/* KPI Metrics Row */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '16px',
-          marginBottom: '24px',
-        }}
-      >
-        <MetricCard
-          title={isRtl ? 'المشاريع النشطة' : 'Active Projects'}
-          isLoading={loading}
-          value={projects.length}
-          subtitle={isRtl ? 'مشاريع خاضعة للتنفيذ والمراقبة' : 'Live staging projects'}
-          accentColor="#2563eb"
-        />
-        <MetricCard
-          title={isRtl ? 'الموافقات المعلقة' : 'Pending Approvals'}
-          value="2"
-          subtitle={isRtl ? 'تتطلب توقيع الشريك التنفيذي' : 'Waiting on governance sign-off'}
-          badge={{ label: isRtl ? 'إجراء مطلوب' : 'Action Needed', variant: 'danger' }}
-          accentColor="#dc2626"
-        />
-        <MetricCard
-          title={isRtl ? 'المهام الحرجة اليوم' : 'Critical Tasks Today'}
-          value="4"
-          subtitle={isRtl ? 'مهام على المسار الحرج' : 'On critical path timeline'}
-          delta={{ text: isRtl ? '٢ مستحقة اليوم' : '2 due today', isPositive: false }}
-          accentColor="#d97706"
-        />
-        <MetricCard
-          title={isRtl ? 'العد التنازلي للفعالية' : 'Next Event Move-in'}
-          value="67d"
-          subtitle={isRtl ? 'مركز الدوحة للمعارض والمؤتمرات' : 'Doha Exhibition & Conv. Center'}
-          accentColor="#059669"
-        />
-      </div>
-
-      {/* Responsive Grid: Projects & What Needs My Attention Today */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-        {/* Active Projects Summary */}
-        <Card
-          title={isRtl ? 'دليل المشاريع النشطة' : 'Active Projects Directory'}
-          subtitle={isRtl ? 'أحدث المشاريع وحالتها التشغيلية' : 'Latest event deliveries and governance maturity'}
-          action={
-            <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
-              {loading
-                ? (isRtl ? 'عرض الكل ←' : 'View All →')
-                : (isRtl ? `عرض الكل (${projects.length}) ←` : `View All (${projects.length}) →`)}
-            </Button>
-          }
-          noPadding
-        >
-          {loading && projects.length === 0 ? (
-            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {[1, 2, 3].map((i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '60%' }}>
-                    <Skeleton width="180px" height="16px" />
-                    <Skeleton width="120px" height="12px" />
-                  </div>
-                  <Skeleton width="70px" height="22px" style={{ borderRadius: '12px' }} />
-                </div>
-              ))}
-            </div>
-          ) : projects.length === 0 ? (
-            <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
-              {isRtl ? 'لا توجد مشاريع حالياً. انقر على "+ مشروع جديد" لإضافة أول فعالية.' : 'No projects found. Click "+ New Project" to onboard your first event.'}
-            </div>
-          ) : (
-            <div>
-              {projects.slice(0, 5).map((p) => (
-                <div
-                  key={p.id}
-                  onClick={() => navigate(`/projects/${p.id}`)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 20px',
-                    borderBottom: '1px solid var(--border-subtle, #1e293b)',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.15s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--accent, #d97706)', fontWeight: 700 }}>
-                        {p.projectCode || p.code}
-                      </span>
-                      {((p.projectCode || p.code || '').includes('ALL-FORMATS') || p.id === '00000000-0000-4000-8000-000000000099') && (
-                        <span style={{ fontSize: '10px', backgroundColor: '#d97706', color: '#ffffff', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>
-                          🧪 18 FORMATS
-                        </span>
-                      )}
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>
-                        {p.title || p.name}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
-                      {p.clientName || (isRtl ? 'قيد التأكيد' : 'To Be Confirmed')} • {isRtl ? 'المصدر:' : 'Origin:'} {p.originCode || 'Tender'}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Badge variant={p.maturity === 'delivery' ? 'success' : 'info'}>
-                      {p.maturity || 'Onboarding'}
-                    </Badge>
-                    <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '14px' }}>{isRtl ? '←' : '→'}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* What Needs Attention Today */}
-        <div>
-          <Card
-            title={isRtl ? 'ما يتطلب انتباهك اليوم' : 'What Needs My Attention Today?'}
-            subtitle={isRtl ? 'قرارات واختناقات تتطلب إجراءً عاجلاً' : 'Blocked items, decisions & milestone deadlines'}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div
-                style={{
-                  padding: '14px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--accent, #d97706)',
-                  backgroundColor: 'var(--accent-soft, rgba(217,119,6,0.14))',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-hover, #f59e0b)' }}>
-                    {isRtl ? 'بوابة الموافقة الثنائية' : 'Dual Sign-Off Gate'}
-                  </span>
-                  <Badge variant="warning" size="sm">
-                    {isRtl ? 'موافقة تنفيذية' : 'Executive'}
-                  </Badge>
-                </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>
-                  {projects[0]
-                    ? (isRtl ? `اعتماد حزمة التقديم لمشروع: ${projects[0].title}` : `Approval of Submission Package: ${projects[0].title}`)
-                    : (isRtl ? 'لا توجد موافقات معلقة' : 'No pending approval packages')}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
-                  {projects[0]
-                    ? (isRtl
-                      ? `مدير المشروع: ${projects[0].pmName || 'المعين'} • القيمة التقديرية: ${formatCurrency(projects[0].contractValue || projects[0].estimatedCost || 0, 'QAR')}`
-                      : `Lead PM: ${projects[0].pmName || 'Assigned Lead'} • Estimated Value: ${formatCurrency(projects[0].contractValue || projects[0].estimatedCost || 0, 'QAR')}`)
-                    : (isRtl ? 'النظام في حالة تشغيل اعتيادية' : 'System operational and up to date')}
-                </div>
-                <div style={{ marginTop: '10px' }}>
-                  <Button size="sm" variant="primary" onClick={() => navigate(projects[0] ? `/projects/${projects[0].id}` : '/approvals')}>
-                    {isRtl ? 'مراجعة طلب الموافقة' : 'Open Approval Review'}
-                  </Button>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  padding: '14px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-default, #2a374b)',
-                  backgroundColor: 'var(--surface-2, #151e2e)',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
-                    {isRtl ? 'معلم تسليم قادم' : 'Upcoming Milestone'}
-                  </span>
-                  <Badge variant="neutral" size="sm">
-                    {isRtl ? 'خلال ٣ أيام' : 'In 3 Days'}
-                  </Badge>
-                </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)', marginTop: '4px' }}>
-                  {projects[0]?.venue
-                    ? (isRtl
-                      ? `الجولة الفنية الميدانية وتصريح تعليق الهياكل في ${projects[0].venue}`
-                      : `${projects[0].venue} Venue Technical Walkthrough & Rigging Access Check`)
-                    : (isRtl
-                      ? 'الجولة الفنية الميدانية وتصريح تعليق الهياكل للموقع'
-                      : 'Venue Technical Walkthrough & Rigging Access Check')}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
-                  {projects[0]?.pmName
-                    ? (isRtl
-                      ? `مُسندة إلى: ${projects[0].pmName}`
-                      : `Assigned to ${projects[0].pmName}`)
-                    : (isRtl
-                      ? 'مُسندة إلى: مدير العمليات الميدانية'
-                      : 'Assigned to Site Operations Lead')}
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
+    </header>
+    {error && <div role="alert" className="dashboard-notice">{t('Projects could not be loaded.', 'تعذر تحميل المشاريع.')} <Button variant="secondary" onClick={triggerRefresh}>{t('Try again', 'إعادة المحاولة')}</Button></div>}
+    <section className="dashboard-metrics" aria-label={t('Project overview', 'ملخص المشاريع')}>
+      <MetricCard title={t('All Projects', 'كل المشاريع')} value={error ? '—' : number(projects.length)} isLoading={loading} subtitle={t('In your project directory', 'في دليل مشاريعك')} accentColor="var(--chart-1)" />
+      <MetricCard title={t('In Development', 'قيد التطوير')} value={error ? '—' : number(count(['idea', 'developing', 'submitted', 'negotiating']))} isLoading={loading} subtitle={t('Idea through negotiation', 'من الفكرة إلى التفاوض')} accentColor="var(--chart-2)" />
+      <MetricCard title={t('Delivery', 'التنفيذ')} value={error ? '—' : number(count(['authorised', 'delivering']))} isLoading={loading} subtitle={t('Authorised or delivering', 'معتمد أو قيد التنفيذ')} accentColor="var(--chart-3)" />
+      <MetricCard title={t('Closing & Closed', 'الإغلاق والمغلق')} value={error ? '—' : number(count(['closing', 'closed']))} isLoading={loading} subtitle={t('Final lifecycle stages', 'مراحل دورة الحياة النهائية')} accentColor="var(--chart-4)" />
+    </section>
+    <div className="dashboard-overview">
+      <Card title={t('Portfolio overview', 'نظرة عامة على المحفظة')} subtitle={t('Projects by lifecycle maturity · current snapshot', 'المشاريع حسب مرحلة دورة الحياة · الوضع الحالي')} action={<Badge variant="neutral">{t('All projects', 'كل المشاريع')}</Badge>}>
+        {loading ? <Skeleton height="212px" /> : error ? <p className="dashboard-empty">{t('Portfolio data is unavailable.', 'بيانات المحفظة غير متاحة.')}</p> : projects.length === 0 ? <div className="dashboard-empty"><p>{t('No projects are granted to your current membership. An organization administrator can assign access; creating a project does not grant it automatically.', 'لا توجد مشاريع ممنوحة لعضويتك الحالية. يمكن لمسؤول الجهة منح الوصول؛ إنشاء مشروع لا يمنح الوصول تلقائياً.')}</p>{canAdministerAccess && <Button variant="secondary" onClick={() => navigate('/admin/access')}>{t('Manage project access', 'إدارة صلاحيات المشاريع')}</Button>}</div> : <div className="portfolio-chart">
+          <div className="portfolio-ring" style={{ background: `conic-gradient(${segments})` }} role="img" aria-label={t(`${projects.length} projects. Breakdown follows.`, `${number(projects.length)} مشاريع. التفاصيل التالية.`)}><div><strong>{number(projects.length)}</strong><span>{t('Total projects', 'إجمالي المشاريع')}</span></div></div>
+          <ul className="portfolio-legend">{distribution.map(s => <li key={s.key}><span className="legend-label"><i style={{ background: s.color }} />{ar ? s.ar : s.en}</span><strong>{number(s.count)}</strong><span>{number(Math.round(s.count / projects.length * 100))}%</span></li>)}</ul>
+        </div>}
+        <p className="dashboard-source">{t('Based on projects available to your current membership. Unrecorded maturity is shown separately.', 'استناداً إلى المشاريع المتاحة لعضويتك الحالية. المراحل غير المسجلة موضحة بشكل منفصل.')}</p>
+      </Card>
+      <section className="workspace-focus"><div className="focus-topline"><span className="focus-icon" aria-hidden="true">✦</span>{t('MAKE ROOM FOR WHAT MATTERS', 'ركّز على ما يهم')}</div>
+        <h2>{t('Your next move,\nin one place.', 'خطوتك التالية،\nفي مكان واحد.')}</h2>
+        <p>{t('Review your assigned work, follow decisions, and keep delivery moving.', 'راجع المهام المسندة إليك وتابع القرارات واستمر في التنفيذ.')}</p>
+        <Button variant="secondary" onClick={() => navigate('/my-work')}>{t('Open My Work', 'فتح مهامي')} <span aria-hidden="true">{ar ? '←' : '→'}</span></Button>
+        <div className="focus-footer">{t('Plan clearly. Deliver confidently.', 'خطط بوضوح. نفّذ بثقة.')}</div>
+      </section>
     </div>
-  );
+    <div className="dashboard-detail">
+      <Card title={t('Project directory', 'دليل المشاريع')} subtitle={t('Continue where your team is working', 'تابع العمل مع فريقك')} action={<Button variant="ghost" onClick={() => navigate('/projects')}>{t('View all', 'عرض الكل')} {ar ? '←' : '→'}</Button>} noPadding>
+        {loading ? <div className="dashboard-empty"><Skeleton height="180px" /></div> : <div>{projects.slice(0, 5).map(p => { const s = stages.find(s => s.key === stageOf(p))!; return <button className="dashboard-project" key={p.id} onClick={() => navigate(`/projects/${p.id}`)}>
+          <span className="project-symbol" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 6h7l2 3h9v11H3Zm0 0V4h7l2 2h8v3" /></svg></span>
+          <span className="project-copy"><bdi className="project-code">{p.projectCode || p.code || t('Project', 'مشروع')}</bdi><strong>{p.title || p.name}</strong><small>{p.clientName || t('Client not recorded', 'العميل غير مسجل')}</small></span>
+          <Badge variant={stageOf(p) === 'delivering' ? 'success' : 'neutral'}>{ar ? s.ar : s.en}</Badge><span className="project-arrow" aria-hidden="true">{ar ? '←' : '→'}</span>
+        </button>; })}{projects.length === 0 && <p className="dashboard-empty">{error ? t('Projects are unavailable.', 'المشاريع غير متاحة.') : t('No projects are granted to your current membership.', 'لا توجد مشاريع ممنوحة لعضويتك الحالية.')}</p>}</div>}
+      </Card>
+      <Card title={t('Workspace shortcuts', 'اختصارات مساحة العمل')} subtitle={t('Everything you need to move forward', 'كل ما تحتاجه للمضي قدماً')}>
+        <div className="workspace-shortcuts">{[
+          { path: '/approvals', en: 'Approvals', ar: 'الموافقات', detail: 'Review decisions and sign-offs', detailAr: 'مراجعة القرارات والاعتمادات' },
+          { path: '/calendar', en: 'Calendar', ar: 'التقويم', detail: 'Plan around delivery dates', detailAr: 'التخطيط حول مواعيد التسليم' },
+          { path: '/reports/post-event', en: 'Reports', ar: 'التقارير', detail: 'Explore operational reporting', detailAr: 'استعراض التقارير التشغيلية' },
+        ].map((item, i) => <button key={item.path} onClick={() => navigate(item.path)}><span className="shortcut-icon" aria-hidden="true">{['✓', '▦', '▥'][i]}</span><span><strong>{ar ? item.ar : item.en}</strong><small>{ar ? item.detailAr : item.detail}</small></span><span aria-hidden="true">{ar ? '←' : '→'}</span></button>)}</div>
+        {lab && <div id="home-test-lab-banner" className="dashboard-lab"><Badge variant="info">{t('Design sandbox', 'بيئة التصميم التجريبية')}</Badge><p>{t('Explore the file formats workspace.', 'استكشف مساحة عمل تنسيقات الملفات.')}</p><div className="dashboard-actions"><Button id="home-open-design-lab-btn" variant="secondary" onClick={() => navigate(`/projects/${lab.id}/designs`)}>{t('Open Design Lab', 'فتح معمل التصاميم')}</Button><Button id="home-open-cockpit-btn" variant="ghost" onClick={() => navigate(`/projects/${lab.id}`)}>{t('Project Cockpit', 'قمرة المشروع')}</Button></div></div>}
+      </Card>
+    </div>
+  </div>;
 };

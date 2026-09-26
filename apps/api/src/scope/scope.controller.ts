@@ -1,3 +1,4 @@
+import { LegacyScopeBoundaryGuard } from '../common/legacy-capture-boundary.guard.js';
 import {
   Controller,
   Post,
@@ -15,6 +16,7 @@ import {
   Optional,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { randomUUID } from 'node:crypto';
 import {
   RequirementCreateSchema,
   RequirementCreateDto,
@@ -99,7 +101,6 @@ import {
   ExtractedScopeCandidate,
   ExtractedDocumentBlock,
   DocumentComparisonResult,
-  DocumentDeltaItem,
   ReviewQueueType,
   LOCAL_TEAM_ACCOUNTS,
   RequirementAllocation,
@@ -208,7 +209,12 @@ export const requirementRepository = new Map<string, StoredRequirement>();
 export const revisionRepository = new Map<string, RequirementRevision[]>();
 export const attachmentRepository = new Map<string, StoredAttachment[]>();
 export const parsingJobRepository = new Map<string, StoredParsingJob>();
-export const documentComparisonRepository = new Map<string, DocumentComparisonResult>();
+export interface StoredDocumentComparison extends DocumentComparisonResult {
+  projectId: string;
+  organisationId: string;
+}
+
+export const documentComparisonRepository = new Map<string, StoredDocumentComparison>();
 export const clarificationRepository = new Map<string, ClarificationItem & { organisationId?: string }>();
 export const riskRepository = new Map<string, any>();
 export const allocationRepository = new Map<string, RequirementAllocation>();
@@ -452,7 +458,7 @@ seedInitialScope();
 
 @Controller('projects/:projectId')
 @UseFilters(ProblemDetailsFilter)
-@UseGuards(TenantIsolationGuard)
+@UseGuards(TenantIsolationGuard, LegacyScopeBoundaryGuard)
 export class ScopeController {
   private dbService?: DbService;
   constructor(@Optional() dbService?: DbService) {
@@ -2320,6 +2326,9 @@ export class ScopeController {
     }
 
     const priorJob = data.priorJobId ? parsingJobRepository.get(data.priorJobId) : undefined;
+    if (data.priorJobId && (!priorJob || priorJob.projectId !== projectId || priorJob.organisationId !== newJob.organisationId)) {
+      throw new HttpException({ code: 'NOT_FOUND', title: 'Prior parsing job not found' }, HttpStatus.NOT_FOUND);
+    }
     const existingReqs = Array.from(requirementRepository.values()).filter((r) => r.projectId === projectId);
 
     const comparisonResult = compareDocumentVersions(
@@ -2334,14 +2343,25 @@ export class ScopeController {
       existingReqs
     );
 
-    documentComparisonRepository.set(comparisonResult.comparisonId, comparisonResult);
+    // Bind comparisons to their source scope. Parser-local IDs (such as delta-1)
+    // must not identify unrelated proposals from different comparisons.
+    const storedComparison: StoredDocumentComparison = {
+      ...comparisonResult,
+      comparisonId: `cmp-${randomUUID()}`,
+      projectId,
+      organisationId: newJob.organisationId,
+      newJobId: newJob.id,
+      priorJobId: priorJob?.id,
+      deltas: comparisonResult.deltas.map((delta) => ({ ...delta, id: `delta-${randomUUID()}` })),
+    };
+    documentComparisonRepository.set(storedComparison.comparisonId, storedComparison);
 
     return {
       data: {
-        id: comparisonResult.comparisonId,
+        id: storedComparison.comparisonId,
         status: 'comparison_ready',
         recordVersion: 1,
-        payload: comparisonResult,
+        payload: storedComparison,
       },
       meta: { requestId: `req-${Date.now()}` },
     };
@@ -2368,37 +2388,65 @@ export class ScopeController {
 
     const data: ApplyAddendumRevisionDto = parseRes.data;
     const actorId = (req as any).actorId || (req as any).userId || 'approver-lead';
+    const organisationId = (req as any).organisationId || (req as any).user?.organisationId;
+    const matches = Array.from(documentComparisonRepository.values())
+      .filter((comparison) => comparison.projectId === projectId && comparison.organisationId === organisationId)
+      .flatMap((comparison) => comparison.deltas
+        .filter((delta) => delta.id === data.deltaId)
+        .map((delta) => ({ comparison, delta })));
 
-    // Locate delta item in comparisons
-    let foundDelta: DocumentDeltaItem | undefined;
-    for (const cmp of documentComparisonRepository.values()) {
-      const match = cmp.deltas.find((d) => d.id === data.deltaId);
-      if (match) {
-        foundDelta = match;
-        break;
-      }
-    }
-
-    if (!foundDelta) {
+    if (matches.length === 0) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Delta item not found in document comparisons' }, HttpStatus.NOT_FOUND);
     }
-
-    // Find target requirement
-    const targetReqId = data.targetRequirementId || foundDelta.affectedRequirementId;
-    let targetReq = targetReqId ? requirementRepository.get(targetReqId) : undefined;
-
-    if (!targetReq) {
-      // Find requirement by keyword e.g. "counter"
-      targetReq = Array.from(requirementRepository.values()).find((r) => r.projectId === projectId && r.title.toLowerCase().includes('counter'));
+    if (matches.length !== 1) {
+      throw new HttpException({ code: 'AMBIGUOUS_DELTA', title: 'Recompare the documents to identify a unique proposal' }, HttpStatus.CONFLICT);
     }
+    const { comparison, delta: foundDelta } = matches[0];
 
-    if (!targetReq) {
+    const targetReqId = data.targetRequirementId || foundDelta.affectedRequirementId;
+    if (!targetReqId) {
+      throw new HttpException({ code: 'TARGET_REQUIRED', title: 'Select the exact requirement to revise' }, HttpStatus.BAD_REQUEST);
+    }
+    const targetReq = requirementRepository.get(targetReqId);
+    if (!targetReq || targetReq.projectId !== projectId || targetReq.organisationId !== organisationId || targetReq.isArchived) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Target requirement not found to apply revision' }, HttpStatus.NOT_FOUND);
     }
+    if (foundDelta.affectedRequirementId && foundDelta.affectedRequirementId !== targetReqId) {
+      throw new HttpException({ code: 'TARGET_MISMATCH', title: 'Selected requirement does not match the reviewed proposal' }, HttpStatus.CONFLICT);
+    }
+    if (foundDelta.reviewStatus !== 'pending') {
+      throw new HttpException({ code: 'DELTA_ALREADY_REVIEWED', title: 'This proposal has already been reviewed' }, HttpStatus.CONFLICT);
+    }
+    if (foundDelta.changeType === 'new_requirement' || foundDelta.changeType === 'removed_requirement') {
+      throw new HttpException({ code: 'REVISION_ACTION_REQUIRED', title: 'Use the requirement creation or disposition workflow for this proposal' }, HttpStatus.PRECONDITION_FAILED);
+    }
 
-    const previousBaseline = targetReq.interpretation || `Original baseline: ${foundDelta.previousQuantity || 20} units`;
-    const revId = `rev-${Date.now()}`;
+    const previousQuantity = targetReq.quantity;
+    const newQuantity = foundDelta.newQuantity;
+    const validQuantity = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0;
+    if ((foundDelta.changeType === 'changed_quantity' && newQuantity === undefined)
+      || (newQuantity !== undefined && !validQuantity(newQuantity))
+      || (foundDelta.previousQuantity !== undefined && !validQuantity(foundDelta.previousQuantity))) {
+      throw new HttpException({ code: 'UNRESOLVED_QUANTITY', title: 'Resolve the proposed quantity before applying this revision' }, HttpStatus.PRECONDITION_FAILED);
+    }
+    if (foundDelta.previousQuantity !== undefined && foundDelta.previousQuantity !== previousQuantity) {
+      throw new HttpException({ code: 'STALE_BASELINE', title: 'The requirement quantity differs from the compared baseline; compare and review again' }, HttpStatus.CONFLICT);
+    }
+    if (!foundDelta.newWording?.trim()) {
+      throw new HttpException({ code: 'SOURCE_WORDING_REQUIRED', title: 'The revision must retain its source wording' }, HttpStatus.PRECONDITION_FAILED);
+    }
+    const allocations = data.confirmAllocations ? (foundDelta.affectedAllocations || []) : [];
+    if (allocations.some((allocation) => !allocation.zone?.trim() || !validQuantity(allocation.quantity))) {
+      throw new HttpException({ code: 'UNRESOLVED_ALLOCATION', title: 'Resolve allocation zones and quantities before applying this revision' }, HttpStatus.PRECONDITION_FAILED);
+    }
+
+    const quantityDelta = newQuantity !== undefined && previousQuantity !== undefined ? newQuantity - previousQuantity : undefined;
+    const revId = `rev-${randomUUID()}`;
     const newRevNumber = (revisionRepository.get(targetReq.id)?.length || 0) + 1;
+    const now = new Date().toISOString();
+    const changedFields = ['originalWording'];
+    if (newQuantity !== undefined) changedFields.push('quantity');
+    if (allocations.length > 0) changedFields.push('allocations');
 
     const revision: RequirementRevision = {
       id: revId,
@@ -2406,15 +2454,16 @@ export class ScopeController {
       organisationId: targetReq.organisationId,
       projectId,
       revisionNumber: newRevNumber,
-      changedFields: ['quantity', 'allocations', 'specifications'],
+      changedFields,
       previousValues: {
-        quantity: foundDelta.previousQuantity || 20,
-        originalWording: foundDelta.previousWording,
+        quantity: previousQuantity,
+        originalWording: targetReq.originalWording,
       },
       newValues: {
-        quantity: foundDelta.newQuantity || 24,
+        quantity: newQuantity ?? previousQuantity,
         originalWording: foundDelta.newWording,
-        quantityDelta: foundDelta.quantityDelta || 4,
+        quantityDelta,
+        allocations: allocations.map((allocation) => ({ ...allocation })),
         proposedDesignVariant: foundDelta.proposedDesignVariant,
       },
       reasonForChange: data.reason,
@@ -2422,68 +2471,50 @@ export class ScopeController {
         scopeAltered: true,
         designImpact: foundDelta.designImpact,
         boqImpact: foundDelta.boqImpact,
-        originalBaseline: foundDelta.previousQuantity || 20,
-        currentRequirement: foundDelta.newQuantity || 24,
+        originalBaseline: previousQuantity,
+        currentRequirement: newQuantity ?? previousQuantity,
+        sourceComparisonId: comparison.comparisonId,
+        sourceDeltaId: foundDelta.id,
       },
       authorId: actorId,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
     };
 
     const existingRevs = revisionRepository.get(targetReq.id) || [];
-    existingRevs.push(revision);
-    revisionRepository.set(targetReq.id, existingRevs);
+    revisionRepository.set(targetReq.id, [...existingRevs, revision]);
 
-    // Apply allocations if confirmed (e.g. VIP Zone: 4)
-    if (data.confirmAllocations && foundDelta.affectedAllocations) {
-      for (let i = 0; i < foundDelta.affectedAllocations.length; i++) {
-        const a = foundDelta.affectedAllocations[i];
-        const allocId = `alloc-${Date.now()}-${i + 1}`;
-        const newAlloc: RequirementAllocation = {
-          id: allocId,
-          requirementId: targetReq.id,
-          organisationId: targetReq.organisationId,
-          projectId,
-          zone: a.zone,
-          location: `${a.zone} — Premium Counter Location`,
-          quantity: a.quantity,
-          unit: 'Nos',
-          status: 'assigned',
-          completionPct: 0,
-          revision: newRevNumber,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        allocationRepository.set(allocId, newAlloc);
-      }
-    }
-
-    // Apply Design Variant if proposed
-    if (foundDelta.proposedDesignVariant) {
-      const variantId = `var-${Date.now()}`;
-      const newVariant: DesignVariant = {
-        id: variantId,
+    // Only explicitly confirmed source allocations become operational records.
+    // A zone is not evidence of a precise physical location or an assigned owner.
+    for (const a of allocations) {
+      const allocId = `alloc-${randomUUID()}`;
+      const newAlloc: RequirementAllocation = {
+        id: allocId,
         requirementId: targetReq.id,
         organisationId: targetReq.organisationId,
         projectId,
-        name: foundDelta.proposedDesignVariant,
-        code: 'VAR-VIP-01',
-        quantity: 4,
-        approvedQuantity: 0,
-        releasedQuantity: 0,
-        approvalStatus: 'draft',
-        productionReleaseStatus: 'not_released',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        zone: a.zone,
+        location: '',
+        quantity: a.quantity,
+        unit: targetReq.unit,
+        status: 'unassigned',
+        completionPct: 0,
+        revision: newRevNumber,
+        createdAt: now,
+        updatedAt: now,
       };
-      designVariantRepository.set(variantId, newVariant);
+      allocationRepository.set(allocId, newAlloc);
     }
+
+    // Keep design suggestions in the revision for review. A proposal has no
+    // confirmed variant quantity and cannot create a fabricated design record.
 
     foundDelta.reviewStatus = 'approved';
 
-    // Update target requirement (preserve baseline in interpretation/audit)
+    // Preserve the old source values in the revision, not in a fabricated note.
     targetReq.recordVersion = (targetReq.recordVersion || 1) + 1;
-    targetReq.interpretation = `${previousBaseline} | Addendum approved: revised to ${foundDelta.newQuantity || 24} units (+${foundDelta.quantityDelta || 4} units in VIP Zone).`;
-    targetReq.updatedAt = new Date().toISOString();
+    if (newQuantity !== undefined) targetReq.quantity = newQuantity;
+    targetReq.originalWording = foundDelta.newWording;
+    targetReq.updatedAt = now;
     requirementRepository.set(targetReq.id, targetReq);
 
     requirementAuditLog.push({
@@ -2494,8 +2525,10 @@ export class ScopeController {
       actorId,
       details: {
         revisionId: revId,
-        quantityDelta: foundDelta.quantityDelta,
-        newQuantity: foundDelta.newQuantity,
+        comparisonId: comparison.comparisonId,
+        deltaId: foundDelta.id,
+        quantityDelta,
+        newQuantity,
       },
       timestamp: new Date().toISOString(),
     });
@@ -4697,4 +4730,3 @@ export class ScopeController {
     };
   }
 }
-

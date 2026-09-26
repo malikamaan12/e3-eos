@@ -3,6 +3,9 @@ import { organisations, users } from './identity.js';
 import { projects } from './projects.js';
 
 export const requirements = pgTable('requirements', {
+  rowVersion: integer('row_version').default(1).notNull(),
+  provenanceState: text('provenance_state').default('legacy_unverified').notNull(),
+  currentRevisionId: uuid('current_revision_id'),
   id: uuid('id').primaryKey().defaultRandom(),
   organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
   projectId: uuid('project_id').references(() => projects.id).notNull(),
@@ -70,6 +73,9 @@ export const requirements = pgTable('requirements', {
 });
 
 export const requirementRevisions = pgTable('requirement_revisions', {
+  snapshot: jsonb('snapshot'),
+  snapshotHash: text('snapshot_hash'),
+  provenanceState: text('provenance_state').default('legacy_unverified').notNull(),
   id: uuid('id').primaryKey().defaultRandom(),
   requirementId: uuid('requirement_id').references(() => requirements.id, { onDelete: 'cascade' }).notNull(),
   organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
@@ -247,15 +253,53 @@ export const documentComparisons = pgTable('document_comparisons', {
 });
 
 export const clarifications = pgTable('clarifications', {
+  rowVersion: integer('row_version').default(1).notNull(),
+  ownerId: uuid('owner_id').references(() => users.id),
+  respondentId: uuid('respondent_id').references(() => users.id),
+  createdBy: uuid('created_by').references(() => users.id),
+  sourceAttribution: text('source_attribution'),
+  requirementId: uuid('requirement_id').references(() => requirements.id),
+  requirementVersion: integer('requirement_version'),
+  requirementRevisionId: uuid('requirement_revision_id').references(() => requirementRevisions.id),
+  latestResponseId: uuid('latest_response_id'),
+  respondedAt: timestamp('responded_at', { withTimezone: true }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  provenanceState: text('provenance_state').default('legacy_unverified').notNull(),
   id: uuid('id').primaryKey().defaultRandom(),
   organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
   projectId: uuid('project_id').references(() => projects.id).notNull(),
   question: text('question').notNull(),
   source: text('source').notNull(),
-  dueAt: timestamp('due_at', { withTimezone: true }).notNull(),
+  dueAt: timestamp('due_at', { withTimezone: true }),
   response: text('response'),
   respondedBy: uuid('responded_by').references(() => users.id),
   status: text('status').default('open').notNull(), // 'open', 'answered', 'superseded'
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const clarificationResponses = pgTable('clarification_responses', {
+  id: uuid('id').primaryKey(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').notNull(),
+  clarificationId: uuid('clarification_id').notNull(),
+  recordVersion: integer('record_version').notNull(),
+  response: text('response').notNull(),
+  respondentAttribution: text('respondent_attribution').notNull(),
+  sourceAttribution: text('source_attribution').notNull(),
+  recordedBy: uuid('recorded_by').references(() => users.id).notNull(),
+  recordedAt: timestamp('recorded_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const clarificationHistory = pgTable('clarification_history', {
+  id: uuid('id').primaryKey(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').notNull(),
+  clarificationId: uuid('clarification_id').notNull(),
+  recordVersion: integer('record_version').notNull(),
+  action: text('action').notNull(),
+  actorId: uuid('actor_id').references(() => users.id).notNull(),
+  reason: text('reason').notNull(),
+  responseId: uuid('response_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -286,15 +330,23 @@ export const qualificationDecisions = pgTable('qualification_decisions', {
 // =========================================================================
 
 export const requirementAllocations = pgTable('requirement_allocations', {
+  rowVersion: integer('row_version').default(1).notNull(),
+  provenanceState: text('provenance_state').default('legacy_unverified').notNull(),
+  currentRevisionId: uuid('current_revision_id'),
+  requirementRevisionId: uuid('requirement_revision_id'),
+  requirementVersion: integer('requirement_version'),
+  department: text('department'),
+  ownerId: uuid('owner_id').references(() => users.id),
+  createdBy: uuid('created_by').references(() => users.id),
   id: uuid('id').primaryKey().defaultRandom(),
   requirementId: uuid('requirement_id').references(() => requirements.id, { onDelete: 'cascade' }).notNull(),
   organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
   projectId: uuid('project_id').references(() => projects.id).notNull(),
-  zone: text('zone').notNull(),
-  location: text('location').notNull(),
+  zone: text('zone'),
+  location: text('location'),
   subLocation: text('sub_location'),
-  quantity: numeric('quantity').notNull(),
-  unit: text('unit').default('pcs'),
+  quantity: numeric('quantity'),
+  unit: text('unit'),
   designVariantId: text('design_variant_id'),
   requiredDate: timestamp('required_date', { withTimezone: true }),
   installationDate: timestamp('installation_date', { withTimezone: true }),
@@ -309,6 +361,10 @@ export const requirementAllocations = pgTable('requirement_allocations', {
 });
 
 export const designPackages = pgTable('design_packages', {
+  locationZone: text('location_zone'),
+  rowVersion: integer('row_version').default(1).notNull(),
+  provenanceState: text('provenance_state').default('legacy_unverified').notNull(),
+  currentRevisionId: uuid('current_revision_id'),
   id: uuid('id').primaryKey().defaultRandom(),
   organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
   projectId: uuid('project_id').references(() => projects.id).notNull(),
@@ -326,8 +382,8 @@ export const designPackages = pgTable('design_packages', {
   internalApproval: boolean('internal_approval').default(false).notNull(),
   clientApproval: boolean('client_approval').default(false).notNull(),
   productionReleaseStatus: text('production_release_status').default('not_released').notNull(),
-  approvedQuantity: numeric('approved_quantity').default('0').notNull(),
-  releasedQuantity: numeric('released_quantity').default('0').notNull(),
+  approvedQuantity: numeric('approved_quantity'),
+  releasedQuantity: numeric('released_quantity'),
   linkedRequirementIds: jsonb('linked_requirement_ids').default([]).notNull(),
   linkedAllocationIds: jsonb('linked_allocation_ids').default([]).notNull(),
   comments: jsonb('comments').default([]).notNull(),
@@ -465,6 +521,4 @@ export const scopeImportBatches = pgTable('scope_import_batches', {
   rollbackReason: text('rollback_reason'),
   rolledBackAt: timestamp('rolled_back_at', { withTimezone: true }),
 });
-
-
 

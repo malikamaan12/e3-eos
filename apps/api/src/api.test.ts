@@ -1,10 +1,19 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProjectsController, projectRepository } from './projects/projects.controller.js';
 import { IdempotencyGuard, globalIdempotencyStore } from './common/idempotency.guard.js';
 import { DocumentQuarantineService } from './common/upload.service.js';
 import { TenantIsolationGuard } from './common/tenant.guard.js';
 import { ExecutionContext, HttpException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+
+// These legacy repository tests call controllers directly without an HTTP
+// method or session; opting in does not bypass actual HTTP/session authority.
+beforeEach(() => {
+  vi.stubEnv('NODE_ENV', 'test');
+  vi.stubEnv('ENVIRONMENT', 'local');
+  vi.stubEnv('EOS_ENABLE_LOCAL_SYNTHETIC_AUTH', 'true');
+});
+afterEach(() => vi.unstubAllEnvs());
 
 describe('AT-001: Cross-scope Tenant Isolation', () => {
   let controller: ProjectsController;
@@ -39,7 +48,7 @@ describe('AT-001: Cross-scope Tenant Isolation', () => {
     expect(res.data.title).toBe('Secret Alpha Project');
   });
 
-  it('denies access with 404 NOT_FOUND (no existence leakage) when cross-tenant ID is supplied', () => {
+  it('denies access with 404 PROJECT_NOT_FOUND (no existence leakage) when cross-tenant ID is supplied', () => {
     const mockReq = {
       organisationId: 'org-beta', // Different organisation!
       headers: {},
@@ -50,7 +59,7 @@ describe('AT-001: Cross-scope Tenant Isolation', () => {
       controller.getProject('proj-org-a', mockReq);
     } catch (err: any) {
       expect(err.getStatus()).toBe(404);
-      expect(err.getResponse().code).toBe('NOT_FOUND');
+      expect(err.getResponse().code).toBe('PROJECT_NOT_FOUND');
     }
   });
 });
@@ -93,12 +102,14 @@ describe('AT-002: Client Audience Costing Isolation', () => {
 
   it('blocks client audience from costing data via server-side guard', async () => {
     const reflector = new Reflector();
-    const guard = new TenantIsolationGuard(reflector);
+    const guard = new TenantIsolationGuard(reflector, { getPool: () => ({ query: async () => ({ rows: [{
+      user_id: 'client-user', organisation_id: 'org-alpha', audience: 'client', role: 'client_user', is_super_admin: false,
+    }] }) }) } as any);
 
     const mockReq = {
       organisationId: 'org-alpha',
       audience: 'client', // Client portal audience!
-      headers: { 'x-audience': 'client' },
+      headers: { authorization: 'Bearer scoped-client-session', 'x-audience': 'client' },
     } as any;
 
     const mockContext = {
@@ -358,9 +369,10 @@ describe('System Health & Observability Endpoints', () => {
     expect(liveness.service).toBe('e3-eos-api');
 
     const system = health.getSystemHealth();
-    expect(system.status).toBe('healthy');
-    expect(system.governance.multiTenantIsolation).toBe('enforced');
-    expect(system.governance.documentQuarantineService).toBe('active');
+    expect(system.status).toBe('ok');
+    expect(system.checkScope).toBe('process_liveness');
+    expect(system.governance.multiTenantIsolation).toBe('not_verified');
+    expect(system.governance.documentQuarantineService).toBe('not_verified');
     expect(system.catalog.totalStageActivities).toBe(312);
     expect(system.catalog.activeModules).toBe(18);
     expect(system.systemMetrics.rssMb).toBeGreaterThan(0);
@@ -463,14 +475,20 @@ describe('M06 Governance, Approvals and Exceptions Suite', () => {
   });
 
   it('records approval decision bound to immutable SHA-256 target hash', async () => {
-    const { GovernanceController } = await import('./governance/governance.controller.js');
+    const { GovernanceController, approvalRequestRepository } = await import('./governance/governance.controller.js');
     const { createHash } = await import('crypto');
     const controller = new GovernanceController();
 
     const targetHash = createHash('sha256').update('prop-2026-v2-target-content').digest('hex');
+    approvalRequestRepository.set('appr-req-001', {
+      id: 'appr-req-001', projectId, organisationId: orgId, targetType: 'proposal',
+      targetId: 'prop-2026-v2', targetVersionId: '00000000-0000-4000-8000-000000000002',
+      targetHash, requiredRole: 'executive', requesterId: 'usr-requester', status: 'pending',
+    });
     const mockReq = {
       organisationId: orgId,
       userId: 'usr-commercial-dir',
+      userRole: 'executive',
       headers: { 'x-request-id': 'req-test-appr' },
     } as any;
 
@@ -852,6 +870,3 @@ describe('Sprint 02: Operational Constraints Verification & Provenance API', () 
     });
   });
 });
-
-
-

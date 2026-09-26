@@ -11,7 +11,7 @@
     "test:smoke": "tsx scripts/smoke-test-api.ts",
     "typecheck": "pnpm -r run typecheck",
     "demo": "tsx scripts/demo.ts",
-    "seed": "tsx packages/db/src/seed.ts",
+    "seed": "tsx packages/db/src/seed-cli.ts",
     "migrate": "tsx packages/db/src/migrate.ts",
     "verify:matrix": "tsx scripts/verify-acceptance-matrix.ts",
     "verify:preflight": "tsx scripts/verify-production-readiness.ts",

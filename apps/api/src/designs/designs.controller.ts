@@ -58,6 +58,7 @@ import {
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
+import { LegacyDesignBoundaryGuard } from '../common/legacy-capture-boundary.guard.js';
 import { DbService } from '../common/db.service.js';
 import { projectRepository } from '../projects/projects.controller.js';
 import {
@@ -455,7 +456,7 @@ seedInitialDesigns();
 
 @Controller('projects/:projectId/designs')
 @UseFilters(ProblemDetailsFilter)
-@UseGuards(TenantIsolationGuard)
+@UseGuards(TenantIsolationGuard, LegacyDesignBoundaryGuard)
 export class DesignsController {
   private dbService?: DbService;
 

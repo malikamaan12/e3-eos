@@ -74,6 +74,10 @@ export const CANONICAL_E3_ROLES_USERS = [
   { id: '10000000-0000-4000-8000-000000000016', name: 'Dr. Mariam Al-Sulaiti (HSE Director)', email: 'hsedirector@e3.qa', role: 'hse_director', isSuperAdmin: false },
 ];
 
+export function seedMembershipAudience(role: string): 'client' | 'internal' {
+  return role === 'client_user' ? 'client' : 'internal';
+}
+
 /**
  * Builds the canonical synthetic development seed data manifest.
  * Used by local docker-compose and database migrations.
@@ -155,8 +159,11 @@ export async function runSeed(): Promise<SeedDataManifest> {
       });
 
   let client: pg.PoolClient | null = null;
+  let transactionStarted = false;
   try {
     client = await pool.connect();
+    await client.query('BEGIN');
+    transactionStarted = true;
     console.log('[*] Connected to PostgreSQL. Seeding persistent tables...');
 
     // 0. Ensure Sprint 01 & 03 hardening columns exist
@@ -262,8 +269,8 @@ export async function runSeed(): Promise<SeedDataManifest> {
       await client.query(`
         INSERT INTO memberships (id, organisation_id, user_id, role, audience, is_revoked, created_at, updated_at)
         VALUES (gen_random_uuid(), $1, $2, $3, $4, false, NOW(), NOW())
-        ON CONFLICT (organisation_id, user_id) DO UPDATE SET role = $3;
-      `, [orgId, u.id, u.role, (u as any).orgId ? 'client' : 'internal']);
+        ON CONFLICT (organisation_id, user_id) DO UPDATE SET role = $3, audience = $4;
+      `, [orgId, u.id, u.role, seedMembershipAudience(u.role)]);
     }
 
     // 3. Seed Projects & 13 Stages
@@ -781,19 +788,22 @@ export async function runSeed(): Promise<SeedDataManifest> {
       ])
     ]);
 
-    console.log('[*] ✓ Successfully populated persistent PostgreSQL tables with 16 roles, Qatar Tourism project, FEE Acceptance Project, stages, documents, physical delivery lifecycle, and unverified constraints.');
-  } catch (err: any) {
-    console.warn('[*] Database persistent seed notice:', err.message);
-  } finally {
-    if (client) {
-      try { client.release(); } catch {}
+    await client.query('COMMIT');
+    transactionStarted = false;
+  } catch (error) {
+    if (client && transactionStarted) {
+      // Preserve the seed failure if the connection also fails during rollback.
+      try { await client.query('ROLLBACK'); } catch {}
     }
-    try { await pool.end(); } catch {}
+    throw error;
+  } finally {
+    try {
+      client?.release();
+    } finally {
+      await pool.end();
+    }
   }
 
+  console.log('[*] ✓ Successfully populated persistent PostgreSQL tables with 16 roles, Qatar Tourism project, FEE Acceptance Project, stages, documents, physical delivery lifecycle, and unverified constraints.');
   return manifest;
-}
-
-if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
-  runSeed().catch(console.error);
 }

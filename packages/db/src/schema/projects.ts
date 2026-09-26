@@ -1,5 +1,22 @@
-import { pgTable, text, timestamp, uuid, integer, uniqueIndex, jsonb } from 'drizzle-orm/pg-core';
-import { organisations, users } from './identity.js';
+import { pgTable, text, timestamp, uuid, integer, uniqueIndex, jsonb, boolean } from 'drizzle-orm/pg-core';
+import { organisations, users, memberships } from './identity.js';
+
+// Composite scope FKs and the unique active grant index are installed by 0016.
+export const projectAccessGrants = pgTable('project_access_grants', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').notNull(),
+  membershipId: uuid('membership_id').references(() => memberships.id).notNull(),
+  accessLevel: text('access_level').notNull(),
+  rowVersion: integer('row_version').default(1).notNull(),
+  isRevoked: boolean('is_revoked').default(false).notNull(),
+  grantedBy: uuid('granted_by').references(() => users.id).notNull(),
+  grantedAt: timestamp('granted_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  revokedBy: uuid('revoked_by').references(() => users.id),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  reason: text('reason').notNull(),
+});
 
 export const projects = pgTable(
   'projects',

@@ -1,0 +1,18 @@
+{
+  "applied": [
+    "0027_task_forecasts.sql",
+    "0028_task_dependencies.sql"
+  ],
+  "before": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "after": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "grants": 0,
+  "ledger": 30
+}

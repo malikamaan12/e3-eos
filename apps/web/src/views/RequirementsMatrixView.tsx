@@ -768,8 +768,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
       {/* 7-Point Traceability Invariant Banner */}
       <div
         style={{
-          backgroundColor: 'var(--text-primary, #f8fafc)',
-          color: 'var(--surface-1, #0f1624)',
+          backgroundColor: 'var(--surface-1, #0f1624)',
+          color: 'var(--text-primary, #f8fafc)',
           borderRadius: '8px',
           padding: '20px 24px',
           border: '1px solid var(--border-subtle, #1d2939)',
@@ -783,15 +783,15 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span style={{ fontSize: '12px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              E3 Rigorous Traceability Invariant
+              {isRtl ? 'قاعدة التتبع الصارمة في E3' : 'E3 Rigorous Traceability Invariant'}
             </span>
-            <Badge variant="warning">7-Point Connected Thread</Badge>
+            <Badge variant="warning">{isRtl ? 'سلسلة مترابطة من ٧ نقاط' : '7-Point Connected Thread'}</Badge>
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--surface-2, #151e2e)' }}>
-            Scope Requirement = Owner + Date + Document + Design + BOQ + Approval + Evidence
+          <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
+            {isRtl ? 'متطلب النطاق = المسؤول + التاريخ + الوثيقة + التصميم + جدول الكميات + الاعتماد + الدليل' : 'Scope Requirement = Owner + Date + Document + Design + BOQ + Approval + Evidence'}
           </div>
           <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-            Zero orphan scope policy: Progressive intake with baseline revision governance.
+            {isRtl ? 'كل متطلب مرتبط: تسجيل تدريجي مع حوكمة مراجعات خط الأساس.' : 'Zero orphan scope policy: Progressive intake with baseline revision governance.'}
           </div>
         </div>
 
@@ -817,7 +817,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             id="btn-bulk-scope-entry"
             variant="secondary"
             onClick={() => setIsBulkModalOpen(true)}
-            style={{ backgroundColor: 'var(--text-secondary, #cbd5e1)', color: 'var(--surface-1, #0f1624)', borderColor: 'var(--border-default, #2a374b)' }}
+            style={{ backgroundColor: 'var(--surface-2, #151e2e)', color: 'var(--text-primary, #f8fafc)', borderColor: 'var(--border-default, #2a374b)' }}
           >
             📋 {isRtl ? 'لصق مجمع' : 'Bulk Entry / Paste'}
           </Button>
@@ -825,7 +825,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             id="btn-parse-document"
             variant="secondary"
             onClick={() => setIsParseModalOpen(true)}
-            style={{ backgroundColor: '#6366f1', color: 'var(--surface-1, #0f1624)', borderColor: '#4f46e5' }}
+            style={{ backgroundColor: '#6366f1', color: 'var(--text-primary, #f8fafc)', borderColor: '#4f46e5' }}
           >
             📄 {isRtl ? 'استخراج من الكراسة' : 'Parse RFP / Tender'}
           </Button>
@@ -834,7 +834,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             variant="secondary"
             onClick={handleExportCsv}
             disabled={isExportingCsv}
-            style={{ backgroundColor: '#0f766e', color: 'var(--surface-1, #0f1624)', borderColor: '#115e59' }}
+            style={{ backgroundColor: '#0f766e', color: 'var(--text-primary, #f8fafc)', borderColor: '#115e59' }}
           >
             💾 {isExportingCsv ? (isRtl ? 'جاري التصدير...' : 'Exporting...') : (isRtl ? 'تصدير CSV' : 'Export CSV')}
           </Button>
@@ -842,7 +842,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             id="btn-submit-rfi"
             variant="secondary"
             onClick={() => setIsRfiModalOpen(true)}
-            style={{ backgroundColor: 'var(--text-secondary, #cbd5e1)', color: 'var(--surface-1, #0f1624)', borderColor: 'var(--text-secondary, #cbd5e1)' }}
+            style={{ backgroundColor: 'var(--surface-2, #151e2e)', color: 'var(--text-primary, #f8fafc)', borderColor: 'var(--text-secondary, #cbd5e1)' }}
           >
             ❓ {isRtl ? 'استفسار RFI' : 'Submit RFI'}
           </Button>
@@ -858,35 +858,35 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         }}
       >
         <Card style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Current-Stage Maturity</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#047857', margin: '4px 0' }}>
-            {matrixData?.currentStageMaturityPct || 100}%
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>{isRtl ? 'اكتمال المرحلة الحالية' : 'Current-Stage Maturity'}</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-secondary, #cbd5e1)', margin: '4px 0' }}>
+            {matrixData?.currentStageMaturityPct ?? 0}%
           </div>
-          <div style={{ fontSize: '11px', color: '#059669' }}>Stage 04: Points required up to current stage</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'المرحلة ٠٤: النقاط المطلوبة حتى المرحلة الحالية' : 'Stage 04: Points required up to current stage'}</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #2563eb' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Overall Lifecycle Traceability</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>{isRtl ? 'التتبع عبر دورة الحياة' : 'Overall Lifecycle Traceability'}</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '4px 0' }}>
-            {matrixData?.overallTraceabilityPct || 57}%
+            {matrixData?.overallTraceabilityPct ?? 0}%
           </div>
-          <div style={{ fontSize: '11px', color: '#16a34a' }}>All 7 points across complete lifecycle</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'النقاط السبع عبر دورة الحياة كاملة' : 'All 7 points across complete lifecycle'}</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #6366f1' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Stage Satisfied Scope</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#4338ca', margin: '4px 0' }}>
-            {matrixData?.stageMaturitySatisfiedCount || matrixData?.totalRequirements || evaluations.length} / {matrixData?.totalRequirements || evaluations.length}
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>{isRtl ? 'المتطلبات المستوفية للمرحلة' : 'Stage Satisfied Scope'}</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-secondary, #cbd5e1)', margin: '4px 0' }}>
+            <bdi dir="ltr">{matrixData?.stageMaturitySatisfiedCount ?? 0} / {matrixData?.totalRequirements ?? evaluations.length}</bdi>
           </div>
-          <div style={{ fontSize: '11px', color: '#6366f1' }}>Stage on-track deliverables</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'المخرجات المستوفية لمتطلبات المرحلة' : 'Stage on-track deliverables'}</div>
         </Card>
 
         <Card style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>Unassigned / Gaps</div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase' }}>{isRtl ? 'غير مسندة / فجوات' : 'Unassigned / Gaps'}</div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>
             {matrixData?.unassignedRequirements ?? missingOwnerCount}
           </div>
-          <div style={{ fontSize: '11px', color: '#d97706' }}>Actionable gaps required now</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)' }}>{isRtl ? 'فجوات تتطلب المعالجة الآن' : 'Actionable gaps required now'}</div>
         </Card>
       </div>
 
@@ -943,7 +943,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             border: '1px solid var(--border-default, #2a374b)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
               👁️ {isRtl ? 'طريقة العرض المسبقة:' : 'Saved View Preset:'}
             </span>
@@ -952,7 +952,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               value={activePresetView}
               onChange={(e) => handlePresetSelect(e.target.value as PresetViewKey)}
               style={{
-                fontSize: '12px',
+                maxWidth: '100%', minWidth: 0, fontSize: '12px',
                 padding: '4px 8px',
                 borderRadius: '4px',
                 border: '1px solid var(--border-default, #2a374b)',
@@ -962,16 +962,16 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 cursor: 'pointer',
               }}
             >
-              <option value="custom">Standard / Custom</option>
-              <option value="executive">📊 Executive Overview (Stage Readiness)</option>
-              <option value="zones">📍 Zone & Location Deployment</option>
-              <option value="departments">🏭 Department Fulfilment & Production</option>
-              <option value="release_gate">🚪 Design-to-Production Release Gate</option>
-              <option value="disciplines">🏷️ Discipline & Deliverables</option>
+              <option value="custom">{isRtl ? 'قياسي / مخصص' : 'Standard / Custom'}</option>
+              <option value="executive">{isRtl ? '📊 النظرة التنفيذية (جاهزية المرحلة)' : '📊 Executive Overview (Stage Readiness)'}</option>
+              <option value="zones">{isRtl ? '📍 توزيع المناطق والمواقع' : '📍 Zone & Location Deployment'}</option>
+              <option value="departments">{isRtl ? '🏭 تنفيذ الأقسام والإنتاج' : '🏭 Department Fulfilment & Production'}</option>
+              <option value="release_gate">{isRtl ? '🚪 بوابة الإصدار من التصميم إلى الإنتاج' : '🚪 Design-to-Production Release Gate'}</option>
+              <option value="disciplines">{isRtl ? '🏷️ التخصص والمخرجات' : '🏷️ Discipline & Deliverables'}</option>
             </select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
               {isRtl ? 'تجميع حسب:' : 'Group By:'}
             </span>
@@ -983,7 +983,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 setActivePresetView('custom');
               }}
               style={{
-                fontSize: '12px',
+                maxWidth: '100%', minWidth: 0, fontSize: '12px',
                 padding: '4px 8px',
                 borderRadius: '4px',
                 border: '1px solid var(--border-default, #2a374b)',
@@ -991,19 +991,19 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 cursor: 'pointer',
               }}
             >
-              <option value="none">None (Flat Matrix)</option>
-              <option value="category">Category / Discipline</option>
-              <option value="locationZone">Zone & Location</option>
-              <option value="department">Department</option>
-              <option value="designStatus">Design Status</option>
-              <option value="productionStatus">Production Status</option>
-              <option value="stageReadiness">Stage Gate Readiness</option>
-              <option value="ownerName">Assigned Lead / Owner</option>
+              <option value="none">{isRtl ? 'دون تجميع (مصفوفة مسطحة)' : 'None (Flat Matrix)'}</option>
+              <option value="category">{isRtl ? 'الفئة / التخصص' : 'Category / Discipline'}</option>
+              <option value="locationZone">{isRtl ? 'المنطقة والموقع' : 'Zone & Location'}</option>
+              <option value="department">{isRtl ? 'القسم' : 'Department'}</option>
+              <option value="designStatus">{isRtl ? 'حالة التصميم' : 'Design Status'}</option>
+              <option value="productionStatus">{isRtl ? 'حالة الإنتاج' : 'Production Status'}</option>
+              <option value="stageReadiness">{isRtl ? 'جاهزية بوابة المرحلة' : 'Stage Gate Readiness'}</option>
+              <option value="ownerName">{isRtl ? 'المسؤول المعين' : 'Assigned Lead / Owner'}</option>
             </select>
           </div>
 
           {groupBy !== 'none' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                 {isRtl ? 'ثم حسب:' : 'Then By:'}
               </span>
@@ -1024,13 +1024,13 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 }}
               >
                 <option value="none">None</option>
-                <option value="category">Category / Discipline</option>
-                <option value="locationZone">Zone & Location</option>
-                <option value="department">Department</option>
-                <option value="designStatus">Design Status</option>
-                <option value="productionStatus">Production Status</option>
-                <option value="stageReadiness">Stage Gate Readiness</option>
-                <option value="ownerName">Assigned Lead / Owner</option>
+                <option value="category">{isRtl ? 'الفئة / التخصص' : 'Category / Discipline'}</option>
+                <option value="locationZone">{isRtl ? 'المنطقة والموقع' : 'Zone & Location'}</option>
+                <option value="department">{isRtl ? 'القسم' : 'Department'}</option>
+                <option value="designStatus">{isRtl ? 'حالة التصميم' : 'Design Status'}</option>
+                <option value="productionStatus">{isRtl ? 'حالة الإنتاج' : 'Production Status'}</option>
+                <option value="stageReadiness">{isRtl ? 'جاهزية بوابة المرحلة' : 'Stage Gate Readiness'}</option>
+                <option value="ownerName">{isRtl ? 'المسؤول المعين' : 'Assigned Lead / Owner'}</option>
               </select>
             </div>
           )}
@@ -1049,7 +1049,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   cursor: 'pointer',
                 }}
               >
-                Expand All
+                {isRtl ? 'توسيع الكل' : 'Expand All'}
               </button>
               <button
                 type="button"
@@ -1072,7 +1072,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                   cursor: 'pointer',
                 }}
               >
-                Collapse All
+                {isRtl ? 'طي الكل' : 'Collapse All'}
               </button>
             </div>
           )}
@@ -1196,7 +1196,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               cursor: 'pointer',
             }}
           >
-            🎯 Tender Ready ({tenderReadyCount})
+            🎯 {isRtl ? 'جاهز للعطاء' : 'Tender Ready'} ({tenderReadyCount})
           </button>
           <button
             id="btn-filter-design-ready"
@@ -1212,7 +1212,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               cursor: 'pointer',
             }}
           >
-            🎨 Design Ready ({designReadyCount})
+            🎨 {isRtl ? 'جاهز للتصميم' : 'Design Ready'} ({designReadyCount})
           </button>
           <button
             id="btn-filter-commercial-ready"
@@ -1228,7 +1228,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               cursor: 'pointer',
             }}
           >
-            💰 Commercial Ready ({commercialReadyCount})
+            💰 {isRtl ? 'جاهز تجارياً' : 'Commercial Ready'} ({commercialReadyCount})
           </button>
           <button
             id="btn-filter-production-ready"
@@ -1244,7 +1244,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               cursor: 'pointer',
             }}
           >
-            ⚙️ Production Ready ({productionReadyCount})
+            ⚙️ {isRtl ? 'جاهز للإنتاج' : 'Production Ready'} ({productionReadyCount})
           </button>
           <button
             id="btn-filter-closeout-ready"
@@ -1260,7 +1260,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
               cursor: 'pointer',
             }}
           >
-            🏁 Closeout Ready ({closeoutReadyCount})
+            🏁 {isRtl ? 'جاهز للإغلاق' : 'Closeout Ready'} ({closeoutReadyCount})
           </button>
         </div>
 
@@ -1371,7 +1371,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Prod: {ev.producedQuantity ?? 0}
                     </span>
-                    <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#16a34a', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', color: 'var(--text-secondary, #cbd5e1)', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Inst: {ev.installedQuantity ?? 0}
                     </span>
                   </div>
@@ -1561,7 +1561,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Prod: {ev.producedQuantity ?? 0}
                     </span>
-                    <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#16a34a', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', color: 'var(--text-secondary, #cbd5e1)', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                       Inst: {ev.installedQuantity ?? 0}
                     </span>
                   </div>
@@ -1580,8 +1580,8 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 {/* Column 4: Owner */}
                 <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                   {ev.hasOwner ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
+                      <span style={{ color: 'var(--text-secondary, #cbd5e1)', fontWeight: 700 }}>✓</span>
                       <span style={{ color: 'var(--text-primary, #f8fafc)', fontWeight: 600, fontSize: '12px' }}>
                         {ev.ownerName || 'Assigned Lead'}
                       </span>
@@ -1641,7 +1641,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 {/* Column 8: Linked Design */}
                 <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                   {ev.hasDesignVersion ? (
-                    <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                    <span style={{ color: 'var(--text-secondary, #cbd5e1)', fontWeight: 600, backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                       ✓ {ev.linkedDesignVersion || 'CAD Linked'}
                     </span>
                   ) : (
@@ -1654,7 +1654,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 {/* Column 9: Linked BOQ */}
                 <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                   {ev.hasBoqCost ? (
-                    <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                    <span style={{ color: 'var(--text-secondary, #cbd5e1)', fontWeight: 600, backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                       ✓ {ev.linkedBoqLineCode || 'Priced'}
                     </span>
                   ) : (
@@ -1667,7 +1667,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 {/* Column 10: Linked Document */}
                 <td style={{ padding: '12px 14px', width: '140px', minWidth: '140px' }}>
                   {ev.hasControlledDocument ? (
-                    <span style={{ color: '#16a34a', fontWeight: 600, backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                    <span style={{ color: 'var(--text-secondary, #cbd5e1)', fontWeight: 600, backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
                       ✓ {ev.linkedDocumentNumber || 'Controlled'}
                     </span>
                   ) : (
@@ -1812,7 +1812,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                             <span style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
                               Req: {section.rollup.totalQty}
                             </span>
-                            <span style={{ backgroundColor: '#ecfdf5', color: '#047857', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            <span style={{ backgroundColor: '#ecfdf5', color: 'var(--text-secondary, #cbd5e1)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                               Alloc: {section.rollup.allocatedQty}
                             </span>
                             <span style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
@@ -1821,7 +1821,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                             <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#b45309', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                               Prod: {section.rollup.producedQty}
                             </span>
-                            <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#16a34a', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', color: 'var(--text-secondary, #cbd5e1)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                               Inst: {section.rollup.installedQty}
                             </span>
                           </div>
@@ -1970,7 +1970,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                                   <span style={{ backgroundColor: 'var(--surface-1, #0f1624)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--border-default, #2a374b)', fontWeight: 700, color: 'var(--text-primary, #f8fafc)' }}>
                                     Required Qty: <strong>{section.rollup.totalQty}</strong>
                                   </span>
-                                  <span style={{ backgroundColor: '#ecfdf5', padding: '3px 8px', borderRadius: '4px', border: '1px solid #a7f3d0', fontWeight: 700, color: '#047857' }}>
+                                  <span style={{ backgroundColor: '#ecfdf5', padding: '3px 8px', borderRadius: '4px', border: '1px solid #a7f3d0', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                                     Allocated: <strong>{section.rollup.allocatedQty}</strong> / {section.rollup.totalQty}
                                   </span>
                                   <span style={{ backgroundColor: 'rgba(59, 130, 246, 0.12)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(59, 130, 246, 0.3)', fontWeight: 700, color: '#60a5fa' }}>
@@ -2006,7 +2006,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                                   >
                                     <td colSpan={13} style={{ padding: '8px 14px 8px 32px' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
                                           <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary, #cbd5e1)' }}>
                                             {isSubCollapsed ? '▶' : '▼'} ↳ {sub.label}
                                           </span>
@@ -2050,7 +2050,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
             bottom: '16px',
             zIndex: 100,
             backgroundColor: 'var(--text-primary, #f8fafc)',
-            color: 'var(--surface-1, #0f1624)',
+            color: 'var(--text-primary, #f8fafc)',
             borderRadius: '8px',
             padding: '12px 18px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
@@ -2079,7 +2079,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 padding: '6px 10px',
                 borderRadius: '4px',
                 backgroundColor: 'var(--surface-2, #151e2e)',
-                color: 'var(--surface-2, #151e2e)',
+                color: 'var(--text-primary, #f8fafc)',
                 border: '1px solid var(--border-default, #2a374b)',
               }}
             >
@@ -2109,7 +2109,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 padding: '5px 8px',
                 borderRadius: '4px',
                 backgroundColor: 'var(--surface-2, #151e2e)',
-                color: 'var(--surface-2, #151e2e)',
+                color: 'var(--text-primary, #f8fafc)',
                 border: '1px solid var(--border-default, #2a374b)',
               }}
             />
@@ -2131,7 +2131,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 padding: '6px 10px',
                 borderRadius: '4px',
                 backgroundColor: 'var(--surface-2, #151e2e)',
-                color: 'var(--surface-2, #151e2e)',
+                color: 'var(--text-primary, #f8fafc)',
                 border: '1px solid var(--border-default, #2a374b)',
               }}
             >
@@ -2189,7 +2189,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 padding: '5px 10px',
                 borderRadius: '4px',
                 backgroundColor: '#ecfdf5',
-                color: '#047857',
+                color: 'var(--text-secondary, #cbd5e1)',
                 border: '1px solid #10b981',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -2251,10 +2251,10 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
             <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
-              Clarifications, Addenda & RFI Impact Ledger
+              {isRtl ? 'سجل الاستفسارات والملاحق وأثر طلبات المعلومات' : 'Clarifications, Addenda & RFI Impact Ledger'}
             </h3>
             <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
-              Tracks bidder inquiries, client addenda, and evaluates automatic contractual/commercial variation order impact.
+              {isRtl ? 'يتتبع استفسارات العارضين وملاحق العميل ويقيّم أثر أوامر التغيير التعاقدية والتجارية.' : 'Tracks bidder inquiries, client addenda, and evaluates automatic contractual/commercial variation order impact.'}
             </p>
           </div>
           {clarificationsData?.meta?.urgentCount > 0 && (
@@ -2272,7 +2272,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                 gap: '6px',
               }}
             >
-              🚨 {clarificationsData.meta.urgentCount} Urgent RFI Due within 72h
+              🚨 {clarificationsData.meta.urgentCount} {isRtl ? 'استفسار عاجل مستحق خلال ٧٢ ساعة' : 'Urgent RFI Due within 72h'}
             </span>
           )}
         </div>
@@ -2313,7 +2313,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                       borderRadius: '4px',
                     }}
                   >
-                    ⚠️ REQUIRES VARIATION ORDER (+{clar.impact.estimatedCostImpactQar?.toLocaleString()} QAR)
+                    ⚠️ {isRtl ? 'يتطلب أمر تغيير' : 'REQUIRES VARIATION ORDER'} (+{clar.impact.estimatedCostImpactQar?.toLocaleString()} QAR)
                   </span>
                 )}
               </div>
@@ -2333,7 +2333,7 @@ export const RequirementsMatrixView: React.FC<RequirementsMatrixViewProps> = ({ 
                     marginTop: '6px',
                   }}
                 >
-                  <strong>Response:</strong> {clar.response}
+                  <strong>{isRtl ? 'الرد:' : 'Response:'}</strong> {clar.response}
                 </div>
               )}
             </div>

@@ -1,0 +1,19 @@
+{
+  "applied": [
+    "0018_work_versions.sql",
+    "0019_document_versions.sql",
+    "0020_reporting_snapshots.sql"
+  ],
+  "before": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "after": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "grants": 0,
+  "ledger": 22
+}

@@ -1,0 +1,304 @@
+{
+  "runId": "fafe9290-7739-4cbe-bbd5-31b733e8beb6",
+  "restart": {
+    "performed": true,
+    "previousApiPid": 34460,
+    "newApiPid": 29040
+  },
+  "scope": "Loopback isolated fixtures; no existing grants changed.",
+  "checks": [
+    {
+      "name": "Create isolated project",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated project",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assign isolated project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assign isolated project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assign isolated project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assign isolated project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assign isolated project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create ordinary work package",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create second project package",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create ordinary task",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create ordinary task",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create ordinary task",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create ordinary task",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Unscheduled work has unknown dates",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Record exact task forecast",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Forecast retries preserve exact receipt",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Viewer cannot revise forecasts",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Field actor cannot author forecasts",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Cross-project forecast target denied",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Dates without offset rejected",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Unknown timezone rejected",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Baseline injection rejected",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Record scoped dependency",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Dependency retry retains original receipt",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Duplicate active dependency rejected",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Cycle cannot commit",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Cross-project dependency rejected",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Viewer cannot add dependencies",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Unknown successor date remains unknown",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Record overlapping successor forecast",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Record field task forecast",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Timing conflict is visible without automatic movement",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Field timeline shows assigned work only",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Unrelated audience and organization denied",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Unrelated audience and organization denied",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Calendar reads real scoped forecasts",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Calendar enforces field assignments",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Client calendar access denied",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Unbounded calendar query rejected",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Oversized calendar window rejected",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Forecast receipt survives API process replacement",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Dependency receipt survives API process replacement",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Immutable forecast history survives restart",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Clear forecast explicitly with current versions",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Old forecast remains in history after clearing",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Stale forecast version rejected",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Archive dependency without deleting history",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Archive retry returns same receipt",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Archived dependency history remains accessible",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Timeline retains archived connections separately",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Complete actual task independently of its forecast",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Completed task cannot be reforecast",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Revoke isolated editor grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Revocation denies forecast receipt replay",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revocation denies timeline reads",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Calendar applies current grant revocation",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Atomic counts reconcile",
+      "status": "PASS",
+      "audit": 21,
+      "outbox": 21,
+      "receipts": 21
+    },
+    {
+      "name": "Exact temporary fixture cleanup",
+      "status": "PASS",
+      "users": 6,
+      "organisations": 2
+    }
+  ]
+}

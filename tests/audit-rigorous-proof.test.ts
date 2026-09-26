@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { createDecipheriv, randomUUID } from 'node:crypto';
 import { AuthController } from '../apps/api/src/auth/auth.controller.js';
 import { AdminController } from '../apps/api/src/admin/admin.controller.js';
 import { ProjectsController } from '../apps/api/src/projects/projects.controller.js';
@@ -7,6 +8,7 @@ import { WorkController, taskRepository } from '../apps/api/src/work/work.contro
 import { WorkflowBuilderController } from '../apps/api/src/governance/workflow-builder.controller.js';
 import { TenantIsolationGuard } from '../apps/api/src/common/tenant.guard.js';
 import { DbService } from '../apps/api/src/common/db.service.js';
+import { InvitationService } from '../apps/api/src/identity/invitation.service.js';
 import { STANDARD_THIRTEEN_STAGE_TEMPLATE } from '@e3-eos/domain';
 import { EosApiClient, ApiError } from '../apps/web/src/services/api-client.js';
 
@@ -20,13 +22,29 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
   let workflowBuilderController: WorkflowBuilderController;
   let tenantGuard: TenantIsolationGuard;
 
-  const testUserEmail = `audit.proof.${Date.now()}@e3.qa`;
+  const testUserEmail = `audit.proof.${randomUUID()}@example.test`;
+  const organisationId = randomUUID();
+  const administratorId = randomUUID();
+  const administratorEmail = `audit.admin.${randomUUID()}@example.test`;
+  const administratorToken = randomUUID();
+  const deliveryKey = Buffer.alloc(32, 75);
+  const createdTaskIds: string[] = [];
+  const workProjectId = randomUUID();
+  const workSessionToken = randomUUID();
+  let qaProjectId: string;
   const securePassword = 'ValidPassword2026!';
   let userId: string;
   let inviteToken: string;
   let sessionToken: string;
 
   beforeAll(async () => {
+    vi.stubEnv('EMAIL_PROVIDER', 'durable_outbox');
+    // Historical projections below exercise direct repository fixtures only;
+    // HTTP requests and all session-backed authority tests remain real paths.
+    vi.stubEnv('NODE_ENV', 'test');
+    vi.stubEnv('ENVIRONMENT', 'local');
+    vi.stubEnv('EOS_ENABLE_LOCAL_SYNTHETIC_AUTH', 'true');
+    vi.stubEnv('EOS_INVITATION_DELIVERY_KEY', deliveryKey.toString('base64'));
     dbService = new DbService();
     authController = new AuthController(dbService);
     adminController = new AdminController(dbService);
@@ -44,27 +62,75 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
       dbService
     );
 
-    // Setup active test user with known password
-    const invite = await adminController.inviteUser({
-      name: 'Audit Rigorous Test Lead',
-      email: testUserEmail,
-      role: 'technical_director',
-      department: 'Live Production',
-    });
-    inviteToken = invite.inviteToken;
-    userId = invite.user.id;
+    const pool = dbService.getPool();
+    await pool.query('INSERT INTO organisations(id,name,code) VALUES($1,$2,$3)', [organisationId, 'Isolated audit regression', `AUDIT-${organisationId}`]);
+    await pool.query('INSERT INTO users(id,email,name) VALUES($1,$2,$3)', [administratorId, administratorEmail, 'Isolated audit administrator']);
+    await pool.query("INSERT INTO memberships(organisation_id,user_id,role,audience) VALUES($1,$2,'super_admin','internal')", [organisationId, administratorId]);
+    await pool.query("INSERT INTO sessions(user_id,token,expires_at) VALUES($1,$2,NOW()+INTERVAL '1 hour')", [administratorId, administratorToken]);
+    const invitation = await new InvitationService(dbService).create({ email: testUserEmail, name: 'Audit Rigorous Test Lead', role: 'project_director', reason: 'Isolated audit regression' }, {
+      organisationId, headers: { authorization: `Bearer ${administratorToken}`, 'idempotency-key': randomUUID() },
+    } as any);
+    const delivery = (await pool.query('SELECT payload FROM outbox WHERE event_id=$1 AND organisation_id=$2', [invitation.data.deliveryEventId, organisationId])).rows[0].payload.encryptedDelivery;
+    const decipher = createDecipheriv('aes-256-gcm', deliveryKey, Buffer.from(delivery.iv, 'base64'));
+    decipher.setAAD(Buffer.from(`${organisationId}:${invitation.data.id}`));
+    decipher.setAuthTag(Buffer.from(delivery.tag, 'base64'));
+    inviteToken = JSON.parse(Buffer.concat([decipher.update(Buffer.from(delivery.ciphertext, 'base64')), decipher.final()]).toString('utf8')).token;
 
     await authController.acceptInvite({
       token: inviteToken,
       password: securePassword,
       name: 'Audit Rigorous Test Lead',
-    });
+    }, { headers: { 'idempotency-key': randomUUID() } } as any);
+    const user = await dbService.getPool().query('SELECT id FROM users WHERE email = $1', [testUserEmail]);
+    userId = user.rows[0].id;
+    await pool.query("INSERT INTO sessions(user_id,token,expires_at) VALUES($1,$2,NOW()+INTERVAL '1 hour')", [userId, workSessionToken]);
+    await pool.query(`INSERT INTO projects(id,organisation_id,project_code,title,description,origin_code,owner_id,created_by,updated_by)
+      VALUES($1,$2,$3,'Isolated work persistence','Durable work regression','INTERNAL_IDEA',$4,$4,$4)`,
+      [workProjectId, organisationId, `WORK-${workProjectId}`, userId]);
+    await grantWorkAccess(workProjectId);
+  });
+  const workRequest = (key = randomUUID()) => ({ organisationId, method: 'POST',
+    headers: { authorization: `Bearer ${workSessionToken}`, 'idempotency-key': key } }) as any;
+  async function grantWorkAccess(projectId: string) {
+    await dbService.getPool().query(`INSERT INTO project_access_grants(organisation_id,project_id,membership_id,access_level,granted_by,reason)
+      SELECT $1,$2,id,'editor',$3,'Isolated regression fixture' FROM memberships WHERE organisation_id=$1 AND user_id=$3`,
+      [organisationId, projectId, userId]);
+  }
+  afterAll(async () => {
+    try {
+      const pool = dbService.getPool();
+      await pool.query('DELETE FROM task_instances WHERE id=ANY($1::uuid[])', [createdTaskIds]);
+      createdTaskIds.forEach((id) => taskRepository.delete(id));
+      await pool.query('DELETE FROM work_packages WHERE organisation_id=$1', [organisationId]);
+      await pool.query('DELETE FROM project_access_grants WHERE organisation_id=$1', [organisationId]);
+      await pool.query('DELETE FROM projects WHERE id=$1 AND organisation_id=$2', [workProjectId, organisationId]);
+      if (qaProjectId) {
+        await pool.query('DELETE FROM audit_events WHERE project_id=$1', [qaProjectId]);
+        await pool.query('DELETE FROM work_packages WHERE project_id=$1', [qaProjectId]);
+        await pool.query('DELETE FROM project_stage_instances WHERE project_id=$1', [qaProjectId]);
+        await pool.query('DELETE FROM projects WHERE id=$1', [qaProjectId]);
+      }
+      const ownedUsers = (await pool.query('SELECT id FROM users WHERE email=ANY($1::text[])', [[testUserEmail, administratorEmail]])).rows.map((row) => row.id);
+      for (const table of ['idempotency_records', 'outbox', 'audit_events', 'user_invitations', 'memberships']) await pool.query(`DELETE FROM ${table} WHERE organisation_id=$1`, [organisationId]);
+      for (const table of ['sessions', 'accounts']) await pool.query(`DELETE FROM ${table} WHERE user_id=ANY($1::uuid[])`, [ownedUsers]);
+      await pool.query('DELETE FROM users WHERE id=ANY($1::uuid[])', [ownedUsers]);
+      await pool.query('DELETE FROM organisations WHERE id=$1', [organisationId]);
+    } finally { vi.unstubAllEnvs(); }
   });
 
   // ============================================================================
   // AREA 1: C01 - Authentication & Backdoor Elimination
   // ============================================================================
   describe('C01: Server-Side Authentication & Backdoor Elimination', () => {
+    it('keeps the legacy admin invitation route unavailable without provisioning a user', async () => {
+      const blockedEmail = `blocked.${testUserEmail}`;
+      await expect(adminController.inviteUser({ name: 'Blocked invitation test', email: blockedEmail, role: 'operations' }))
+        .rejects.toMatchObject({ status: 503, response: { code: 'ADMIN_CAPABILITY_UNAVAILABLE' } });
+      const users = await dbService.getPool().query('SELECT id FROM users WHERE email = $1', [blockedEmail]);
+      const invitations = await dbService.getPool().query('SELECT id FROM user_invitations WHERE email = $1', [blockedEmail]);
+      expect(users.rows).toEqual([]);
+      expect(invitations.rows).toEqual([]);
+    });
     it('proves valid credentials authenticate successfully', async () => {
       const mockRes = { cookie: () => {} } as any;
       const res: any = await authController.login({
@@ -143,12 +209,18 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
     });
 
     it('proves client audience is forbidden from internal endpoints (403 FORBIDDEN_AUDIENCE)', async () => {
+      const clientGuard = new TenantIsolationGuard({
+        getAllAndOverride: (key: string) => key === 'allowedAudiences' ? ['internal'] : undefined,
+      } as any, { getPool: () => ({ query: async () => ({ rows: [{
+        user_id: 'client-user-1', organisation_id: 'org-1', role: 'client_user', audience: 'client', is_super_admin: false,
+      }] }) }) } as any);
       const mockContext = {
         getHandler: () => ({}),
         getClass: () => ({}),
         switchToHttp: () => ({
           getRequest: () => ({
             headers: {
+              authorization: 'Bearer scoped-client-session',
               'x-user-id': 'client-user-1',
               'x-user-roles': 'client_user',
               'x-user-audience': 'client',
@@ -159,7 +231,7 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
         }),
       } as any;
 
-      await expect(tenantGuard.canActivate(mockContext)).rejects.toThrowError(
+      await expect(clientGuard.canActivate(mockContext)).rejects.toThrowError(
         expect.objectContaining({ status: 403 })
       );
     });
@@ -206,56 +278,46 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
   // ============================================================================
   // AREA 3: H04 - Task Persistence Across Server Restart
   // ============================================================================
-  describe('H04: Task Persistence Across Server Restart (DB Fallback)', () => {
-    const testProjectId = '00000000-0000-4000-8000-000000000001';
-
-    it('proves tasks survive in-memory clearing, reload from DB and progress asynchronously', async () => {
-      const req = {
-        headers: {
-          'x-organisation-id': '11111111-1111-4111-8111-111111111111',
-          'x-user-id': '10000000-0000-4000-8000-000000000004',
-        },
-      } as any;
-
-      // 1. Create a task
+  describe('H04: Durable Tasks Across Controller Reconstruction', () => {
+    it('reads persisted tasks with a fresh controller and completes them without an in-memory projection', async () => {
+      const req = workRequest();
+      const pkg = await workController.createWorkPackage(workProjectId,
+        { name: 'Isolated rigging package', ownerId: userId, reason: 'Persistence regression fixture' }, req);
       const createRes = await workController.createTask(
-        testProjectId,
+        workProjectId,
         {
-          packageId: 'e1111111-1111-4111-8111-111111111111',
+          packageId: pkg.data.id,
           title: 'Rigorous Proof Rigging Inspection Task',
-          assigneeId: '10000000-0000-4000-8000-000000000004',
+          assigneeId: userId,
+          reason: 'Persistence regression fixture',
         },
-        req
+        workRequest()
       );
 
       const taskId = createRes.data.id;
+      createdTaskIds.push(taskId);
       expect(taskId).toBeDefined();
 
-      // 2. Simulate server restart by clearing in-memory task repository
-      taskRepository.clear();
+      // A fresh controller must read PostgreSQL without repopulating fixture maps.
+      taskRepository.delete(taskId);
       expect(taskRepository.has(taskId)).toBe(false);
-
-      // Server reload restores state from PostgreSQL
-      await workController.getTasks(testProjectId);
-      expect(taskRepository.has(taskId)).toBe(true);
-
-      // 3. Complete the task: controller updates state and persists to DB
-      const completeRes = await workController.completeTask(testProjectId, taskId, {
-        notes: 'Inspection fully verified',
-      });
+      const freshController = new WorkController(dbService);
+      const initial = await freshController.getTasks(workProjectId, workRequest());
+      expect(initial.data.find(task => task.id === taskId)).toMatchObject({ isCompleted: false, rowVersion: 1 });
+      expect(taskRepository.has(taskId)).toBe(false);
+      const completeRes = await freshController.completeTask(workProjectId, taskId, {
+        expectedVersion: 1, reason: 'Inspection finished', completionEvidence: 'Inspection reference 12',
+      }, workRequest());
 
       expect(completeRes.data.status).toBe('completed');
       expect(completeRes.data.payload.task.isCompleted).toBe(true);
 
-      // 4. Simulate a second server restart
-      taskRepository.clear();
-
-      // 5. Query tasks: verify task reloads with completed state intact
-      const tasksRes = await workController.getTasks(testProjectId);
+      const tasksRes = await new WorkController(dbService).getTasks(workProjectId, workRequest());
       const reloadedTask = tasksRes.data.find((t: any) => t.id === taskId);
       expect(reloadedTask).toBeDefined();
       expect(reloadedTask.isCompleted).toBe(true);
       expect(reloadedTask.state).toBe('completed');
+      expect(completeRes.data.payload.packageAcceptanceState).toBe('pending');
     });
   });
 
@@ -359,7 +421,7 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
   // AREA 7: H06 / C03 - Operational Evidence Isolation for Non-Demo Projects
   // ============================================================================
   describe('H06 / C03: Operational Evidence Isolation (No Mock Fallback Inheritance)', () => {
-    it('proves newly created projects do not inherit controlled documents, transmittals, or Gantt tasks', async () => {
+    it('surfaces unavailable document and schedule reads without substituting demo evidence', async () => {
       const apiClient = new EosApiClient({
         organisationId: '11111111-1111-4111-8111-111111111111',
         userId: 'user-test',
@@ -367,18 +429,15 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
 
       const userProjectId = 'usr-prj-' + Date.now();
 
-      // 1. Controlled documents for non-demo must be empty
-      const docs = await apiClient.getControlledDocuments(userProjectId);
-      expect(docs).toEqual([]);
+      const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 503,
+        json: async () => ({ detail: 'Scoped records are unavailable.' }), text: async () => 'Scoped records are unavailable.' } as Response);
+      try {
+      // Unavailable scoped APIs must remain errors, never synthetic empty success.
+      await expect(apiClient.getControlledDocuments(userProjectId)).rejects.toMatchObject({ status: 503 });
 
-      // 2. Transmittals for non-demo must be empty
-      const transmittals = await apiClient.getTransmittals(userProjectId);
-      expect(transmittals).toEqual([]);
+      await expect(apiClient.getTransmittals(userProjectId)).rejects.toMatchObject({ status: 503 });
 
-      // 3. Gantt schedule for non-demo must have zero tasks
-      const gantt = await apiClient.getGanttSchedule(userProjectId);
-      expect(gantt.schedule.tasks).toEqual([]);
-      expect(gantt.schedule.criticalTasksCount).toBe(0);
+      await expect(apiClient.getGanttSchedule(userProjectId)).rejects.toMatchObject({ status: 503 });
 
       // 4. Project stages for non-demo must initialize with not_started and 0% completion
       const stages = await apiClient.getProjectStages(userProjectId);
@@ -389,6 +448,7 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
       const activities = await apiClient.getProjectActivities(userProjectId);
       expect(activities.length).toBeGreaterThan(0);
       expect(activities.every((a) => a.status === 'not_started')).toBe(true);
+      } finally { fetchMock.mockRestore(); }
     });
   });
 
@@ -448,7 +508,6 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
     const qaClientName = 'E3 INTERNAL QA - DO NOT OPERATE';
     const qaVenueName = 'QA virtual venue - no booking; unknown status';
     const qaManagerName = 'QA Test Manager - no operational assignment';
-    let qaProjectId: string;
 
     it('proves creating a project preserves submitted identity, client, venue, dates, and zero baseline without leaking demo fixtures', async () => {
       const createRes = await projectsController.createProject({
@@ -482,7 +541,7 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
           currency: 'QAR',
         },
       }, {
-        organisationId: '11111111-1111-4111-8111-111111111111',
+        organisationId,
         headers: {},
       } as any);
 
@@ -490,12 +549,22 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
       qaProjectId = createRes.data.id;
       expect(qaProjectId).toBeDefined();
 
+      // Check persistence independently of the controller's in-memory projection.
+      const persisted = await dbService.getPool().query('SELECT id,project_code,title,metadata FROM projects WHERE id=$1 AND organisation_id=$2', [qaProjectId, organisationId]);
+      expect(persisted.rows).toHaveLength(1);
+      expect(persisted.rows[0]).toMatchObject({ project_code: qaProjectCode, title: qaProjectTitle,
+        metadata: { clientStakeholders: { clientName: qaClientName }, team: { projectManagerId: userId }, dateRegister: { eventStartDate: '2026-12-20' } } });
+      // The legacy direct fixture returns a compact UUID; durable APIs use the
+      // canonical identifier persisted by PostgreSQL.
+      qaProjectId = persisted.rows[0].id;
+
       // Verify cockpit projection for internal user
       const internalCockpit = await projectsController.getCockpit(qaProjectId, {
+        organisationId,
         headers: {
           'x-audience': 'internal',
           'x-user-role': 'project_manager',
-          'x-organisation-id': '11111111-1111-4111-8111-111111111111',
+          'x-organisation-id': organisationId,
         },
       } as any);
 
@@ -533,24 +602,30 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
     });
 
     it('proves newly created task is persisted, discoverable in task list, and can progress to completed', async () => {
-      // Step 4 in Page 3 Audit: Create task returned 201, but Task GET returned []
+      // The fixture project needs an explicit grant and package; membership and
+      // its project owner fields do not authorize task commands.
+      await grantWorkAccess(qaProjectId);
+      const pkg = await workController.createWorkPackage(qaProjectId,
+        { name: 'QA acoustic work package', ownerId: userId, reason: 'QA task persistence regression' }, workRequest());
       const taskRes = await workController.createTask(
         qaProjectId,
         {
           title: 'Perform Rigorous Venue Acoustic Pre-Inspection',
-          packageId: 'e1111111-1111-4111-8111-111111111111',
+          packageId: pkg.data.id,
           assigneeId: userId,
+          reason: 'QA task persistence regression',
         },
-        { organisationId: '11111111-1111-4111-8111-111111111111' } as any
+        workRequest()
       );
 
       const taskId = (taskRes as any).data?.id || (taskRes as any).id;
+      createdTaskIds.push(taskId);
       const payload = (taskRes as any).data?.payload || taskRes;
       expect(taskId).toBeDefined();
       expect(payload.title).toBe('Perform Rigorous Venue Acoustic Pre-Inspection');
 
       // GET tasks must discover the new task
-      const taskListRes = await workController.getTasks(qaProjectId);
+      const taskListRes = await workController.getTasks(qaProjectId, workRequest());
       const taskList = Array.isArray(taskListRes) ? taskListRes : (taskListRes as any).data;
       expect(taskList.length).toBeGreaterThan(0);
       const found = taskList.find((t: any) => t.id === taskId);
@@ -559,8 +634,9 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
       expect(found?.isCompleted).toBe(false);
 
       // Complete the task and verify progression
-      await workController.completeTask(qaProjectId, taskId, { remarks: 'Inspection completed with zero acoustic flutter' });
-      const updatedListRes = await workController.getTasks(qaProjectId);
+      await workController.completeTask(qaProjectId, taskId, { expectedVersion: found.rowVersion,
+        reason: 'Acoustic inspection finished', completionEvidence: 'Inspection completed with zero acoustic flutter' }, workRequest());
+      const updatedListRes = await workController.getTasks(qaProjectId, workRequest());
       const updatedList = Array.isArray(updatedListRes) ? updatedListRes : (updatedListRes as any).data;
       const updated = updatedList.find((t: any) => t.id === taskId);
       expect(updated?.isCompleted).toBe(true);
@@ -569,7 +645,7 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
 
     it('proves directory list discovers the QA project with non-inflated completion percentage', async () => {
       const listRes = await projectsController.listProjects({
-        organisationId: '11111111-1111-4111-8111-111111111111',
+        organisationId,
         role: 'project_manager',
         audience: 'internal',
       } as any);
@@ -596,4 +672,3 @@ describe('Rigorous Proof Verification Suite: 8 Critical Audit Areas', () => {
     });
   });
 });
-

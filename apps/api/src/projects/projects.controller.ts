@@ -11,6 +11,7 @@ import {
   UseFilters,
   Query,
   Optional,
+  Header,
 } from '@nestjs/common';
 import { Request } from 'express';
 import {
@@ -36,6 +37,15 @@ import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { TenantIsolationGuard, AllowedAudiences } from '../common/tenant.guard.js';
 import { DbService } from '../common/db.service.js';
 import { taskRepository } from '../work/work.controller.js';
+import { ProjectAccessService } from './project-access.service.js';
+import { ProjectAccessGuard } from './project-access.guard.js';
+import { localSyntheticAuthEnabled, readSessionToken } from '../auth/local-synthetic-auth.js';
+
+// Legacy repository fixtures are available only to explicit direct unit tests.
+// An HTTP request always has a method and can never enter this branch.
+function directProjectFixture(req: Request): boolean {
+  return process.env.NODE_ENV === 'test' && localSyntheticAuthEnabled() && !req?.method && !readSessionToken(req);
+}
 
 export interface StoredProject {
   id: string;
@@ -82,8 +92,8 @@ export function getOrInitProjectActivities(projectId: string): InstantiatedActiv
   return activities;
 }
 
-export function seedInitialProjects(): void {
-  if (projectRepository.size > 0) return;
+export function seedInitialProjects(mergeMissing = false): void {
+  if (projectRepository.size > 0 && !mergeMissing) return;
 
   const defaultProjects: StoredProject[] = [
     {
@@ -232,6 +242,7 @@ export function seedInitialProjects(): void {
   ];
 
   for (const proj of defaultProjects) {
+    if (mergeMissing && projectRepository.has(proj.id)) continue;
     projectRepository.set(proj.id, proj);
     projectRepository.set(proj.projectCode, proj);
     if (proj.id === 'f1111111-1111-4111-8111-111111111111') {
@@ -250,15 +261,57 @@ seedInitialProjects();
 
 @Controller('projects')
 @UseFilters(ProblemDetailsFilter)
-@UseGuards(TenantIsolationGuard)
+@UseGuards(TenantIsolationGuard, ProjectAccessGuard)
 export class ProjectsController {
   private dbService: DbService;
   constructor(@Optional() dbService?: DbService) {
     this.dbService = dbService || new DbService();
   }
 
+  private currentProject(id: string, req: Request): StoredProject {
+    const access = (req as any)?.projectAccess;
+    if (access?.project && access.project.organisation_id === (req as any).organisationId
+      && [access.project.id, access.project.project_code].includes(id)) {
+      const row = access.project, metadata = row.metadata || {};
+      return { id: row.id, organisationId: row.organisation_id, projectCode: row.project_code,
+        title: row.title, description: row.description, originCode: row.origin_code, ownerId: row.owner_id,
+        maturity: row.maturity, outcome: row.outcome, rowVersion: row.row_version,
+        clientOrganisationId: row.client_organisation_id, clientStakeholders: metadata.clientStakeholders,
+        team: metadata.team, workflowConfig: metadata.workflowConfig, dateRegister: metadata.dateRegister,
+        venueContext: metadata.venueContext, financialAssumptions: metadata.financialAssumptions,
+        isOnboardingComplete: metadata.isOnboardingComplete, onboardingCompletionPct: metadata.onboardingCompletionPct,
+        missingSections: metadata.missingSections, closedDimensions: metadata.closedDimensions };
+    }
+    if (directProjectFixture(req)) {
+      // Fixture suites may clear the repository between cases. Restore only
+      // missing canonical fixture records; never materialize these for HTTP.
+      if (!projectRepository.has(id)) seedInitialProjects(true);
+      const project = projectRepository.get(id);
+      const fixtureOrg = (req as any).organisationId || req.headers?.['x-organisation-id'];
+      if (project && (!fixtureOrg || project.organisationId === fixtureOrg)) return project;
+    }
+    throw new HttpException({ code: 'PROJECT_NOT_FOUND', detail: 'Project does not exist or has no verified current project grant.' }, 404);
+  }
+
   @Get()
+  @Header('Cache-Control', 'no-store')
   async listProjects(@Req() req: Request) {
+    if (!directProjectFixture(req)) {
+      const result = await new ProjectAccessService(this.dbService).visibleProjects(req);
+      const data = result.rows.map((row) => {
+        const base = { id: row.id, organisationId: row.organisation_id, projectCode: row.project_code,
+          code: row.project_code, title: row.title, name: row.title, maturity: row.maturity,
+          outcome: row.outcome, rowVersion: row.row_version, accessLevel: row.access_level };
+        if (result.audience === 'client') return base;
+        const metadata = row.metadata || {};
+        return { ...base, description: row.description, originCode: row.origin_code,
+          clientOrganisationId: row.client_organisation_id, clientName: metadata.clientStakeholders?.clientName || row.client_name || null,
+          ownerName: metadata.team?.projectManagerName || row.owner_name || null,
+          isOnboardingComplete: metadata.isOnboardingComplete === true,
+          onboardingCompletionPct: metadata.onboardingCompletionPct ?? 0, missingSections: metadata.missingSections || [] };
+      });
+      return { data, meta: { total: data.length } };
+    }
     const callerOrgId = (req as any).organisationId;
     const callerRole = (req as any).role;
     const callerAudience = (req as any).audience;
@@ -389,8 +442,9 @@ export class ProjectsController {
   }
 
   @Post()
-  @UseGuards(IdempotencyGuard)
+  @Header('Cache-Control', 'no-store')
   async createProject(@Body() body: unknown, @Req() req: Request): Promise<CommandResult> {
+    if (!directProjectFixture(req)) return new ProjectAccessService(this.dbService).createProject(body, req);
     const b = body as any;
     // 9-Step Onboarding Wizard format
     if (b?.projectIdentity) {
@@ -647,14 +701,21 @@ export class ProjectsController {
   }
 
   @Get(':id/cockpit')
+  @Header('Cache-Control', 'no-store')
   async getCockpit(@Param('id') id: string, @Req() req: Request) {
+    if (!directProjectFixture(req)) {
+      const access = (req as any).projectAccess || await new ProjectAccessService(this.dbService).authorise(req, id);
+      if (access.audience !== 'internal') throw new HttpException({ code: 'PROJECT_CLIENT_PROJECTION_UNAVAILABLE', detail: 'Internal cockpit is unavailable to client accounts.' }, 403);
+      (req as any).projectAccess = access;
+      id = access.project.id;
+    }
     const callerAudience = (req as any)?.audience || (req.headers?.['x-audience'] as string) || (req.headers?.['x-user-audience'] as string);
     const callerRole = (req as any)?.role || (req.headers?.['x-user-roles'] as string);
     const isClient = callerAudience === 'client' || callerRole === 'client_user' || callerRole === 'client_representative';
 
-    let project = projectRepository.get(id);
-    const isSyntheticDemo = id === 'f1111111-1111-4111-8111-111111111111' || id === 'PRJ-QND-2026' || id === 'PRJ-2026-QATAR-01';
-    const isLab = id === '00000000-0000-4000-8000-000000000099' || id === 'PRJ-TEST-ALL-FORMATS' || id === 'TEST-ALL-FORMATS';
+    let project = this.currentProject(id, req);
+    const isSyntheticDemo = directProjectFixture(req) && (id === 'f1111111-1111-4111-8111-111111111111' || id === 'PRJ-QND-2026' || id === 'PRJ-2026-QATAR-01');
+    const isLab = directProjectFixture(req) && (id === '00000000-0000-4000-8000-000000000099' || id === 'PRJ-TEST-ALL-FORMATS' || id === 'TEST-ALL-FORMATS');
 
     let title = project?.title || (isLab ? 'Universal File Formats & Design Testing Lab' : (isSyntheticDemo ? 'Qatar Tourism Annual Exhibition & Gala 2026' : 'Untitled Project'));
     let code = project?.projectCode || (isLab ? 'PRJ-TEST-ALL-FORMATS' : (isSyntheticDemo ? 'PRJ-2026-QATAR-01' : id));
@@ -671,8 +732,8 @@ export class ProjectsController {
           FROM projects p
           LEFT JOIN organisations o ON o.id = p.client_organisation_id
           LEFT JOIN users u ON u.id = p.owner_id
-          WHERE p.id = $1;
-        `, [id]);
+          WHERE p.id = $1 AND p.organisation_id = $2;
+        `, [id, (req as any).organisationId]);
         if (pRes.rows.length > 0) {
           const row = pRes.rows[0];
           const meta = row.metadata || {};
@@ -722,7 +783,9 @@ export class ProjectsController {
             projectRepository.set(row.project_code, project);
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        if (!directProjectFixture(req)) throw new HttpException({ code: 'PROJECT_READ_UNAVAILABLE', detail: 'Project details could not be loaded.' }, 503);
+      }
     }
 
     let taskList: any[] = [];
@@ -743,7 +806,9 @@ export class ProjectsController {
           assignee: r.assignee_name || ownerName,
           createdAt: r.created_at,
         }));
-      } catch (e) {}
+      } catch (e) {
+        if (!directProjectFixture(req)) throw new HttpException({ code: 'PROJECT_READ_UNAVAILABLE', detail: 'Project tasks could not be loaded.' }, 503);
+      }
     }
 
     let auditList: any[] = [];
@@ -753,21 +818,23 @@ export class ProjectsController {
           SELECT a.id, a.action, a.created_at, u.name as actor_name
           FROM audit_events a
           LEFT JOIN users u ON u.id = a.actor_id
-          WHERE a.project_id = $1
+          WHERE a.target_type = 'project' AND a.target_id = $1::text AND a.organisation_id = $2
           ORDER BY a.created_at ASC
           LIMIT 10;
-        `, [id]);
+        `, [id, (req as any).organisationId]);
         auditList = aRes.rows.map(r => ({
           id: r.id,
           action: r.action === 'PROJECT_CREATED' ? 'Project Onboarded & Initialized' : r.action,
           actor: r.actor_name || ownerName,
           timestamp: r.created_at ? new Date(r.created_at).toISOString() : '2026-09-15T12:00:00.000Z',
         }));
-      } catch (e) {}
+      } catch (e) {
+        if (!directProjectFixture(req)) throw new HttpException({ code: 'PROJECT_READ_UNAVAILABLE', detail: 'Project audit metadata could not be loaded.' }, 503);
+      }
     }
 
     // Merge tasks from taskRepository (Fixes H04)
-    const memTasks = Array.from(taskRepository.values())
+    const memTasks = (directProjectFixture(req) ? Array.from(taskRepository.values()) : [])
       .filter((t) => t.projectId === id)
       .map((t) => ({
         id: t.id,
@@ -1060,8 +1127,9 @@ export class ProjectsController {
   }
 
   @Get(':id')
+  @Header('Cache-Control', 'no-store')
   getProject(@Param('id') id: string, @Req() req: Request) {
-    const project = projectRepository.get(id);
+    const project = this.currentProject(id, req);
     const callerOrgId = (req as any).organisationId;
 
     // Cross-tenant access denial (AT-001): Deny with 404, no existence leakage
@@ -1081,13 +1149,11 @@ export class ProjectsController {
         id: project.id,
         projectCode: project.projectCode,
         title: project.title,
-        description: project.description,
         maturity: project.maturity,
         outcome: project.outcome,
-        clientOrganisationId: project.clientOrganisationId,
-        financialAssumptions: project.financialAssumptions,
-        dateRegister: project.dateRegister,
-        closedDimensions: project.closedDimensions || {},
+        ...((req as any).audience === 'internal' ? { description: project.description, clientOrganisationId: project.clientOrganisationId,
+          financialAssumptions: project.financialAssumptions,
+          dateRegister: project.dateRegister, closedDimensions: project.closedDimensions || {} } : {}),
         rowVersion: project.rowVersion,
       },
     };
@@ -1098,7 +1164,7 @@ export class ProjectsController {
    */
   @Get(':id/stages')
   getProjectStages(@Param('id') id: string, @Req() req: Request) {
-    const project = projectRepository.get(id);
+    const project = this.currentProject(id, req);
     const callerOrgId = (req as any).organisationId;
 
     if (!project || (callerOrgId && project.organisationId !== callerOrgId)) {
@@ -1138,7 +1204,7 @@ export class ProjectsController {
     @Query('stageNumber') stageNumber: string,
     @Req() req: Request
   ) {
-    const project = projectRepository.get(id);
+    const project = this.currentProject(id, req);
     const callerOrgId = (req as any).organisationId;
 
     if (!project || (callerOrgId && project.organisationId !== callerOrgId)) {
@@ -1167,7 +1233,7 @@ export class ProjectsController {
     @Body() body: any,
     @Req() req: Request
   ) {
-    const project = projectRepository.get(id);
+    const project = this.currentProject(id, req);
     const callerOrgId = (req as any).organisationId;
 
     if (!project || (callerOrgId && project.organisationId !== callerOrgId)) {
@@ -1323,7 +1389,7 @@ export class ProjectsController {
   @Get(':id/costing')
   @AllowedAudiences('internal')
   getProjectCosting(@Param('id') id: string, @Req() req: Request) {
-    const project = projectRepository.get(id);
+    const project = this.currentProject(id, req);
     const callerOrgId = (req as any).organisationId;
 
     if (!project || (callerOrgId && project.organisationId !== callerOrgId)) {

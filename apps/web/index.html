@@ -3,12 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
     <title>E3-EOS | Enterprise Event Operating System</title>
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#090d16" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23d97706'/><text x='50' y='68' font-size='50' font-weight='900' fill='white' text-anchor='middle'>E3</text></svg>" />
+    <link rel="icon" type="image/svg+xml" href="/brand/e3-mark.svg" />
     <style>
       :root {
         --canvas: #090D16;
@@ -67,6 +68,22 @@
       }
       #root {
         min-height: 100%;
+      }
+      .eos-app-header { gap: 8px; flex-wrap: wrap; padding-block: 8px !important; }
+      .eos-header-brand, .eos-header-actions { flex-shrink: 0; }
+      .eos-header-actions { flex-wrap: wrap; }
+      .eos-header-actions button { white-space: nowrap; }
+      #global-project-switcher-container, #global-project-selector { min-width: 0; }
+      .eos-header-search { min-width: 140px; }
+      @media (max-width: 1600px) {
+        .eos-header-subtitle { display: none; }
+        .eos-header-search { margin: 0 !important; }
+      }
+      @media (max-width: 767px) {
+        .eos-header-brand { flex: 1 1 auto; }
+        #global-project-switcher-container { flex: 1 1 130px !important; margin: 0 !important; }
+        .eos-header-actions { width: 100%; justify-content: space-between; gap: 4px !important; }
+        .eos-header-actions button { min-height: 40px; padding-inline: 8px !important; }
       }
       ::-webkit-scrollbar {
         width: 8px;

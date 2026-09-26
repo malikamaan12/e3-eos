@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   matchRoute,
   isAudiencePermitted,
@@ -333,7 +333,7 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect(stageHtml).toContain('STAGE-13');
     });
 
-    it('should render ClientPortalView without leaking internal buy rates or margins', async () => {
+    it('renders the client portal safely without a granted project or fabricated decisions', async () => {
       const { renderToStaticMarkup } = await import('react-dom/server');
       const { ClientPortalView, EosProvider } = await import('./index.js');
       const React = await import('react');
@@ -342,11 +342,13 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
         React.createElement(EosProvider, null, React.createElement(ClientPortalView))
       );
 
-      // Asserts client view is rendered
-      expect(portalHtml).toContain('Verified Client Portal');
-      expect(portalHtml).toContain('Client Safe Projection Active');
-      expect(portalHtml).toContain('160,000.00 QAR'); // Approved proposal sell price
-      expect(portalHtml).toContain('Decisions Awaiting Your Sign-Off');
+      expect(portalHtml).toContain('Client portal');
+      expect(portalHtml).toMatch(/No project access yet|Loading available projects/);
+      expect(portalHtml).toContain('Project directory');
+      expect(portalHtml).not.toContain('160,000.00 QAR');
+      expect(portalHtml).not.toContain('btn-client-sign-variation');
+      expect(portalHtml).not.toContain('Legally Bound');
+      expect(portalHtml).not.toContain('Client Safe Projection Active');
 
       // Asserts no confidential internal buy rates or margins exist in rendered HTML
       expect(portalHtml).not.toContain('buyRate');
@@ -370,7 +372,7 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect(fieldHtml).toContain('QR Scanner');
     });
 
-    it('should verify Field Ops offline mutation queue persistence and sync replay', async () => {
+    it('retains provisional Field Ops captures when durable sync is unavailable, including retries and clear actions', async () => {
       const { useEosContext, EosProvider } = await import('./index.js');
       const React = await import('react');
 
@@ -402,12 +404,26 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect(queued.status).toBe('pending');
       expect(queued.dedupTag).toContain('assetinventory');
 
-      // Replay sync engine
+      // The legacy endpoint does not persist observations. No success may be
+      // reported, and an attempted sync must retain the original capture.
       const syncResult = await contextRef.syncPendingMutations();
-      expect(syncResult.success).toBeGreaterThanOrEqual(1);
-      const synced = contextRef.pendingMutations.find((m: any) => m.id === queued.id);
-      expect(synced.status).toBe('synced');
-      expect(synced.syncedAt).toBeDefined();
+      expect(syncResult.success).toBe(0);
+      expect(syncResult.failed).toBe(1);
+      expect(syncResult.message).toContain('provisional');
+      const retained = contextRef.pendingMutations.find((m: any) => m.id === queued.id);
+      expect(retained.status).toBe('failed');
+      expect(retained.syncedAt).toBeUndefined();
+      expect(retained.syncError).toContain('durable server storage');
+      expect(retained.payload).toEqual(queued.payload);
+      expect(retained.projectId).toBe(queued.projectId);
+
+      const retry = await contextRef.syncPendingMutations();
+      expect(retry).toMatchObject({ success: 0, failed: 1 });
+      contextRef.clearSyncedMutations();
+      contextRef.removePendingMutation(queued.id);
+      contextRef.clearPendingMutations();
+      expect(contextRef.pendingMutations).toHaveLength(1);
+      expect(contextRef.pendingMutations[0]).toMatchObject({ id: queued.id, payload: queued.payload, status: 'failed' });
     });
 
     it('should render AdminStudioView with cryptographic audit log', async () => {
@@ -454,19 +470,16 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect((portal as any).profitMargin).toBeUndefined();
     });
 
-    it('should submit field sync batch mutations successfully', async () => {
+    it('blocks field sync until a durable acknowledgement contract exists', async () => {
       const { EosApiClient } = await import('./services/api-client.js');
       const client = new EosApiClient({
         organisationId: '11111111-1111-4111-8111-111111111111',
         userId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       });
 
-      const result = await client.syncFieldBatch([
+      await expect(client.syncFieldBatch([
         { action: 'UPDATE_CHECKLIST', checklistId: 'chk-01' },
-      ]);
-      expect(result.processed).toBe(1);
-      expect(result.failed).toBe(0);
-      expect(result.syncedAt).toBeDefined();
+      ])).rejects.toMatchObject({ status: 503, details: { code: 'DURABLE_FIELD_SYNC_UNAVAILABLE' } });
     });
 
     it('should query project stages and activities from client layer', async () => {
@@ -506,18 +519,16 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       expect(matrix.evaluations).toHaveLength(4);
       expect(matrix.overallTraceabilityPct).toBeGreaterThan(0);
 
-      const docs = await client.getControlledDocuments('00000000-0000-4000-8000-000000000001');
-      expect(docs.length).toBeGreaterThan(0);
-      expect(docs[0].documentNumber).toMatch(/^E3-/);
-
-      const transmittals = await client.getTransmittals('00000000-0000-4000-8000-000000000001');
-      expect(transmittals.length).toBeGreaterThan(0);
-      expect(transmittals[0].isClientFacing).toBe(true);
-
-      const gantt = await client.getGanttSchedule('00000000-0000-4000-8000-000000000001');
-      expect(gantt.schedule.projectDurationHours).toBeGreaterThan(0);
-      expect(gantt.schedule.criticalTasksCount).toBeGreaterThan(0);
-      expect(gantt.shifts.length).toBeGreaterThan(0);
+      const fetchRecords = vi.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response(JSON.stringify({data: []}), {status: 200}))
+        .mockResolvedValue(new Response(JSON.stringify({detail: 'Workflow unavailable'}), {status: 503}));
+      try {
+        expect(await client.getControlledDocuments('00000000-0000-4000-8000-000000000001')).toEqual([]);
+        await expect(client.getTransmittals('00000000-0000-4000-8000-000000000001')).rejects.toMatchObject({status: 503});
+        // Each real Response body can be consumed once.
+        fetchRecords.mockResolvedValueOnce(new Response(JSON.stringify({detail: 'Schedule unavailable'}), {status: 503}));
+        await expect(client.getGanttSchedule('00000000-0000-4000-8000-000000000001')).rejects.toMatchObject({status: 503});
+      } finally { fetchRecords.mockRestore(); }
 
       const estimates = await client.getEstimates('00000000-0000-4000-8000-000000000001');
       expect(estimates.length).toBeGreaterThan(0);
@@ -1623,38 +1634,12 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
     });
   });
 
-  describe('Local Team Accounts Authentication & Resilience', () => {
-    it('authenticates Superadmin (superadmin@eeeqa.com) cleanly with universal password', async () => {
+  describe('Server Authentication & Local Project Fixtures', () => {
+    it('does not authenticate seeded users when the API is unreachable', async () => {
       const { EosApiClient } = await import('./services/api-client.js');
-      const client = new EosApiClient({
-        baseUrl: 'https://unreachable-mock-api.internal',
-        organisationId: '11111111-1111-4111-8111-111111111111',
-        userId: '10000000-0000-4000-8000-000000000001',
-      });
-
-      const res = await client.authLogin('superadmin@eeeqa.com', 'E3#Doha2026!');
-      expect(res.success).toBe(true);
-      expect(res.user?.email).toBe('superadmin@eeeqa.com');
-      expect(res.user?.isSuperAdmin).toBe(true);
-      expect(res.activeMembership?.role).toBe('super_admin');
-      expect(res.sessionToken).toBeDefined();
-    });
-
-    it('authenticates local team members with correct roles', async () => {
-      const { EosApiClient } = await import('./services/api-client.js');
-      const client = new EosApiClient({
-        baseUrl: 'https://unreachable-mock-api.internal',
-        organisationId: '11111111-1111-4111-8111-111111111111',
-        userId: '10000000-0000-4000-8000-000000000001',
-      });
-
-      const adil = await client.authLogin('adil@eeeqa.com', 'E3#Doha2026!');
-      expect(adil.success).toBe(true);
-      expect(adil.activeMembership?.role).toBe('executive');
-
-      const indika = await client.authLogin('finance@eeeqa.com', 'E3#Doha2026!');
-      expect(indika.success).toBe(true);
-      expect(indika.activeMembership?.role).toBe('finance');
+      const client = new EosApiClient({ baseUrl: 'https://unreachable-mock-api.internal', organisationId: '11111111-1111-4111-8111-111111111111', userId: '10000000-0000-4000-8000-000000000001' });
+      await expect(client.authLogin('superadmin@eeeqa.com', 'E3#Doha2026!')).rejects.toThrow();
+      await expect(client.authLogin('adil@eeeqa.com', 'E3#Doha2026!')).rejects.toThrow();
     });
 
     it('strictly rejects incorrect passwords for local team accounts', async () => {
@@ -1670,7 +1655,7 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
       ).rejects.toThrow();
     });
 
-    it('getAdminUsers returns all local team users with fallback', async () => {
+    it('getAdminUsers does not invent team users when the API is unavailable', async () => {
       const { EosApiClient } = await import('./services/api-client.js');
       const client = new EosApiClient({
         baseUrl: 'https://unreachable-mock-api.internal',
@@ -1678,14 +1663,10 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
         userId: '10000000-0000-4000-8000-000000000001',
       });
 
-      const users = await client.getAdminUsers();
-      expect(users.length).toBeGreaterThanOrEqual(33);
-      const superadmin = users.find((u) => u.email === 'superadmin@eeeqa.com');
-      expect(superadmin).toBeDefined();
-      expect(superadmin?.role).toBe('super_admin');
+      await expect(client.getAdminUsers()).rejects.toThrow();
     });
 
-    it('always ensures PRJ-TEST-ALL-FORMATS is visible in project directory and cockpit', async () => {
+    it('does not expose a testing-lab fixture when scoped project reads are unavailable', async () => {
       const { EosApiClient } = await import('./services/api-client.js');
       const client = new EosApiClient({
         baseUrl: 'https://unreachable-mock-api.internal',
@@ -1693,22 +1674,11 @@ describe('@e3-eos/web Workspace & UI Engine', () => {
         userId: '10000000-0000-4000-8000-000000000001',
       });
 
-      const projects = await client.getProjects();
-      const lab = projects.find(
-        (p: any) => p.projectCode === 'PRJ-TEST-ALL-FORMATS' || p.code === 'PRJ-TEST-ALL-FORMATS' || p.id === '00000000-0000-4000-8000-000000000099'
-      );
-      expect(lab).toBeDefined();
-      expect(lab?.title || (lab as any)?.name).toBe('Universal File Formats & Design Testing Lab');
-      expect((lab as any)?.clientName).toBe('Universal Formats QA Testing');
-
-      // Test cockpit resolution
-      const cockpit = await client.getCockpit('PRJ-TEST-ALL-FORMATS');
-      expect(cockpit.projectCode).toBe('PRJ-TEST-ALL-FORMATS');
-      expect(cockpit.title).toBe('Universal File Formats & Design Testing Lab');
-      expect(cockpit.clientName).toBe('Universal Formats QA Testing');
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({ detail: 'Project access unavailable' }) }));
+      try {
+        await expect(client.getProjects()).rejects.toThrow('Project access unavailable');
+        await expect(client.getCockpit('PRJ-TEST-ALL-FORMATS')).rejects.toThrow('Project access unavailable');
+      } finally { vi.unstubAllGlobals(); }
     });
   });
 });
-
-
-

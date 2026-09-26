@@ -31,6 +31,7 @@ import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { DbService } from '../common/db.service.js';
+import { CompanyVaultAvailabilityGuard, assertDocumentFixture } from './documents-access.guard.js';
 import {
   evidenceVaultRepository,
   evidenceVaultRevisionsRepository,
@@ -39,7 +40,7 @@ import {
 
 @Controller('vault')
 @UseFilters(ProblemDetailsFilter)
-@UseGuards(TenantIsolationGuard)
+@UseGuards(TenantIsolationGuard, CompanyVaultAvailabilityGuard)
 export class CompanyVaultController {
   private dbService: DbService;
 
@@ -60,6 +61,7 @@ export class CompanyVaultController {
     @Query('search') search?: string,
     @Req() req?: Request
   ) {
+    assertDocumentFixture(req);
     let items = Array.from(evidenceVaultRepository.values()).filter((it) => !it.isArchived);
 
     if (category) {
@@ -101,6 +103,7 @@ export class CompanyVaultController {
 
   @Get('renewals')
   listRenewalAlerts(@Query('currentDate') currentDate?: string) {
+    assertDocumentFixture();
     const items = Array.from(evidenceVaultRepository.values()).filter((it) => !it.isArchived);
     const alerts: Array<{
       item: EvidenceVaultItem;
@@ -130,6 +133,7 @@ export class CompanyVaultController {
 
   @Get(':id')
   getVaultItem(@Param('id') id: string) {
+    assertDocumentFixture();
     const item = evidenceVaultRepository.get(id);
     if (!item) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Evidence vault item not found' }, HttpStatus.NOT_FOUND);
@@ -150,11 +154,13 @@ export class CompanyVaultController {
   }
 
   getEvidence(id: string) {
+    assertDocumentFixture();
     return this.getVaultItem(id);
   }
 
   @Get(':id/revisions')
   listRevisions(@Param('id') id: string) {
+    assertDocumentFixture();
     const item = evidenceVaultRepository.get(id);
     if (!item) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Evidence vault item not found' }, HttpStatus.NOT_FOUND);
@@ -166,6 +172,7 @@ export class CompanyVaultController {
   @Post()
   @UseGuards(IdempotencyGuard)
   intakeEvidenceMaster(@Body() body: any, @Req() req: Request) {
+    assertDocumentFixture(req);
     const normalizedBody = {
       ...body,
       originalFilename: body.originalFilename || body.fileName || 'evidence.pdf',
@@ -282,6 +289,7 @@ export class CompanyVaultController {
   @Post(':id/revisions')
   @UseGuards(IdempotencyGuard)
   uploadNewRevision(@Param('id') id: string, @Body() body: any, @Req() req: Request) {
+    assertDocumentFixture(req);
     const item = evidenceVaultRepository.get(id);
     if (!item) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Evidence vault item not found' }, HttpStatus.NOT_FOUND);
@@ -353,6 +361,7 @@ export class CompanyVaultController {
     @Param('revId') revId: string,
     @Body() body: any
   ) {
+    assertDocumentFixture();
     const item = evidenceVaultRepository.get(id);
     if (!item) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Evidence vault item not found' }, HttpStatus.NOT_FOUND);
@@ -409,6 +418,7 @@ export class CompanyVaultController {
 
   @Delete(':id')
   deleteOrArchiveEvidence(@Param('id') id: string, @Query('permanent') permanent?: string) {
+    assertDocumentFixture();
     const item = evidenceVaultRepository.get(id);
     if (!item) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Evidence vault item not found' }, HttpStatus.NOT_FOUND);
@@ -467,6 +477,7 @@ export class CompanyVaultController {
 
   @Post(':id/restore')
   restoreArchivedEvidence(@Param('id') id: string) {
+    assertDocumentFixture();
     const item = evidenceVaultRepository.get(id);
     if (!item) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Evidence vault item not found' }, HttpStatus.NOT_FOUND);

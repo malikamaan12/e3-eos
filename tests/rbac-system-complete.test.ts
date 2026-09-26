@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
 import {
@@ -219,6 +219,13 @@ describe('Enterprise RBAC & Separation of Duties (SoD) Comprehensive Verificatio
   // SECTION 3: TenantIsolationGuard RBAC & Audience Enforcement
   // ===========================================================================
   describe('3. TenantIsolationGuard Execution & Enforcement', () => {
+    // These are role-matrix unit fixtures; real credential boundaries have a dedicated suite.
+    beforeAll(() => {
+      vi.stubEnv('EOS_ENABLE_LOCAL_SYNTHETIC_AUTH', 'true');
+      vi.stubEnv('ENVIRONMENT', 'local');
+    });
+    afterAll(() => vi.unstubAllEnvs());
+
     it('rejects unauthenticated requests with HTTP 401 UNAUTHENTICATED', async () => {
       const { context, reflector } = createMockExecutionContext({});
       const guard = new TenantIsolationGuard(reflector);

@@ -1676,35 +1676,45 @@ export function compareDocumentVersions(
     const existingReq = existingRequirements.find(matcher);
     const priorCand = priorCandidates.find(matcher);
 
-    let prevQty = existingReq ? (existingReq.quantity !== undefined ? Number(existingReq.quantity) : 20) : (priorCand?.quantity !== undefined ? priorCand.quantity : (priorCandidates.length > 0 ? 20 : undefined));
-    if (prevQty === undefined && isChair) {
-      prevQty = 100; // Original stated baseline for chairs
-    }
+    // A matched requirement is the controlled baseline. Neither the item type
+    // nor the existence of unrelated prior candidates supplies a quantity.
+    const prevQty = existingReq ? existingReq.quantity : priorCand?.quantity;
     const newQtyMatch = candDesc.match(/(?:changes to|revised to|amended to|increased to)\s*(\d+)/i) ||
                          candDesc.match(/(\d+)\s*chairs/i);
     const newQty = newCand.quantity !== undefined ? newCand.quantity : (newQtyMatch ? parseInt(newQtyMatch[1], 10) : undefined);
 
     if (newCand.description.toLowerCase().includes('revised') || newCand.description.toLowerCase().includes('additional') || newCand.description.toLowerCase().includes('changes to') || (prevQty !== undefined && newQty !== undefined && newQty !== prevQty)) {
-      const deltaQty = (newQty || 24) - (prevQty || 20);
-      const isVipAllocation = /vip\s*zone/i.test(newCand.description);
+      const deltaQty = newQty !== undefined && prevQty !== undefined ? newQty - prevQty : undefined;
       const isPremium = /premium/i.test(newCand.description);
+      // Use the same explicit zone-breakdown format as extraction. A total
+      // increase or a mere VIP mention cannot establish a zone allocation.
+      const allocationMatches = [...newCand.originalWording.matchAll(/(?:zone\s*([a-z0-9]+)|vip\s*zone?|\b([ab])\b)\s*[:\-–]\s*(\d+)/gi)];
+      const explicitAllocations = allocationMatches.map((match) => ({
+        zone: match[1] || match[2] ? `Zone ${(match[1] || match[2]).toUpperCase()}` : 'VIP Zone',
+        quantity: parseInt(match[3], 10),
+      }));
+      const affectedAllocations = explicitAllocations.length > 0
+        ? explicitAllocations
+        : (/zone\s*a\b/i.test(newCand.originalWording) && newQty !== undefined
+          ? [{ zone: 'Zone A', quantity: newQty }]
+          : undefined);
 
       deltas.push({
         id: `delta-${deltas.length + 1}`,
-        changeType: deltaQty !== 0 ? 'changed_quantity' : 'modified_requirement',
+        changeType: deltaQty !== undefined && deltaQty !== 0 ? 'changed_quantity' : 'modified_requirement',
         title: `Quantity & Specification Revision: ${existingReq?.title || (isChair && isZoneA ? 'Zone A Banquet Chairs' : newCand.title)}`,
-        previousWording: existingReq?.originalWording || priorCand?.originalWording || `Original stated quantity: ${prevQty} units.`,
+        previousWording: existingReq?.originalWording || priorCand?.originalWording,
         newWording: newCand.originalWording,
         previousQuantity: prevQty,
         newQuantity: newQty,
         quantityDelta: deltaQty,
         affectedRequirementId: existingReq?.id || priorCand?.id,
         affectedRequirementCode: existingReq?.code || priorCand?.candidateCode,
-        affectedAllocations: isZoneA ? [{ zone: 'Zone A', quantity: newQty || 120 }] : (isVipAllocation ? [{ zone: 'VIP Zone', quantity: deltaQty > 0 ? deltaQty : 4 }] : undefined),
+        affectedAllocations,
         proposedDesignVariant: isPremium ? 'Premium Counter Variant (VIP Zone)' : undefined,
         designImpact: isPremium ? 'Requires bespoke high-end finishes and VIP interior 3D renders.' : 'Standard adjustment',
-        boqImpact: deltaQty > 0 ? `Additional +${deltaQty} units commercial line to be negotiated.` : undefined,
-        productionImpact: deltaQty > 0 ? `Fabrication batch size increases by +${deltaQty} units. Factory capacity check required.` : undefined,
+        boqImpact: deltaQty !== undefined && deltaQty > 0 ? `Additional +${deltaQty} units commercial line to be negotiated.` : undefined,
+        productionImpact: deltaQty !== undefined && deltaQty > 0 ? `Fabrication batch size increases by +${deltaQty} units. Factory capacity check required.` : undefined,
         scheduleImpact: isChair ? 'Confirm delivery timeline for revised chair counts in Zone A.' : 'Verify delivery buffer before site handover.',
         affectedDepartments: isChair ? ['Production', 'Logistics', 'Site Operations'] : ['Production', 'Design', 'Finance & Commercial', 'Site Operations'],
         reviewStatus: 'pending',

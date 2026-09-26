@@ -42,6 +42,7 @@ import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { TenantIsolationGuard } from '../common/tenant.guard.js';
 import { IdempotencyGuard } from '../common/idempotency.guard.js';
 import { DbService } from '../common/db.service.js';
+import { DocumentsAccessGuard, assertDocumentFixture } from './documents-access.guard.js';
 import {
   submissionPacksRepository,
   submissionPackRevisionsRepository,
@@ -58,7 +59,7 @@ import {
 
 @Controller('projects/:projectId/packs')
 @UseFilters(ProblemDetailsFilter)
-@UseGuards(TenantIsolationGuard)
+@UseGuards(TenantIsolationGuard, DocumentsAccessGuard)
 export class SubmissionPacksController {
   private dbService: DbService;
 
@@ -72,6 +73,7 @@ export class SubmissionPacksController {
 
   @Get()
   listPacks(@Param('projectId') projectId: string) {
+    assertDocumentFixture();
     const packs = Array.from(submissionPacksRepository.values()).filter((p) => p.projectId === projectId);
     return {
       data: packs,
@@ -86,6 +88,7 @@ export class SubmissionPacksController {
     @Body() body: any,
     @Req() req: Request
   ) {
+    assertDocumentFixture(req);
     const parseResult = SubmissionPackCreateSchema.safeParse(body);
     if (!parseResult.success) {
       throw new HttpException(
@@ -144,6 +147,7 @@ export class SubmissionPacksController {
 
   @Get(':packId')
   getPack(@Param('projectId') projectId: string, @Param('packId') packId: string) {
+    assertDocumentFixture();
     const pack = submissionPacksRepository.get(packId);
     if (!pack || pack.projectId !== projectId) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Submission pack not found' }, HttpStatus.NOT_FOUND);
@@ -176,6 +180,7 @@ export class SubmissionPacksController {
       isMandatory?: boolean;
     }
   ) {
+    assertDocumentFixture();
     const pack = submissionPacksRepository.get(packId);
     if (!pack || pack.projectId !== projectId) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Submission pack not found' }, HttpStatus.NOT_FOUND);
@@ -260,6 +265,7 @@ export class SubmissionPacksController {
     @Param('packId') packId: string,
     @Body() body: any
   ) {
+    assertDocumentFixture();
     const parseResult = SubmissionPackReorderSchema.safeParse(body);
     if (!parseResult.success) {
       throw new HttpException(
@@ -304,6 +310,7 @@ export class SubmissionPacksController {
   }
 
   reorderItems(projectId: string, packId: string, body: any) {
+    assertDocumentFixture();
     return this.reorderPackItems(projectId, packId, body);
   }
 
@@ -314,6 +321,7 @@ export class SubmissionPacksController {
     @Param('itemId') itemId: string,
     @Body() body: any
   ) {
+    assertDocumentFixture();
     const parseResult = SubmissionPackItemUpdateSchema.safeParse(body);
     if (!parseResult.success) {
       throw new HttpException(
@@ -365,6 +373,7 @@ export class SubmissionPacksController {
     @Param('packId') packId: string,
     @Param('itemId') itemId: string
   ) {
+    assertDocumentFixture();
     const pack = submissionPacksRepository.get(packId);
     if (!pack || pack.projectId !== projectId) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Submission pack not found' }, HttpStatus.NOT_FOUND);
@@ -405,6 +414,7 @@ export class SubmissionPacksController {
     @Param('projectId') projectId: string,
     @Param('packId') packId: string
   ) {
+    assertDocumentFixture();
     const pack = submissionPacksRepository.get(packId);
     if (!pack || pack.projectId !== projectId) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Submission pack not found' }, HttpStatus.NOT_FOUND);
@@ -441,6 +451,7 @@ export class SubmissionPacksController {
     @Body() body: any,
     @Req() req: Request
   ) {
+    assertDocumentFixture(req);
     const parseResult = SubmissionPackFreezeSchema.safeParse(body);
     const data = parseResult.success ? parseResult.data : {};
 
@@ -486,6 +497,7 @@ export class SubmissionPacksController {
     @Param('projectId') projectId: string,
     @Param('packId') packId: string
   ) {
+    assertDocumentFixture();
     const pack = submissionPacksRepository.get(packId);
     if (!pack || pack.projectId !== projectId) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Submission pack not found' }, HttpStatus.NOT_FOUND);
@@ -543,6 +555,7 @@ export class SubmissionPacksController {
     @Param('packId') packId: string,
     @Body() body: any
   ) {
+    assertDocumentFixture();
     const parseResult = PdfAssemblyConfigSchema.safeParse(body);
     const config: any = parseResult.success ? parseResult.data : {};
 
@@ -596,6 +609,7 @@ export class SubmissionPacksController {
     @Body() body: any,
     @Req() req: Request
   ) {
+    assertDocumentFixture(req);
     const parseResult = StampSignaturePlacementSchema.safeParse(body);
     if (!parseResult.success) {
       throw new HttpException(
@@ -671,6 +685,7 @@ export class SubmissionPacksController {
     @Param('packId') packId: string,
     @Body() body: any
   ) {
+    assertDocumentFixture();
     const parseResult = PackFinalizeSchema.safeParse(body);
     const data: any = parseResult.success ? parseResult.data : {};
 
@@ -773,6 +788,7 @@ export class SubmissionPacksController {
     @Body() body: any,
     @Req() req: Request
   ) {
+    assertDocumentFixture(req);
     const validChannels = ['portal', 'email', 'physical_courier', 'hand_delivery', 'api_transmittal'];
     const normalizedBody = {
       ...body,
@@ -851,6 +867,7 @@ export class SubmissionPacksController {
     @Param('packId') packId: string,
     @Body() body: any
   ) {
+    assertDocumentFixture();
     const parseResult = PackRecordReceiptSchema.safeParse(body);
     if (!parseResult.success) {
       throw new HttpException(
@@ -895,6 +912,7 @@ export class SubmissionPacksController {
     @Param('packId') packId: string,
     @Body() body: any
   ) {
+    assertDocumentFixture();
     const parseResult = ClientReviewShareSchema.safeParse(body);
     if (!parseResult.success) {
       throw new HttpException(
@@ -945,6 +963,7 @@ export class SubmissionPacksController {
 
   @Get('/public/review-shares/:token')
   getClientReviewSnapshot(@Param('token') token: string) {
+    assertDocumentFixture();
     const share = clientReviewSharesRepository.get(token);
     if (!share || share.isRevoked) {
       throw new HttpException({ code: 'FORBIDDEN', title: 'Review share link is invalid or has been revoked' }, HttpStatus.FORBIDDEN);
@@ -981,6 +1000,7 @@ export class SubmissionPacksController {
 
   @Delete('/public/review-shares/:token')
   revokeClientReviewShare(@Param('token') token: string) {
+    assertDocumentFixture();
     const share = clientReviewSharesRepository.get(token);
     if (!share) {
       throw new HttpException({ code: 'NOT_FOUND', title: 'Share token not found' }, HttpStatus.NOT_FOUND);

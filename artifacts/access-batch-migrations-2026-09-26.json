@@ -1,0 +1,18 @@
+{
+  "applied": [
+    "0016_project_access_grants.sql",
+    "0017_membership_controlled_changes.sql"
+  ],
+  "before": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "after": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13
+  },
+  "grants": 0,
+  "ledger": 19
+}

@@ -489,6 +489,6 @@ describe('E3-EOS Complete 13-Stage Project Lifecycle Integration Test', () => {
     const route = matchRoute(`/projects/${projectId}/reports`);
     expect(route).toBeDefined();
     expect(route?.route.workspace).toBe('project');
-    expect(route?.route.title).toBe('Reporting, Closeout & Lessons');
+    expect(route?.route.title).toBe('Project reports');
   });
 });

@@ -314,7 +314,7 @@ Clause 9.1: Contractor shall obtain Civil Defence fire safety inspection permit 
   });
 
   describe('4. Later Addendum: 20 Counters Revised to 24 with VIP Allocation', () => {
-    const addendumClause = `Information counter quantity is revised to 24. Four additional premium counters shall be installed in the VIP Zone.`;
+    const addendumClause = `Information counter quantity is revised to 24. Four additional premium counters shall be installed in the VIP Zone. Additional allocation: VIP Zone: 4.`;
 
     it('should detect quantity revision from 20 to 24 and calculate delta of +4 counters', () => {
       // Create baseline candidate with 20 counters
@@ -431,16 +431,19 @@ Clause 9.1: Contractor shall obtain Civil Defence fire safety inspection permit 
       expect(vipAlloc).toBeDefined();
       expect(vipAlloc?.quantity).toBe(4);
 
-      // Check Premium design variant created in gated state
+      // A design suggestion needs its own reviewed quantity and cannot fabricate a variant.
       const variants = Array.from(designVariantRepository.values()).filter((v) => v.requirementId === counterReqId);
-      const premVariant = variants.find((v) => v.name.includes('Premium'));
-      expect(premVariant).toBeDefined();
-      expect(premVariant?.productionReleaseStatus).toBe('not_released'); // Zero automatic release to production!
+      expect(variants).toHaveLength(0);
+      expect(rev.newValues.proposedDesignVariant).toContain('Premium');
+      expect(vipAlloc?.location).toBe('');
+      expect(vipAlloc?.status).toBe('unassigned');
 
       // Requirement baseline preserved in interpretation note
       const reqAfter = requirementRepository.get(counterReqId);
       expect(reqAfter?.recordVersion).toBe(2);
-      expect(reqAfter?.interpretation).toContain('revised to 24 units (+4 units in VIP Zone)');
+      expect(reqAfter?.interpretation).toBe('Original baseline: 20 units.');
+      expect(reqAfter?.quantity).toBe(24);
+      expect(reqAfter?.originalWording).toBe(delta.newWording);
     });
   });
 

@@ -222,10 +222,7 @@ export const FieldOpsView: React.FC = () => {
     toggleOffline,
     pendingMutations,
     queueMutation,
-    clearPendingMutations,
     syncPendingMutations,
-    removePendingMutation,
-    clearSyncedMutations,
     projects,
     selectedProjectId,
     setSelectedProjectId,
@@ -565,12 +562,14 @@ export const FieldOpsView: React.FC = () => {
     try {
       const res = await syncPendingMutations();
       setSyncToast({
-        message: `Sync finished: ${res.success} mutation(s) synchronized with cloud server.`,
-        type: 'success',
+        message: res.failed > 0
+          ? (isAr ? 'المزامنة مع الخادم غير متاحة. تبقى السجلات مؤقتة على هذا الجهاز.' : res.message || 'Captures remain provisional on this device; server acknowledgement is unavailable.')
+          : (isAr ? 'لا توجد سجلات تنتظر المزامنة.' : 'No captures are awaiting sync.'),
+        type: res.failed > 0 ? 'error' : 'success',
       });
     } catch {
       setSyncToast({
-        message: 'Sync encountered network errors. Mutations remain safely queued locally.',
+        message: isAr ? 'تعذرت المزامنة. تبقى السجلات على هذا الجهاز ولم يؤكد الخادم استلامها.' : 'Sync failed. Captures remain on this device without server acknowledgement.',
         type: 'error',
       });
     } finally {
@@ -744,8 +743,8 @@ export const FieldOpsView: React.FC = () => {
         {/* Mobile Header */}
         <div
           style={{
-            backgroundColor: 'var(--text-primary, #f8fafc)',
-            color: 'var(--surface-1, #0f1624)',
+            backgroundColor: 'var(--surface-1, #0f1624)',
+            color: 'var(--text-primary, #f8fafc)',
             borderRadius: '8px',
             padding: '14px 16px',
             marginBottom: '14px',
@@ -762,13 +761,13 @@ export const FieldOpsView: React.FC = () => {
               {isOffline ? (isAr ? 'قائمة غير متصلة' : 'OFFLINE QUEUE') : (isAr ? 'متصل ومباشر' : 'ONLINE LIVE')}
             </Badge>
           </div>
-          <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary, #cbd5e1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>{currentProject.title || currentProject.name}</span>
-            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>{currentProject.projectCode || currentProject.code}</span>
+            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--accent)' }}>{currentProject.projectCode || currentProject.code}</span>
           </div>
           {/* Multi-Project Selector for Field Operations */}
           <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle, #1d2939)' }}>
-            <label htmlFor="field-ops-project-select" style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+            <label htmlFor="field-ops-project-select" style={{ fontSize: '11px', color: 'var(--text-secondary, #cbd5e1)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
               {isAr ? 'المشروع النشط للعمليات الميدانية:' : 'Active Operational Project:'}
             </label>
             <select
@@ -783,7 +782,7 @@ export const FieldOpsView: React.FC = () => {
                 padding: '6px 10px',
                 borderRadius: '6px',
                 backgroundColor: 'var(--surface-2, #151e2e)',
-                color: 'var(--surface-2, #151e2e)',
+                color: 'var(--text-primary, #f8fafc)',
                 border: '1px solid var(--border-default, #2a374b)',
                 fontSize: '12px',
                 fontWeight: 600,
@@ -802,7 +801,7 @@ export const FieldOpsView: React.FC = () => {
         {/* Quick Network & Safety Action Bar */}
         <div style={{ display: 'flex', flexDirection: isNarrowScreen ? 'column' : 'row', gap: '8px', marginBottom: '14px', width: '100%' }}>
           <Button size="md" variant={isOffline ? 'accent' : 'secondary'} onClick={toggleOffline} style={{ flex: 1, fontSize: '12px', minHeight: '44px', width: '100%' }}>
-            {isOffline ? (isAr ? '⚡ مزامنة قائمة الانتظار' : '⚡ Sync Offline Queue') : (isAr ? '📶 محاكاة عدم الاتصال' : '📶 Simulate Offline')}
+            {isOffline ? (isAr ? 'العودة إلى وضع الاتصال' : 'Return to online mode') : (isAr ? '📶 محاكاة عدم الاتصال' : '📶 Simulate Offline')}
           </Button>
           <Button size="md" variant="danger" onClick={handleLogIncident} style={{ flex: 1, fontSize: '12px', minHeight: '44px', width: '100%' }}>
             {isAr ? '🚨 بلاغ سلامة وطوارئ' : '🚨 HSE Incident'}
@@ -845,7 +844,7 @@ export const FieldOpsView: React.FC = () => {
             >
               {[
                 { id: 'checklist', label: isAr ? '📋 قائمة الجاهزية' : '📋 Readiness Chk', badge: checklists.filter(c => !c.completed).length },
-                { id: 'queue', label: isAr ? '📥 قائمة الانتظار' : '📥 Offline Queue', badge: pendingMutations.filter((m) => m.status === 'pending').length },
+                { id: 'queue', label: isAr ? '📥 قائمة الانتظار' : '📥 Offline Queue', badge: pendingMutations.length },
                 { id: 'pod', label: isAr ? '✍️ إيصال التسليم' : '✍️ POD Receipt', badge: podRecords.filter(p => !p.signed).length },
                 { id: 'snag', label: isAr ? '📸 الملاحظات والصور' : '📸 Snag & Photo', badge: snags.length },
                 { id: 'scanner', label: isAr ? '📷 قارئ الرمز' : '📷 QR Scanner', badge: 0 },
@@ -875,7 +874,7 @@ export const FieldOpsView: React.FC = () => {
         >
           {[
             { id: 'checklist', label: isAr ? '📋 قائمة الجاهزية' : '📋 Readiness Chk', badge: checklists.filter(c => !c.completed).length },
-            { id: 'queue', label: isAr ? '📥 قائمة الانتظار' : '📥 Offline Queue', badge: pendingMutations.filter((m) => m.status === 'pending').length },
+            { id: 'queue', label: isAr ? '📥 قائمة الانتظار' : '📥 Offline Queue', badge: pendingMutations.length },
             { id: 'pod', label: isAr ? '✍️ إيصال التسليم' : '✍️ POD Receipt', badge: podRecords.filter(p => !p.signed).length },
             { id: 'snag', label: isAr ? '📸 الملاحظات والصور' : '📸 Snag & Photo', badge: snags.length },
             { id: 'scanner', label: isAr ? '📷 قارئ الرمز' : '📷 QR Scanner', badge: 0 },
@@ -1749,13 +1748,14 @@ export const FieldOpsView: React.FC = () => {
                 padding: '12px',
                 borderRadius: '6px',
                 fontSize: '11px',
-                color: '#f59e0b',
+                color: 'var(--text-primary)',
               }}
               id="disclosure-storage-eviction"
             >
-              <strong>INVARIANT AT-058 (OFFLINE CONTINGENCY DISCLOSURE):</strong> E3-EOS discloses that offline PWA device
-              storage cannot guarantee background sync or remote offline wipe without an active authenticated network session.
-              When device storage is evicted or a session revoked, local drafts must follow manual supervisor contingency protocols.
+              <strong>{isAr ? 'حماية السجلات المحلية: ' : 'Protect local captures: '}</strong>
+              {isAr
+                ? 'قد يمسح المتصفح بيانات الجهاز، ولا يمكن ضمان المزامنة في الخلفية أو المسح عن بُعد أثناء انقطاع الاتصال. إذا فُقدت البيانات أو أُلغيت الجلسة، اتبع إجراءات المشرف البديلة.'
+                : 'Browser storage can be cleared. Background sync and remote wiping while disconnected are not guaranteed. If local data is lost or your session is revoked, follow the supervisor contingency process.'}
             </div>
 
             {/* Bounded Offline Policy Warning */}
@@ -1766,12 +1766,14 @@ export const FieldOpsView: React.FC = () => {
                 padding: '12px',
                 borderRadius: '6px',
                 fontSize: '11px',
-                color: '#60a5fa',
+                color: 'var(--text-primary)',
               }}
               id="bounded-offline-warning"
             >
-              <strong>BOUNDED OFFLINE RULE:</strong> Authoritative actions (financial postings, PO approvals, opening authorizations,
-              vendor awards) CANNOT be executed offline. They require active online server authentication.
+              <strong>{isAr ? 'قرارات تتطلب الاتصال: ' : 'Decisions require a connection: '}</strong>
+              {isAr
+                ? 'لا يمكن تنفيذ القيود المالية أو الموافقة على أوامر الشراء أو التصريح بالافتتاح أو الترسية على الموردين دون اتصال. تتطلب هذه القرارات مصادقة وتحققًا من الصلاحيات على الخادم.'
+                : 'Financial postings, purchase order approvals, opening authorization, and vendor awards require online authentication and server permission checks.'}
             </div>
 
             {/* Queued Operations List (AT-056) */}
@@ -1797,22 +1799,26 @@ export const FieldOpsView: React.FC = () => {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
                 <h4 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
-                  Queued Field Operations ({pendingMutations.length})
+                  {isAr ? 'السجلات الميدانية المنتظرة' : 'Queued field captures'} ({pendingMutations.length})
                 </h4>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                   {pendingMutations.some((m) => m.status === 'syncing') ? (
-                    <Badge variant="info">SYNCING TO CLOUD...</Badge>
-                  ) : pendingMutations.some((m) => m.status === 'pending') ? (
-                    <Badge variant="warning">
-                      {pendingMutations.filter((m) => m.status === 'pending').length} AWAITING SERVER SYNC
-                    </Badge>
+                    <Badge variant="info">{isAr ? 'جارٍ التحقق من المزامنة...' : 'CHECKING SYNC...'}</Badge>
                   ) : pendingMutations.length > 0 ? (
-                    <Badge variant="success">ALL MUTATIONS SYNCED</Badge>
+                    <Badge variant="warning">
+                      {pendingMutations.length} {isAr ? 'سجل مؤقت على الجهاز' : 'PROVISIONAL · ON THIS DEVICE'}
+                    </Badge>
                   ) : (
-                    <Badge variant="neutral">QUEUE EMPTY</Badge>
+                    <Badge variant="neutral">{isAr ? 'القائمة فارغة' : 'QUEUE EMPTY'}</Badge>
                   )}
                 </div>
               </div>
+
+              <p role="status" style={{ margin: '8px 0 12px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                {isAr
+                  ? 'المزامنة مع الخادم غير متاحة حاليًا. السجلات مؤقتة على هذا الجهاز؛ استخدم إجراءات المشرف البديلة ولا تمسح بيانات المتصفح.'
+                  : 'Server sync is currently unavailable. Captures are provisional on this device; use the supervisor contingency process and keep browser data intact.'}
+              </p>
 
               {/* Action Toolbar */}
               <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
@@ -1820,33 +1826,10 @@ export const FieldOpsView: React.FC = () => {
                   size="sm"
                   variant="primary"
                   onClick={handleSyncQueue}
-                  disabled={isSyncingQueue || !pendingMutations.some((m) => m.status === 'pending')}
+                  disabled={isSyncingQueue || !pendingMutations.some((m) => m.status === 'pending' || m.status === 'failed')}
                   style={{ fontSize: '11px', flex: isNarrowScreen ? 1 : 'none' }}
                 >
-                  {isSyncingQueue ? '⏳ Replaying Queue...' : `⚡ Sync Offline Queue (${pendingMutations.filter((m) => m.status === 'pending').length})`}
-                </Button>
-                {pendingMutations.some((m) => m.status === 'synced') && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={clearSyncedMutations}
-                    style={{ fontSize: '11px' }}
-                  >
-                    🧹 Clear Synced
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    queueMutation('log_field_observation', 'SiteObservation', {
-                      zone: 'DECC Hall 1 - Service Bay',
-                      observation: 'Perimeter egress cleared; electrical load within 65% threshold.',
-                    });
-                  }}
-                  style={{ fontSize: '11px' }}
-                >
-                  ➕ Add Sample Mutation
+                  {isSyncingQueue ? (isAr ? 'جارٍ التحقق من المزامنة...' : 'Checking sync...') : `${isAr ? 'مزامنة السجلات' : 'Sync Offline Queue'} (${pendingMutations.filter((m) => m.status === 'pending' || m.status === 'failed').length})`}
                 </Button>
               </div>
 
@@ -1864,9 +1847,11 @@ export const FieldOpsView: React.FC = () => {
                   }}
                 >
                   <div style={{ fontSize: '24px', marginBottom: '6px' }}>📭</div>
-                  <strong>No pending offline mutations in local storage.</strong>
+                  <strong>{isAr ? 'لا توجد سجلات ميدانية منتظرة على هذا الجهاز.' : 'No field captures are waiting on this device.'}</strong>
                   <p style={{ margin: '4px 0 0 0', fontSize: '11px' }}>
-                    Any snag logs, POD digital signatures, or asset scans recorded while offline will persist here automatically.
+                    {isAr
+                      ? 'تظهر هنا السجلات التي تلتقطها دون اتصال. بقاؤها في المتصفح لا يعني أن الخادم استلمها أو قبلها.'
+                      : 'Captures you record offline appear here. Keeping a capture in this browser does not mean the server has received or accepted it.'}
                   </p>
                 </div>
               ) : (
@@ -1877,7 +1862,7 @@ export const FieldOpsView: React.FC = () => {
                       style={{
                         padding: '10px 12px',
                         backgroundColor: 'var(--surface-1, #0f1624)',
-                        border: `1px solid ${op.status === 'synced' ? '#86efac' : op.status === 'failed' ? '#fca5a5' : 'var(--border-default, #2a374b)'}`,
+                        border: `1px solid ${op.status === 'failed' ? '#fca5a5' : 'var(--border-default, #2a374b)'}`,
                         borderRadius: '6px',
                         fontSize: '12px',
                       }}
@@ -1890,46 +1875,33 @@ export const FieldOpsView: React.FC = () => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Badge
                             variant={
-                              op.status === 'synced'
-                                ? 'success'
-                                : op.status === 'syncing'
+                              op.status === 'syncing'
                                 ? 'info'
                                 : op.status === 'failed'
                                 ? 'danger'
                                 : 'warning'
                             }
                           >
-                            {op.status.toUpperCase()}
+                            {op.status === 'syncing'
+                              ? (isAr ? 'جارٍ التحقق من المزامنة' : 'CHECKING SYNC')
+                              : (isAr ? 'مؤقت · لم تتم المزامنة' : 'PROVISIONAL · NOT SYNCED')}
                           </Badge>
-                          <button
-                            type="button"
-                            onClick={() => removePendingMutation(op.id)}
-                            title="Dismiss item from queue"
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#94a3b8',
-                              cursor: 'pointer',
-                              padding: '2px 4px',
-                              fontSize: '12px',
-                            }}
-                          >
-                            ✕
-                          </button>
                         </div>
                       </div>
 
                       <div style={{ color: 'var(--text-secondary, #cbd5e1)', marginBottom: '4px', fontFamily: 'monospace', fontSize: '10px', backgroundColor: 'var(--surface-2, #151e2e)', padding: '4px 6px', borderRadius: '4px' }}>
                         {JSON.stringify(op.payload)}
                       </div>
+                      {op.syncError && (
+                        <p role="status" style={{ color: 'var(--text-secondary)', margin: '8px 0', fontSize: '12px' }}>
+                          {isAr ? 'المزامنة مع الخادم غير متاحة. احتُفظ بالسجل على هذا الجهاز دون تأكيد حفظه في الخادم.' : op.syncError}
+                        </p>
+                      )}
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94a3b8', flexWrap: 'wrap', gap: '4px' }}>
-                        <span>Logged: {new Date(op.timestamp).toLocaleTimeString()}</span>
+                        <span>{isAr ? 'وقت الالتقاط:' : 'Captured:'} {new Date(op.timestamp).toLocaleTimeString(isAr ? 'ar-QA' : 'en-GB')}</span>
                         {op.dedupTag && (
-                          <span style={{ color: '#0284c7', fontWeight: 600 }}>Dedup: {op.dedupTag}</span>
-                        )}
-                        {op.syncedAt && (
-                          <span style={{ color: '#16a34a', fontWeight: 600 }}>Synced: {new Date(op.syncedAt).toLocaleTimeString()}</span>
+                          <span style={{ color: '#0284c7', fontWeight: 600 }}>{isAr ? 'مرجع السجل:' : 'Capture reference:'} <bdi>{op.dedupTag}</bdi></span>
                         )}
                       </div>
                     </div>
@@ -1940,43 +1912,16 @@ export const FieldOpsView: React.FC = () => {
 
             {/* Media Upload Verification Gate (AT-057) */}
             <div>
-              <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>Binary Media Upload Verification Gate (AT-057)</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div
-                  style={{
-                    padding: '10px 12px',
-                    backgroundColor: 'rgba(34, 197, 94, 0.12)',
-                    border: '1px solid rgba(34, 197, 94, 0.3)',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                    <strong>snag-counter14-full.jpg</strong>
-                    <Badge variant="success">BINARY COMPLETE (2.4 MB / 2.4 MB)</Badge>
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#22c55e' }}>
-                    ✓ Upload complete & verified. Snag inspection accepted as verified evidence.
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    padding: '10px 12px',
-                    backgroundColor: '#fff1f2',
-                    border: '1px solid #fecdd3',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                    <strong>snag-audio-cable-overhead.jpg</strong>
-                    <Badge variant="warning">PENDING BINARY UPLOAD (1.8 MB / 4.2 MB)</Badge>
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#9f1239' }}>
-                    ⚠️ Incomplete upload: Snag remains <code>pending_binary_upload</code> until binary bytes are completely received.
-                  </div>
-                </div>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--text-primary, #f8fafc)' }}>
+                {isAr ? 'التحقق من رفع الوسائط' : 'Media upload verification'}
+              </h4>
+              <div role="status" style={{ padding: '12px', backgroundColor: 'var(--surface-1)', border: '1px solid var(--border-default)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                <Badge variant="neutral">{isAr ? 'التحقق غير متاح' : 'VERIFICATION UNAVAILABLE'}</Badge>
+                <p style={{ margin: '8px 0 0' }}>
+                  {isAr
+                    ? 'لا تتوفر إيصالات رفع مؤكدة من الخادم. تبقى الصور والملفات مؤقتة حتى يؤكد الخادم استلامها بالكامل وفحصها وربطها بالسجل؛ ولا تُعد دليلًا مقبولًا قبل ذلك.'
+                    : 'No confirmed server upload receipts are available. Photos and files remain provisional until the server confirms complete receipt, scanning, and record linkage; they are not accepted evidence before then.'}
+                </p>
               </div>
             </div>
           </div>

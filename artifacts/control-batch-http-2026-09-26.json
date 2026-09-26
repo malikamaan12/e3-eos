@@ -1,0 +1,444 @@
+{
+  "runId": "1b5b2c97-cdf9-4c29-93fa-34a4fc65b36d",
+  "scope": "Loopback-only ephemeral fixtures. No existing operational records, users or access changed. No messages sent and no files uploaded.",
+  "restartEvidence": {
+    "performed": true,
+    "previousApiPid": 24428,
+    "newApiPid": 39392
+  },
+  "checks": [
+    {
+      "name": "Create exact-owned project",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create exact-owned project",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create exact-owned explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create exact-owned explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create exact-owned explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create exact-owned explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create exact-owned explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create exact-owned explicit project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Requirement is a durable unapproved draft with exact original wording",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Requirement creation exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Viewer cannot create intake draft",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Requirement rejects forged approval and due-date fields",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Requirement rejects negative quantity",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Requirement rejects floating-point number input",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Requirement owner needs current scoped membership",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Cross-project requirement detail denied",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Client identity cannot forge internal requirements access",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Foreign organization requirement access denied",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Requirement revision includes integrity-verifiable snapshot",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Clarification stores internal question and pins requirement revision",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Clarification creation exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Viewer cannot create clarification",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Question rejects claimed external issue and approval",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Question rejects invalid calendar deadline",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Question owner needs scoped access",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Question cannot link cross-project requirement",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Clarification response remains attributed and unverified",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Clarification response exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Stale clarification response rejected",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Answered clarification requires reopen for another response",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Reopening preserves prior response and reasoned history",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Cross-project clarification response denied",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Client cannot forge internal clarification access",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Requirement revision preserves earlier immutable snapshot",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Requirement revision exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Stale requirement revision rejected",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Requirement history retains exact original wording and hash",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Clarification keeps original requirement revision after later edits",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Database prevents requirement snapshot overwrite",
+      "status": "PASS"
+    },
+    {
+      "name": "Database prevents clarification response overwrite",
+      "status": "PASS"
+    },
+    {
+      "name": "Create exact-owned task package for field linking",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create current field assignment",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Field project note receives durable observation-only receipt",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Field observation same-key replay is exact",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Field operation deduplicates under a different HTTP key",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Same field operation rejects changed payload",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Viewer cannot capture field observation",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Field request cannot claim another actor or authoritative status",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Field endpoint rejects file claims",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Field endpoint rejects invalid client calendar date",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Client cannot forge internal field authority",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Colleague note is recorded separately",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Field user cannot read colleague receipt",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Field list contains only own observations",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Complete exact-owned linked task",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Stale field fact accepted only as conflict observation",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Conflict note leaves current task state unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "Field user cannot attach observation to another assignment",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Manager may record scoped project observation",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Client operation cannot move to another project",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Cross-project receipt lookup denied",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "One observation and one audit/outbox despite changed transport key",
+      "status": "PASS",
+      "observations": 1,
+      "audit": 1,
+      "outbox": 1
+    },
+    {
+      "name": "Field outbox keeps digest and provenance without free-text note",
+      "status": "PASS"
+    },
+    {
+      "name": "Database prevents observation overwrite",
+      "status": "PASS"
+    },
+    {
+      "name": "Legacy scope-map endpoint explicitly unavailable",
+      "status": "PASS",
+      "httpStatus": 503
+    },
+    {
+      "name": "Legacy generic field sync explicitly unavailable",
+      "status": "PASS",
+      "httpStatus": 503
+    },
+    {
+      "name": "Legacy field media upload cannot invent file receipt",
+      "status": "PASS",
+      "httpStatus": 503
+    },
+    {
+      "name": "API process restart confirmed by controlling task",
+      "status": "PASS",
+      "performed": true,
+      "previousApiPid": 24428,
+      "newApiPid": 39392
+    },
+    {
+      "name": "Requirement revision receipt survives restart",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Clarification response receipt survives restart and reopen",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Field canonical receipt survives restart with another transport key",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Field conflict receipt detail persists",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Requirement snapshot hashes persist independently of API process",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Changed assignment denies prior field receipt replay",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Changed assignment denies prior linked receipt lookup",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Changed assignment excludes linked notes from field list",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Revoke exact-owned manager grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Revoked manager grant denies register reads",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked manager grant denies register reads",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked manager grant denies register reads",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant denies requirement replay",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant denies clarification response replay",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoke exact-owned field grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Revoked field grant denies already acknowledged operation retry",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Atomic audit/outbox and transport receipt identities reconcile",
+      "status": "PASS",
+      "audit": 22,
+      "outbox": 22,
+      "receipts": 24,
+      "fieldTransportAliases": 2
+    },
+    {
+      "name": "Exact isolated fixture cleanup",
+      "status": "PASS",
+      "users": 7,
+      "organisations": 2
+    }
+  ]
+}

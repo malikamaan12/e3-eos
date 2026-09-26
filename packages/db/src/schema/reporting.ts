@@ -1,6 +1,28 @@
-import { pgTable, text, timestamp, uuid, integer, boolean, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, integer, boolean, jsonb, date } from 'drizzle-orm/pg-core';
 import { organisations, users } from './identity.js';
 import { projects } from './projects.js';
+
+// Scope foreign keys, version/code uniqueness, RLS and immutability are enforced
+// by migration 0020. Every version is a separate row; no API overwrites it.
+export const projectReportSnapshots = pgTable('project_report_snapshots', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organisationId: uuid('organisation_id').references(() => organisations.id).notNull(),
+  projectId: uuid('project_id').notNull(),
+  rootReportId: uuid('root_report_id').notNull(),
+  reportCode: text('report_code').notNull(),
+  version: integer('version').notNull(),
+  targetAudience: text('target_audience').default('internal_command').notNull(),
+  status: text('status').default('draft').notNull(),
+  periodStart: date('period_start').notNull(),
+  periodEnd: date('period_end').notNull(),
+  dataAsOf: timestamp('data_as_of', { withTimezone: true }).notNull(),
+  contentHash: text('content_hash').notNull(),
+  snapshot: jsonb('snapshot').notNull(),
+  revisionReason: text('revision_reason').notNull(),
+  supersedesId: uuid('supersedes_id'),
+  createdBy: uuid('created_by').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const projectReports = pgTable('project_reports', {
   id: uuid('id').primaryKey().defaultRandom(),

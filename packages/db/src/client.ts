@@ -1,3 +1,8 @@
+import * as scheduleSchema from './schema/schedule.js';
+import * as fieldObservationsSchema from './schema/field_observations.js';
+import * as allocationRegisterSchema from './schema/allocation_register.js';
+import * as designRegisterSchema from './schema/design_register.js';
+import * as impactRegisterSchema from './schema/impact_register.js';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { sql } from 'drizzle-orm';
 import pg from 'pg';
@@ -24,6 +29,11 @@ import * as constraintsSchema from './schema/constraints.js';
 import * as documentsSchema from './schema/documents.js';
 
 export const fullSchema = {
+  ...scheduleSchema,
+  ...allocationRegisterSchema,
+  ...designRegisterSchema,
+  ...impactRegisterSchema,
+  ...fieldObservationsSchema,
   ...identitySchema,
   ...projectsSchema,
   ...workSchema,

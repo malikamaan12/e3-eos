@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean, uniqueIndex, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, boolean, uniqueIndex, jsonb, integer } from 'drizzle-orm/pg-core';
 
 export const organisations = pgTable('organisations', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -58,6 +58,7 @@ export const memberships = pgTable(
     role: text('role').notNull(), // 'pm', 'finance', 'commercial_director', 'client_viewer', etc.
     audience: text('audience').default('internal').notNull(), // 'internal' | 'client' | 'supplier'
     isRevoked: boolean('is_revoked').default(false).notNull(),
+    rowVersion: integer('row_version').default(1).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -77,6 +78,16 @@ export const userInvitations = pgTable('user_invitations', {
   tokenHash: text('token_hash').unique(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   acceptedAt: timestamp('accepted_at', { withTimezone: true }),
+  lifecycleStatus: text('lifecycle_status').default('legacy_unverified').notNull(),
+  audience: text('audience'),
+  invitedBy: uuid('invited_by').references(() => users.id),
+  inviterMembershipId: uuid('inviter_membership_id').references(() => memberships.id),
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+  cancelledBy: uuid('cancelled_by').references(() => users.id),
+  acceptedBy: uuid('accepted_by').references(() => users.id),
+  acceptanceMode: text('acceptance_mode'),
+  deliveryEventId: text('delivery_event_id'),
+  reason: text('reason'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 

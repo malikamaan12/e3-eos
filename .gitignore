@@ -34,6 +34,7 @@ Thumbs.db
 *.tsbuildinfo
 *.zip
 .credentials.local.json
+.local/
 # Added by code-review-graph
 .code-review-graph/
 apps/api/data/integration-operations.json

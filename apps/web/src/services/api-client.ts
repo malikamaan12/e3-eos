@@ -1,3 +1,8 @@
+import type { AllocationInput, AllocationList, AllocationRevision, DesignBriefInput, DesignBrief, DesignBriefRevision, ImpactList, ImpactAssessment, ImpactAssessmentInput } from './project-planning.js';
+import type { TimelineResult, CalendarResult, ScheduleHistoryResult, ForecastInput, DependencyInput, ScheduledTask, PlannedDependency } from './schedule.js';
+import type { PlanList, PlanRecord, PlanHistory, CandidatePreview, CandidateComparison, CreatePlanInput } from './schedule-planning.js';
+import type { ControlList, IntakeRequirement, RequirementInput, IntakeRevision, ClarificationInput, ClarificationRecord, FieldNoteInput, FieldNoteReceipt } from './project-control.js';
+import type { RecordsEnvelope, WorkPackageRecord, TaskRecord, DocumentRecord, DocumentRevision, ReportRecord, ReportDetail, PortfolioSummary } from './project-records.js';
 import {
   SYNTHETIC_PROJECTS,
   SyntheticProject,
@@ -13,6 +18,7 @@ import {
   formatQuantityAndUnit,
 } from '@e3-eos/domain';
 import { ClientPortalProjectView, ClientProjectionAdapter } from '../client-projection.js';
+import { FIELD_SYNC_UNAVAILABLE } from './offline-sync.js';
 import {
   ALL_LOCAL_TEAM_USERS,
   CANONICAL_E3_USERS,
@@ -25,6 +31,74 @@ export interface ApiClientConfig {
   userId: string;
   userRoles?: string[];
 }
+
+export interface AdminMembership {
+  id: string;
+  membershipId: string;
+  rowVersion: number;
+  name: string;
+  email: string;
+  role: string;
+  audience: string;
+  organisationName: string;
+  organisationId: string;
+  isSuperAdmin: boolean;
+  isRevoked: boolean;
+}
+
+export interface AdminAccessCapabilities {
+  canManageMemberships: boolean;
+  canInvite: boolean;
+  canCancelInvitations: boolean;
+  allowedInvitationRoles: string[];
+  canAssignProjectAccess: boolean;
+  canChangeRoles: boolean;
+  canRestoreMemberships: boolean;
+  allowedMembershipRoles: string[];
+  canImpersonate: boolean;
+  disabledReasons: Record<string, string>;
+}
+
+export interface ProjectAccessProject { id: string; projectCode: string; title: string }
+export interface ProjectAccessGrant {
+  id: string; organisationId: string; projectId: string; projectCode: string; projectTitle: string;
+  membershipId: string; userId: string; userName: string; email: string; accessLevel: 'viewer' | 'editor';
+  isRevoked: boolean; membershipRevoked: boolean; effectiveAccess: boolean; rowVersion: number;
+  grantedBy: string; grantedAt: string; updatedAt: string; revokedBy: string | null; revokedAt: string | null;
+}
+export interface MembershipChangeReceipt {
+  id: string; organisationId: string; userId: string; role: string; audience: string; isRevoked: false;
+  rowVersion: number; status: 'role_changed' | 'restored'; auditEventId: string; eventId: string;
+  requiresFreshSignIn: true; invalidatedSessionCount: number; revokedProjectGrantCount: number;
+}
+
+export interface InvitationSummary {
+  id: string;
+  organisationId: string;
+  email: string;
+  name: string;
+  role: string;
+  audience: string | null;
+  status: 'pending' | 'expired' | 'accepted' | 'cancelled' | 'legacy_unverified';
+  expiresAt: string;
+  createdAt: string;
+  invitedBy: string | null;
+  deliveryStatus: 'queued' | 'cancelled' | 'not_queued';
+  deliveryEventId: string | null;
+}
+
+export interface InvitationPreview {
+  id: string;
+  email: string;
+  name: string;
+  organisationName: string;
+  role: string;
+  audience: string;
+  expiresAt: string;
+  requiresExistingSignIn: boolean;
+}
+
+export interface CreateInvitationInput { email: string; name: string; role: string; reason: string }
 
 export function isSyntheticDemo(projectId?: string): boolean {
   return (
@@ -52,6 +126,77 @@ export class ApiError extends Error {
 }
 
 export class EosApiClient {
+  /** Project record requests never substitute fixture data or an empty success. */
+  private async recordsRequest<T>(path: string, input?: Record<string, unknown>, key?: string): Promise<T> {
+    if (input && !key?.trim()) throw new ApiError(400, 'A stable command key is required.');
+    const response = await fetch(this.baseUrl + path, {
+      method: input ? 'POST' : 'GET', cache: 'no-store',
+      headers: this.getHeaders(key ? { 'idempotency-key': key } : {}),
+      ...(input ? { body: JSON.stringify(input) } : {}),
+    });
+    const json = await response.json().catch(() => null);
+    if (!response.ok) throw new ApiError(response.status, json?.detail || json?.message || 'Project records could not be loaded.', json);
+    if (!json || json.data == null) throw new ApiError(502, 'Project record response is incomplete.');
+    if (input && (!json.data.auditEventId || !json.data.eventId)) throw new ApiError(502, 'The command receipt could not be confirmed. Retry the same request.');
+    return json;
+  }
+  private async recordsList<T>(path: string): Promise<RecordsEnvelope<T>> {
+    const result = await this.recordsRequest<RecordsEnvelope<T>>(path);
+    if (!Array.isArray(result.data)) throw new ApiError(502, 'Project record list is incomplete.');
+    return result;
+  }
+  getRecordedPackages(projectId: string) { return this.recordsList<WorkPackageRecord>('/projects/' + encodeURIComponent(projectId) + '/work-packages'); }
+  getRecordedTasks(projectId: string) { return this.recordsList<TaskRecord>('/projects/' + encodeURIComponent(projectId) + '/tasks'); }
+  getDocumentRegister(projectId: string) { return this.recordsList<DocumentRecord>('/projects/' + encodeURIComponent(projectId) + '/documents'); }
+  getDocumentRevisions(projectId: string, id: string) { return this.recordsList<DocumentRevision>('/projects/' + encodeURIComponent(projectId) + '/documents/' + encodeURIComponent(id) + '/revisions'); }
+  getReportSnapshots(projectId: string) { return this.recordsList<ReportRecord>('/projects/' + encodeURIComponent(projectId) + '/reports'); }
+  async getReportSnapshot(projectId: string, id: string) { return (await this.recordsRequest<{data: ReportDetail}>('/projects/' + encodeURIComponent(projectId) + '/reports/' + encodeURIComponent(id))).data; }
+  async getPortfolioSummary() { return (await this.recordsRequest<{data: PortfolioSummary}>('/portfolio/summary')).data; }
+  createRecordedPackage(projectId: string, input: {name: string; ownerId: string; reason: string}, key: string) { return this.recordsRequest('/projects/' + encodeURIComponent(projectId) + '/work-packages', input, key); }
+  createRecordedTask(projectId: string, input: {packageId: string; title: string; assigneeId?: string; reason: string}, key: string) { return this.recordsRequest('/projects/' + encodeURIComponent(projectId) + '/tasks', input, key); }
+  completeRecordedTask(projectId: string, id: string, input: {expectedVersion: number; reason: string; completionEvidence?: string}, key: string) { return this.recordsRequest('/projects/' + encodeURIComponent(projectId) + '/tasks/' + encodeURIComponent(id) + '/complete', input, key); }
+  registerDocumentDraft(projectId: string, input: {title: string; discipline: string; documentType: string; confidentialityLevel: string; reason: string}, key: string) { return this.recordsRequest('/projects/' + encodeURIComponent(projectId) + '/documents', input, key); }
+  registerDocumentRevision(projectId: string, id: string, input: {revisionCode: string; originalFilename?: string; changeSummary: string; expectedVersion: number; reason: string}, key: string) { return this.recordsRequest('/projects/' + encodeURIComponent(projectId) + '/documents/' + encodeURIComponent(id) + '/revisions', input, key); }
+  createReportSnapshot(projectId: string, input: {reportCode: string; periodStart: string; periodEnd: string; reason: string}, key: string) { return this.recordsRequest('/projects/' + encodeURIComponent(projectId) + '/reports', input, key); }
+  reviseReportSnapshot(projectId: string, id: string, input: {expectedVersion: number; reason: string}, key: string) { return this.recordsRequest('/projects/' + encodeURIComponent(projectId) + '/reports/' + encodeURIComponent(id) + '/revisions', input, key); }
+  private async controlList<T>(path:string):Promise<ControlList<T>> {
+    const result=await this.recordsRequest<ControlList<T>>(path);
+    if(!Array.isArray(result.data))throw new ApiError(502,'Project register response is incomplete.');
+    return result;
+  }
+  getIntakeRequirements(projectId:string) { return this.controlList<IntakeRequirement>('/projects/'+encodeURIComponent(projectId)+'/scope-register/requirements'); }
+  async getAllocations(projectId:string):Promise<AllocationList> {
+    const result=await this.recordsRequest<AllocationList>('/projects/'+encodeURIComponent(projectId)+'/allocation-register');
+    if(!Array.isArray(result.data))throw new ApiError(502,'Allocation register response is incomplete.');
+    return result;
+  }
+  getAllocationRevisions(projectId:string,id:string) { return this.controlList<AllocationRevision>('/projects/'+encodeURIComponent(projectId)+'/allocation-register/'+encodeURIComponent(id)+'/revisions'); }
+  getDesignBriefs(projectId:string) { return this.controlList<DesignBrief>('/projects/'+encodeURIComponent(projectId)+'/design-register'); }
+  getDesignBriefRevisions(projectId:string,id:string) { return this.controlList<DesignBriefRevision>('/projects/'+encodeURIComponent(projectId)+'/design-register/'+encodeURIComponent(id)+'/revisions'); }
+  createDesignBrief(projectId:string,input:DesignBriefInput,key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/design-register',input as any,key); }
+  reviseDesignBrief(projectId:string,id:string,input:DesignBriefInput & {expectedVersion:number},key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/design-register/'+encodeURIComponent(id)+'/revisions',input as any,key); }
+  async getImpactRegister(projectId:string):Promise<ImpactList> {
+    const result=await this.recordsRequest<ImpactList>('/projects/'+encodeURIComponent(projectId)+'/impact-register');
+    if(!Array.isArray(result.data))throw new ApiError(502,'Impact register response is incomplete.');
+    return result;
+  }
+  getImpactAssessments(projectId:string,targetType?:'allocation'|'design',targetId?:string) {
+    const query=targetType && targetId ? '?'+new URLSearchParams({targetType,targetId}).toString() : '';
+    return this.controlList<ImpactAssessment>('/projects/'+encodeURIComponent(projectId)+'/impact-register/assessments'+query);
+  }
+  createImpactAssessment(projectId:string,input:ImpactAssessmentInput,key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/impact-register/assessments',input as any,key); }
+  createAllocation(projectId:string,input:AllocationInput,key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/allocation-register',input as any,key); }
+  reviseAllocation(projectId:string,id:string,input:AllocationInput & {expectedVersion:number},key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/allocation-register/'+encodeURIComponent(id)+'/revisions',input as any,key); }
+  getIntakeRevisions(projectId:string,id:string) { return this.controlList<IntakeRevision>('/projects/'+encodeURIComponent(projectId)+'/scope-register/requirements/'+encodeURIComponent(id)+'/revisions'); }
+  createIntakeRequirement(projectId:string,input:RequirementInput,key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/scope-register/requirements',input as any,key); }
+  reviseIntakeRequirement(projectId:string,id:string,input:RequirementInput & {expectedVersion:number},key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/scope-register/requirements/'+encodeURIComponent(id)+'/revisions',input as any,key); }
+  getRecordedClarifications(projectId:string) { return this.controlList<ClarificationRecord>('/projects/'+encodeURIComponent(projectId)+'/scope-register/clarifications'); }
+  async getRecordedClarification(projectId:string,id:string) { return (await this.recordsRequest<{data:ClarificationRecord}>('/projects/'+encodeURIComponent(projectId)+'/scope-register/clarifications/'+encodeURIComponent(id))).data; }
+  createRecordedClarification(projectId:string,input:ClarificationInput,key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/scope-register/clarifications',input as any,key); }
+  respondRecordedClarification(projectId:string,id:string,input:{expectedVersion:number;response:string;respondentAttribution:string;sourceAttribution:string;reason:string},key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/scope-register/clarifications/'+encodeURIComponent(id)+'/respond',input,key); }
+  reopenRecordedClarification(projectId:string,id:string,input:{expectedVersion:number;reason:string},key:string) { return this.recordsRequest('/projects/'+encodeURIComponent(projectId)+'/scope-register/clarifications/'+encodeURIComponent(id)+'/reopen',input,key); }
+  getFieldObservations(projectId:string) { return this.controlList<FieldNoteReceipt>('/projects/'+encodeURIComponent(projectId)+'/field-observations'); }
+  async captureFieldObservation(projectId:string,input:FieldNoteInput,key:string) { return (await this.recordsRequest<{data:FieldNoteReceipt}>('/projects/'+encodeURIComponent(projectId)+'/field-observations',input as any,key)).data; }
   private baseUrl: string;
   private organisationId: string;
   private userId: string;
@@ -60,6 +205,7 @@ export class EosApiClient {
   private recentRequirementsCache = new Map<string, any>();
   private deletedRequirementsSet = new Set<string>();
   private parsingJobs = new Map<string, any>();
+  private projectCreationAttempts = new Map<string, string>();
 
   constructor(config: ApiClientConfig) {
     this.baseUrl = config.baseUrl || '/api/v1';
@@ -73,6 +219,8 @@ export class EosApiClient {
     this.userId = userId;
     this.userRoles = roles;
   }
+
+  isCurrentScope(organisationId:string,userId:string) { return this.organisationId === organisationId && this.userId === userId; }
 
   setSessionToken(token?: string) {
     this.sessionToken = token;
@@ -136,63 +284,20 @@ export class EosApiClient {
    * Lists active projects under tenant isolation.
    */
   async getProjects(): Promise<SyntheticProject[]> {
-    let remoteProjects: any[] = [];
-    try {
-      const res = await fetch(`${this.baseUrl}/projects`, {
-        headers: this.getHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        remoteProjects = Array.isArray(json) ? json : (json.data || []);
-      }
-    } catch {
-      // Fallback to synthetic fixtures
-    }
-
-    if (remoteProjects.length === 0) {
-      remoteProjects = Object.values(SYNTHETIC_PROJECTS) as any[];
-    }
-
-    // Merge any locally created projects so newly onboarded projects are always visible immediately
-    try {
-      if (typeof window !== 'undefined') {
-        const local = JSON.parse(localStorage.getItem('eos_custom_projects') || '[]');
-        const existingIds = new Set(remoteProjects.map((p) => p.id));
-        for (const lp of local) {
-          if (!existingIds.has(lp.id)) {
-            remoteProjects.unshift(lp);
-            existingIds.add(lp.id);
-          }
-        }
-      }
-    } catch {}
-
-    // Guarantee that universal testing lab project is always present in the returned list
-    const labProject = SYNTHETIC_PROJECTS.allFormatsLab as any;
-    if (!remoteProjects.some((p) => p.id === labProject.id || p.projectCode === labProject.projectCode || p.code === labProject.code)) {
-      remoteProjects.unshift(labProject);
-    }
-
-    return remoteProjects;
+    const res = await fetch(`${this.baseUrl}/projects`, { headers: this.getHeaders(), cache: 'no-store' });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Projects could not be loaded.', json);
+    const data = Array.isArray(json) ? json : json.data;
+    if (!Array.isArray(data)) throw new ApiError(502, 'Project list is incomplete.');
+    return data;
   }
 
-  /**
-   * Fetches project detail by ID.
-   */
+  /** Fetch only a project authorized by the server. */
   async getProject(id: string): Promise<SyntheticProject> {
-    try {
-      const res = await fetch(`${this.baseUrl}/projects/${id}`, {
-        headers: this.getHeaders(),
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-    } catch {
-      // Fallback
-    }
-    const found = Object.values(SYNTHETIC_PROJECTS).find((p) => p.id === id);
-    if (found) return found;
-    return SYNTHETIC_PROJECTS.sampleExhibition;
+    const res = await fetch(`${this.baseUrl}/projects/${encodeURIComponent(id)}`, { headers: this.getHeaders(), cache: 'no-store' });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Project is unavailable or access was denied.', json);
+    return json.data || json;
   }
 
   /**
@@ -270,34 +375,13 @@ export class EosApiClient {
   }
 
   /**
-   * Submits offline field observations and checklists.
+   * Field observations cannot be acknowledged until the API persists them.
    */
-  async syncFieldBatch(payload: any): Promise<any> {
-    try {
-      const body = Array.isArray(payload) ? { operations: payload } : payload;
-      const res = await fetch(`${this.baseUrl}/live-ops/field-sync/batch`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(body),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return json.data || json;
-      }
-    } catch {
-      // Fallback
-    }
-    const ops = Array.isArray(payload) ? payload : (payload?.operations || []);
-    return {
-      processed: ops.length,
-      failed: 0,
-      syncedAt: new Date().toISOString(),
-      results: ops.map((op: any) => ({
-        operationId: op.clientOperationId || op.id || 'op-sync',
-        status: 'applied',
-        processedAt: new Date().toISOString(),
-      })),
-    };
+  async syncFieldBatch(_payload: unknown): Promise<never> {
+    // /live-ops/field-sync/batch only stores processed IDs in a process-local
+    // Set. Calling it would create an apparent acknowledgement without saving
+    // the observation. Enable delivery only with a durable receipt contract.
+    throw new ApiError(503, FIELD_SYNC_UNAVAILABLE, { code: 'DURABLE_FIELD_SYNC_UNAVAILABLE' });
   }
 
   /**
@@ -421,7 +505,7 @@ export class EosApiClient {
   }
 
   /**
-   * Authenticates against PostgreSQL sessions table with resilient UAT local team fallback.
+   * Authenticates only through a complete server-issued session or an MFA challenge.
    */
   async authLogin(email: string, password?: string, mfaCode?: string): Promise<{
     success?: boolean;
@@ -447,6 +531,10 @@ export class EosApiClient {
 
     if (res && res.ok) {
       const data = await res.json();
+      if (data.mfaRequired === true) return data;
+      if (!data.sessionToken || !data.user?.id || !data.user?.email || !data.activeMembership?.organisationId || !data.activeMembership?.role) {
+        throw new ApiError(502, 'Sign-in returned an incomplete session. Please try again.');
+      }
       if (data.sessionToken && data.user && data.activeMembership) {
         this.sessionToken = data.sessionToken;
         this.userId = data.user.id;
@@ -454,43 +542,6 @@ export class EosApiClient {
         this.userRoles = [data.activeMembership.role];
       }
       return data;
-    }
-
-    // Check if canonical/local team member with universal UAT password (graceful resilience for unseeded / desynchronized backend containers)
-    const matchedUser = ALL_LOCAL_TEAM_USERS.find(
-      (u) => u.email.toLowerCase() === cleanEmail
-    ) || CANONICAL_E3_USERS.find(
-      (u) => u.email.toLowerCase() === cleanEmail
-    );
-
-    const isTestPassword = password === DEFAULT_DUMMY_PASSWORD || password === 'Doha2026!' || password === 'E3#Doha2026!';
-
-    if (matchedUser && isTestPassword) {
-      const fallbackSessionToken = `eos-uat-${matchedUser.id}-${Date.now()}`;
-      const fallbackResult = {
-        success: true,
-        sessionToken: fallbackSessionToken,
-        user: {
-          id: matchedUser.id,
-          email: matchedUser.email,
-          name: matchedUser.name,
-          isSuperAdmin: !!matchedUser.isSuperAdmin,
-          mfaEnabled: false,
-        },
-        activeMembership: {
-          role: matchedUser.role,
-          audience: (matchedUser.role === 'client_user' || (matchedUser as any).orgId) ? 'client' : 'internal',
-          organisationId: (matchedUser as any).organisationId || (matchedUser as any).orgId || '11111111-1111-4111-8111-111111111111',
-          organisationName: (matchedUser.role === 'client_user' || (matchedUser as any).orgId) ? 'Qatar Tourism Authority' : 'E3 Events',
-        },
-      };
-
-      this.sessionToken = fallbackSessionToken;
-      this.userId = matchedUser.id;
-      this.organisationId = fallbackResult.activeMembership.organisationId;
-      this.userRoles = [matchedUser.role];
-
-      return fallbackResult;
     }
 
     if (res) {
@@ -545,17 +596,32 @@ export class EosApiClient {
     return await res.json();
   }
 
-  async acceptInvite(token: string, password: string, name?: string): Promise<{ success: boolean; message: string }> {
+  async inspectInvitation(token: string): Promise<InvitationPreview> {
+    const res = await fetch(`${this.baseUrl}/auth/invitations/inspect`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }), cache: 'no-store',
+    });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || json.title || 'Invitation could not be verified.', json);
+    if (!json.data?.id || !json.data?.email || !json.data?.organisationName || typeof json.data?.requiresExistingSignIn !== 'boolean') {
+      throw new ApiError(502, 'Invitation details are incomplete.');
+    }
+    return json.data;
+  }
+
+  async acceptInvite(token: string, password: string | undefined, name: string | undefined, idempotencyKey: string): Promise<{ success: boolean; message: string; membershipId: string; organisationId: string; auditEventId: string }> {
+    if (!token || !idempotencyKey) throw new ApiError(400, 'A valid invitation and retry key are required.');
     const res = await fetch(`${this.baseUrl}/auth/accept-invite`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.getHeaders({ 'idempotency-key': idempotencyKey }),
       body: JSON.stringify({ token, password, name }),
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || err.title || 'Invitation activation failed');
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || json.title || 'Invitation acceptance could not be confirmed.', json);
+    if (json.success !== true || !json.membershipId || !json.organisationId || !json.auditEventId) {
+      throw new ApiError(502, 'Acceptance receipt could not be verified. Retry the same request.');
     }
-    return await res.json();
+    return json;
   }
 
   async mfaSetup(): Promise<{ success: boolean; secret: string; otpauthUrl: string }> {
@@ -648,38 +714,171 @@ export class EosApiClient {
   }
 
   /**
-   * Lists canonical team users from DB with resilient local team fallback.
+   * Lists recorded memberships in the authenticated organisation.
    */
-  async getAdminUsers(): Promise<Array<{
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    audience: string;
-    organisationName: string;
-    organisationId: string;
-  }>> {
-    try {
-      const res = await fetch(`${this.baseUrl}/admin/users`, {
-        headers: this.getHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (Array.isArray(json.users) && json.users.length > 0) {
-          return json.users;
-        }
-      }
-    } catch {}
+  async getAdminUsers(): Promise<AdminMembership[]> {
+    const res = await fetch(`${this.baseUrl}/admin/users`, { headers: this.getHeaders() });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || json.message || 'User directory could not be loaded.', json);
+    if (!Array.isArray(json.users)) throw new ApiError(502, 'The user directory response is incomplete.');
+    return json.users;
+  }
 
-    return ALL_LOCAL_TEAM_USERS.map((u) => ({
-      id: u.id,
-      name: `${u.name} (${u.position || u.title})`,
-      email: u.email,
-      role: u.role,
-      audience: u.role === 'client_user' ? 'client' : 'internal',
-      organisationName: u.role === 'client_user' ? 'Qatar Tourism Authority' : 'E3 Events',
-      organisationId: u.organisationId || '11111111-1111-4111-8111-111111111111',
-    }));
+  async getAdminAccessCapabilities(): Promise<AdminAccessCapabilities> {
+    const res = await fetch(`${this.baseUrl}/admin/access-capabilities`, { headers: this.getHeaders() });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Access capabilities could not be verified.', json);
+    return {
+      canManageMemberships: json.canManageMemberships === true,
+      canInvite: json.canInvite === true,
+      canCancelInvitations: json.canCancelInvitations === true,
+      allowedInvitationRoles: Array.isArray(json.allowedInvitationRoles) ? json.allowedInvitationRoles.filter((role: unknown) => typeof role === 'string') : [],
+      canAssignProjectAccess: json.canAssignProjectAccess === true,
+      canChangeRoles: json.canChangeRoles === true,
+      canRestoreMemberships: json.canRestoreMemberships === true,
+      allowedMembershipRoles: Array.isArray(json.allowedMembershipRoles) ? json.allowedMembershipRoles.filter((role: unknown) => typeof role === 'string') : [],
+      canImpersonate: json.canImpersonate === true,
+      disabledReasons: json.disabledReasons || {},
+    };
+  }
+
+  async getInvitations(): Promise<InvitationSummary[]> {
+    const res = await fetch(`${this.baseUrl}/invitations`, { headers: this.getHeaders(), cache: 'no-store' });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Invitations could not be loaded.', json);
+    if (!Array.isArray(json.data)) throw new ApiError(502, 'Invitation list is incomplete.');
+    return json.data;
+  }
+
+  async createInvitation(input: CreateInvitationInput, idempotencyKey: string): Promise<InvitationSummary> {
+    const res = await fetch(`${this.baseUrl}/invitations`, {
+      method: 'POST', headers: this.getHeaders({ 'idempotency-key': idempotencyKey }), body: JSON.stringify(input),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || json.title || 'Invitation could not be created.', json);
+    if (!json.data?.id || !json.data?.auditEventId || json.data?.status !== 'pending' || json.data?.deliveryStatus !== 'queued') {
+      throw new ApiError(502, 'Invitation receipt could not be verified. Retry the same request.');
+    }
+    return json.data;
+  }
+
+  async cancelInvitation(id: string, reason: string, idempotencyKey: string): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/invitations/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST', headers: this.getHeaders({ 'idempotency-key': idempotencyKey }), body: JSON.stringify({ reason }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || json.title || 'Invitation cancellation failed.', json);
+    if (json.data?.id !== id || json.data?.status !== 'cancelled' || !json.data?.auditEventId) {
+      throw new ApiError(502, 'Cancellation receipt could not be verified. Retry the same request.');
+    }
+  }
+
+  async revokeMembership(membershipId: string, reason: string, idempotencyKey: string): Promise<any> {
+    if (!membershipId || !reason.trim() || !idempotencyKey) throw new ApiError(400, 'Select a membership and enter a reason.');
+    const res = await fetch(`${this.baseUrl}/memberships/${encodeURIComponent(membershipId)}/revoke`, {
+      method: 'POST',
+      headers: this.getHeaders({ 'idempotency-key': idempotencyKey }),
+      body: JSON.stringify({ reason: reason.trim() }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || json.title || 'Membership revocation failed.', json);
+    if (json.data?.id !== membershipId || json.data?.isRevoked !== true || !json.data?.auditEventId) {
+      throw new ApiError(502, 'Revocation receipt could not be verified. Retry the same request.');
+    }
+    return json.data;
+  }
+
+  async changeMembershipRole(id: string, input: { role: string; reason: string; expectedVersion: number }, key: string): Promise<MembershipChangeReceipt> {
+    return this.membershipCommand(id, 'role', input, key);
+  }
+
+  async restoreMembership(id: string, input: { reason: string; expectedVersion: number }, key: string): Promise<MembershipChangeReceipt> {
+    return this.membershipCommand(id, 'restore', input, key);
+  }
+
+  private async membershipCommand(id: string, command: 'role' | 'restore', input: { role?: string; reason: string; expectedVersion: number }, key: string): Promise<MembershipChangeReceipt> {
+    const res = await fetch(`${this.baseUrl}/memberships/${encodeURIComponent(id)}/${command}`, {
+      method: 'POST', headers: this.getHeaders({ 'idempotency-key': key }), body: JSON.stringify(input),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Membership change could not be confirmed.', json);
+    const data = json.data;
+    if (data?.id !== id || data?.status !== (command === 'role' ? 'role_changed' : 'restored') || data?.isRevoked !== false ||
+        data?.rowVersion !== input.expectedVersion + 1 || !data?.auditEventId || !data?.eventId || data?.requiresFreshSignIn !== true ||
+        (command === 'role' && data?.role !== input.role)) throw new ApiError(502, 'Membership receipt is incomplete. Retry the same request.');
+    return data;
+  }
+
+  async getProjectAccessProjects(): Promise<ProjectAccessProject[]> {
+    return this.projectAccessList('/projects');
+  }
+
+  async getProjectAccessGrants(): Promise<ProjectAccessGrant[]> {
+    return this.projectAccessList('');
+  }
+
+  private async projectAccessList<T>(suffix: string): Promise<T[]> {
+    const res = await fetch(`${this.baseUrl}/project-access${suffix}`, { headers: this.getHeaders(), cache: 'no-store' });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Project access could not be loaded.', json);
+    if (!Array.isArray(json.data)) throw new ApiError(502, 'Project access response is incomplete.');
+    return json.data;
+  }
+
+  async createProjectAccess(input: { projectId: string; membershipId: string; accessLevel: 'viewer' | 'editor'; reason: string }, key: string): Promise<ProjectAccessGrant> {
+    const data = await this.projectAccessCommand('', input, key);
+    if (data.projectId !== input.projectId || data.membershipId !== input.membershipId || data.accessLevel !== input.accessLevel || data.isRevoked) {
+      throw new ApiError(502, 'Grant receipt does not match the request. Retry the same request.');
+    }
+    return data;
+  }
+
+  async changeProjectAccess(id: string, input: { accessLevel: 'viewer' | 'editor'; expectedVersion: number; reason: string }, key: string): Promise<ProjectAccessGrant> {
+    const data = await this.projectAccessCommand(`/${encodeURIComponent(id)}/change`, input, key);
+    if (data.id !== id || data.accessLevel !== input.accessLevel || data.isRevoked || data.rowVersion !== input.expectedVersion + 1) {
+      throw new ApiError(502, 'Grant change receipt does not match the request. Retry the same request.');
+    }
+    return data;
+  }
+
+  async revokeProjectAccess(id: string, input: { expectedVersion: number; reason: string }, key: string): Promise<ProjectAccessGrant> {
+    const data = await this.projectAccessCommand(`/${encodeURIComponent(id)}/revoke`, input, key);
+    if (data.id !== id || !data.isRevoked || data.rowVersion !== input.expectedVersion + 1) {
+      throw new ApiError(502, 'Grant revocation receipt does not match the request. Retry the same request.');
+    }
+    return data;
+  }
+
+  private async projectAccessCommand(suffix: string, input: object, key: string): Promise<ProjectAccessGrant> {
+    const res = await fetch(`${this.baseUrl}/project-access${suffix}`, {
+      method: 'POST', headers: this.getHeaders({ 'idempotency-key': key }), body: JSON.stringify(input),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Project access decision could not be confirmed.', json);
+    if (!json.data?.id || !json.data?.auditEventId || !json.data?.eventId || !Number.isSafeInteger(json.data?.rowVersion)) {
+      throw new ApiError(502, 'Project access receipt is incomplete. Retry the same request.');
+    }
+    return json.data;
+  }
+
+  async impersonateUser(targetEmail: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/impersonate`, {
+      method: 'POST', headers: this.getHeaders(), body: JSON.stringify({ targetEmail }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Role preview is unavailable.', json);
+    if (!json.sessionToken || !json.user?.id || !json.activeMembership?.organisationId || !json.activeMembership?.role) {
+      throw new ApiError(502, 'Role preview returned an incomplete session. Your current session is unchanged.');
+    }
+    return json;
+  }
+
+  async getRuntimeEnvironment(): Promise<string> {
+    const res = await fetch(`${this.baseUrl}/health`);
+    if (!res.ok) throw new ApiError(res.status, 'Environment information unavailable.');
+    const json = await res.json();
+    return ['local', 'development', 'test', 'staging', 'preview', 'production'].includes(json.environment)
+      ? json.environment : 'unknown';
   }
 
   /**
@@ -696,19 +895,23 @@ export class EosApiClient {
     const res = await fetch(`${this.baseUrl}/admin/roles`, {
       headers: this.getHeaders(),
     });
-    if (!res.ok) return [];
     const json = await res.json();
-    return json.roles || [];
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Role reference could not be loaded.', json);
+    if (!Array.isArray(json.roles)) throw new ApiError(502, 'Role reference response is incomplete.');
+    return json.roles;
   }
 
   /**
    * Creates a project (9-step onboarding wizard).
    */
   async createProject(payload: any): Promise<any> {
+    const signature = JSON.stringify({ organisationId: this.organisationId, userId: this.userId, payload });
+    let key = this.projectCreationAttempts.get(signature);
+    if (!key) { key = crypto.randomUUID(); this.projectCreationAttempts.set(signature, key); }
     const res = await fetch(`${this.baseUrl}/projects`, {
       method: 'POST',
       headers: this.getHeaders({
-        'idempotency-key': `idem-proj-${Date.now()}`,
+        'idempotency-key': key,
       }),
       body: JSON.stringify(payload),
     });
@@ -718,36 +921,12 @@ export class EosApiClient {
       result = await res.json();
     }
 
-    // Persist to local custom projects cache so it is immediately visible in project directory
-    try {
-      if (typeof window !== 'undefined') {
-        const stored = JSON.parse(localStorage.getItem('eos_custom_projects') || '[]');
-        const projId = result?.data?.id || payload.id;
-        const projRecord = {
-          id: projId,
-          projectCode: payload.projectIdentity?.code || `PRJ-${Date.now().toString().slice(-4)}`,
-          title: payload.projectIdentity?.title || 'Untitled Project',
-          description: payload.projectIdentity?.description || '',
-          maturity: payload.maturity || 'onboarding',
-          originCode: payload.originRoute || 'TENDER',
-          clientName: payload.clientStakeholders?.clientName || 'To Be Confirmed',
-          clientOrganisationId: payload.clientStakeholders?.clientOrganisationId || null,
-          isOnboardingComplete: payload.isOnboardingComplete ?? false,
-          onboardingCompletionPct: payload.onboardingCompletionPct ?? (payload.isOnboardingComplete ? 100 : 0),
-          missingSections: payload.missingSections || [],
-        };
-        const exists = stored.some((p: any) => p.id === projId);
-        if (!exists) {
-          stored.unshift(projRecord);
-          localStorage.setItem('eos_custom_projects', JSON.stringify(stored));
-        }
-      }
-    } catch {}
-
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || err.title || `Project creation failed (${res.status})`);
     }
+    if (!result?.data?.id || !result?.data?.auditEventId || !result?.data?.eventId) throw new ApiError(502, 'Project creation receipt is incomplete. Retry the same request.');
+    this.projectCreationAttempts.delete(signature);
     return result;
   }
 
@@ -755,73 +934,18 @@ export class EosApiClient {
    * Fetches the live persistent Project Cockpit from PostgreSQL.
    */
   async getCockpit(projectId: string): Promise<any> {
-    try {
-      const res = await fetch(`${this.baseUrl}/projects/${projectId}/cockpit`, {
-        headers: this.getHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return json.data;
-      }
-    } catch {}
-
-    if (projectId === '00000000-0000-4000-8000-000000000099' || projectId === 'PRJ-TEST-ALL-FORMATS' || projectId === 'TEST-ALL-FORMATS') {
-      return {
-        projectId: '00000000-0000-4000-8000-000000000099',
-        projectCode: 'PRJ-TEST-ALL-FORMATS',
-        title: 'Universal File Formats & Design Testing Lab',
-        clientName: 'Universal Formats QA Testing',
-        maturity: 'delivery',
-        health: 'healthy',
-        isOnboardingComplete: true,
-        onboardingCompletionPct: 100,
-        missingSections: [],
-        pm: {
-          name: 'Lead Design QA Engineer',
-          email: 'qa@e3.qa',
-        },
-        venue: {
-          name: 'Lusail Testing Arena & Boulevard',
-          type: 'indoor',
-          location: 'Lusail City, Qatar',
-        },
-        dates: {
-          moveIn: '2026-10-01',
-          eventStart: '2026-10-15',
-          eventEnd: '2026-10-25',
-          moveOut: '2026-10-30',
-          daysRemaining: 45,
-        },
-        financials: {
-          currency: 'QAR',
-          budget: 500000,
-          committedCost: 200000,
-          actualCost: 150000,
-          forecastToComplete: 150000,
-          eac: 300000,
-          forecastMarginPercent: '45.00%',
-        },
-        workstreamProgress: [
-          { name: 'Creative & 3D Spatial Renders', lead: 'Design Team', progress: 100, openTasks: 0, blockers: 0, status: 'healthy' },
-          { name: 'Technical & Structural CAD Rigging', lead: 'Technical Lead', progress: 100, openTasks: 0, blockers: 0, status: 'healthy' },
-          { name: 'Commercial Pricing & BOQ', lead: 'Commercial Lead', progress: 100, openTasks: 0, blockers: 0, status: 'healthy' },
-        ],
-      };
-    }
-
-    throw new Error(`Failed to load cockpit for project ${projectId}`);
+    const res = await fetch(`${this.baseUrl}/projects/${encodeURIComponent(projectId)}/cockpit`, { headers: this.getHeaders(), cache: 'no-store' });
+    const json = await res.json();
+    if (!res.ok) throw new ApiError(res.status, json.detail || 'Project cockpit is unavailable or access was denied.', json);
+    if (!json.data) throw new ApiError(502, 'Project cockpit response is incomplete.');
+    return json.data;
   }
 
   /**
    * Lists tasks for a project from PostgreSQL.
    */
   async getTasks(projectId: string): Promise<any[]> {
-    const res = await fetch(`${this.baseUrl}/projects/${projectId}/tasks`, {
-      headers: this.getHeaders(),
-    });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data || [];
+    return (await this.getRecordedTasks(projectId)).data;
   }
 
   /**
@@ -851,7 +975,7 @@ export class EosApiClient {
       headers: this.getHeaders({
         'idempotency-key': `idem-task-comp-${Date.now()}`,
       }),
-      body: JSON.stringify({ completionEvidence: evidence || 'Task delivered and verified.' }),
+      body: JSON.stringify({ completionEvidence: evidence }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -891,23 +1015,28 @@ export class EosApiClient {
     const res = await fetch(`${this.baseUrl}/projects/${projectId}/approval-requests`, {
       headers: this.getHeaders(),
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new ApiError(res.status, error.detail || error.message || `Approval requests could not be loaded (${res.status})`, error);
+    }
     const json = await res.json();
     return json.data || [];
   }
 
   /**
-   * Decides an approval request (approve or reject with comment).
+   * Decides only the exact approval target reviewed by the user.
    */
   async decideApproval(
     projectId: string,
     requestId: string,
-    data: { outcome: 'approved' | 'rejected' | 'conditional'; comment?: string; targetHash?: string; targetVersionId?: string }
+    data: { outcome: 'approved' | 'rejected' | 'changes_requested'; comment?: string; targetHash: string; targetVersionId: string }
   ): Promise<any> {
-    const validHash = (data.targetHash && /^[a-f0-9]{64}$/i.test(data.targetHash))
-      ? data.targetHash
-      : 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-    const outcome = (data.outcome === 'conditional' ? 'approved' : data.outcome) as 'approved' | 'rejected' | 'changes_requested';
+    if (!/^[a-f0-9]{64}$/i.test(data.targetHash || '') || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(data.targetVersionId || '')) {
+      throw new ApiError(412, 'This request has no valid reviewed version and hash. Reload the request before deciding.');
+    }
+    if (!['approved', 'rejected', 'changes_requested'].includes(data.outcome)) {
+      throw new ApiError(400, 'Unsupported approval outcome. Conditional decisions cannot be converted into approval.');
+    }
 
     const res = await fetch(`${this.baseUrl}/projects/${projectId}/approval-requests/${requestId}/decisions`, {
       method: 'POST',
@@ -915,16 +1044,16 @@ export class EosApiClient {
         'idempotency-key': `idem-decide-${Date.now()}`,
       }),
       body: JSON.stringify({
-        targetVersionId: data.targetVersionId || '00000000-0000-4000-8000-000000000001',
-        targetHash: validHash,
-        outcome,
+        targetVersionId: data.targetVersionId,
+        targetHash: data.targetHash,
+        outcome: data.outcome,
         comment: data.comment || '',
         acknowledgedConditions: [],
       }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || err.title || `Decision recording failed (${res.status})`);
+      throw new ApiError(res.status, err.detail || err.message || err.title || `Decision recording failed (${res.status})`, err);
     }
     return await res.json();
   }
@@ -2809,61 +2938,7 @@ export class EosApiClient {
    * Registers a controlled document.
    */
   async getControlledDocuments(projectId: string): Promise<any[]> {
-    try {
-      const res = await fetch(`${this.baseUrl}/projects/${projectId}/documents`, {
-        headers: this.getHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return json.data || [];
-      }
-    } catch {}
-
-    if (!isSyntheticDemo(projectId)) {
-      return [];
-    }
-
-    return [
-      {
-        id: 'doc-001',
-        projectCode: 'QND26',
-        documentNumber: 'E3-QND26-AV-DWG-0001',
-        title: 'Main Ceremony 360-Degree Kinetic LED Arch — General Elevation',
-        discipline: 'audio_visual',
-        documentType: 'drawing',
-        confidentialityLevel: 'client_confidential',
-        currentRevisionCode: 'Rev 01',
-        revisionsCount: 2,
-        createdBy: 'Karim Haddad (Technical Director)',
-        createdAt: '2026-09-08T10:00:00Z',
-      },
-      {
-        id: 'doc-002',
-        projectCode: 'QND26',
-        documentNumber: 'E3-QND26-STG-DWG-0002',
-        title: 'Lusail Boulevard Royal Pavilion Structural Load Calculations & Footings',
-        discipline: 'staging',
-        documentType: 'drawing',
-        confidentialityLevel: 'internal',
-        currentRevisionCode: 'Rev A',
-        revisionsCount: 1,
-        createdBy: 'Civil Defence Certified Structural Engineer',
-        createdAt: '2026-09-09T14:30:00Z',
-      },
-      {
-        id: 'doc-003',
-        projectCode: 'QND26',
-        documentNumber: 'E3-QND26-HSE-SPC-0003',
-        title: 'Fire Safety & Flame-Retardant Material Specifications (Law No. 13 Compliance)',
-        discipline: 'health_safety',
-        documentType: 'specification',
-        confidentialityLevel: 'public',
-        currentRevisionCode: 'Rev 02',
-        revisionsCount: 3,
-        createdBy: 'HSE & Civil Defence Lead',
-        createdAt: '2026-09-07T09:00:00Z',
-      },
-    ];
+    return (await this.getDocumentRegister(projectId)).data;
   }
 
   /**
@@ -2886,44 +2961,7 @@ export class EosApiClient {
    * Fetches controlled transmittals.
    */
   async getTransmittals(projectId: string): Promise<any[]> {
-    try {
-      const res = await fetch(`${this.baseUrl}/projects/${projectId}/documents/transmittals`, {
-        headers: this.getHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return json.data || [];
-      }
-    } catch {}
-
-    if (!isSyntheticDemo(projectId)) {
-      return [];
-    }
-
-    return [
-      {
-        id: 'tr-001',
-        transmittalNumber: 'TR-QND26-0001',
-        projectId,
-        recipientOrganisation: 'Qatar National Day Steering Committee',
-        recipientName: 'Sheikh Mansoor Al-Thani',
-        recipientEmail: 'client@qnd.qa',
-        purpose: 'for_client_approval',
-        issuedBy: 'Zaid Mansour (Lead PM)',
-        issuedAt: '2026-09-10T15:00:00Z',
-        items: [
-          {
-            documentNumber: 'E3-QND26-AV-DWG-0001',
-            title: 'Main Ceremony 360-Degree Kinetic LED Arch — General Elevation',
-            revisionCode: 'Rev 01',
-            contentHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-            remarks: 'Issued for formal client architectural review and aesthetic sign-off.',
-          },
-        ],
-        isClientFacing: true,
-        acknowledgementStatus: 'acknowledged',
-      },
-    ];
+    return (await this.recordsList<any>('/projects/' + encodeURIComponent(projectId) + '/documents/transmittals')).data;
   }
 
   /**
@@ -2946,202 +2984,52 @@ export class EosApiClient {
    * Fetches master Gantt CPM schedule and operational shift windows.
    */
   async getGanttSchedule(projectId: string): Promise<any> {
-    try {
-      const res = await fetch(`${this.baseUrl}/projects/${projectId}/gantt`, {
-        headers: this.getHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return json.data;
-      }
-    } catch {}
+    return (await this.recordsRequest<{data:any}>('/projects/' + encodeURIComponent(projectId) + '/gantt')).data;
+  }
 
-    if (!isSyntheticDemo(projectId)) {
-      return {
-        projectId,
-        schedule: {
-          projectDurationHours: 0,
-          criticalTasksCount: 0,
-          totalTasks: 0,
-          criticalPathTaskIds: [],
-          tasks: [],
-          shifts: [],
-        },
-      };
-    }
-
-    return {
-      projectId,
-      schedule: {
-        projectDurationHours: 86,
-        criticalTasksCount: 8,
-        totalTasks: 9,
-        criticalPathTaskIds: [
-          'gt-1',
-          'gt-2',
-          'gt-3',
-          'gt-4',
-          'gt-6',
-          'gt-7',
-          'gt-8',
-          'gt-9',
-        ],
-        tasks: [
-          {
-            id: 'gt-1',
-            code: 'TSK-001',
-            title: 'Site Handover & Lusail Boulevard Perimeter Survey',
-            durationHours: 8,
-            earlyStartHours: 0,
-            earlyFinishHours: 8,
-            lateStartHours: 0,
-            lateFinishHours: 8,
-            totalFloatHours: 0,
-            isCritical: true,
-            stageNumber: 8,
-          },
-          {
-            id: 'gt-2',
-            code: 'TSK-002',
-            title: 'Heavy Crane Mobilization & Primary Ground Rigging',
-            durationHours: 12,
-            earlyStartHours: 8,
-            earlyFinishHours: 20,
-            lateStartHours: 8,
-            lateFinishHours: 20,
-            totalFloatHours: 0,
-            isCritical: true,
-            stageNumber: 8,
-          },
-          {
-            id: 'gt-3',
-            code: 'TSK-003',
-            title: 'Structural Truss Arch Assembly & Civil Defence Torque Inspection',
-            durationHours: 16,
-            earlyStartHours: 20,
-            earlyFinishHours: 36,
-            lateStartHours: 20,
-            lateFinishHours: 36,
-            totalFloatHours: 0,
-            isCritical: true,
-            stageNumber: 9,
-          },
-          {
-            id: 'gt-4',
-            code: 'TSK-004',
-            title: '360° Kinetic LED Tile Installation & Signal Cabling',
-            durationHours: 20,
-            earlyStartHours: 36,
-            earlyFinishHours: 56,
-            lateStartHours: 36,
-            lateFinishHours: 56,
-            totalFloatHours: 0,
-            isCritical: true,
-            stageNumber: 10,
-          },
-          {
-            id: 'gt-5',
-            code: 'TSK-005',
-            title: 'Audio Array Flying & Sound Pressure Tuning (Day Shift Only)',
-            durationHours: 14,
-            earlyStartHours: 36,
-            earlyFinishHours: 50,
-            lateStartHours: 42,
-            lateFinishHours: 56,
-            totalFloatHours: 6,
-            isCritical: false,
-            stageNumber: 10,
-          },
-          {
-            id: 'gt-6',
-            code: 'TSK-006',
-            title: 'Fire Marshall / Civil Defence Safety Sign-off Walkthrough',
-            durationHours: 4,
-            earlyStartHours: 56,
-            earlyFinishHours: 60,
-            lateStartHours: 56,
-            lateFinishHours: 60,
-            totalFloatHours: 0,
-            isCritical: true,
-            stageNumber: 11,
-          },
-          {
-            id: 'gt-7',
-            code: 'TSK-007',
-            title: 'Full Technical Rehearsal & Drone Show Airspace Synchronization',
-            durationHours: 6,
-            earlyStartHours: 60,
-            earlyFinishHours: 66,
-            lateStartHours: 60,
-            lateFinishHours: 66,
-            totalFloatHours: 0,
-            isCritical: true,
-            stageNumber: 11,
-          },
-          {
-            id: 'gt-8',
-            code: 'TSK-008',
-            title: 'Qatar National Day Live Ceremony Show Execution',
-            durationHours: 4,
-            earlyStartHours: 66,
-            earlyFinishHours: 70,
-            lateStartHours: 66,
-            lateFinishHours: 70,
-            totalFloatHours: 0,
-            isCritical: true,
-            stageNumber: 12,
-          },
-          {
-            id: 'gt-9',
-            code: 'TSK-009',
-            title: 'Rapid Strike & Boulevard Public Re-opening',
-            durationHours: 12,
-            earlyStartHours: 70,
-            earlyFinishHours: 82,
-            lateStartHours: 70,
-            lateFinishHours: 82,
-            totalFloatHours: 0,
-            isCritical: true,
-            stageNumber: 13,
-          },
-        ],
-      },
-      shifts: [
-        {
-          shiftNumber: 1,
-          label: 'Shift 1 (0:00 - 8:00)',
-          startHour: 0,
-          endHour: 8,
-          shiftType: 'overnight_heavy_lift',
-          allowedNoiseDb: 65,
-          isCurfewActive: true,
-        },
-        {
-          shiftNumber: 2,
-          label: 'Shift 2 (8:00 - 16:00)',
-          startHour: 8,
-          endHour: 16,
-          shiftType: 'day_rigging',
-          allowedNoiseDb: 95,
-          isCurfewActive: false,
-        },
-        {
-          shiftNumber: 3,
-          label: 'Shift 3 (16:00 - 24:00)',
-          startHour: 16,
-          endHour: 24,
-          shiftType: 'day_rigging',
-          allowedNoiseDb: 95,
-          isCurfewActive: false,
-        },
-      ],
-      noiseCurfewHours: {
-        startHour: 23,
-        endHour: 6,
-        maxNightDb: 65,
-        maxDayDb: 95,
-      },
-    };
+  async getTimeline(projectId:string):Promise<TimelineResult>{
+    const result=await this.recordsRequest<TimelineResult>(`/projects/${encodeURIComponent(projectId)}/timeline`);
+    if(!Array.isArray(result?.data?.tasks)||!Array.isArray(result?.data?.dependencies)||!result.meta)throw new Error('Invalid schedule response.');return result;
+  }
+  async getSchedulePlanning(projectId:string):Promise<PlanList>{
+    const result=await this.recordsRequest<PlanList>(`/projects/${encodeURIComponent(projectId)}/schedule-register`);
+    if(!Array.isArray(result?.data)||typeof result.meta?.canEdit!=='boolean')throw new Error('Invalid planning register response.');return result;
+  }
+  async createSchedulePlan(projectId:string,input:CreatePlanInput,key:string){return this.recordsRequest<{data:PlanRecord}>(`/projects/${encodeURIComponent(projectId)}/schedule-register`,input,key);}
+  async reviseSchedulePlan(projectId:string,id:string,input:{expectedVersion:number;title:string;payload:CreatePlanInput['payload'];reason:string},key:string){return this.recordsRequest<{data:PlanRecord}>(`/projects/${encodeURIComponent(projectId)}/schedule-register/${encodeURIComponent(id)}/revisions`,input,key);}
+  async getSchedulePlanHistory(projectId:string,id:string):Promise<PlanHistory>{
+    const result=await this.recordsRequest<PlanHistory>(`/projects/${encodeURIComponent(projectId)}/schedule-register/${encodeURIComponent(id)}/history`);
+    if(!Array.isArray(result?.data)||!result.meta)throw new Error('Invalid planning history response.');return result;
+  }
+  async previewBaselineCandidate(projectId:string):Promise<CandidatePreview>{
+    const result=await this.recordsRequest<CandidatePreview>(`/projects/${encodeURIComponent(projectId)}/schedule-register/baseline-preview`);
+    if(!result?.data?.sourceFingerprint||!Array.isArray(result.data.source?.tasks))throw new Error('Invalid baseline preview response.');return result;
+  }
+  async captureBaselineCandidate(projectId:string,input:{title:string;expectedFingerprint:string;reason:string},key:string){return this.recordsRequest<{data:PlanRecord}>(`/projects/${encodeURIComponent(projectId)}/schedule-register/baseline-candidates`,input,key);}
+  async compareBaselineCandidate(projectId:string,id:string):Promise<CandidateComparison>{
+    const result=await this.recordsRequest<CandidateComparison>(`/projects/${encodeURIComponent(projectId)}/schedule-register/${encodeURIComponent(id)}/comparison`);
+    if(!Array.isArray(result?.data?.changes)||!result.data.candidate)throw new Error('Invalid baseline comparison response.');return result;
+  }
+  async changeForecast(projectId:string,taskId:string,input:ForecastInput,key:string){
+    return this.recordsRequest<{data:ScheduledTask}>(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/forecast-changes`,{...input},key);
+  }
+  async getForecastHistory(projectId:string,taskId:string):Promise<ScheduleHistoryResult>{
+    const result=await this.recordsRequest<ScheduleHistoryResult>(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/forecast-history`);
+    if(!Array.isArray(result?.data))throw new Error('Invalid forecast history response.');return result;
+  }
+  async addScheduleDependency(projectId:string,input:DependencyInput,key:string){
+    return this.recordsRequest<{data:PlannedDependency}>(`/projects/${encodeURIComponent(projectId)}/dependencies`,{...input},key);
+  }
+  async archiveScheduleDependency(projectId:string,id:string,input:{expectedVersion:number;reason:string},key:string){
+    return this.recordsRequest<{data:PlannedDependency}>(`/projects/${encodeURIComponent(projectId)}/dependencies/${encodeURIComponent(id)}/archive`,input,key);
+  }
+  async getDependencyHistory(projectId:string,id:string):Promise<ScheduleHistoryResult>{
+    const result=await this.recordsRequest<ScheduleHistoryResult>(`/projects/${encodeURIComponent(projectId)}/dependencies/${encodeURIComponent(id)}/history`);
+    if(!Array.isArray(result?.data))throw new Error('Invalid dependency history response.');return result;
+  }
+  async getForecastCalendar(from:string,until:string):Promise<CalendarResult>{
+    const result=await this.recordsRequest<CalendarResult>(`/schedule/calendar?${new URLSearchParams({from,until})}`);
+    if(!Array.isArray(result?.data)||!result.meta)throw new Error('Invalid calendar response.');return result;
   }
 
   /**
@@ -7971,5 +7859,3 @@ export class EosApiClient {
     return await res.json();
   }
 }
-
-

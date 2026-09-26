@@ -27,6 +27,30 @@ function compilePath(path: string): RegExp {
 }
 
 export const EOS_ROUTES: AppRoute[] = [
+  ...[
+    ['/allocations/register', 'Allocation planning', 'Versioned draft quantities and locations'],
+    ['/designs/register', 'Design briefs', 'Internal design briefs and source revision pins'],
+    ['/impact-review', 'Change impact', 'Changed source versions and advisory assessments'],
+    ['/projects/:projectId/allocations', 'Allocation planning', 'Scoped draft allocation revisions'],
+    ['/projects/:projectId/design-briefs', 'Design briefs', 'Scoped design brief revisions'],
+    ['/projects/:projectId/impact-review', 'Change impact', 'Scoped change impact assessments'],
+    ['/requirements/register', 'Requirement intake', 'Manual drafts and retained source revisions'],
+    ['/clarifications/register', 'Clarification register', 'Questions, attributed responses and history'],
+    ['/field/notes', 'Field notes', 'Device capture queue and durable server receipts'],
+    ['/field', 'Field notes', 'Device capture queue and durable server receipts'],
+    ['/field/legacy-captures', 'Earlier field captures', 'Provisional media awaiting a supported upload workflow'],
+    ['/projects/:projectId/requirements', 'Requirement intake', 'Scoped requirement drafts and revisions'],
+    ['/projects/:projectId/clarifications', 'Clarification register', 'Scoped clarification questions and responses'],
+    ['/projects/:projectId/field-notes', 'Field notes', 'Scoped field observations and receipts'],
+    ['/work-register', 'Work packages & tasks', 'Create packages and track recorded tasks'],
+    ['/schedule', 'Schedule & dependencies', 'Record task forecasts and preserve dependency history'],
+    ['/projects/:projectId/schedule', 'Project schedule', 'Scoped task forecasts and dependencies'],
+    ['/projects/:projectId/timeline', 'Project timeline', 'Scoped task forecasts and dependencies'],
+    ['/projects/:projectId/work', 'Project work register', 'Versioned project tasks and completion'],
+    ['/documents/register', 'Document register', 'Draft document and revision metadata'],
+    ['/projects/:projectId/document-register', 'Project documents', 'Scoped document register'],
+    ['/projects/:projectId/reports', 'Project reports', 'Immutable internal project snapshots'],
+  ].map(([path, title, description]) => ({path, pattern: compilePath(path), audience: 'internal' as const, workspace: 'project' as const, title, description, supportsRtl: true})),
   // --- Auth & Identity ---
   {
     path: '/login',
@@ -54,7 +78,7 @@ export const EOS_ROUTES: AppRoute[] = [
     audience: 'internal',
     workspace: 'leadership',
     title: 'Executive Portfolio Overview',
-    description: 'Compare pipeline, delivery health, cash and open decisions across entities',
+    description: 'View recorded project maturity, outcomes and internal report counts within current access',
     supportsRtl: true,
   },
   {
@@ -80,8 +104,8 @@ export const EOS_ROUTES: AppRoute[] = [
     pattern: compilePath('/calendar'),
     audience: 'internal',
     workspace: 'leadership',
-    title: 'Master Event Calendar',
-    description: 'Portfolio event timelines, venue commitments, rehearsals and move-in schedules',
+    title: 'Forecast calendar',
+    description: 'Saved task forecasts across explicitly accessible projects',
     supportsRtl: true,
   },
 
@@ -399,12 +423,21 @@ export const EOS_ROUTES: AppRoute[] = [
     supportsRtl: true,
   },
   {
+    path: '/admin/access',
+    pattern: compilePath('/admin/access'),
+    audience: 'admin',
+    workspace: 'admin',
+    title: 'Project Access',
+    description: 'Grant and revoke explicit project access for organization memberships',
+    supportsRtl: true,
+  },
+  {
     path: '/admin/roles',
     pattern: compilePath('/admin/roles'),
     audience: 'admin',
     workspace: 'admin',
     title: 'Role & RBAC Management',
-    description: 'Assign project and organization roles with granular permissions',
+    description: 'Server-defined role and permission reference',
     supportsRtl: true,
   },
   {

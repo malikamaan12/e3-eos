@@ -1,0 +1,2136 @@
+openapi: 3.1.0
+info:
+  title: E3-EOS Core Command Contracts
+  version: 1.0.0
+  description: Normative starting subset for consequential commands, not a complete
+    generated implementation. Universal policy/current-authority/idempotency rules
+    apply. Extend remaining CRUD and observation-specific schemas per phase.
+servers:
+- url: /api/v1
+security:
+- eosSession: []
+paths:
+  /projects:
+    post:
+      operationId: createProject
+      summary: createProject
+      x-eos-permission: project.create
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/policy-drafts/{id}/publish:
+    post:
+      operationId: publishProjectPolicy
+      summary: publishProjectPolicy
+      x-eos-permission: configuration.publish
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: &id001
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Current ETag of addressed aggregate/draft, in addition to target
+          content version/hash.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyPublish'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/approval-requests/{id}/decisions:
+    post:
+      operationId: decideApproval
+      summary: decideApproval
+      x-eos-permission: approval.decide
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Current ETag of addressed aggregate/draft, in addition to target
+          content version/hash.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalDecision'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/exceptions:
+    post:
+      operationId: requestException
+      summary: requestException
+      x-eos-permission: exception.request
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExceptionRequest'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/exceptions/{id}/authorise:
+    post:
+      operationId: authoriseException
+      summary: authoriseException
+      x-eos-permission: exception.authorise
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Current ETag of addressed aggregate/draft, in addition to target
+          content version/hash.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExceptionAuthorise'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/exceptions/{id}/reviews:
+    post:
+      operationId: reviewException
+      summary: reviewException
+      x-eos-permission: exception.review
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Current ETag of addressed aggregate/draft, in addition to target
+          content version/hash.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExceptionReview'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/purchase-orders/{id}/release:
+    post:
+      operationId: releasePurchaseOrder
+      summary: releasePurchaseOrder
+      x-eos-permission: procurement.release
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Current ETag of addressed aggregate/draft, in addition to target
+          content version/hash.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRelease'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/reservations/{id}/confirm:
+    post:
+      operationId: confirmReservation
+      summary: confirmReservation
+      x-eos-permission: resource.confirm
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Current ETag of addressed aggregate/draft, in addition to target
+          content version/hash.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationConfirm'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/designs/{id}/release:
+    post:
+      operationId: releaseDesign
+      summary: releaseDesign
+      x-eos-permission: design.release
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Current ETag of addressed aggregate/draft, in addition to target
+          content version/hash.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DesignRelease'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/opening-releases:
+    post:
+      operationId: releaseOpening
+      summary: releaseOpening
+      x-eos-permission: readiness.release
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpeningRelease'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /portal/projects/{projectId}/decisions:
+    post:
+      operationId: recordClientDecision
+      summary: recordClientDecision
+      x-eos-permission: portal.decide
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientDecision'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /field/sync:
+    post:
+      operationId: syncFieldOperations
+      summary: syncFieldOperations
+      x-eos-permission: field.sync
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfflineBatch'
+      responses:
+        '202':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/reports/{id}/publish:
+    post:
+      operationId: publishReport
+      summary: publishReport
+      x-eos-permission: report.publish
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Current ETag of addressed aggregate/draft, in addition to target
+          content version/hash.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportPublish'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/closure-decisions:
+    post:
+      operationId: closeProjectDimension
+      summary: closeProjectDimension
+      x-eos-permission: project.close
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloseDimension'
+      responses:
+        '201':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /portfolio/scenarios/{id}/apply:
+    post:
+      operationId: applyPortfolioScenario
+      summary: applyPortfolioScenario
+      x-eos-permission: scenario.apply
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Current ETag of addressed aggregate/draft, in addition to target
+          content version/hash.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScenarioApply'
+      responses:
+        '202':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /projects/{projectId}/cost-imports:
+    post:
+      operationId: importFinancialCosts
+      summary: importFinancialCosts
+      x-eos-permission: finance.import
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinancialImport'
+      responses:
+        '202':
+          description: Recorded result or queued durable command; never implies unverified
+            external completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400':
+          description: Malformed request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Unauthenticated
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden action
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or hidden scope
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting state/idempotency/reservation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: Stale record precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Validation, missing condition or authority
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '428':
+          description: Missing required precondition
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Current required authority/source unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  securitySchemes:
+    eosSession:
+      type: apiKey
+      in: cookie
+      name: __Host-eos-session
+      description: Logical session-cookie contract. Map the tested Better Auth cookie
+        configuration to this name or update this contract before implementation;
+        server-side sessions and CSRF/origin enforcement required.
+  schemas:
+    Money:
+      type: object
+      additionalProperties: false
+      properties:
+        amount: &id004
+          type: string
+          pattern: ^-?[0-9]+(?:\.[0-9]+)?$
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+      required:
+      - amount
+      - currency
+    ProjectCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        intakeMode:
+          type: string
+          enum:
+          - draft
+          - activate
+          default: draft
+        title:
+          type: string
+          minLength: 1
+          maxLength: 300
+        description:
+          type: string
+          minLength: 1
+        originCode:
+          type: string
+          minLength: 1
+        ownerId: *id001
+        templateId: *id001
+        legalEntityId: *id001
+        clientPartyId: *id001
+        customFields:
+          type: object
+          additionalProperties: true
+      required: []
+    PolicyPublish:
+      type: object
+      additionalProperties: false
+      properties:
+        expectedActiveSnapshotId:
+          anyOf:
+          - *id001
+          - type: 'null'
+        draftVersionId: *id001
+        impactReportId: *id001
+        authorityDecisionIds:
+          type: array
+          items: *id001
+      required:
+      - expectedActiveSnapshotId
+      - draftVersionId
+      - impactReportId
+      - authorityDecisionIds
+    ApprovalDecision:
+      type: object
+      additionalProperties: false
+      properties:
+        targetVersionId: *id001
+        targetHash: &id003
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        outcome:
+          type: string
+          enum:
+          - approved
+          - rejected
+          - changes_requested
+          - conditional
+          - abstained
+        acknowledgedConditions:
+          type: array
+          items:
+            type: string
+        comment:
+          type: string
+          maxLength: 10000
+      required:
+      - targetVersionId
+      - targetHash
+      - outcome
+      - acknowledgedConditions
+    ExceptionScope:
+      type: object
+      additionalProperties: false
+      properties:
+        projectId: *id001
+        targetRecordId: *id001
+        targetVersionId: *id001
+        ruleIds:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        allowedActions:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        locationIds:
+          type: array
+          items: *id001
+        amountCap:
+          $ref: '#/components/schemas/Money'
+      required:
+      - projectId
+      - targetRecordId
+      - targetVersionId
+      - ruleIds
+      - allowedActions
+    ExceptionReviewPolicy:
+      type: object
+      additionalProperties: false
+      properties:
+        mode:
+          type: string
+          enum:
+          - required
+          - not_required_with_basis
+        ownerId: *id001
+        reviewDueAt: &id002
+          type: string
+          format: date-time
+        templateId: *id001
+        basis:
+          type: string
+      required:
+      - mode
+      allOf:
+      - if:
+          properties:
+            mode:
+              const: required
+        then:
+          required:
+          - ownerId
+          - reviewDueAt
+          - templateId
+      - if:
+          properties:
+            mode:
+              const: not_required_with_basis
+        then:
+          required:
+          - basis
+    ExceptionRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        scope:
+          $ref: '#/components/schemas/ExceptionScope'
+        reason:
+          type: string
+          minLength: 1
+        authorityBasisId: *id001
+        validFrom: *id002
+        validUntil: *id002
+        maxUses:
+          type: integer
+          minimum: 1
+        reviewPolicy:
+          $ref: '#/components/schemas/ExceptionReviewPolicy'
+        evidenceVersionIds:
+          type: array
+          items: *id001
+      required:
+      - scope
+      - reason
+      - authorityBasisId
+      - validFrom
+      - validUntil
+      - maxUses
+      - reviewPolicy
+      - evidenceVersionIds
+    ExceptionAuthorise:
+      type: object
+      additionalProperties: false
+      properties:
+        targetVersionId: *id001
+        targetHash: *id003
+        authorityDecisionIds:
+          type: array
+          items: *id001
+        approvedScope:
+          $ref: '#/components/schemas/ExceptionScope'
+        validFrom: *id002
+        validUntil: *id002
+        maxUses:
+          type: integer
+          minimum: 1
+        reviewPolicy:
+          $ref: '#/components/schemas/ExceptionReviewPolicy'
+      required:
+      - targetVersionId
+      - targetHash
+      - authorityDecisionIds
+      - approvedScope
+      - validFrom
+      - validUntil
+      - maxUses
+      - reviewPolicy
+    ExceptionReview:
+      type: object
+      additionalProperties: false
+      properties:
+        outcome:
+          type: string
+          enum:
+          - in_review
+          - remediation_required
+          - closed
+        disposition:
+          type: string
+          minLength: 1
+        evidenceVersionIds:
+          type: array
+          items: *id001
+        remainingActionIds:
+          type: array
+          items: *id001
+      required:
+      - outcome
+      - disposition
+      - evidenceVersionIds
+      - remainingActionIds
+    PurchaseOrderRelease:
+      type: object
+      additionalProperties: false
+      properties:
+        targetVersionId: *id001
+        targetHash: *id003
+        authorityBasisId: *id001
+        approvalDecisionIds:
+          type: array
+          items: *id001
+        exceptionId: *id001
+      required:
+      - targetVersionId
+      - targetHash
+      - authorityBasisId
+      - approvalDecisionIds
+    ReservationConfirm:
+      type: object
+      additionalProperties: false
+      properties:
+        expectedResourceVersion:
+          type: integer
+          minimum: 1
+        planningStart: *id002
+        planningEnd: *id002
+        quantity: *id004
+        authorityBasisId: *id001
+      required:
+      - expectedResourceVersion
+      - planningStart
+      - planningEnd
+      - quantity
+    DesignRelease:
+      type: object
+      additionalProperties: false
+      properties:
+        versionId: *id001
+        targetHash: *id003
+        purpose:
+          type: string
+          minLength: 1
+        affectedPackageIds:
+          type: array
+          items: *id001
+          minItems: 1
+        approvalDecisionIds:
+          type: array
+          items: *id001
+      required:
+      - versionId
+      - targetHash
+      - purpose
+      - affectedPackageIds
+      - approvalDecisionIds
+    OpeningRelease:
+      type: object
+      additionalProperties: false
+      properties:
+        scopeIds:
+          type: array
+          items: *id001
+          minItems: 1
+        evaluatedReadinessVersion: *id001
+        evidenceVersionIds:
+          type: array
+          items: *id001
+        approvalDecisionIds:
+          type: array
+          items: *id001
+        validUntil: *id002
+      required:
+      - scopeIds
+      - evaluatedReadinessVersion
+      - evidenceVersionIds
+      - approvalDecisionIds
+      - validUntil
+    ClientDecision:
+      type: object
+      additionalProperties: false
+      properties:
+        publicationId: *id001
+        publicationVersion:
+          type: integer
+          minimum: 1
+        targetHash: *id003
+        purpose:
+          type: string
+        decision:
+          type: string
+          enum:
+          - accepted
+          - rejected
+          - changes_requested
+          - conditional
+        comment:
+          type: string
+      required:
+      - publicationId
+      - publicationVersion
+      - targetHash
+      - purpose
+      - decision
+    OfflineOperation:
+      type: object
+      additionalProperties: false
+      properties:
+        clientOperationId: *id001
+        projectId: *id001
+        targetRecordId: *id001
+        capturedAt: *id002
+        baseVersion:
+          type: integer
+          minimum: 0
+        manifestVersion: *id001
+        type:
+          type: string
+          enum:
+          - note.capture
+          - photo.reference
+          - checklist.observe
+          - attendance.capture
+          - asset.scan
+          - delivery.observe
+          - incident.capture
+          - protective_action.capture
+        payload:
+          type: object
+          additionalProperties: true
+      required:
+      - clientOperationId
+      - projectId
+      - capturedAt
+      - baseVersion
+      - manifestVersion
+      - type
+      - payload
+    OfflineBatch:
+      type: object
+      additionalProperties: false
+      properties:
+        batchId: *id001
+        deviceId: *id001
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/OfflineOperation'
+          minItems: 1
+          maxItems: 100
+      required:
+      - batchId
+      - deviceId
+      - operations
+    ReportPublish:
+      type: object
+      additionalProperties: false
+      properties:
+        reportVersionId: *id001
+        sourceSnapshotId: *id001
+        targetHash: *id003
+        audience:
+          type: string
+          enum:
+          - internal
+          - client
+          - restricted
+        approvalDecisionIds:
+          type: array
+          items: *id001
+      required:
+      - reportVersionId
+      - sourceSnapshotId
+      - targetHash
+      - audience
+      - approvalDecisionIds
+    CloseDimension:
+      type: object
+      additionalProperties: false
+      properties:
+        dimension:
+          type: string
+          enum:
+          - operational
+          - acceptance
+          - reporting
+          - financial_review
+          - settlement
+        evidenceManifestId: *id001
+        decisionIds:
+          type: array
+          items: *id001
+        disclosedOpenItems:
+          type: array
+          items: *id001
+      required:
+      - dimension
+      - evidenceManifestId
+      - decisionIds
+      - disclosedOpenItems
+    ScenarioApply:
+      type: object
+      additionalProperties: false
+      properties:
+        scenarioVersionId: *id001
+        impactReportId: *id001
+        expectedProjectVersions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              projectId: *id001
+              recordVersion:
+                type: integer
+                minimum: 1
+            required:
+            - projectId
+            - recordVersion
+          minItems: 1
+        approvalDecisionIds:
+          type: array
+          items: *id001
+      required:
+      - scenarioVersionId
+      - impactReportId
+      - expectedProjectVersions
+      - approvalDecisionIds
+    FinancialImport:
+      type: object
+      additionalProperties: false
+      properties:
+        connectorAccountId: *id001
+        manualSourceId: *id001
+        sourcePeriod:
+          type: string
+          minLength: 1
+        currencyBasis:
+          type: string
+          minLength: 1
+        fileVersionId: *id001
+        mappingVersion: *id001
+        reviewId: *id001
+      required:
+      - sourcePeriod
+      - currencyBasis
+      - fileVersionId
+      - mappingVersion
+      - reviewId
+      oneOf:
+      - required:
+        - connectorAccountId
+        not:
+          required:
+          - manualSourceId
+      - required:
+        - manualSourceId
+        not:
+          required:
+          - connectorAccountId
+    CommandResult:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          properties:
+            id: *id001
+            status:
+              type: string
+            recordVersion:
+              type: integer
+              minimum: 1
+            jobId: *id001
+            externalDeliveryStatus:
+              type: string
+              enum:
+              - not_applicable
+              - queued
+              - delivered
+              - acknowledged
+              - ambiguous
+              - failed
+          required:
+          - id
+          - status
+          - recordVersion
+        meta:
+          type: object
+          additionalProperties: false
+          properties:
+            requestId:
+              type: string
+            policySnapshotId: *id001
+            dataAsOf: *id002
+          required:
+          - requestId
+      required:
+      - data
+      - meta
+    Problem:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+        detail:
+          type: string
+        requestId:
+          type: string
+        conditions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        permittedNextActions:
+          type: array
+          items:
+            type: string
+      required:
+      - type
+      - title
+      - status
+      - code
+      - requestId

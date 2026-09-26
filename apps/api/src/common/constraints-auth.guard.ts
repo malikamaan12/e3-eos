@@ -9,6 +9,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { DbService } from './db.service.js';
+import { readSessionToken } from '../auth/local-synthetic-auth.js';
+import { assertRequestOrigin } from '../auth/request-origin.js';
 import {
   CONSTRAINTS_VERIFY_PERMISSION,
   hasConstraintVerifyPermission,
@@ -37,13 +39,10 @@ export class ConstraintsAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
+    assertRequestOrigin(request);
 
     // 1. Session Token extraction (Strictly Bearer header or secure cookie — NO client header fallback)
-    const authHeader = request.headers.authorization;
-    const cookieToken = (request as any).cookies?.['eos_session'];
-    const sessionToken = authHeader?.startsWith('Bearer ')
-      ? authHeader.slice(7).trim()
-      : cookieToken;
+    const sessionToken = readSessionToken(request);
 
     if (!sessionToken) {
       throw new HttpException(
@@ -66,12 +65,14 @@ export class ConstraintsAuthGuard implements CanActivate {
                m.role, m.audience, m.organisation_id
         FROM sessions s
         JOIN users u ON u.id = s.user_id
-        LEFT JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
+        JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
         WHERE s.token = $1 AND s.expires_at > NOW()
+          AND ($2::text IS NULL OR m.organisation_id::text = $2)
+        ORDER BY m.created_at, m.id
         LIMIT 1;
-      `, [sessionToken]);
+      `, [sessionToken, request.headers?.['x-organisation-id'] || request.headers?.['x-organization-id'] || null]);
 
-      if (res.rows.length === 0) {
+      if (res.rows.length === 0 || !res.rows[0].organisation_id || !res.rows[0].role) {
         throw new HttpException(
           {
             code: 'SESSION_EXPIRED',
@@ -87,8 +88,8 @@ export class ConstraintsAuthGuard implements CanActivate {
         userId: row.user_id,
         name: row.name,
         email: row.email,
-        role: row.role || 'viewer',
-        organisationId: row.organisation_id || '11111111-1111-4111-8111-111111111111',
+        role: row.role,
+        organisationId: row.organisation_id,
         isSuperAdmin: Boolean(row.is_super_admin),
       };
     } catch (err: any) {
@@ -97,9 +98,9 @@ export class ConstraintsAuthGuard implements CanActivate {
         {
           code: 'AUTH_DATABASE_ERROR',
           title: 'Authentication database failure',
-          detail: err.message,
+          detail: 'The active session could not be verified. Please retry.',
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.SERVICE_UNAVAILABLE
       );
     }
 
@@ -108,6 +109,8 @@ export class ConstraintsAuthGuard implements CanActivate {
     (request as any).userId = sessionUser.userId;
     (request as any).organisationId = sessionUser.organisationId;
     (request as any).role = sessionUser.role;
+    (request as any).userRole = sessionUser.role;
+    (request as any).isSuperAdmin = sessionUser.isSuperAdmin;
 
     // 3. Check for verification action
     const handler = context.getHandler();

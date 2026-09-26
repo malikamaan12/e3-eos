@@ -498,17 +498,17 @@ export const FinancialControlCenterView: React.FC = () => {
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', padding: '5px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px' }}>
             <span style={{ color: '#fbbf24', fontFamily: 'monospace', fontWeight: 700 }}>Current Budget</span>
             <span style={{ color: '#94a3b8' }}>=</span>
-            <span style={{ color: 'var(--border-default, #2a374b)' }}>Baseline + Approved Changes</span>
+            <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>Baseline + Approved Changes</span>
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', padding: '5px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px' }}>
             <span style={{ color: '#34d399', fontFamily: 'monospace', fontWeight: 700 }}>EAC</span>
             <span style={{ color: '#94a3b8' }}>=</span>
-            <span style={{ color: 'var(--border-default, #2a374b)' }}>Actuals + Accrued + Commitments + ETC</span>
+            <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>Actuals + Accrued + Commitments + ETC</span>
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', padding: '5px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px' }}>
             <span style={{ color: '#60a5fa', fontFamily: 'monospace', fontWeight: 700 }}>VAC</span>
             <span style={{ color: '#94a3b8' }}>=</span>
-            <span style={{ color: 'var(--border-default, #2a374b)' }}>Current Budget − EAC</span>
+            <span style={{ color: 'var(--text-secondary, #cbd5e1)' }}>Current Budget − EAC</span>
           </div>
         </div>
         <div style={{ color: '#34d399', fontWeight: 600, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -742,7 +742,7 @@ export const FinancialControlCenterView: React.FC = () => {
               </div>
 
               {/* Formula & Live Invariant Visualizer */}
-              <div style={{ backgroundColor: 'var(--text-primary, #f8fafc)', borderRadius: '8px', padding: '16px 20px', color: 'var(--surface-2, #151e2e)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ backgroundColor: 'var(--surface-2, #151e2e)', borderRadius: '8px', padding: '16px 20px', color: 'var(--text-primary, #f8fafc)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                   <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>EAC Governing Formula</div>
                   <div style={{ fontSize: '16px', fontWeight: 800, marginTop: '4px', fontFamily: 'monospace' }}>
@@ -1076,7 +1076,7 @@ export const FinancialControlCenterView: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--text-primary, #f8fafc)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '13px' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--surface-2, #151e2e)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '13px' }}>
                     {idx + 1}
                   </div>
                   <div>

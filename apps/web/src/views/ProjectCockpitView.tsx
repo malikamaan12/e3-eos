@@ -1,13 +1,13 @@
+import { ProjectRecordsView } from './ProjectRecordsView.js';
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { MetricCard, Card, Badge, Button, Modal, Input, Textarea, Select, formatCurrency } from '../components/DesignSystem.js';
-import { RequirementsMatrixView } from './RequirementsMatrixView.js';
-import { ClarificationsView } from './ClarificationsView.js';
+import { ProjectControlView } from './ProjectControlView.js';
 import { DocumentRegisterView } from './DocumentRegisterView.js';
 import { ControlledDocumentsWorkspaceView } from './ControlledDocumentsWorkspaceView.js';
-import { MasterGanttView } from './MasterGanttView.js';
+import { ScheduleRegister } from './ScheduleView.js';
 import { DesignReviewView } from './DesignReviewView.js';
-import { DesignCreativeModuleView } from './DesignCreativeModuleView.js';
+import { ProjectPlanningView } from './ProjectPlanningView.js';
 import { CommercialBOQView } from './CommercialBOQView.js';
 import { ProcurementDeliveryView } from './ProcurementDeliveryView.js';
 import { ProductionDeliveryView } from './ProductionDeliveryView.js';
@@ -23,6 +23,7 @@ export const ProjectCockpitView: React.FC = () => {
   const {
     currentLanguage,
     currentUser,
+    currentOrg,
     currentPath,
     selectedProjectId,
     apiClient,
@@ -42,6 +43,7 @@ export const ProjectCockpitView: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [approvals, setApprovals] = useState<any[]>([]);
   const [auditHistory, setAuditHistory] = useState<any[]>([]);
+  const [accessError, setAccessError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
 
@@ -163,58 +165,37 @@ export const ProjectCockpitView: React.FC = () => {
     let isMounted = true;
     async function loadCockpit() {
       setLoading(true);
+      setAccessError(null);
+      setCockpitData(null);
+      setTasks([]); setApprovals([]); setAuditHistory([]);
       try {
-        const [cData, taskList, apprList, audits] = await Promise.all([
-          apiClient.getCockpit(projectId).catch(() => null),
-          apiClient.getTasks(projectId).catch(() => []),
+        // Resolve project access before requesting any subordinate records.
+        const cData = await apiClient.getCockpit(projectId);
+        if (!isMounted) return;
+        const [taskList, apprList, audits] = await Promise.all([
+          apiClient.getTasks(projectId),
           apiClient.getApprovalRequests(projectId).catch(() => []),
           apiClient.getAuditHistory(projectId).catch(() => []),
         ]);
 
         if (isMounted) {
           setCockpitData(cData);
-          setTasks(taskList && taskList.length > 0 ? taskList : (cData?.tasks || []));
+          setTasks(taskList);
           setApprovals(apprList || []);
           setAuditHistory(audits || []);
         }
-      } catch (err) {
-        console.error('Failed to load cockpit:', err);
+      } catch (err: any) {
+        if (isMounted) setAccessError(err.message || 'Project access could not be verified.');
       } finally {
         if (isMounted) setLoading(false);
       }
     }
     loadCockpit();
     return () => { isMounted = false; };
-  }, [apiClient, projectId, refreshTrigger]);
+  }, [apiClient, projectId, refreshTrigger, currentOrg.id, currentUser?.id]);
 
-  const handleCreateTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTaskTitle) return;
-    setIsSubmittingTask(true);
-    try {
-      await apiClient.createTask(projectId, {
-        packageId: 'e1111111-1111-4111-8111-111111111111',
-        title: newTaskTitle,
-        assigneeId: newTaskAssignee,
-      });
-      setIsTaskModalOpen(false);
-      setNewTaskTitle('');
-      triggerRefresh();
-    } catch (err: any) {
-      alert(err.message || 'Failed to create task');
-    } finally {
-      setIsSubmittingTask(false);
-    }
-  };
-
-  const handleCompleteTask = async (taskId: string) => {
-    try {
-      await apiClient.completeTask(projectId, taskId, 'Clarification questions compiled and verified by PM');
-      triggerRefresh();
-    } catch (err: any) {
-      alert(err.message || 'Failed to complete task');
-    }
-  };
+  const handleCreateTask = async (e: React.FormEvent) => { e.preventDefault(); setIsTaskModalOpen(false); navigate('/projects/' + projectId + '/work'); };
+  const handleCompleteTask = async (_taskId: string) => { navigate('/projects/' + projectId + '/work'); };
 
   // Invariant: Authority is strictly resolved by the backend policy engine, never calculated independently in the frontend.
   const [cockpitThreshold, setCockpitThreshold] = useState<{
@@ -383,6 +364,15 @@ export const ProjectCockpitView: React.FC = () => {
   const varianceAmount = costVariance !== null ? Math.abs(costVariance) : 0;
   const variancePct = (baselineCost && varianceAmount) ? ((varianceAmount / baselineCost) * 100).toFixed(2) : '0.00';
 
+  if (loading) return <Card><p role="status">{isRtl ? 'جارٍ التحقق من صلاحية الوصول للمشروع...' : 'Loading your project access…'}</p></Card>;
+  if (accessError || !cockpitData) return <Card title={isRtl ? 'المشروع غير متاح' : 'Project unavailable'}>
+    <p role="alert">{accessError || (isRtl ? 'تعذر تحميل بيانات المشروع.' : 'Project data could not be loaded.')}</p>
+    <p style={{ color: 'var(--text-secondary)' }}>{isRtl ? 'يلزم منح صلاحية صريحة للمشروع. عضوية الجهة أو ملكية المشروع لا تمنح الوصول تلقائياً.' : 'An explicit project grant is required. Organization membership or project ownership does not automatically provide access.'}</p>
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}><Button variant="secondary" onClick={triggerRefresh}>{isRtl ? 'إعادة المحاولة' : 'Retry'}</Button>
+      <Button onClick={() => navigate('/projects')}>{isRtl ? 'دليل المشاريع' : 'Project directory'}</Button>
+      {(currentUser?.isSuperAdmin || currentUser?.role === 'super_admin') && <Button variant="secondary" onClick={() => navigate('/admin/access')}>{isRtl ? 'صلاحيات المشاريع' : 'Project access'}</Button>}</div>
+  </Card>;
+
   return (
     <div style={{ paddingBottom: '40px', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
       {/* Cockpit Top Header */}
@@ -424,7 +414,7 @@ export const ProjectCockpitView: React.FC = () => {
                 </span>
               )}
               <Badge variant="neutral">{cockpitData?.maturity || 'delivery'}</Badge>
-              <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 700 }}>
+              <span style={{ fontSize: '11px', color: 'var(--status-success-fg)', fontWeight: 700 }}>
                 ● {isRtl ? 'النظام مباشر' : 'Live System Online'}
               </span>
             </div>
@@ -463,7 +453,7 @@ export const ProjectCockpitView: React.FC = () => {
               id="cockpit-add-task-btn"
               variant="secondary"
               size="md"
-              onClick={() => setIsTaskModalOpen(true)}
+              onClick={() => navigate('/projects/' + projectId + '/work')}
             >
               + {isRtl ? 'مهمة جديدة' : 'Task'}
             </Button>
@@ -586,7 +576,7 @@ export const ProjectCockpitView: React.FC = () => {
             <option value="requirements">🎯 {isRtl ? 'المصفوفة والمتطلبات' : 'Requirements Matrix'}</option>
             <option value="clarifications">❓ {isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI'}</option>
             <option value="documents">📑 {isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents'}</option>
-            <option value="timeline">⏱️ {isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt'}</option>
+            <option value="timeline">⏱️ {isRtl ? 'الجدول والاعتماديات' : 'Schedule & dependencies'}</option>
             <option value="design">🎨 {isRtl ? 'التصميم والإبداع' : 'Design & Creative'}</option>
             <option value="commercial">💰 {isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ'}</option>
             <option value="procurement">🛒 {isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ'}</option>
@@ -683,7 +673,7 @@ export const ProjectCockpitView: React.FC = () => {
             { id: 'requirements', icon: '🎯', label: isRtl ? 'المصفوفة والمتطلبات' : 'Requirements', badge: isDemo ? '4' : null },
             { id: 'clarifications', icon: '❓', label: isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI', badge: isDemo ? (isRtl ? '٢ مفتوح' : '2 open') : null },
             { id: 'documents', icon: '📑', label: isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents', badge: isDemo ? '3' : null },
-            { id: 'timeline', icon: '⏱️', label: isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt', badge: isDemo ? '72h CPM' : null },
+            { id: 'timeline', icon: '⏱️', label: isRtl ? 'الجدول والاعتماديات' : 'Schedule & dependencies', badge: null },
             { id: 'design', icon: '🎨', label: isRtl ? 'التصميم والإبداع' : 'Design & Creative', badge: isDemo ? (isRtl ? '٤ حزم' : '4 pkgs') : null },
             { id: 'commercial', icon: '💰', label: isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ', badge: isDemo ? (isRtl ? '١.٥٢ م ر.ق' : 'QAR 1.52M') : null },
             { id: 'procurement', icon: '🛒', label: isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ', badge: isDemo ? (isRtl ? 'أمر شراء صادر' : 'PO Released') : null },
@@ -772,7 +762,7 @@ export const ProjectCockpitView: React.FC = () => {
               <option value="requirements">🎯 {isRtl ? 'المصفوفة والمتطلبات' : 'Requirements Matrix'}</option>
               <option value="clarifications">❓ {isRtl ? 'الاستفسارات RFI' : 'Clarifications / RFI'}</option>
               <option value="documents">📑 {isRtl ? 'الوثائق المعتمدة' : 'Controlled Documents'}</option>
-              <option value="timeline">⏱️ {isRtl ? 'الجدول الزمني / Gantt' : 'Timeline / Gantt'}</option>
+              <option value="timeline">⏱️ {isRtl ? 'الجدول والاعتماديات' : 'Schedule & dependencies'}</option>
               <option value="design">🎨 {isRtl ? 'التصميم والإبداع' : 'Design & Creative'}</option>
               <option value="commercial">💰 {isRtl ? 'التجاري وجدول الكميات' : 'Commercial / BOQ'}</option>
               <option value="procurement">🛒 {isRtl ? 'المشتريات والعطاءات' : 'Procurement & RFQ'}</option>
@@ -788,58 +778,11 @@ export const ProjectCockpitView: React.FC = () => {
         )}
       </div>
 
-      {cockpitModuleTab === 'requirements' && <RequirementsMatrixView projectId={projectId} />}
-      {cockpitModuleTab === 'clarifications' && <ClarificationsView projectId={projectId} />}
-      {cockpitModuleTab === 'documents' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
-            <Button
-              variant={docWorkspaceMode === 'hub' && docHubInitialTab === 'vault' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => {
-                setDocWorkspaceMode('hub');
-                setDocHubInitialTab('vault');
-              }}
-            >
-              🏛️ Company Vault
-            </Button>
-            <Button
-              variant={docWorkspaceMode === 'hub' && docHubInitialTab === 'project' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => {
-                setDocWorkspaceMode('hub');
-                setDocHubInitialTab('project');
-              }}
-            >
-              📑 Required Document Slots
-            </Button>
-            <Button
-              variant={docWorkspaceMode === 'hub' && docHubInitialTab === 'pack' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => {
-                setDocWorkspaceMode('hub');
-                setDocHubInitialTab('pack');
-              }}
-            >
-              📦 Sealed Submission Packs
-            </Button>
-            <Button
-              variant={docWorkspaceMode === 'technical' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setDocWorkspaceMode('technical')}
-            >
-              📐 Technical Drawing Register
-            </Button>
-          </div>
-          {docWorkspaceMode === 'hub' ? (
-            <ControlledDocumentsWorkspaceView initialProjectId={projectId} initialTab={docHubInitialTab} />
-          ) : (
-            <DocumentRegisterView projectId={projectId} />
-          )}
-        </div>
-      )}
-      {cockpitModuleTab === 'timeline' && <MasterGanttView projectId={projectId} />}
-      {cockpitModuleTab === 'design' && <DesignCreativeModuleView projectId={projectId} />}
+      {cockpitModuleTab === 'requirements' && <ProjectControlView kind="requirements" projectId={projectId} />}
+      {cockpitModuleTab === 'clarifications' && <ProjectControlView kind="clarifications" projectId={projectId} />}
+      {cockpitModuleTab === 'documents' && <ProjectRecordsView kind="documents" projectId={projectId} />}
+      {cockpitModuleTab === 'timeline' && <ScheduleRegister key={projectId} projectId={projectId} />}
+      {cockpitModuleTab === 'design' && <ProjectPlanningView kind="designs" projectId={projectId} />}
       {cockpitModuleTab === 'commercial' && <CommercialBOQView projectId={projectId} />}
       {cockpitModuleTab === 'procurement' && <ProcurementDeliveryView projectId={projectId} />}
       {cockpitModuleTab === 'production' && <ProductionDeliveryView projectId={projectId} />}
@@ -872,7 +815,7 @@ export const ProjectCockpitView: React.FC = () => {
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--status-warning-fg)', textTransform: 'uppercase' }}>
                 ⚠️ FAST-TRACK INTAKE: ONBOARDING INCOMPLETE ({onboardingPct}% Complete)
               </span>
               <Badge variant="warning" size="sm">Action Required</Badge>
@@ -933,7 +876,7 @@ export const ProjectCockpitView: React.FC = () => {
                   <strong>Reviewer Feedback:</strong> "{rejectedApproval.comment}"
                 </div>
               )}
-              <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--status-critical-fg)', marginTop: '6px' }}>
                 🔒 Governance invariant POL-GOV-02: Workstream advancement blocked until revisions are resubmitted.
               </div>
             </div>
@@ -1067,7 +1010,7 @@ export const ProjectCockpitView: React.FC = () => {
           </div>
           <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>Collected (Cash In)</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--status-success-fg)', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {isDraft ? 'Not yet available' : formatCurrency(cockpitData?.financials?.collected ?? (isDemo ? 1050000 : 0), 'QAR')}
             </div>
           </div>
@@ -1091,7 +1034,7 @@ export const ProjectCockpitView: React.FC = () => {
           </div>
           <div style={{ backgroundColor: 'var(--surface-inset, #0b111d)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle, #1d2939)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>Net Cash Exposure</div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#16a34a', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--status-success-fg)', marginTop: '2px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {isDraft ? 'Not yet available' : `+${formatCurrency(isDemo ? 470000 : Math.max(0, (cockpitData?.financials?.collected || 0) - (actualCost || 0)), 'QAR')}`}
             </div>
           </div>
@@ -1113,7 +1056,7 @@ export const ProjectCockpitView: React.FC = () => {
             <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase' }}>🔴 Critical Blocker</span>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--status-critical-fg)', textTransform: 'uppercase' }}>🔴 Critical Blocker</span>
                   <Badge variant="danger" size="sm">Gate 03</Badge>
                 </div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: '#f87171', marginBottom: '4px' }}>
@@ -1137,7 +1080,7 @@ export const ProjectCockpitView: React.FC = () => {
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🟠 HSE Compliance</span>
                   <Badge variant="warning" size="sm">Permits</Badge>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#f59e0b', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--status-warning-fg)', marginBottom: '4px' }}>
                   Civil Defence Fire Safety Clearance
                 </div>
                 <p style={{ fontSize: '12px', color: '#78350f', margin: 0 }}>
@@ -1155,10 +1098,10 @@ export const ProjectCockpitView: React.FC = () => {
             <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#4ade80', textTransform: 'uppercase' }}>🟡 Procurement Alert</span>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--status-success-fg)', textTransform: 'uppercase' }}>🟡 Procurement Alert</span>
                   <Badge variant="success" size="sm">Vendor RFQ</Badge>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--status-success-fg)', marginBottom: '4px' }}>
                   Structural Rigging Contractor Quotes
                 </div>
                 <p style={{ fontSize: '12px', color: '#14532d', margin: 0 }}>
@@ -1198,12 +1141,12 @@ export const ProjectCockpitView: React.FC = () => {
                 >
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#4ade80', textTransform: 'uppercase' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--status-success-fg)', textTransform: 'uppercase' }}>
                         🟢 All Systems Nominal
                       </span>
                       <Badge variant="success" size="sm">Project on track</Badge>
                     </div>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#22c55e' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--status-success-fg)' }}>
                       No critical governance blockers, pending approvals, or statutory compliance risks. The project operational pipeline is ready for delivery execution.
                     </p>
                   </div>
@@ -1236,7 +1179,7 @@ export const ProjectCockpitView: React.FC = () => {
                   >
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase' }}>🔴 Pending Approval</span>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--status-critical-fg)', textTransform: 'uppercase' }}>🔴 Pending Approval</span>
                         <Badge variant="danger" size="sm">{appr.requiredRole || 'Executive'}</Badge>
                       </div>
                       <div style={{ fontSize: '13px', fontWeight: 700, color: '#f87171', marginBottom: '4px' }}>
@@ -1279,7 +1222,7 @@ export const ProjectCockpitView: React.FC = () => {
                         <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🟠 Operational Blocker</span>
                         <Badge variant="warning" size="sm">{blk.owner || 'Operations'}</Badge>
                       </div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#f59e0b', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--status-warning-fg)', marginBottom: '4px' }}>
                         {blk.title}
                       </div>
                       <p style={{ fontSize: '12px', color: '#78350f', margin: 0 }}>
@@ -1304,10 +1247,10 @@ export const ProjectCockpitView: React.FC = () => {
                   >
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase' }}>ℹ️ Project Notice</span>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--status-info-fg)', textTransform: 'uppercase' }}>ℹ️ Project Notice</span>
                         <Badge variant="info" size="sm">Notice</Badge>
                       </div>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#60a5fa' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--status-info-fg)' }}>
                         {item}
                       </div>
                     </div>
@@ -1433,7 +1376,7 @@ export const ProjectCockpitView: React.FC = () => {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                 <span>Lead: <strong>{ws.lead}</strong></span>
-                <span>{ws.openTasks} open • {ws.blockers > 0 ? <strong style={{ color: '#ef4444' }}>{ws.blockers} blocker</strong> : '0 blockers'}</span>
+                <span>{ws.openTasks} open • {ws.blockers > 0 ? <strong style={{ color: 'var(--status-critical-fg)' }}>{ws.blockers} blocker</strong> : '0 blockers'}</span>
               </div>
             </div>
           ))}
@@ -1695,7 +1638,7 @@ export const ProjectCockpitView: React.FC = () => {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
                       <span>Cryptographic Seal:</span>
-                      <span style={{ color: '#4ade80' }}>Verified (PostgreSQL Cloud SQL Doha)</span>
+                      <span style={{ color: 'var(--status-success-fg)' }}>Verified (PostgreSQL Cloud SQL Doha)</span>
                     </div>
                   </div>
                 )}
@@ -1798,7 +1741,7 @@ export const ProjectCockpitView: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#f59e0b' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--status-warning-fg)' }}>
                 Required Approver: <strong>{cockpitThreshold.roleTitle}</strong>
               </span>
               <span
@@ -1818,7 +1761,7 @@ export const ProjectCockpitView: React.FC = () => {
             <div style={{ fontSize: '11px', color: '#78350f', lineHeight: 1.4 }}>
               <strong>Reason:</strong> {cockpitThreshold.reason}
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '6px', fontSize: '10px', color: '#f59e0b', fontFamily: 'monospace' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '6px', fontSize: '10px', color: 'var(--status-warning-fg)', fontFamily: 'monospace' }}>
               <span>Policy: {cockpitThreshold.policyId || 'E3-POL-COMMERCIAL-GLOBAL'} (v{cockpitThreshold.policyVersion || 1})</span>
               <span>• Scope: {cockpitThreshold.policyScopeMatched || 'system_default'}</span>
             </div>

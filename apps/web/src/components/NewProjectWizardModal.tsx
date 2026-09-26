@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { CANONICAL_E3_USERS } from '../context/EosContext.js';
 import { useEosApi } from '../hooks/useEosApi.js';
-import { Button, Badge } from './DesignSystem.js';
+import { Button, Badge, Modal } from './DesignSystem.js';
+import { ProjectSavedConfirmation, type SavedProjectReference } from './ProjectSavedConfirmation.js';
 import { STANDARD_THIRTEEN_STAGE_TEMPLATE } from '@e3-eos/domain';
 
 interface NewProjectWizardModalProps {
@@ -16,12 +17,13 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
   onClose,
   onProjectCreated,
 }) => {
-  const { currentLanguage, setSelectedProjectId, setActiveWorkspace, currentUser } = useEosContext();
+  const { currentLanguage, currentUser } = useEosContext();
   const { client } = useEosApi();
 
   const [step, setStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [savedProject, setSavedProject] = useState<SavedProjectReference | null>(null);
 
   // Form state across 9 steps
   const [formData, setFormData] = useState({
@@ -73,6 +75,15 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
   });
 
   if (!isOpen) return null;
+  if (savedProject) {
+    const closeSaved = () => {
+      setSavedProject(null);
+      setStep(1);
+      setFormData((previous) => ({ ...previous, title: '', description: '', projectCode: `PRJ-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}` }));
+      onClose();
+    };
+    return <Modal isOpen onClose={closeSaved} title={currentLanguage === 'ar' ? 'تم حفظ مسودة المشروع' : 'Project draft saved'}><ProjectSavedConfirmation project={savedProject} onBeforeNavigate={closeSaved} /></Modal>;
+  }
 
   const costNum = parseFloat(formData.estimatedCost) || 0;
   const revNum = parseFloat(formData.expectedRevenue) || 0;
@@ -172,12 +183,9 @@ export const NewProjectWizardModal: React.FC<NewProjectWizardModalProps> = ({
       };
 
       const result = await client.createProject(payload);
-      const createdId = result.data?.id || formData.projectCode;
-
-      onProjectCreated(result.data || { id: createdId, ...formData });
-      setSelectedProjectId(createdId);
-      setActiveWorkspace('project');
-      onClose();
+      if (!result.data?.id || result.data.projectAccessGranted !== false) throw new Error(currentLanguage === 'ar' ? 'تعذر التحقق من إيصال حفظ المشروع.' : 'The project creation receipt could not be verified.');
+      setSavedProject({ id: result.data.id, projectCode: result.data.payload?.projectCode, title: result.data.payload?.title });
+      onProjectCreated(result.data);
     } catch (err: any) {
       setError(err.message || 'Failed to onboard project in PostgreSQL');
     } finally {

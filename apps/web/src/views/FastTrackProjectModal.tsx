@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Button, Badge } from '../components/DesignSystem.js';
 import { calculateOnboardingCompleteness } from '@e3-eos/domain';
+import { ProjectSavedConfirmation } from '../components/ProjectSavedConfirmation.js';
 
 interface FastTrackProjectModalProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
   onClose,
   onProjectCreated,
 }) => {
-  const { currentLanguage, apiClient, navigate, triggerRefresh, setSelectedProjectId, direction, currentUser } = useEosContext();
+  const { currentLanguage, apiClient, triggerRefresh, direction, currentUser } = useEosContext();
 
   const [step, setStep] = useState<1 | 2 | 'post_create'>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -22,6 +23,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
   const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
   const [createdProjectCode, setCreatedProjectCode] = useState<string>('');
   const [createdProjectTitle, setCreatedProjectTitle] = useState<string>('');
+  const [draftCode, setDraftCode] = useState(() => `OPP-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`);
 
   // Step 1: Basic Info
   const [title, setTitle] = useState<string>('');
@@ -45,6 +47,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
   const [priority, setPriority] = useState<'Critical' | 'High' | 'Medium' | 'Low'>('Medium');
 
   const resetForm = () => {
+    setDraftCode(`OPP-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`);
     setStep(1);
     setCreatedProjectId(null);
     setCreatedProjectCode('');
@@ -110,11 +113,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
     setIsSubmitting(true);
     setError(null);
 
-    const generatedId = `f${Date.now().toString(16).padEnd(31, '0')}`;
-    const code = `OPP-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
-
     const payload = {
-      id: generatedId,
       originRoute,
       maturity: 'draft',
       isFastTrack: true,
@@ -122,7 +121,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
       onboardingCompletionPct: completeness.completionPct,
       missingSections: completeness.missingSections,
       projectIdentity: {
-        code,
+        code: draftCode,
         title,
         description,
         eventFormat: format,
@@ -157,13 +156,13 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
 
     try {
       const res = await apiClient.createProject(payload);
-      const newProjectId = res?.data?.id || generatedId;
-      setSelectedProjectId(newProjectId);
-      if (onProjectCreated) onProjectCreated(payload);
+      if (!res.data?.id || res.data.projectAccessGranted !== false) throw new Error(isAr ? 'تعذر التحقق من إيصال حفظ المشروع.' : 'The project creation receipt could not be verified.');
+      const newProjectId = res.data.id;
+      if (onProjectCreated) onProjectCreated(res.data);
       triggerRefresh();
       setCreatedProjectId(newProjectId);
-      setCreatedProjectCode(code);
-      setCreatedProjectTitle(title);
+      setCreatedProjectCode(res.data.payload?.projectCode || '');
+      setCreatedProjectTitle(res.data.payload?.title || '');
       setStep('post_create');
     } catch (err: any) {
       setError(err.message || 'Failed to save fast-track intake project.');
@@ -233,13 +232,13 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
               </span>
               <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
                 {step === 'post_create'
-                  ? (isAr ? 'تهيئة نطاق العمل' : 'Scope Initialization')
+                  ? (isAr ? 'تم حفظ المسودة' : 'Draft saved')
                   : (isAr ? `الخطوة ${step} من 2` : `Step ${step} of 2`)} • {isAr ? 'التقاط سريع وإكمال لاحق' : 'Capture Now, Complete Later'}
               </span>
             </div>
             <h2 style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
               {step === 'post_create'
-                ? (isAr ? 'خيارات تهيئة نطاق العمل' : 'Scope Management Options')
+                ? (isAr ? 'يتطلب المشروع منحة وصول' : 'Project access required')
                 : step === 1
                 ? (isAr ? 'البيانات الأساسية للفرصة / المناقصة' : 'Step 1: Basic Opportunity Details')
                 : (isAr ? 'القيمة التجارية ومسؤولية التنفيذ' : 'Step 2: Commercials & Ownership')}
@@ -265,202 +264,7 @@ export const FastTrackProjectModal: React.FC<FastTrackProjectModalProps> = ({
         {/* Modal Body */}
         {step === 'post_create' ? (
           <div style={{ padding: '24px' }}>
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <div style={{ fontSize: '40px', marginBottom: '8px' }}>🎉</div>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)', margin: '0 0 6px' }}>
-                {isAr ? 'تم إنشاء المشروع بنجاح!' : 'Project Initialized Successfully!'}
-              </h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted, #94a3b8)', margin: 0 }}>
-                <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{createdProjectCode}</span> • {createdProjectTitle}
-              </p>
-              <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', fontWeight: 600 }}>
-                {isAr ? 'كيف ترغب في بدء إدارة نطاق العمل والمتطلبات؟' : 'Choose how you want to configure project scope & requirements:'}
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
-              {/* Option 1: Manual */}
-              <div
-                id="ft-post-action-manual"
-                onClick={() => {
-                  const id = createdProjectId;
-                  handleClose();
-                  navigate(`/projects/${id}?tab=requirements`);
-                }}
-                style={{
-                  border: '1px solid var(--border-default, #2a374b)',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  cursor: 'pointer',
-                  backgroundColor: 'var(--surface-2, #151e2e)',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#2563eb';
-                  e.currentTarget.style.backgroundColor = '#eff6ff';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-default, #2a374b)';
-                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '20px' }}>📝</span>
-                  <strong style={{ fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
-                    {isAr ? 'إدخال المتطلبات يدوياً' : 'Add Scope Manually'}
-                  </strong>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
-                  {isAr ? 'تسجيل عناصر النطاق عنصراً بعنصر في مصفوفة التتبع سباعية النقاط.' : 'Register deliverables item-by-item in the 7-Point Traceability Register.'}
-                </div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', marginTop: 'auto' }}>
-                  {isAr ? 'فتح المصفوفة ←' : 'Open Matrix →'}
-                </div>
-              </div>
-
-              {/* Option 2: Bulk */}
-              <div
-                id="ft-post-action-bulk"
-                onClick={() => {
-                  const id = createdProjectId;
-                  handleClose();
-                  navigate(`/projects/${id}?tab=requirements&action=bulk`);
-                }}
-                style={{
-                  border: '1px solid var(--border-default, #2a374b)',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  cursor: 'pointer',
-                  backgroundColor: 'var(--surface-2, #151e2e)',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#2563eb';
-                  e.currentTarget.style.backgroundColor = '#eff6ff';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-default, #2a374b)';
-                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '20px' }}>📋</span>
-                  <strong style={{ fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
-                    {isAr ? 'لصق مجمع من إكسل' : 'Paste Scope in Bulk'}
-                  </strong>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
-                  {isAr ? 'نسخ ولصق صفوف المتطلبات وجدول الكميات من جداول Excel و TSV.' : 'Copy & paste rows directly from Excel or BOQ schedules with auto-validation.'}
-                </div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', marginTop: 'auto' }}>
-                  {isAr ? 'فتح شبكة اللصق ←' : 'Open Bulk Grid →'}
-                </div>
-              </div>
-
-              {/* Option 3: Parse RFP */}
-              <div
-                id="ft-post-action-parse"
-                onClick={() => {
-                  const id = createdProjectId;
-                  handleClose();
-                  navigate(`/projects/${id}?tab=requirements&action=parse`);
-                }}
-                style={{
-                  border: '1px solid var(--border-default, #2a374b)',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  cursor: 'pointer',
-                  backgroundColor: 'var(--surface-2, #151e2e)',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#6366f1';
-                  e.currentTarget.style.backgroundColor = '#eef2ff';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-default, #2a374b)';
-                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '20px' }}>📄</span>
-                  <strong style={{ fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
-                    {isAr ? 'استخراج وتحليل كراسة الشروط' : 'Upload & Parse RFP'}
-                  </strong>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
-                  {isAr ? 'لصق نص كراسة المناقصة لاستخراج المتطلبات مع حفظ الاقتباسات الدقيقة.' : 'Parse tender text to extract candidate scope items with exact citations preserved.'}
-                </div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#6366f1', marginTop: 'auto' }}>
-                  {isAr ? 'فتح محرك الاستخراج ←' : 'Open Parsing Engine →'}
-                </div>
-              </div>
-
-              {/* Option 4: Skip */}
-              <div
-                id="ft-post-action-skip"
-                onClick={() => {
-                  const id = createdProjectId;
-                  handleClose();
-                  navigate(`/projects/${id}`);
-                }}
-                style={{
-                  border: '1px solid var(--border-default, #2a374b)',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  cursor: 'pointer',
-                  backgroundColor: 'var(--surface-2, #151e2e)',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-strong, #475467)';
-                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-default, #2a374b)';
-                  e.currentTarget.style.backgroundColor = 'var(--surface-2, #151e2e)';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '20px' }}>🚀</span>
-                  <strong style={{ fontSize: '14px', color: 'var(--text-primary, #f8fafc)' }}>
-                    {isAr ? 'تخطي والإكمال لاحقاً' : 'Skip and Complete Later'}
-                  </strong>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
-                  {isAr ? 'الانتقال مباشرة إلى قمرة قيادة المشروع ومتابعة بوابات الحوكمة.' : 'Proceed directly to Project Cockpit overview and configure scope later.'}
-                </div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', marginTop: 'auto' }}>
-                  {isAr ? 'إلى قمرة القيادة ←' : 'To Cockpit →'}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const id = createdProjectId;
-                  handleClose();
-                  navigate(`/projects/${id}`);
-                }}
-              >
-                {isAr ? 'إغلاق والذهاب للمشروع' : 'Close & Proceed'}
-              </Button>
-            </div>
+            {createdProjectId && <ProjectSavedConfirmation project={{ id: createdProjectId, projectCode: createdProjectCode, title: createdProjectTitle }} onBeforeNavigate={handleClose} />}
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ padding: '24px' }}>

@@ -26,3 +26,9 @@ export * from './seed.js';
 export * from './migrate.js';
 export * from './client.js';
 export * from './auth-crypto.js';
+
+export * from './schema/field_observations.js';
+export * from './schema/allocation_register.js';
+export * from './schema/schedule.js';
+export * from './schema/design_register.js';
+export * from './schema/impact_register.js';

@@ -1,0 +1,238 @@
+{
+  "environment": "Local API localhost:4000; PostgreSQL local; isolated synthetic fixtures",
+  "checks": [
+    {
+      "name": "Isolated synthetic fixtures",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:46.992Z",
+      "evidence": {
+        "organisations": 2,
+        "users": 5,
+        "memberships": 5,
+        "passwordCredentials": 0,
+        "externalMessages": 0
+      }
+    },
+    {
+      "name": "Scoped admin directory without invented rows",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.064Z",
+      "evidence": {
+        "httpStatus": 200,
+        "expectedMemberships": 4,
+        "actualMemberships": 4
+      }
+    },
+    {
+      "name": "Executive read-only capabilities",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.071Z",
+      "evidence": {
+        "httpStatus": 200,
+        "capabilities": {
+          "canManageMemberships": false,
+          "canInvite": false,
+          "canAssignProjectAccess": false,
+          "canImpersonate": false
+        }
+      }
+    },
+    {
+      "name": "Identity headers do not establish authority",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.076Z",
+      "evidence": {
+        "httpStatus": 401,
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    {
+      "name": "Cross-organisation target is hidden",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.125Z",
+      "evidence": {
+        "httpStatus": 404,
+        "errorCode": "MEMBERSHIP_NOT_FOUND"
+      }
+    },
+    {
+      "name": "Missing command key is rejected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.138Z",
+      "evidence": {
+        "httpStatus": 400,
+        "errorCode": "MISSING_IDEMPOTENCY_KEY"
+      }
+    },
+    {
+      "name": "Empty reason is rejected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.153Z",
+      "evidence": {
+        "httpStatus": 400,
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    {
+      "name": "Invalid membership ID is rejected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.168Z",
+      "evidence": {
+        "httpStatus": 400,
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    {
+      "name": "Executive cannot revoke",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.186Z",
+      "evidence": {
+        "httpStatus": 403,
+        "errorCode": "MEMBERSHIP_REVOKE_FORBIDDEN"
+      }
+    },
+    {
+      "name": "Self admin revocation is rejected",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.220Z",
+      "evidence": {
+        "httpStatus": 409,
+        "errorCode": "SELF_REVOCATION_PROHIBITED"
+      }
+    },
+    {
+      "name": "Legacy invitation is explicitly unavailable",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.233Z",
+      "evidence": {
+        "httpStatus": 503,
+        "errorCode": "ADMIN_CAPABILITY_UNAVAILABLE"
+      }
+    },
+    {
+      "name": "Legacy project grant is explicitly unavailable",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.249Z",
+      "evidence": {
+        "httpStatus": 503,
+        "errorCode": "ADMIN_CAPABILITY_UNAVAILABLE"
+      }
+    },
+    {
+      "name": "Unsupported admin commands have no membership or invitation effects",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.254Z",
+      "evidence": {
+        "unchangedMemberships": 5,
+        "invitationsCreated": 0,
+        "usersCreated": 0
+      }
+    },
+    {
+      "name": "Valid revocation commits receipt audit and outbox",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.279Z",
+      "evidence": {
+        "httpStatus": 201,
+        "audit_count": 1,
+        "outbox_count": 1,
+        "receipt_count": 1
+      }
+    },
+    {
+      "name": "Revoked session denied on its next tenant request",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.296Z",
+      "evidence": {
+        "httpStatus": 401,
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    {
+      "name": "Same command replay returns identical receipt",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.317Z",
+      "evidence": {
+        "httpStatus": 201,
+        "identicalBody": true,
+        "audit_count": 1,
+        "outbox_count": 1,
+        "receipt_count": 1
+      }
+    },
+    {
+      "name": "Reused key with different reason conflicts",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.330Z",
+      "evidence": {
+        "httpStatus": 409,
+        "errorCode": "IDEMPOTENCY_CONFLICT"
+      }
+    },
+    {
+      "name": "New key cannot repeat the revoked business action",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.345Z",
+      "evidence": {
+        "httpStatus": 409,
+        "errorCode": "MEMBERSHIP_ALREADY_REVOKED"
+      }
+    },
+    {
+      "name": "Fixtures retained for independent API process restart",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:19:47.346Z",
+      "evidence": {
+        "initialApiPid": 29940,
+        "restartedApiPid": 24120,
+        "restartConfirmedByRoot": true,
+        "replayedAt": "2026-09-26T09:21:37.412Z"
+      }
+    },
+    {
+      "name": "Independent API process restart replay",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:21:37.421Z",
+      "evidence": {
+        "httpStatus": 201,
+        "identicalBody": true,
+        "audit_count": 1,
+        "outbox_count": 1,
+        "receipt_count": 1
+      }
+    },
+    {
+      "name": "Revoked session remains denied after API restart",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:21:37.428Z",
+      "evidence": {
+        "httpStatus": 401,
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    {
+      "name": "Scoped audit HTTP projection preserves revocation metadata",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:21:37.440Z",
+      "evidence": {
+        "httpStatus": 200,
+        "eventCount": 1,
+        "identityAndTargetVerified": true,
+        "digestAndTimestampUnchangedByReplay": true,
+        "payloadDigestFormat": "SHA-256 hex",
+        "noTamperProofClaim": true
+      }
+    },
+    {
+      "name": "Exact synthetic fixture cleanup",
+      "status": "PASS",
+      "timestamp": "2026-09-26T09:21:50.887Z",
+      "evidence": {
+        "organisationsRemoved": 2,
+        "usersRemoved": 5,
+        "membershipsRemoved": 5,
+        "temporarySessionFileRemoved": true
+      }
+    }
+  ]
+}

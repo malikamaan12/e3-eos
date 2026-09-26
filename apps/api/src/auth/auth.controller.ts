@@ -10,11 +10,14 @@ import {
   HttpStatus,
   UseFilters,
   Optional,
+  Header,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ProblemDetailsFilter } from '../common/problem.filter.js';
 import { DbService } from '../common/db.service.js';
 import { EmailDispatcherService } from '../common/email.service.js';
+import { localSyntheticAuthEnabled, readSessionToken } from './local-synthetic-auth.js';
+import { InvitationService } from '../identity/invitation.service.js';
 import crypto from 'crypto';
 import {
   hashPassword,
@@ -43,9 +46,7 @@ export class AuthController {
   }
 
   private async getSessionUser(req: Request) {
-    const authHeader = req.headers.authorization;
-    const cookieToken = req.cookies?.['eos_session'];
-    const token = authHeader?.replace('Bearer ', '') || cookieToken;
+    const token = readSessionToken(req);
 
     if (!token) return null;
     const pool = this.dbService.getPool();
@@ -55,16 +56,18 @@ export class AuthController {
              mfa.is_enabled as mfa_enabled
       FROM sessions s
       JOIN users u ON u.id = s.user_id
-      LEFT JOIN memberships m ON m.user_id = u.id
+      JOIN memberships m ON m.user_id = u.id AND m.is_revoked = false
       LEFT JOIN organisations o ON o.id = m.organisation_id
       LEFT JOIN user_mfa mfa ON mfa.user_id = u.id
       WHERE s.token = $1 AND s.expires_at > NOW()
+        AND ($2::text IS NULL OR m.organisation_id::text = $2)
+      ORDER BY m.created_at, m.id
       LIMIT 1;
-    `, [token]);
+    `, [token, req.headers?.['x-organisation-id'] || req.headers?.['x-organization-id'] || null]);
 
     if (sessionRes.rows.length === 0) return null;
     const sessionUser = sessionRes.rows[0];
-    if (sessionUser.membership_revoked && !sessionUser.is_super_admin) {
+    if (sessionUser.membership_revoked || !sessionUser.organisation_id || !sessionUser.role) {
       return null;
     }
     return sessionUser;
@@ -94,8 +97,11 @@ export class AuthController {
 
     let user = userRes.rows[0];
 
-    // JIT Self-Healing Provisioning for Canonical Local Team Accounts
+    // Explicitly opted-in synthetic local setup; deployed login never creates accounts.
     if (!user) {
+      if (!localSyntheticAuthEnabled()) {
+        throw new HttpException({ title: 'Unauthorized', detail: 'Invalid email or password' }, HttpStatus.UNAUTHORIZED);
+      }
       const canonicalAccount = LOCAL_TEAM_ACCOUNTS.find(
         (a) => a.email.toLowerCase() === cleanEmail
       ) || CANONICAL_DUMMY_ACCOUNTS.find(
@@ -104,7 +110,7 @@ export class AuthController {
 
       const defaultPassword = process.env.INITIAL_ADMIN_PASSWORD || DEFAULT_DUMMY_PASSWORD;
 
-      if (canonicalAccount && (body.password === defaultPassword || body.password === 'Doha2026!' || body.password === 'E3#Doha2026!')) {
+      if (canonicalAccount && body.password === defaultPassword) {
         const orgId = canonicalAccount.organisationId || '11111111-1111-4111-8111-111111111111';
         const hashedPassword = hashPassword(defaultPassword);
         const audience = canonicalAccount.role === 'client_user' || (canonicalAccount as any).orgId ? 'client' : 'internal';
@@ -135,7 +141,7 @@ export class AuthController {
             ON CONFLICT (organisation_id, user_id) DO UPDATE SET role = $3, is_revoked = false;
           `, [orgId, canonicalAccount.id, canonicalAccount.role, audience]);
         } catch (provisionErr: any) {
-          console.warn('[JIT Provisioning Notice]:', provisionErr.message);
+          throw new HttpException({ title: 'Service Unavailable', detail: 'Local synthetic account setup could not be completed.' }, HttpStatus.SERVICE_UNAVAILABLE);
         }
 
         user = {
@@ -157,10 +163,12 @@ export class AuthController {
       }
     }
 
-    // Verify Password or Auto-Activate Unconfigured Credential Records
+    // Existing unconfigured accounts require invitation/password setup outside local fixtures.
     if (!user.stored_password) {
       const defaultPassword = process.env.INITIAL_ADMIN_PASSWORD || DEFAULT_DUMMY_PASSWORD;
-      if (body.password === defaultPassword || body.password === 'Doha2026!' || body.password === 'E3#Doha2026!') {
+      const isCanonicalFixture = [...LOCAL_TEAM_ACCOUNTS, ...CANONICAL_DUMMY_ACCOUNTS]
+        .some((account) => account.email.toLowerCase() === cleanEmail);
+      if (localSyntheticAuthEnabled() && isCanonicalFixture && body.password === defaultPassword) {
         const hashedPassword = hashPassword(defaultPassword);
         try {
           await pool.query(`
@@ -169,7 +177,9 @@ export class AuthController {
             ON CONFLICT (user_id, provider_id) DO UPDATE SET password = $3;
           `, [user.id, user.email, hashedPassword]);
           user.stored_password = hashedPassword;
-        } catch {}
+        } catch {
+          throw new HttpException({ title: 'Service Unavailable', detail: 'Local synthetic account setup could not be completed.' }, HttpStatus.SERVICE_UNAVAILABLE);
+        }
       } else {
         throw new HttpException({ title: 'Unauthorized', detail: 'Account has not been activated. Please complete invitation or password setup.' }, HttpStatus.UNAUTHORIZED);
       }
@@ -183,7 +193,7 @@ export class AuthController {
     }
 
     // Check if account / membership is revoked
-    if (user.membership_revoked && !user.is_super_admin) {
+    if (user.membership_revoked || !user.organisation_id || !user.role) {
       throw new HttpException({ title: 'Forbidden', detail: 'This account has been disabled or access has been revoked.' }, HttpStatus.FORBIDDEN);
     }
 
@@ -269,9 +279,7 @@ export class AuthController {
 
   @Post('logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const cookieToken = req.cookies?.['eos_session'];
-    const authHeader = req.headers.authorization;
-    const token = cookieToken || authHeader?.replace('Bearer ', '');
+    const token = readSessionToken(req);
 
     if (token) {
       const pool = this.dbService.getPool();
@@ -418,6 +426,9 @@ export class AuthController {
   // --- Authenticated UAT Impersonation (Super Admin Role Only) ---
   @Post('impersonate')
   async impersonate(@Req() req: Request, @Body() body: { targetEmail: string }) {
+    if (!localSyntheticAuthEnabled()) {
+      throw new HttpException({ title: 'Forbidden', detail: 'UAT identity switching is available only in explicitly enabled local synthetic environments.' }, HttpStatus.FORBIDDEN);
+    }
     const sessionUser = await this.getSessionUser(req);
     if (!sessionUser) {
       throw new HttpException({ title: 'Unauthorized', detail: 'Authentication required' }, HttpStatus.UNAUTHORIZED);
@@ -578,70 +589,16 @@ export class AuthController {
 
   // --- Invitation Acceptance Flow ---
 
+  @Post('invitations/inspect')
+  @Header('Cache-Control', 'no-store')
+  inspectInvite(@Body() body: { token: string }) {
+    return new InvitationService(this.dbService).inspect(body);
+  }
+
   @Post('accept-invite')
-  async acceptInvite(@Body() body: { token: string; password: string; name?: string }) {
-    if (!body.token || !body.password) {
-      throw new HttpException({ title: 'Validation Error', detail: 'Token and password are required' }, HttpStatus.BAD_REQUEST);
-    }
-
-    const rawToken = body.token.trim();
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-
-    const pool = this.dbService.getPool();
-    const invRes = await pool.query(`
-      SELECT id, email, name, role, organisation_id, expires_at, accepted_at
-      FROM user_invitations
-      WHERE (token_hash = $1 OR token = $2)
-        AND expires_at > NOW()
-        AND accepted_at IS NULL
-      LIMIT 1;
-    `, [tokenHash, rawToken]);
-
-    if (invRes.rows.length === 0) {
-      throw new HttpException({ title: 'Bad Request', detail: 'Invalid, expired, or already accepted invitation token' }, HttpStatus.BAD_REQUEST);
-    }
-
-    const inv = invRes.rows[0];
-    const userName = body.name?.trim() || inv.name;
-    const hashed = hashPassword(body.password);
-
-    // Create or update user
-    const userRes = await pool.query(`
-      INSERT INTO users (id, email, name, email_verified, is_super_admin, created_at, updated_at)
-      VALUES (gen_random_uuid(), $1, $2, true, false, NOW(), NOW())
-      ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, email_verified = true, updated_at = NOW()
-      RETURNING id;
-    `, [inv.email, userName]);
-
-    const userId = userRes.rows[0].id;
-
-    // Set credential password
-    await pool.query(`
-      UPDATE accounts SET password = $2 WHERE user_id = $1 AND provider_id = 'credential';
-    `, [userId, hashed]);
-
-    await pool.query(`
-      INSERT INTO accounts (id, user_id, account_id, provider_id, password, created_at)
-      SELECT gen_random_uuid(), $1, $2, 'credential', $3, NOW()
-      WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE user_id = $1 AND provider_id = 'credential');
-    `, [userId, inv.email, hashed]);
-
-    // Ensure membership
-    await pool.query(`
-      INSERT INTO memberships (id, organisation_id, user_id, role, audience, is_revoked, created_at, updated_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, 'internal', false, NOW(), NOW())
-      ON CONFLICT (organisation_id, user_id) DO UPDATE SET role = $3;
-    `, [inv.organisation_id, userId, inv.role]);
-
-    // Mark invitation accepted
-    await pool.query(`
-      UPDATE user_invitations SET accepted_at = NOW() WHERE id = $1;
-    `, [inv.id]);
-
-    return {
-      success: true,
-      message: 'Account successfully activated. You may now sign in.',
-    };
+  @Header('Cache-Control', 'no-store')
+  async acceptInvite(@Body() body: { token: string; password?: string; name?: string }, @Req() req: Request) {
+    return new InvitationService(this.dbService).accept(body, req);
   }
 
   // --- Notifications Endpoints ---
@@ -708,4 +665,3 @@ export class AuthController {
     return { success: true };
   }
 }
-

@@ -1,3 +1,4 @@
+import './workspace.css';
 // Release v1.0.3: Scope CRUD hardening (Quick Add, Detailed Requirement, Bulk Entry)
 import React from 'react';
 import ReactDOM from 'react-dom/client';

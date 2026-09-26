@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, onTestFinished, afterEach } from 'vitest';
 import { Request } from 'express';
 import {
   generateEvidenceCode,
@@ -38,6 +38,10 @@ import {
   clientReviewSharesRepository,
   authorizedTestMarkAssetsRepository,
 } from '../apps/api/src/documents/documents.repositories.js';
+
+// Legacy direct domain scenarios deliberately opt into isolated fixtures, never HTTP.
+beforeEach(() => { vi.stubEnv('EOS_ENABLE_LOCAL_SYNTHETIC_AUTH', 'true'); vi.stubEnv('ENVIRONMENT', 'test'); });
+afterEach(() => vi.unstubAllEnvs());
 
 describe('E3-EOS Controlled Documents, Company Vault & Submission Packs — Section 20 Acceptance Scenarios', () => {
   const projectId = 'f1111111-1111-4111-8111-111111111111';
@@ -298,6 +302,8 @@ describe('E3-EOS Controlled Documents, Company Vault & Submission Packs — Sect
   // SCENARIO 8: Valid now but expired at required submission/activity date
   // =========================================================================
   it('Scenario 8: Valid now but expired at required submission/activity date -> Readiness blocker or review according to confirmed requirement', () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-19T12:00:00Z'));
+    onTestFinished(() => clock.mockRestore());
     const evidence: EvidenceVaultItem = {
       id: 'ev-exp-soon',
       organisationId: orgId,

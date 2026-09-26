@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Button, Badge, Card, AlertBanner, Modal, Input, Select } from '../components/DesignSystem.js';
 import { FastTrackProjectModal } from './FastTrackProjectModal.js';
+import { ProjectSavedConfirmation, type SavedProjectReference } from '../components/ProjectSavedConfirmation.js';
 
 interface ConfigurableStage {
   id: number;
@@ -63,7 +64,8 @@ const DEFAULT_STAGES: ConfigurableStage[] = [
 ];
 
 export const NewProjectWizardView: React.FC = () => {
-  const { currentLanguage, apiClient, navigate, triggerRefresh, setSelectedProjectId, currentUser } = useEosContext();
+  const { currentLanguage, apiClient, navigate, triggerRefresh, currentUser } = useEosContext();
+  const [savedProject, setSavedProject] = useState<SavedProjectReference | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -322,13 +324,11 @@ export const NewProjectWizardView: React.FC = () => {
     setIsSubmitting(true);
     setError(null);
     try {
-      const generatedId = `f${Date.now().toString(16).padEnd(31, '0')}`;
       const payload = {
-        id: generatedId,
         originRoute,
         maturity: isDraft ? 'draft' : 'developing',
         projectIdentity: {
-          code: code || `PRJ-${Date.now().toString().slice(-4)}`,
+          code: code.trim() || undefined,
           title: isDraft && !title ? 'Untitled Draft Project' : title,
           description,
           eventFormat: format,
@@ -400,15 +400,16 @@ export const NewProjectWizardView: React.FC = () => {
       };
 
       const res = await apiClient.createProject(payload);
-      const newProjectId = res.data?.id || generatedId;
-      setSelectedProjectId(newProjectId);
+      if (!res.data?.id || res.data.projectAccessGranted !== false) throw new Error(isRtl ? 'تعذر التحقق من إيصال حفظ المشروع.' : 'The project creation receipt could not be verified.');
+      setSavedProject({ id: res.data.id, projectCode: res.data.payload?.projectCode, title: res.data.payload?.title });
       triggerRefresh();
-      navigate(`/projects/${newProjectId}`);
     } catch (err: any) {
       setError(err.message || 'Failed to persist project in PostgreSQL.');
       setIsSubmitting(false);
     }
   };
+
+  if (savedProject) return <div style={{ maxWidth: 900, margin: '0 auto', paddingBottom: 32 }}><ProjectSavedConfirmation project={savedProject} /></div>;
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', paddingBottom: '40px', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
@@ -1505,9 +1506,9 @@ export const NewProjectWizardView: React.FC = () => {
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Badge variant="success">{isRtl ? 'تم فحص جميع القيود والثوابت' : 'All Invariants Checked'}</Badge>
+                <Badge variant="info">{isRtl ? 'الحقول المطلوبة مكتملة' : 'Required fields complete'}</Badge>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
-                  {isRtl ? 'جاهز للتفعيل في بيئة PostgreSQL بالدوحة.' : 'Ready to instantiate in Doha staging PostgreSQL.'}
+                  {isRtl ? 'سيُحفظ المشروع كمسودة. يتطلب فتحه منحة وصول منفصلة.' : 'The project will be saved as a draft. Opening it requires a separate access grant.'}
                 </span>
               </div>
             )}
@@ -1570,7 +1571,7 @@ export const NewProjectWizardView: React.FC = () => {
                 onClick={() => handleSaveProject(false)}
                 title={!canLaunch ? 'Complete all required fields before launching' : ''}
               >
-                🚀 {isRtl ? 'إنشاء وتفعيل المشروع' : 'Create & Launch Project Cockpit'}
+                {isRtl ? 'حفظ مسودة المشروع' : 'Save project draft'}
               </Button>
             )}
           </div>
@@ -1675,4 +1676,3 @@ export const NewProjectWizardView: React.FC = () => {
     </div>
   );
 };
-

@@ -1,0 +1,18 @@
+{
+  "applied": [
+    "0029_schedule_planning_register.sql"
+  ],
+  "before": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13,
+    "grants": 0
+  },
+  "after": {
+    "users": 75,
+    "memberships": 75,
+    "projects": 13,
+    "grants": 0
+  },
+  "ledger": 31
+}

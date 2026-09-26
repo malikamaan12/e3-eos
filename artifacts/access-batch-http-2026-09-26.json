@@ -1,0 +1,188 @@
+{
+  "scope": "Loopback-only synthetic actors; no existing access changed; no external delivery",
+  "checks": [
+    {
+      "name": "Durable project creation",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Project creation replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Owner and Super Admin require explicit grant",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Ungrant­ed directory remains empty",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Minimal administration project picklist",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Ordinary membership cannot administer grants",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Cross-organization membership rejected",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Create viewer grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Grant receipt replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Viewer reads granted project",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Viewer cannot clone",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Promote grant to editor",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Stale grant update rejected",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Unsafe legacy clone explicitly unavailable",
+      "status": "PASS",
+      "httpStatus": 503
+    },
+    {
+      "name": "Client editor grant rejected",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Client viewer grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Client safe project projection",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Client internal cockpit blocked",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Membership role change",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Membership role exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Old session rejected after role change",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Changed role intersects editor grant",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Fresh session retains viewer scope",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Revoke membership",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Revoked member blocked",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "Membership directory provides versions",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Restore ordinary membership",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Restoration exact replay",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Restoration does not reactivate old session",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Restoration does not reactivate old project grant",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Fresh explicit grant after restoration",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Restored member with new grant can read",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Self role change denied",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Privilege elevation denied",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "One audit, outbox and receipt per committed command",
+      "status": "PASS",
+      "audit": 8,
+      "outbox": 8,
+      "receipts": 8
+    },
+    {
+      "name": "Exact isolated fixture cleanup",
+      "status": "PASS",
+      "users": 4,
+      "organisations": 2
+    }
+  ]
+}

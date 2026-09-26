@@ -1,432 +1,180 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useEosContext } from '../context/EosContext.js';
-import { Card, Badge, Button, Modal, Input, Select } from '../components/DesignSystem.js';
-import { CANONICAL_ROLE_EXPLANATIONS, getRoleExplanation } from '../utils/role-explanations.js';
+import { Card, Badge, Button, Modal, Input, Textarea } from '../components/DesignSystem.js';
+import type { AdminAccessCapabilities, AdminMembership } from '../services/api-client.js';
+import { MembershipChangeModal } from '../components/MembershipChangeModal.js';
+import { InvitationsPanel } from '../components/InvitationsPanel.js';
 
 export const AdminUsersView: React.FC = () => {
-  const { currentLanguage, apiClient, navigate, refreshTrigger, triggerRefresh, switchPersona, currentUser } = useEosContext();
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  // Role Inspector Modal
-  const [inspectingRole, setInspectingRole] = useState<string | null>(null);
-
-  // Invite Modal
-  const [isInviteOpen, setIsInviteOpen] = useState<boolean>(false);
-  const [inviteName, setInviteName] = useState<string>('Sultan Al-Kuwari');
-  const [inviteEmail, setInviteEmail] = useState<string>('sultan.pm@e3.qa');
-  const [inviteRole, setInviteRole] = useState<string>('project_manager');
-  const [isInviting, setIsInviting] = useState<boolean>(false);
-
-  // Project Access Modal
-  const [isAccessOpen, setIsAccessOpen] = useState<boolean>(false);
-  const [accessProjectId, setAccessProjectId] = useState<string>('f1111111-1111-4111-8111-111111111111');
-  const [accessUserId, setAccessUserId] = useState<string>('');
-  const [isAssigning, setIsAssigning] = useState<boolean>(false);
+  const { currentLanguage, apiClient, navigate, refreshTrigger, triggerRefresh, switchPersona, currentUser, currentOrg } = useEosContext();
+  const ar = currentLanguage === 'ar';
+  const [users, setUsers] = useState<AdminMembership[]>([]);
+  const [capabilities, setCapabilities] = useState<AdminAccessCapabilities | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'revoked'>('all');
+  const [membershipChange, setMembershipChange] = useState<{ member: AdminMembership; mode: 'role' | 'restore' } | null>(null);
+  const [target, setTarget] = useState<AdminMembership | null>(null);
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState<string | null>(null);
+  const attempt = useRef<{ membershipId: string; reason: string; key: string } | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-    async function loadUsers() {
-      setLoading(true);
-      try {
-        const list = await apiClient.getAdminUsers();
-        if (isMounted) {
-          setUsers(list);
-          if (list.length > 0 && !accessUserId) {
-            setAccessUserId(list[0].id);
-          }
-        }
-      } catch {
-        // Fallback
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    loadUsers();
-    return () => { isMounted = false; };
-  }, [apiClient, refreshTrigger]);
+    let active = true;
+    setLoading(true);
+    setError(null);
+    setUsers([]);
+    setCapabilities(null);
+    Promise.all([apiClient.getAdminUsers(), apiClient.getAdminAccessCapabilities()])
+      .then(([memberships, access]) => { if (active) { setUsers(memberships); setCapabilities(access); } })
+      .catch((e: Error) => { if (active) setError(e.message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [apiClient, refreshTrigger, currentOrg.id, currentUser?.id]);
 
-  const handleInviteUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inviteEmail) return;
-    setIsInviting(true);
+  useEffect(() => {
+    setTarget(null);
+    setMembershipChange(null);
+    setInviteOpen(false);
+    setReason('');
+    setNotice(null);
+    attempt.current = null;
+  }, [currentOrg.id, currentUser?.id]);
+
+  const visibleUsers = useMemo(() => users.filter((u) => {
+    const matchesStatus = statusFilter === 'all' || (statusFilter === 'revoked' ? u.isRevoked : !u.isRevoked);
+    return matchesStatus && `${u.name} ${u.email} ${u.role}`.toLowerCase().includes(search.toLowerCase());
+  }), [users, statusFilter, search]);
+
+  const openRevocation = (membership: AdminMembership) => {
+    setTarget(membership);
+    setReason('');
+    setDecisionError(null);
+    attempt.current = null;
+  };
+
+  const revoke = async (event?: React.FormEvent) => {
+    event?.preventDefault();
+    if (!target || !reason.trim() || submitting) return;
+    const reviewed = target;
+    const normalizedReason = reason.trim();
+    if (!attempt.current || attempt.current.membershipId !== reviewed.membershipId || attempt.current.reason !== normalizedReason) {
+      attempt.current = { membershipId: reviewed.membershipId, reason: normalizedReason, key: crypto.randomUUID() };
+    }
+    setSubmitting(true);
+    setDecisionError(null);
     try {
-      await apiClient.inviteUser({
-        name: inviteName,
-        email: inviteEmail,
-        role: inviteRole,
-      });
-      setIsInviteOpen(false);
+      await apiClient.revokeMembership(reviewed.membershipId, normalizedReason, attempt.current.key);
+      setTarget(null);
+      setReason('');
+      setNotice(ar ? `تم إلغاء عضوية ${reviewed.name} وتسجيل القرار.` : `${reviewed.name}'s membership was revoked and the decision recorded.`);
       triggerRefresh();
-    } catch (err: any) {
-      alert(err.message || 'Failed to invite user');
+    } catch (e: any) {
+      setDecisionError(e.message || (ar ? 'تعذر تأكيد إلغاء العضوية.' : 'Membership revocation could not be confirmed.'));
     } finally {
-      setIsInviting(false);
+      setSubmitting(false);
     }
   };
 
-  const handleAssignAccess = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsAssigning(true);
-    try {
-      await apiClient.assignProjectAccess({
-        projectId: accessProjectId,
-        userId: accessUserId,
-        role: 'project_manager',
-      });
-      setIsAccessOpen(false);
-      triggerRefresh();
-    } catch (err: any) {
-      alert(err.message || 'Failed to assign project access');
-    } finally {
-      setIsAssigning(false);
-    }
+  const previewRole = async (user: AdminMembership) => {
+    setPreviewing(user.id);
+    setError(null);
+    try { await switchPersona(user.email); }
+    catch (e: any) { setError(e.message || (ar ? 'معاينة الدور غير متاحة.' : 'Role preview is unavailable.')); }
+    finally { setPreviewing(null); }
   };
+
+  const columns = 'minmax(180px,1.3fr) minmax(205px,1.5fr) 175px 90px 100px 140px';
+  const unavailable = ar
+    ? 'عضوية الجهة وصلاحيات المشاريع ضوابط منفصلة. تغيير الدور أو استعادة العضوية يتطلب سبباً مسجلاً وتسجيل الدخول مجدداً. الأدوار المميزة تحتاج مسار حوكمة منفصلاً.'
+    : 'Organization membership and project access are separate controls. Role changes and restoration require a recorded reason and fresh sign-in. Privileged roles require a separate governance process.';
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>
-            {currentLanguage === 'ar' ? 'إدارة المستخدمين والصلاحيات' : 'User Administration'}
-          </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
-            {currentLanguage === 'ar'
-              ? 'إدارة حسابات الفريق وتعيين الأدوار الصارمة ومنح صلاحيات المشاريع'
-              : 'Enterprise user provisioning, RBAC role assignments, and project access delegation'}
-          </p>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>{ar ? 'إدارة المستخدمين والصلاحيات' : 'User Administration'}</h1>
+          <p style={{ color: 'var(--text-secondary)', margin: '6px 0' }}>{ar ? 'عضويات الجهة الحالية وحالة الوصول المسجلة.' : 'Recorded memberships and access status for your current organization.'}</p>
+          <Badge variant="purple">{currentOrg.name}</Badge>
         </div>
-
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button variant="secondary" size="md" onClick={() => navigate('/admin/roles')}>
-            Permission Matrix
-          </Button>
-          <Button id="admin-assign-access-btn" variant="secondary" size="md" onClick={() => setIsAccessOpen(true)}>
-            Assign Project Access
-          </Button>
-          <Button id="admin-invite-user-btn" variant="primary" size="md" onClick={() => setIsInviteOpen(true)}>
-            + Invite User
-          </Button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Button variant="secondary" onClick={() => navigate('/admin/access')}>{ar ? 'صلاحيات المشاريع' : 'Project access'}</Button>
+          <Button variant="secondary" onClick={() => navigate('/admin/roles')}>{ar ? 'دليل الأدوار' : 'Role reference'}</Button>
+          <Button variant="secondary" onClick={triggerRefresh} disabled={loading}>{ar ? 'تحديث' : 'Refresh'}</Button>
+          <Button id="admin-invite-user-btn" disabled={!capabilities?.canInvite || loading} title={capabilities?.disabledReasons.invite} onClick={() => setInviteOpen(true)}>{ar ? 'دعوة مستخدم' : 'Invite user'}</Button>
         </div>
       </div>
 
+      <p style={{ padding: 14, border: '1px solid var(--border-default)', borderRadius: 12, color: 'var(--text-secondary)', fontSize: 13 }}>{unavailable}</p>
+      {notice && <p role="status" style={{ color: 'var(--text-primary)' }}>{notice}</p>}
+      {error && <div role="alert" style={{ padding: 16, marginBottom: 16, border: '1px solid var(--status-critical-fg)', borderRadius: 12 }}>
+        <strong>{ar ? 'تعذر التحقق من صلاحيات المستخدمين.' : 'User access could not be verified.'}</strong>
+        <p>{error}</p>
+        <Button variant="secondary" onClick={triggerRefresh}>{ar ? 'إعادة المحاولة' : 'Retry'}</Button>
+      </div>}
+
+      {capabilities?.canManageMemberships && <InvitationsPanel capabilities={capabilities} isOpen={inviteOpen} onClose={() => setInviteOpen(false)} />}
+
       <Card noPadding>
-        {loading ? (
-          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
-            Querying users directly from Cloud SQL PostgreSQL...
+        <div style={{ padding: 18, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--border-default)' }}>
+          <Input id="admin-user-search" label={ar ? 'البحث عن مستخدم' : 'Find a user'} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={ar ? 'الاسم أو البريد أو الدور' : 'Name, email or role'} containerStyle={{ flex: '1 1 220px', marginBottom: 0 }} />
+          <div role="group" aria-label={ar ? 'حالة العضوية' : 'Membership status'} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {(['all', 'active', 'revoked'] as const).map((filter) => <Button key={filter} size="sm" variant={statusFilter === filter ? 'primary' : 'secondary'} aria-pressed={statusFilter === filter} onClick={() => setStatusFilter(filter)}>
+              {filter === 'all' ? (ar ? 'الكل' : 'All') : filter === 'active' ? (ar ? 'نشطة' : 'Active') : (ar ? 'ملغاة' : 'Revoked')}
+              {!loading && !error ? ` (${users.filter((u) => filter === 'all' || (filter === 'revoked' ? u.isRevoked : !u.isRevoked)).length})` : ''}
+            </Button>)}
           </div>
-        ) : (
-          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-            <div style={{ minWidth: '760px' }}>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1.4fr 1.6fr 120px 100px 110px 120px',
-                  padding: '12px 18px',
-                  backgroundColor: 'var(--surface-2, #151e2e)',
-                  borderBottom: '1px solid var(--border-default, #2a374b)',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: 'var(--text-muted, #94a3b8)',
-                  textTransform: 'uppercase',
-                }}
-              >
-                <span>{currentLanguage === 'ar' ? 'المستخدم' : 'User Name'}</span>
-                <span>{currentLanguage === 'ar' ? 'البريد الإلكتروني' : 'Email'}</span>
-                <span>{currentLanguage === 'ar' ? 'الدور' : 'Role'}</span>
-                <span>{currentLanguage === 'ar' ? 'النطاق' : 'Audience'}</span>
-                <span>{currentLanguage === 'ar' ? 'الجهة' : 'Organization'}</span>
-                <span>{currentLanguage === 'ar' ? 'الإجراءات' : 'Actions'}</span>
+        </div>
+
+        {loading ? <p role="status" style={{ padding: 24 }}>{ar ? 'جارٍ تحميل العضويات المسجلة...' : 'Loading recorded memberships...'}</p>
+          : error ? null
+          : visibleUsers.length === 0 ? <p role="status" style={{ padding: 24, color: 'var(--text-secondary)' }}>{ar ? 'لا توجد عضويات تطابق هذا العرض.' : 'No recorded memberships match this view.'}</p>
+          : <div role="region" aria-label={ar ? 'دليل العضويات' : 'Membership directory'} tabIndex={0} style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <div role="table" aria-label={ar ? 'عضويات الجهة' : 'Organization memberships'} style={{ minWidth: 1050 }}>
+              <div role="row" style={{ display: 'grid', gridTemplateColumns: columns, columnGap: 12, padding: '12px 18px', background: 'var(--surface-2)', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                {(ar ? ['المستخدم', 'البريد الإلكتروني', 'الدور المسجل', 'النطاق', 'الحالة', 'الإجراءات'] : ['USER', 'EMAIL', 'RECORDED ROLE', 'AUDIENCE', 'STATUS', 'ACTIONS']).map((label) => <span role="columnheader" key={label}>{label}</span>)}
               </div>
-
-              {users.map((u) => {
-                const effectiveRole = u.isSuperAdmin && (!u.role || u.role === 'unassigned') ? 'super_admin' : (u.role || 'project_manager');
-                const effectiveAudience = (!u.audience || u.audience === 'unassigned') ? 'internal' : u.audience;
-
-                return (
-                  <div
-                    key={u.id}
-                    id={`user-row-${u.email}`}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1.4fr 1.6fr 120px 100px 110px 120px',
-                      alignItems: 'center',
-                      padding: '12px 18px',
-                      borderBottom: '1px solid var(--border-subtle, #1d2939)',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>{u.name}</div>
-                      {u.isSuperAdmin && <span style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 700 }}>Root Governance</span>}
-                    </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)', fontFamily: 'monospace' }}>
-                      {u.email}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Badge variant={(effectiveRole === 'super_admin' || u.isSuperAdmin) ? 'purple' : effectiveRole === 'client_user' ? 'warning' : 'info'}>
-                        {effectiveRole}
-                      </Badge>
-                      {CANONICAL_ROLE_EXPLANATIONS[effectiveRole] && (
-                        <button
-                          type="button"
-                          id={`inspect-role-btn-${u.id}`}
-                          title="View plain-English capabilities and governance boundaries"
-                          onClick={() => setInspectingRole(effectiveRole)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '13px',
-                            color: 'var(--text-muted, #94a3b8)',
-                            padding: '2px',
-                          }}
-                        >
-                          ℹ️
-                        </button>
-                      )}
-                    </div>
-                    <div>
-                      <Badge variant={effectiveAudience === 'internal' ? 'neutral' : 'warning'}>
-                        {effectiveAudience}
-                      </Badge>
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
-                      {u.organisationName || 'E3 Events'}
-                    </div>
-                    <div>
-                      {currentUser?.isSuperAdmin && u.email !== currentUser.email ? (
-                        <button
-                          id={`btn-impersonate-${u.id}`}
-                          type="button"
-                          onClick={() => switchPersona(u.email)}
-                          style={{
-                            padding: '4px 8px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            backgroundColor: 'var(--surface-2, #151e2e)',
-                            border: '1px solid var(--border-default, #2a374b)',
-                            borderRadius: '4px',
-                            color: 'var(--text-secondary, #cbd5e1)',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {currentLanguage === 'ar' ? 'معاينة كـ دور' : 'Audit as Role'}
-                        </button>
-                      ) : currentUser && u.email === currentUser.email ? (
-                        <Badge variant="neutral">
-                          {currentLanguage === 'ar' ? 'الجلسة الحالية' : 'Active Session'}
-                        </Badge>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAccessUserId(u.id);
-                            setIsAccessOpen(true);
-                          }}
-                          style={{
-                            padding: '4px 8px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            backgroundColor: 'var(--surface-2, #151e2e)',
-                            border: '1px solid var(--border-default, #2a374b)',
-                            borderRadius: '4px',
-                            color: 'var(--accent, #d97706)',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {currentLanguage === 'ar' ? 'إدارة الوصول' : 'Manage Access'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+              {visibleUsers.map((user) => <div role="row" key={user.membershipId} style={{ display: 'grid', gridTemplateColumns: columns, columnGap: 12, alignItems: 'center', padding: '16px 18px', borderTop: '1px solid var(--border-subtle)', fontSize: 13, overflowWrap: 'anywhere' }}>
+                <div role="cell"><strong>{user.name}</strong>{user.id === currentUser?.id && <div style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 4 }}>{ar ? 'الجلسة الحالية' : 'Current session'}</div>}</div>
+                <div role="cell" style={{ color: 'var(--text-secondary)' }}>{user.email}</div>
+                <div role="cell"><Badge variant={user.role === 'super_admin' ? 'purple' : 'info'}>{user.role || (ar ? 'غير مسجل' : 'Not recorded')}</Badge></div>
+                <div role="cell">{user.audience || (ar ? 'غير مسجل' : 'Not recorded')}</div>
+                <div role="cell"><Badge variant={user.isRevoked ? 'warning' : 'success'}>{user.isRevoked ? (ar ? 'ملغاة' : 'Revoked') : (ar ? 'نشطة' : 'Active')}</Badge></div>
+                <div role="cell" style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                  {capabilities?.canManageMemberships && !user.isRevoked && user.id !== currentUser?.id && <Button size="sm" variant="danger" onClick={() => openRevocation(user)}>{ar ? 'إلغاء العضوية' : 'Revoke access'}</Button>}
+                  {user.id !== currentUser?.id && !user.isSuperAdmin && !['super_admin', 'executive'].includes(user.role) && ['internal', 'client'].includes(user.audience) && <>
+                    {!user.isRevoked && capabilities?.canChangeRoles && <Button size="sm" variant="secondary" onClick={() => setMembershipChange({ member: user, mode: 'role' })}>{ar ? 'تغيير الدور' : 'Change role'}</Button>}
+                    {user.isRevoked && capabilities?.canRestoreMemberships && <Button size="sm" variant="secondary" onClick={() => setMembershipChange({ member: user, mode: 'restore' })}>{ar ? 'استعادة العضوية' : 'Restore membership'}</Button>}
+                  </>}
+                  {capabilities?.canImpersonate && !user.isRevoked && user.id !== currentUser?.id && <Button size="sm" variant="secondary" isLoading={previewing === user.id} disabled={previewing !== null} onClick={() => previewRole(user)}>{ar ? 'معاينة محلية للدور' : 'Local role preview'}</Button>}
+                  {(!capabilities?.canManageMemberships || user.isRevoked || user.id === currentUser?.id) && <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{user.isRevoked ? (ar ? 'الوصول موقوف' : 'Access disabled') : (ar ? 'للقراءة فقط' : 'Read only')}</span>}
+                </div>
+              </div>)}
             </div>
-          </div>
-        )}
+          </div>}
       </Card>
 
-      {/* Modal: Invite User */}
-      <Modal
-        isOpen={isInviteOpen}
-        onClose={() => setIsInviteOpen(false)}
-        title="Invite New Enterprise User"
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setIsInviteOpen(false)}>Cancel</Button>
-            <Button id="submit-invite-user-btn" variant="primary" isLoading={isInviting} onClick={handleInviteUser}>
-              Send Invitation
-            </Button>
-          </>
-        }
-      >
-        <form onSubmit={handleInviteUser}>
-          <Input
-            id="invite-user-name"
-            label="Full Name *"
-            value={inviteName}
-            onChange={(e) => setInviteName(e.target.value)}
-            required
-          />
-          <Input
-            id="invite-user-email"
-            label="Work Email Address *"
-            type="email"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            required
-          />
-          <Select
-            id="invite-user-role"
-            label="Canonical Role *"
-            value={inviteRole}
-            onChange={(e) => setInviteRole(e.target.value)}
-            options={[
-              { value: 'project_manager', label: 'Project Manager (Lead PM)' },
-              { value: 'project_director', label: 'Project Director' },
-              { value: 'executive', label: 'Executive Partner' },
-              { value: 'finance', label: 'Financial Controller' },
-              { value: 'procurement', label: 'Procurement Manager' },
-              { value: 'design_production', label: 'Design / Production Director' },
-              { value: 'operations', label: 'Head of Event Operations' },
-              { value: 'logistics', label: 'Logistics & Fleet Manager' },
-              { value: 'hse_quality', label: 'HSE / Quality Inspector' },
-              { value: 'marketing_commercial', label: 'Marketing & Commercial Lead' },
-              { value: 'field_supervisor', label: 'Field Supervisor' },
-              { value: 'client_user', label: 'Client Stakeholder' },
-              { value: 'super_admin', label: 'Super Admin (Tenant Root)' },
-            ]}
-          />
+      {membershipChange && <MembershipChangeModal key={membershipChange.member.membershipId + membershipChange.mode}
+        member={membershipChange.member} mode={membershipChange.mode} allowedRoles={capabilities?.allowedMembershipRoles || []}
+        onClose={() => { setMembershipChange(null); triggerRefresh(); }}
+        onComplete={(message) => { setMembershipChange(null); setNotice(message); triggerRefresh(); }} />}
 
-          {/* Live Role Explanation Preview Card */}
-          {(() => {
-            const exp = getRoleExplanation(inviteRole);
-            if (!exp) return null;
-            return (
-              <div
-                id="invite-role-explanation"
-                style={{
-                  marginTop: '12px',
-                  padding: '12px',
-                  backgroundColor: 'var(--surface-2, #151e2e)',
-                  border: '1px solid var(--border-default, #2a374b)',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                }}
-              >
-                <div style={{ fontWeight: 700, color: 'var(--text-primary, #f8fafc)', marginBottom: '4px' }}>
-                  {exp.title} — Scope & Boundaries
-                </div>
-                <div style={{ color: 'var(--text-muted, #94a3b8)', marginBottom: '8px' }}>{exp.description}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <div style={{ padding: '8px', backgroundColor: 'rgba(34, 197, 94, 0.12)', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
-                    <div style={{ fontWeight: 700, color: '#22c55e', fontSize: '11px', marginBottom: '4px' }}>✓ CAN:</div>
-                    <ul style={{ margin: 0, paddingLeft: '14px', color: '#4ade80', lineHeight: 1.4 }}>
-                      {exp.can.map((c, i) => (
-                        <li key={i}>{c}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div style={{ padding: '8px', backgroundColor: 'rgba(239, 68, 68, 0.12)', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                    <div style={{ fontWeight: 700, color: '#ef4444', fontSize: '11px', marginBottom: '4px' }}>✕ CANNOT BY DEFAULT:</div>
-                    <ul style={{ margin: 0, paddingLeft: '14px', color: '#f87171', lineHeight: 1.4 }}>
-                      {exp.cannot.map((c, i) => (
-                        <li key={i}>{c}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-        </form>
-      </Modal>
-
-      {/* Modal: Assign Project Access */}
-      <Modal
-        isOpen={isAccessOpen}
-        onClose={() => setIsAccessOpen(false)}
-        title="Assign User to Project"
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setIsAccessOpen(false)}>Cancel</Button>
-            <Button id="submit-project-access-btn" variant="primary" isLoading={isAssigning} onClick={handleAssignAccess}>
-              Grant Access
-            </Button>
-          </>
-        }
-      >
-        <form onSubmit={handleAssignAccess}>
-          <Input
-            id="assign-project-id"
-            label="Project ID *"
-            value={accessProjectId}
-            onChange={(e) => setAccessProjectId(e.target.value)}
-            required
-          />
-          <Select
-            id="assign-user-id"
-            label="Select User *"
-            value={accessUserId}
-            onChange={(e) => setAccessUserId(e.target.value)}
-            options={users.map((u) => ({ value: u.id, label: `${u.name} (${u.email})` }))}
-          />
-        </form>
-      </Modal>
-
-      {/* Modal: Role Governance Details */}
-      <Modal
-        isOpen={inspectingRole !== null}
-        onClose={() => setInspectingRole(null)}
-        title={inspectingRole ? `${getRoleExplanation(inspectingRole)?.title || inspectingRole} — Capabilities & Governance` : 'Role Details'}
-        footer={
-          <Button variant="secondary" onClick={() => setInspectingRole(null)}>
-            Close
-          </Button>
-        }
-      >
-        {inspectingRole && (() => {
-          const exp = getRoleExplanation(inspectingRole);
-          if (!exp) return <div>No details available for role: {inspectingRole}</div>;
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary, #f8fafc)' }}>{exp.title}</span>
-                  <code style={{ fontSize: '12px', padding: '2px 8px', backgroundColor: 'var(--surface-inset, #0b111d)', borderRadius: '4px', color: 'var(--text-secondary, #cbd5e1)' }}>{exp.role}</code>
-                </div>
-                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary, #cbd5e1)' }}>{exp.description}</p>
-              </div>
-
-              <div style={{ padding: '12px', backgroundColor: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '6px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', marginBottom: '6px' }}>
-                  ✓ Can (Authorized Capabilities)
-                </div>
-                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#4ade80', lineHeight: 1.5 }}>
-                  {exp.can.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div style={{ padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '6px' }}>
-                  ✕ Cannot by Default (Governance Boundaries)
-                </div>
-                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#f87171', lineHeight: 1.5 }}>
-                  {exp.cannot.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontStyle: 'italic' }}>
-                * Role boundaries are enforced server-side by NestJS guards and PostgreSQL Row-Level Security policies.
-              </div>
-            </div>
-          );
-        })()}
+      <Modal isOpen={target !== null} onClose={() => { if (!submitting) setTarget(null); }} title={ar ? 'إلغاء عضوية الجهة' : 'Revoke organization membership'} footer={<>
+        <Button variant="secondary" disabled={submitting} onClick={() => setTarget(null)}>{ar ? 'إلغاء' : 'Cancel'}</Button>
+        <Button variant="danger" disabled={!reason.trim() || !capabilities?.canManageMemberships} isLoading={submitting} onClick={() => revoke()}>{ar ? 'تأكيد إلغاء العضوية' : 'Confirm revocation'}</Button>
+      </>}>
+        {target && <form onSubmit={revoke}>
+          <p><strong>{target.name}</strong><br />{target.email}</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{target.organisationName} · {target.role}</p>
+          <p>{ar ? 'ستتوقف صلاحية الوصول لهذه الجهة عند الطلب التالي. تبقى العضوية والقرارات السابقة محفوظة في السجل.' : 'Access to this organization will be denied on the next request. The membership and past decisions remain in the record.'}</p>
+          <Textarea id="membership-revocation-reason" label={ar ? 'سبب إلغاء العضوية' : 'Reason for revocation'} value={reason} onChange={(e) => setReason(e.target.value)} required maxLength={2000} disabled={submitting} />
+          {decisionError && <div role="alert" style={{ color: 'var(--status-critical-fg)' }}>{decisionError}</div>}
+        </form>}
       </Modal>
     </div>
   );

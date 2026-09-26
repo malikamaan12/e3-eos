@@ -1,4 +1,18 @@
+import { RequirementIntakeController } from './scope/requirement-intake.controller.js';
+import { AllocationRegisterController } from './scope/allocation-register.controller.js';
+import { DesignRegisterController } from './designs/design-register.controller.js';
+import { ImpactRegisterController } from './scope/impact-register.controller.js';
+import { ScheduleController } from './work/schedule.controller.js';
+import { SchedulePlanningController } from './work/schedule-planning.controller.js';
+import { ClarificationRegisterController } from './scope/clarification-register.controller.js';
+import { FieldObservationsController } from './field-sync/field-observations.controller.js';
+import { LegacyScopeBoundaryGuard, LegacyFieldBoundaryGuard, LegacyDesignBoundaryGuard } from './common/legacy-capture-boundary.guard.js';
+import { PortfolioSummaryController } from './portfolio/portfolio-summary.controller.js';
+import { DocumentsAccessGuard, CompanyVaultAvailabilityGuard } from './documents/documents-access.guard.js';
+import { ProjectAccessController } from './projects/project-access.controller.js';
+import { ProjectAccessGuard } from './projects/project-access.guard.js';
 import { Module } from '@nestjs/common';
+import { MembershipAdminController } from './identity/membership-admin.controller.js';
 import { IdentityController } from './identity/identity.controller.js';
 import { ProjectsController } from './projects/projects.controller.js';
 import { ScopeController } from './scope/scope.controller.js';
@@ -54,9 +68,19 @@ import { DbService } from './common/db.service.js';
     AuthController,
     AdminController,
     IdentityController,
+    MembershipAdminController,
     ProjectsController,
+    ProjectAccessController,
     GovernanceController,
     ScopeController,
+    RequirementIntakeController,
+    AllocationRegisterController,
+    DesignRegisterController,
+    ImpactRegisterController,
+    ScheduleController,
+    SchedulePlanningController,
+    ClarificationRegisterController,
+    FieldObservationsController,
     DocumentsController,
     CompanyVaultController,
     SubmissionPacksController,
@@ -80,6 +104,7 @@ import { DbService } from './common/db.service.js';
     IntegrationsController,
     ExternalIntegrationsController,
     PortfolioController,
+    PortfolioSummaryController,
     AiController,
     RolloutController,
     AiCopilotController,
@@ -90,7 +115,7 @@ import { DbService } from './common/db.service.js';
     PortfolioIntelligenceController,
     SettingsController,
   ],
-  providers: [DbService, DocumentQuarantineService, IdempotencyGuard, TenantIsolationGuard],
+  providers: [DbService, DocumentQuarantineService, IdempotencyGuard, TenantIsolationGuard, ProjectAccessGuard, DocumentsAccessGuard, CompanyVaultAvailabilityGuard, LegacyScopeBoundaryGuard, LegacyFieldBoundaryGuard, LegacyDesignBoundaryGuard],
   exports: [DbService],
 })
 export class AppModule {}

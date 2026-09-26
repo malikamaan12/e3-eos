@@ -1,0 +1,329 @@
+{
+  "runId": "be98ead2-882e-469a-9e4f-cfcb5e719b88",
+  "restart": {
+    "performed": true,
+    "previousApiPid": 9952,
+    "newApiPid": 23372
+  },
+  "scope": "Loopback isolated fixtures; no existing grants changed, no messages or uploads.",
+  "checks": [
+    {
+      "name": "Create isolated project",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create isolated project",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assign isolated project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assign isolated project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assign isolated project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assign isolated project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Create canonical requirement source",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Record allocation against exact requirement version",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Allocation retries retain one receipt",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Record second zone quantity",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Unknown allocation values remain unknown",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Quantity comparison exposes unknown applicability",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Viewer cannot create allocations",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Allocation rejects forged installation state",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Allocation rejects cross-project requirement",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Allocation rejects changed source version",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Design brief pins requirement and allocation revisions",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Design retry returns original receipt",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Design rejects fabricated approval",
+      "status": "PASS",
+      "httpStatus": 400
+    },
+    {
+      "name": "Design rejects cross-project pins",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Viewer cannot author design briefs",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Viewer can inspect scoped planning records",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Client cannot read internal planning records",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Other organization cannot read planning records",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Viewer can inspect scoped planning records",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Client cannot read internal planning records",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Other organization cannot read planning records",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Viewer can inspect scoped planning records",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Client cannot read internal planning records",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Other organization cannot read planning records",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Current source pins have no revision-change impacts",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Requirement change appends source revision",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Allocation exposes changed source pin",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Design exposes changed source pin",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Impact view identifies affected allocation and design",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Record advisory impact assessment",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Assessment retries retain one receipt",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Changed impact fingerprint cannot be assessed",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Viewer cannot record assessment",
+      "status": "PASS",
+      "httpStatus": 403
+    },
+    {
+      "name": "Assessment does not silently resolve impact",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Original design snapshot remains intact",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Original allocation snapshot remains intact",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Legacy design release cannot return fabricated approval",
+      "status": "PASS",
+      "httpStatus": 503
+    },
+    {
+      "name": "Legacy allocation path unavailable",
+      "status": "PASS",
+      "httpStatus": 503
+    },
+    {
+      "name": "Advisory receipt survives process restart",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Recorded assessment history survives restart",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Explicit allocation revision adopts current requirement",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Stale allocation revision rejected",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Explicit design revision adopts current source pins",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Stale design revision rejected",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Impact view clears only deliberately updated targets",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Changed target rejects earlier assessment replay",
+      "status": "PASS",
+      "httpStatus": 409
+    },
+    {
+      "name": "Historical assessment remains available after rebase",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Old and new immutable snapshots remain readable",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Old and new immutable snapshots remain readable",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Revoke isolated editor project grant",
+      "status": "PASS",
+      "httpStatus": 201
+    },
+    {
+      "name": "Revoked grant denies planning reads",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant denies planning reads",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant denies planning reads",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant denies original allocation replay",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Revoked grant denies original design replay",
+      "status": "PASS",
+      "httpStatus": 404
+    },
+    {
+      "name": "Atomic effect counts reconcile",
+      "status": "PASS",
+      "audit": 16,
+      "outbox": 16,
+      "receipts": 16
+    },
+    {
+      "name": "Exact temporary fixture cleanup",
+      "status": "PASS",
+      "users": 5,
+      "organisations": 2
+    }
+  ]
+}

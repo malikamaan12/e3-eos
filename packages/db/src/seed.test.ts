@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { generateSeedManifest } from './seed.js';
+import { generateSeedManifest, seedMembershipAudience } from './seed.js';
+
+it('assigns internal team roles to the internal audience even when they belong to an organisation', () => {
+  expect(seedMembershipAudience('super_admin')).toBe('internal');
+  expect(seedMembershipAudience('project_manager')).toBe('internal');
+  expect(seedMembershipAudience('client_user')).toBe('client');
+});
 
 describe('Database Synthetic Seed Manifest', () => {
   it('should generate a complete, traceable seed manifest with 13 stages and 312 activities per project', () => {

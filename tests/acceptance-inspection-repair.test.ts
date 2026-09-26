@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { Request } from 'express';
 import {
   parseIntelligentDocument,
@@ -44,6 +44,10 @@ import {
   requiredDocumentSlotsRepository,
   submissionPacksRepository,
 } from '../apps/api/src/documents/documents.repositories.js';
+
+// Legacy direct domain scenarios deliberately opt into isolated fixtures, never HTTP.
+beforeEach(() => { vi.stubEnv('EOS_ENABLE_LOCAL_SYNTHETIC_AUTH', 'true'); vi.stubEnv('ENVIRONMENT', 'test'); });
+afterEach(() => vi.unstubAllEnvs());
 
 describe('E3-EOS Acceptance Inspection & Repair Suite — Complete Proven Workflows', () => {
   const projectId = 'f1111111-1111-4111-8111-111111111111';

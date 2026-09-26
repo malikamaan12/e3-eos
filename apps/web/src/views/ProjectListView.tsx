@@ -4,9 +4,8 @@ import { Button, Badge, Card, EmptyState, Input, Skeleton } from '../components/
 import { FastTrackProjectModal } from './FastTrackProjectModal.js';
 
 export const ProjectListView: React.FC = () => {
-  const { currentLanguage, apiClient, navigate, refreshTrigger, setSelectedProjectId } = useEosContext();
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { currentLanguage, navigate, setSelectedProjectId, projects, projectsLoading: loading, projectsError: error, triggerRefresh, currentUser } = useEosContext();
+  const canAdministerAccess = currentUser?.isSuperAdmin === true || currentUser?.role === 'super_admin';
   const [search, setSearch] = useState<string>('');
   const [filter, setFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
@@ -22,26 +21,6 @@ export const ProjectListView: React.FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchProjects() {
-      setLoading(true);
-      try {
-        const res = await apiClient.getProjects();
-        if (isMounted) {
-          const list = (res as any).data || (Array.isArray(res) ? res : []);
-          setProjects(list);
-        }
-      } catch {
-        // Handled
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    fetchProjects();
-    return () => { isMounted = false; };
-  }, [apiClient, refreshTrigger]);
 
   const filteredProjects = projects.filter((p) => {
     const code = (p.projectCode || p.code || '').toLowerCase();
@@ -84,12 +63,13 @@ export const ProjectListView: React.FC = () => {
           </h1>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted, #94a3b8)' }}>
             {isRtl
-              ? 'إدارة محفظة الفعاليات النشطة والفرص والمناقصات عبر المراحل الـ 13'
-              : 'Enterprise portfolio of live event deliveries, tenders, and framework awards'}
+              ? 'المشاريع التي تتيحها عضويتك ومنح الوصول الحالية.'
+              : 'Projects available through your current membership and access grants.'}
           </p>
         </div>
 
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          {canAdministerAccess && <Button variant="secondary" onClick={() => navigate('/admin/access')}>{isRtl ? 'إدارة صلاحيات المشاريع' : 'Manage project access'}</Button>}
           <Button
             id="fast-track-intake-btn"
             variant="primary"
@@ -219,19 +199,21 @@ export const ProjectListView: React.FC = () => {
             ))}
           </div>
         </Card>
+      ) : error ? (
+        <Card><div role="alert"><h2 style={{ fontSize: 18 }}>{isRtl ? 'تعذر تحميل المشاريع المتاحة.' : 'Available projects could not be loaded.'}</h2><p style={{ color: 'var(--text-secondary)' }}>{error}</p><Button variant="secondary" onClick={triggerRefresh}>{isRtl ? 'إعادة المحاولة' : 'Retry'}</Button></div></Card>
       ) : filteredProjects.length === 0 ? (
         <EmptyState
           icon="🎪"
-          title={isRtl ? 'لا توجد مشاريع مطابقة' : 'No Projects Found'}
+          title={projects.length === 0 ? (isRtl ? 'لا يوجد وصول إلى مشاريع حالياً' : 'No project access yet') : (isRtl ? 'لا توجد مشاريع مطابقة' : 'No matching projects')}
           description={
-            isRtl
-              ? 'لا توجد مشاريع تطابق معايير البحث المحددة أو تتبع جهتك المؤسسية.'
-              : 'There are no projects matching your search criteria or assigned to your organization tenant.'
+            projects.length === 0
+              ? (isRtl ? 'تحتاج عضويتك إلى منحة صريحة للمشروع. تواصل مع مسؤول الجهة؛ إنشاء مشروع لا يمنح الوصول تلقائياً.' : 'Your membership needs an explicit project grant. Contact an organization administrator; creating a project does not automatically grant access.')
+              : (isRtl ? 'غيّر عوامل التصفية أو امسح البحث لعرض المشاريع المتاحة لك.' : 'Change the filters or clear the search to see your available projects.')
           }
           action={
-            <Button variant="primary" size="md" onClick={() => navigate('/projects/new')}>
-              {isRtl ? 'إنشاء أول مشروع' : 'Create Your First Project'}
-            </Button>
+            projects.length > 0 ? <Button variant="secondary" onClick={() => { setSearch(''); setFilter('all'); }}>{isRtl ? 'مسح عوامل التصفية' : 'Clear filters'}</Button>
+              : canAdministerAccess ? <Button onClick={() => navigate('/admin/access')}>{isRtl ? 'إدارة صلاحيات المشاريع' : 'Manage project access'}</Button>
+              : <Button variant="secondary" onClick={triggerRefresh}>{isRtl ? 'تحديث الوصول' : 'Refresh access'}</Button>
           }
         />
       ) : effectiveViewMode === 'table' ? (

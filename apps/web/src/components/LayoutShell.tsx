@@ -10,6 +10,8 @@ import { CreateTaskModal } from './CreateTaskModal.js';
 import { RequestApprovalModal } from './RequestApprovalModal.js';
 import { AuditHistoryDrawer } from './AuditHistoryDrawer.js';
 import { E3_THEME } from './DesignSystem.js';
+import { BrandLogo } from './BrandLogo.js';
+import { WorkspaceIcon } from './WorkspaceIcon.js';
 
 export interface LayoutShellProps {
   children: React.ReactNode;
@@ -33,6 +35,8 @@ interface NavSection {
 
 export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
   const {
+    apiClient,
+    triggerRefresh,
     currentUser,
     currentOrg,
     currentLanguage,
@@ -75,6 +79,15 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
   const [notificationsOpen, setNotificationsOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [runtimeEnvironment, setRuntimeEnvironment] = useState('unknown');
+
+  useEffect(() => {
+    let active = true;
+    apiClient.getRuntimeEnvironment()
+      .then((environment) => { if (active) setRuntimeEnvironment(environment); })
+      .catch(() => { if (active) setRuntimeEnvironment('unknown'); });
+    return () => { active = false; };
+  }, [apiClient]);
 
   // Responsive breakpoint tracking
   const [isMobile, setIsMobile] = useState<boolean>(() => {
@@ -183,7 +196,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         { path: '/approvals', labelEn: 'Approvals', labelAr: 'الموافقات', icon: '✍️', id: 'nav-approvals' },
         { path: '/calendar', labelEn: 'Calendar', labelAr: 'التقويم', icon: '📅', id: 'nav-calendar' },
         { path: '/portfolio', labelEn: 'Portfolio', labelAr: 'المحفظة', icon: '📊', id: 'nav-portfolio' },
-        { path: '/reports/post-event', labelEn: 'Reports', labelAr: 'التقارير', icon: '📈', id: 'nav-reports' },
+        { path: '/reports', labelEn: 'Reports', labelAr: 'التقارير', icon: '📈', id: 'nav-reports' },
         { path: '/admin/users', labelEn: 'Administration', labelAr: 'الإدارة', icon: '⚙️', id: 'nav-admin' },
       ],
     },
@@ -192,8 +205,15 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
       titleEn: 'Enterprise Modules',
       titleAr: 'الوحدات التشغيلية',
       items: [
-        { path: `/projects/${selectedProjectId || 'f1111111-1111-4111-8111-111111111111'}`, labelEn: 'Project Cockpit', labelAr: 'قمرة القيادة للمشروع', icon: '🎯', id: 'nav-cockpit' },
-        { path: '/projects/PRJ-TEST-ALL-FORMATS/designs', labelEn: 'Universal Design Lab (18 Formats)', labelAr: 'معمل التصاميم الشامل (١٨ صيغة)', icon: '🎨', id: 'nav-all-formats-lab' },
+        { path: selectedProjectId ? `/projects/${selectedProjectId}` : '/projects', labelEn: 'Project Cockpit', labelAr: 'قمرة القيادة للمشروع', icon: '🎯', id: 'nav-cockpit' },
+        { path: '/work-register', labelEn: 'Work packages & tasks', labelAr: 'حزم العمل والمهام', icon: '📋', id: 'nav-work-register' },
+        { path: '/schedule', labelEn: 'Schedule & dependencies', labelAr: 'الجدول والاعتماديات', icon: '📅', id: 'nav-schedule' },
+        { path: '/requirements/register', labelEn: 'Requirement intake', labelAr: 'تسجيل المتطلبات', icon: '📝', id: 'nav-requirements-register' },
+        { path: '/clarifications/register', labelEn: 'Clarification register', labelAr: 'سجل الاستيضاحات', icon: '💬', id: 'nav-clarifications-register' },
+        { path: '/documents/register', labelEn: 'Document register', labelAr: 'سجل الوثائق', icon: '📑', id: 'nav-documents-register' },
+        { path: '/allocations/register', labelEn: 'Allocation planning', labelAr: 'تخطيط التوزيعات', icon: '📐', id: 'nav-allocation-register' },
+        { path: '/designs/register', labelEn: 'Design briefs', labelAr: 'موجزات التصميم', icon: '🎨', id: 'nav-design-register' },
+        { path: '/impact-review', labelEn: 'Change impact', labelAr: 'أثر التغييرات', icon: '🔄', id: 'nav-impact-register' },
         { path: '/commercial/financial-control', labelEn: 'Financial Control Center', labelAr: 'مركز الرقابة المالية', icon: '💰', id: 'nav-fin-control' },
         { path: '/commercial/supplier-invoices', labelEn: 'Supplier Invoices (3-Way Match)', labelAr: 'فواتير الموردين والمطابقة', icon: '🧾', id: 'nav-sup-invoices' },
         { path: '/commercial/client-billing', labelEn: 'Client Billing & Collections', labelAr: 'فوترة العميل والتحصيل', icon: '💳', id: 'nav-client-billing' },
@@ -201,7 +221,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         { path: '/estimating/historical', labelEn: 'Historical Estimating', labelAr: 'التقدير التاريخي والتسعير', icon: '📈', id: 'nav-estimating' },
         { path: '/vendors', labelEn: 'Vendor Directory', labelAr: 'دليل الموردين', icon: '🏢', id: 'nav-vendors' },
         { path: '/warehouse', labelEn: 'Warehouse Hub', labelAr: 'المستودع المركزي', icon: '📦', id: 'nav-warehouse' },
-        { path: '/field', labelEn: 'Field Ops Mobile PWA', labelAr: 'عمليات الموقع الميدانية', icon: '📱', id: 'nav-field' },
+        { path: '/field', labelEn: 'Field notes', labelAr: 'ملاحظات الموقع', icon: '📱', id: 'nav-field' },
         { path: '/live/run-sheet', labelEn: 'Master Run Sheet', labelAr: 'جدول العرض المباشر', icon: '⏱️', id: 'nav-run-sheet' },
         { path: '/live/command-center', labelEn: 'Live Command Centre', labelAr: 'مركز القيادة الميداني', icon: '🛰️', id: 'nav-command-center' },
         { path: '/live/compliance', labelEn: 'Compliance Register', labelAr: 'سجل الامتثال والتراخيص', icon: '⚖️', id: 'nav-compliance' },
@@ -294,7 +314,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                 <div
                   style={{
                     height: '1px',
-                    backgroundColor: '#1e293b',
+                    backgroundColor: 'var(--surface-3)',
                     margin: '8px 4px',
                   }}
                   title={sectionTitle}
@@ -354,6 +374,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                     <button
                       key={item.id}
                       id={item.id}
+                      className="eos-nav-item"
+                      aria-current={isActive ? "page" : undefined}
                       title={isRail ? `${itemLabel} (${sectionTitle})` : undefined}
                       aria-label={itemLabel}
                       onClick={() => {
@@ -397,7 +419,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                           }}
                         />
                       )}
-                      <span style={{ fontSize: isRail ? '18px' : '15px' }}>{item.icon}</span>
+                      <WorkspaceIcon name={item.path} />
                       {!isRail && (
                         <span
                           style={{
@@ -422,7 +444,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
   );
 
   return (
-    <div
+    <div className="eos-shell"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -476,8 +498,10 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
 
       {/* Top Application Header (E3 Charcoal / Near-Black Chrome) */}
       <header
+        className="eos-app-header"
         style={{
-          height: '56px',
+          minHeight: '56px',
+          flexShrink: 0,
           backgroundColor: 'var(--canvas, #090d16)',
           color: 'var(--text-primary, #ffffff)',
           display: 'flex',
@@ -489,7 +513,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
           boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="eos-header-brand" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {/* Mobile Hamburger Menu Button */}
           {isMobile && (
             <button
@@ -516,27 +540,14 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
             onClick={() => navigate('/')}
           >
-            <span
-              style={{
-                backgroundColor: '#d97706',
-                color: '#ffffff',
-                fontWeight: 900,
-                fontSize: '13px',
-                padding: '3px 7px',
-                borderRadius: '4px',
-                letterSpacing: '0.8px',
-              }}
-            >
-              E3
-            </span>
-            <span style={{ fontWeight: 800, fontSize: '15px', letterSpacing: '0.5px', color: '#ffffff' }}>EOS</span>
+            <BrandLogo />
           </div>
 
-          {/* Staging Badge */}
+          {/* Environment reported by the current API. */}
           <span
-            id="staging-env-badge"
+            id="runtime-env-badge"
             style={{
-              backgroundColor: '#1e293b',
+              backgroundColor: 'var(--surface-3)',
               color: '#d97706',
               border: '1px solid #d97706',
               fontWeight: 800,
@@ -546,16 +557,16 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               letterSpacing: '0.5px',
               textTransform: 'uppercase',
             }}
-            title="Google Cloud Doha (me-central1)"
+            title={`API environment: ${runtimeEnvironment}`}
           >
-            STAGING
+            {runtimeEnvironment === 'unknown' ? (currentLanguage === 'ar' ? 'البيئة غير مؤكدة' : 'ENV UNKNOWN') : runtimeEnvironment.toUpperCase()}
           </span>
 
           {/* Desktop Subtitle */}
           {!isMobile && (
             <>
               <span style={{ color: '#334155', fontSize: '13px' }}>|</span>
-              <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+              <span className="eos-header-subtitle" style={{ fontSize: '12px', color: '#94a3b8' }}>
                 {currentLanguage === 'ar' ? 'نظام تشغيل الفعاليات المؤسسي' : 'Enterprise Event Operating System'}
               </span>
             </>
@@ -569,14 +580,14 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            backgroundColor: '#101726',
-            border: '1.5px solid #d97706',
+            backgroundColor: 'var(--surface-inset)',
+            border: '1px solid var(--border-default)',
             borderRadius: '6px',
             padding: '3px 8px',
             margin: isMobile ? '0 4px' : '0 10px',
             maxWidth: isMobile ? '160px' : '360px',
             flex: isMobile ? '0 1 auto' : '0 1 360px',
-            boxShadow: '0 0 10px rgba(217, 119, 6, 0.15)',
+            boxShadow: 'none',
           }}
         >
           <span style={{ fontSize: '13px', flexShrink: 0 }}>📁</span>
@@ -595,7 +606,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             }}
             style={{
               backgroundColor: 'transparent',
-              color: '#f8fafc',
+              color: 'var(--text-primary)',
               border: 'none',
               fontSize: '12px',
               fontWeight: 700,
@@ -610,7 +621,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               const code = p.projectCode || p.code || p.id;
               const isLab = code.includes('ALL-FORMATS') || p.id === '00000000-0000-4000-8000-000000000099';
               return (
-                <option key={p.id} value={p.id} style={{ backgroundColor: '#0f172a', color: '#f8fafc' }}>
+                <option key={p.id} value={p.id} style={{ backgroundColor: 'var(--surface-1)', color: 'var(--text-primary)' }}>
                   {isLab ? `🧪 ${code} — ${p.title || p.name} (18 Formats Lab)` : `${code} — ${p.title || p.name}`}
                 </option>
               );
@@ -620,7 +631,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
 
         {/* Global Search Bar (Desktop) */}
         {!isMobile && (
-          <div style={{ flex: 1, maxWidth: '340px', margin: '0 20px' }}>
+          <div className="eos-header-search" style={{ flex: 1, maxWidth: '340px', margin: '0 20px' }}>
             <input
               type="text"
               placeholder={currentLanguage === 'ar' ? 'بحث في المشاريع والمهام وأوامر الشراء...' : 'Search projects, tasks, approvals, POs...'}
@@ -628,9 +639,9 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%',
-                backgroundColor: '#131b2e',
-                color: '#f8fafc',
-                border: '1px solid #1e293b',
+                backgroundColor: 'var(--surface-inset)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '6px',
                 padding: '6px 12px',
                 fontSize: '12px',
@@ -642,16 +653,16 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         )}
 
         {/* Header Right Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="eos-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {/* + Create Dropdown */}
           <div style={{ position: 'relative' }}>
             <button
               id="btn-create-menu"
               onClick={() => setCreateMenuOpen(!createMenuOpen)}
               style={{
-                backgroundColor: '#1e293b',
+                backgroundColor: 'var(--surface-3)',
                 color: '#ffffff',
-                border: '1px solid #334155',
+                border: '1px solid var(--border-default)',
                 borderRadius: '6px',
                 padding: '6px 12px',
                 fontSize: '12px',
@@ -662,7 +673,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                 gap: '6px',
               }}
             >
-              <span>+ Create</span>
+              <span>{currentLanguage === 'ar' ? '+ إنشاء' : '+ Create'}</span>
               <span style={{ fontSize: '9px' }}>▼</span>
             </button>
 
@@ -764,13 +775,13 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
                 gap: '8px',
                 padding: '4px 10px',
                 borderRadius: '6px',
-                backgroundColor: '#131b2e',
-                border: '1px solid #1e293b',
+                backgroundColor: 'var(--surface-inset)',
+                border: '1px solid var(--border-subtle)',
                 fontSize: '12px',
               }}
             >
               <span style={{ fontSize: '13px' }}>👤</span>
-              <span style={{ fontWeight: 700, color: '#f8fafc' }}>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
                 <span dir="ltr">{currentUser?.name || 'User'}</span>
               </span>
               <span style={{ fontSize: '11px', color: '#94a3b8' }}>({currentUser?.role || 'Role'})</span>
@@ -782,7 +793,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             id="btn-logout"
             onClick={logout}
             style={{
-              backgroundColor: '#1e293b',
+              backgroundColor: 'var(--surface-3)',
               color: '#f87171',
               border: '1px solid #7f1d1d',
               borderRadius: '6px',
@@ -845,7 +856,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
       <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
         {/* Desktop Sidebar (Deep Charcoal / Obsidian Chrome) */}
         {!isMobile && (
-          <aside
+          <aside className="eos-sidebar"
             style={{
               width: isSidebarCollapsed ? '72px' : '268px',
               flexShrink: 0,
@@ -926,7 +937,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle, #1e293b)', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ backgroundColor: 'var(--accent, #d97706)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontWeight: 800, fontSize: '12px' }}>E3</span>
+                  <BrandLogo />
                   <span style={{ color: 'var(--text-primary, #fff)', fontWeight: 700 }}>{currentLanguage === 'ar' ? 'القائمة' : 'Navigation Menu'}</span>
                 </div>
                 <button
@@ -955,7 +966,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
         )}
 
         {/* Content Viewport */}
-        <main
+        <main className="eos-main"
           ref={mainRef}
           style={{
             flex: 1,
@@ -1007,7 +1018,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               cursor: 'pointer',
             }}
           >
-            <span style={{ fontSize: '18px' }}>🏠</span>
+            <WorkspaceIcon name="/" />
             <span>{currentLanguage === 'ar' ? 'الرئيسية' : 'Home'}</span>
           </button>
 
@@ -1026,7 +1037,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               cursor: 'pointer',
             }}
           >
-            <span style={{ fontSize: '18px' }}>📋</span>
+            <WorkspaceIcon name="/my-work" />
             <span>{currentLanguage === 'ar' ? 'مهامي' : 'My Work'}</span>
           </button>
 
@@ -1045,7 +1056,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
               cursor: 'pointer',
             }}
           >
-            <span style={{ fontSize: '18px' }}>📱</span>
+            <WorkspaceIcon name="/field" />
             <span>{currentLanguage === 'ar' ? 'الميدان' : 'Field'}</span>
           </button>
 
@@ -1074,10 +1085,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children }) => {
       <NewProjectWizardModal
         isOpen={isNewProjectModalOpen}
         onClose={() => setIsNewProjectModalOpen(false)}
-        onProjectCreated={(p) => {
-          setSelectedProjectId(p.id);
-          setActiveWorkspace('project');
-        }}
+        onProjectCreated={() => triggerRefresh()}
       />
 
       <CreateTaskModal

@@ -48,6 +48,21 @@ export async function runMigrations() {
       '0012_rfp_document_intelligence_integration.sql',
       '0013_controlled_documents_vault_and_submission_packs.sql',
       '0014_enterprise_integration_operations_and_capacity_store.sql',
+      '0015_controlled_invitation_lifecycle.sql',
+      '0016_project_access_grants.sql',
+      '0017_membership_controlled_changes.sql',
+      '0018_work_versions.sql',
+      '0019_document_versions.sql',
+      '0020_reporting_snapshots.sql',
+      '0021_requirement_intake_versions.sql',
+      '0022_clarification_records.sql',
+      '0023_field_observations.sql',
+      '0024_allocation_register.sql',
+      '0025_design_register.sql',
+      '0026_impact_review_records.sql',
+      '0027_task_forecasts.sql',
+      '0028_task_dependencies.sql',
+      '0029_schedule_planning_register.sql',
     ];
 
     await client.query(`

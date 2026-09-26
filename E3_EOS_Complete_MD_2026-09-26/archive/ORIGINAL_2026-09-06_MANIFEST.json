@@ -1,0 +1,207 @@
+{
+  "product": "E3-EOS",
+  "packageVersion": "1.0",
+  "preparedDate": "2026-09-07",
+  "status": "Consolidated developer planning and build baseline; no implemented-system certification",
+  "counts": {
+    "markdownFiles": 36,
+    "modules": 18,
+    "buildPhases": 8,
+    "eventStages": 13,
+    "suggestedStageActivities": 312,
+    "implementationStories": 68,
+    "apiInventoryOperations": 138,
+    "coreOpenAPICommandOperations": 16,
+    "acceptanceScenarios": 92,
+    "primarySources": 36
+  },
+  "fileHashAlgorithm": "SHA-256",
+  "files": [
+    {
+      "path": "00_MASTER_DEVELOPER_HANDOVER.md",
+      "bytes": 432532,
+      "sha256": "74570b7244b88456d1e812ddd97796533ccb0fc0fa4bca2d85f9601a9252c80f"
+    },
+    {
+      "path": "DOCUMENT_VALIDATION.md",
+      "bytes": 3680,
+      "sha256": "36f4a2cd8bb74ff6929527a22cdc6fc0040c3e3a1890b678f1c1aed72ea98d5f"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5866,
+      "sha256": "e24e2b60ba861af898d840f005e9e89f76c729e8df696c6be7d6c46eac17463a"
+    },
+    {
+      "path": "contracts/CORE_COMMANDS.openapi.yaml",
+      "bytes": 62238,
+      "sha256": "c8b6855b8e55085ab258046cf71879b2baea9634841112968de3ce549283899c"
+    },
+    {
+      "path": "contracts/README.md",
+      "bytes": 1105,
+      "sha256": "b5fac89bba360808ef9ad37c0ecbbbecd7aee955586e2a17d7fbbe16d3d40ab7"
+    },
+    {
+      "path": "phases/PHASE_00_FOUNDATION_SECURITY.md",
+      "bytes": 8752,
+      "sha256": "0b79a9e5d8bec9d3a9979cc9781bb27e6654d51278d4aef72deb9cdae77373ff"
+    },
+    {
+      "path": "phases/PHASE_01_PROJECT_CONTROL.md",
+      "bytes": 13256,
+      "sha256": "3f0ceecea9b8287006b56f1d0c11b3ea3d8fc46a69bd65a82d1129921ad8ec33"
+    },
+    {
+      "path": "phases/PHASE_02_DESIGN_COMMERCIAL_PORTAL.md",
+      "bytes": 10457,
+      "sha256": "2af18fec17bcfe05c9baf785755fb41a2b3a7a3cd4b6fc4cf3d2fc5dfd4924b1"
+    },
+    {
+      "path": "phases/PHASE_03_PROCUREMENT_PRODUCTION_ASSETS.md",
+      "bytes": 11100,
+      "sha256": "f3a397f02f21e2194e459a7f74755e6335b7d6ee0420f2cbcce0dcbf3be8418c"
+    },
+    {
+      "path": "phases/PHASE_04_FIELD_OPERATIONS.md",
+      "bytes": 10232,
+      "sha256": "f8404129390af97d3435ac650ac8a6eaba4e220500afee20cf687742ae88004b"
+    },
+    {
+      "path": "phases/PHASE_05_FINANCE_REPORTING_INTEGRATIONS.md",
+      "bytes": 10452,
+      "sha256": "c4c934984388f62410e6c4ace1054828a1206fbcec89a41a8f828604e04f7163"
+    },
+    {
+      "path": "phases/PHASE_06_OPTIMISATION_AI_COUNTRY_SCALE.md",
+      "bytes": 8520,
+      "sha256": "67436ead71bee59f7240a3b6b99a03e182e031f3e95fba11a977725838a6f0c6"
+    },
+    {
+      "path": "phases/PHASE_07_PRODUCTION_ROLLOUT.md",
+      "bytes": 7871,
+      "sha256": "a1b07184cdf111352f37a317a521518a24a99902c2c3d600b70efe6ae8c28c66"
+    },
+    {
+      "path": "specs/01_PRODUCT_MODULES_AND_UX.md",
+      "bytes": 12627,
+      "sha256": "8921be696402a0671399f3e6c2c8094e4ca6821570f89f8e927d00ec9e142026"
+    },
+    {
+      "path": "specs/02_TECH_ARCHITECTURE_AND_ADRS.md",
+      "bytes": 13346,
+      "sha256": "2fa3fedc01c518d358b3de3610f40659a1b65131b5d14671bc2b6d42083453fe"
+    },
+    {
+      "path": "specs/03_DATA_MODEL_AND_INVARIANTS.md",
+      "bytes": 16031,
+      "sha256": "935ab457f672ea6f32f2f23bcaf57e8d2d8d9ba112762e7dc9bb4e8fd6720fb3"
+    },
+    {
+      "path": "specs/04_CONFIGURATION_APPROVALS_AND_EXCEPTIONS.md",
+      "bytes": 14015,
+      "sha256": "4ae251217c23a76a085083312d5ac809fb813aa931c91cd5faca88069d328b70"
+    },
+    {
+      "path": "specs/05_API_AND_EVENT_CONTRACTS.md",
+      "bytes": 28052,
+      "sha256": "3e1fedc3a184177c1a393cf3b7d095d9f1eb88b3e861c712939681b9fcf19066"
+    },
+    {
+      "path": "specs/06_INTEGRATIONS_AND_OFFLINE.md",
+      "bytes": 13983,
+      "sha256": "9a3ae403327d2b6e43b256767f39dac078ac440ad1b8e9233836d75c5c3c934c"
+    },
+    {
+      "path": "specs/07_SECURITY_DEPLOYMENT_AND_RUNBOOKS.md",
+      "bytes": 12661,
+      "sha256": "123692a7ed9cdfd1f3e1a33fb443840a0343a589fddb03d37b732b3566afa836"
+    },
+    {
+      "path": "specs/08_REPORTING_FINANCE_AND_ANALYTICS.md",
+      "bytes": 11086,
+      "sha256": "2d63c117de1b2e6063a3428deafe86237b0d1a184ece659e3ce1fdb37fcd7002"
+    },
+    {
+      "path": "specs/09_QA_ACCEPTANCE_AND_TRACEABILITY.md",
+      "bytes": 18330,
+      "sha256": "e11adb43813a5f7aa61eafe6584bc9a4ea151615b77ee4cb65cebda89299b94b"
+    },
+    {
+      "path": "specs/10_DECISIONS_RISKS_AND_GO_LIVE.md",
+      "bytes": 9323,
+      "sha256": "1c35a523b5248babb7f179f97c7353b3ba60e7fdf3d1f852aefe432a424d3d61"
+    },
+    {
+      "path": "specs/11_SOURCES_AND_VERSION_REGISTER.md",
+      "bytes": 8168,
+      "sha256": "33beb96139a2e04c09dc7aec6affc4b01c7978a3de9b516f122c4927b5769450"
+    },
+    {
+      "path": "stages/01_PROJECT_ONBOARDING.md",
+      "bytes": 9089,
+      "sha256": "25a7d7652ddd303501abc9c340e55e2e95e9c1980cc6d1084f3d848abcb7e109"
+    },
+    {
+      "path": "stages/02_QUALIFICATION_FEASIBILITY.md",
+      "bytes": 8760,
+      "sha256": "82212211c6acba56821c578d7cbecb3787b01de7e546182ca41b105d39999f1b"
+    },
+    {
+      "path": "stages/03_IDEA_CONCEPT_FIRST_DRAFT.md",
+      "bytes": 8720,
+      "sha256": "2b765d0a318e2a8e10be8ae2cffff7d3a3fa70fd79cf168b9f9ec0a736720d0a"
+    },
+    {
+      "path": "stages/04_CLARIFICATION_DESIGN_DEVELOPMENT.md",
+      "bytes": 8783,
+      "sha256": "3697930e14b60422dcb03440c2957940a1983082c8a083812b3f1e61085b5aad"
+    },
+    {
+      "path": "stages/05_PROPOSAL_SUBMISSION_AUTHORISATION.md",
+      "bytes": 8811,
+      "sha256": "d243a5ec171e6533f6e5ed0ac7543911cd4890c49c9e367c65bd5e1e09b6f088"
+    },
+    {
+      "path": "stages/06_DETAILED_DELIVERY_PLANNING.md",
+      "bytes": 8519,
+      "sha256": "88d7e484d408eaee110e36027e565000109022b2ce71080fdb5921e37dcbf6ef"
+    },
+    {
+      "path": "stages/07_VENDOR_SELECTION_ORDERS.md",
+      "bytes": 8788,
+      "sha256": "5b6fa7b18de2aceb4a4ef79d6365e3284240095f705849906d68e00c69f13e89"
+    },
+    {
+      "path": "stages/08_PRODUCTION_RESOURCE_PREPARATION.md",
+      "bytes": 8943,
+      "sha256": "72bcd88316854a7d8dad051367105b54cc1b45c9906440ea80411ed3d366df5e"
+    },
+    {
+      "path": "stages/09_LOGISTICS_BUMP_IN_INSTALLATION.md",
+      "bytes": 8885,
+      "sha256": "bbb854bdbfa338de3d48b0558128853cce2ede4bbaa7e1b2f22acf0e5ebef5e1"
+    },
+    {
+      "path": "stages/10_FINISHING_TESTING_READINESS.md",
+      "bytes": 9046,
+      "sha256": "e624739f104a848ee91c0041d3e897aec18bbb2c30aa0ec9e04e7fece9692ae5"
+    },
+    {
+      "path": "stages/11_OPERATIONS_DELIVERY.md",
+      "bytes": 9112,
+      "sha256": "21af0590c750aa79804019fed41061e81b7d31bbef3d0f666455f05fb92fe330"
+    },
+    {
+      "path": "stages/12_BUMP_OUT_RECONCILIATION.md",
+      "bytes": 9061,
+      "sha256": "604d98b250f368e2ba5e9710482aaf46eb492a48be51f28ae40d478580bb7592"
+    },
+    {
+      "path": "stages/13_POST_EVENT_REPORT_CLOSURE_LEARNING.md",
+      "bytes": 9278,
+      "sha256": "d01e4558bc71cebc36d3fa2e3edab521a3feac6fd36f81f4247efeb9318c17b9"
+    }
+  ],
+  "manifestExcludesSelf": true
+}

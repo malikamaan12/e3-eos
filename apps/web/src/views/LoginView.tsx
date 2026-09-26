@@ -1,3 +1,4 @@
+import { BrandLogo } from '../components/BrandLogo.js';
 import React, { useState, useEffect } from 'react';
 import { useEosContext } from '../context/EosContext.js';
 import { Button, AlertBanner } from '../components/DesignSystem.js';
@@ -198,31 +199,11 @@ export const LoginView: React.FC = () => {
               marginBottom: '16px',
             }}
           >
-            {/* E3 Gold Monogram Shield */}
-            <div
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, var(--surface-2, #151e2e) 0%, var(--canvas, #090d16) 100%)',
-                border: '1.5px solid rgba(217, 119, 6, 0.7)',
-                boxShadow: '0 4px 20px rgba(217, 119, 6, 0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#f59e0b',
-                fontWeight: 900,
-                fontSize: '22px',
-                letterSpacing: '1px',
-              }}
-            >
-              E3
-            </div>
-
+            <BrandLogo />
             <div style={{ textAlign: isAr ? 'right' : 'left' }}>
               <div
                 style={{
-                  color: 'var(--surface-1, #0f1624)',
+                  color: 'var(--text-primary, #f8fafc)',
                   fontWeight: 800,
                   fontSize: '24px',
                   letterSpacing: '0.8px',
@@ -401,7 +382,7 @@ export const LoginView: React.FC = () => {
               /* Standard Password Form */
               <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: '18px' }}>
-                  <label htmlFor="login-email-input" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--border-default, #2a374b)', marginBottom: '6px' }}>
+                  <label htmlFor="login-email-input" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', marginBottom: '6px' }}>
                     {isAr ? 'البريد الإلكتروني المؤسسي' : 'Corporate Email Address'}
                   </label>
                   <input
@@ -428,7 +409,7 @@ export const LoginView: React.FC = () => {
 
                 <div style={{ marginBottom: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <label htmlFor="login-password-input" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--border-default, #2a374b)' }}>
+                    <label htmlFor="login-password-input" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)' }}>
                       {isAr ? 'كلمة المرور' : 'Password'}
                     </label>
                     <a
@@ -583,7 +564,7 @@ export const LoginView: React.FC = () => {
                           key={u.email}
                           style={{
                             padding: '8px 10px',
-                            backgroundColor: 'var(--text-primary, #f8fafc)',
+                            backgroundColor: 'var(--surface-1, #0f1624)',
                             border: '1px solid var(--border-default, #2a374b)',
                             borderRadius: '6px',
                             display: 'flex',
@@ -716,7 +697,7 @@ export const LoginView: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  backgroundColor: 'var(--text-primary, #f8fafc)',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                 }}
               >
                 <div>
@@ -770,7 +751,7 @@ export const LoginView: React.FC = () => {
                   </span>
                   <code
                     style={{
-                      backgroundColor: 'var(--text-primary, #f8fafc)',
+                      backgroundColor: 'var(--surface-1, #0f1624)',
                       color: '#fbbf24',
                       padding: '3px 8px',
                       borderRadius: '4px',
@@ -826,7 +807,7 @@ export const LoginView: React.FC = () => {
                     width: '100%',
                     padding: '8px 12px',
                     fontSize: '12px',
-                    backgroundColor: 'var(--text-primary, #f8fafc)',
+                    backgroundColor: 'var(--surface-1, #0f1624)',
                     color: 'var(--text-primary, #f8fafc)',
                     border: '1px solid var(--border-default, #2a374b)',
                     borderRadius: '6px',
@@ -911,7 +892,7 @@ export const LoginView: React.FC = () => {
                       key={u.id}
                       style={{
                         padding: '12px 14px',
-                        backgroundColor: 'var(--text-primary, #f8fafc)',
+                        backgroundColor: 'var(--surface-1, #0f1624)',
                         border: '1px solid var(--border-subtle, #1d2939)',
                         borderRadius: '8px',
                         display: 'flex',
@@ -969,7 +950,7 @@ export const LoginView: React.FC = () => {
                         <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>
                           {isAr ? 'الدور والسقف المالي:' : 'Role & Authority:'}
                         </div>
-                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--border-default, #2a374b)', backgroundColor: 'var(--surface-2, #151e2e)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', width: 'fit-content' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary, #cbd5e1)', backgroundColor: 'var(--surface-2, #151e2e)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', width: 'fit-content' }}>
                           {isAr ? meta.tagAr : meta.tag} ({isAr ? meta.ceilingAr : meta.ceiling})
                         </span>
                       </div>
@@ -1026,7 +1007,7 @@ export const LoginView: React.FC = () => {
                 style={{
                   padding: '12px 20px',
                   borderTop: '1px solid var(--border-subtle, #1d2939)',
-                  backgroundColor: 'var(--text-primary, #f8fafc)',
+                  backgroundColor: 'var(--surface-1, #0f1624)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -1043,7 +1024,7 @@ export const LoginView: React.FC = () => {
                     fontSize: '12px',
                     fontWeight: 600,
                     backgroundColor: 'var(--surface-2, #151e2e)',
-                    color: 'var(--border-default, #2a374b)',
+                    color: 'var(--text-secondary, #cbd5e1)',
                     border: '1px solid var(--border-default, #2a374b)',
                     borderRadius: '6px',
                     cursor: 'pointer',
